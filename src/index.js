@@ -55,7 +55,7 @@ app.use(async (ctx, next) => {
 /**
  * Handle favicon requests before anything else.
  */
-app.use(koaFavicon(`${__dirname}/public/favicon.ico`));
+app.use(koaFavicon(`${__dirname}/public/icons/favicon.ico`));
 
 /**
  * Log requests during development.

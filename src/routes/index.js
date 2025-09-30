@@ -97,7 +97,7 @@ koaElasticUtils.addRoutes(router, [
  */
 koaElasticUtils.addRoutes(router, [
 	[ '/open-graph/image/measurement/:id', '/open-graph/image/measurement/:id' ],
-], ogImage.globalping);
+], ogImage);
 
 /**
  * Network tools pages.
