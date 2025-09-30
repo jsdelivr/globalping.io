@@ -96,9 +96,9 @@ gulp.task('less:prod', () => {
 });
 
 gulp.task('js', gulp.parallel(
-	() => getRollupStream('app-globalping.js')
+	() => getRollupStream('app.js')
 		.pipe(plumber())
-		.pipe(source('app-globalping.js', srcAssetsDir))
+		.pipe(source('app.js', srcAssetsDir))
 		.pipe(buffer())
 		.pipe(sourcemaps.init({ loadMaps: true }))
 		.pipe(sourcemaps.write('.'))
@@ -115,8 +115,8 @@ gulp.task('js', gulp.parallel(
 ));
 
 gulp.task('js:prod', gulp.parallel(
-	() => getRollupStream('app-globalping.js')
-		.pipe(source('app-globalping.js', srcAssetsDir))
+	() => getRollupStream('app.js')
+		.pipe(source('app.js', srcAssetsDir))
 		.pipe(buffer())
 		.pipe(sourcemaps.init({ loadMaps: true }))
 		.pipe(terser({ sourceMap: { includeSources: true } }))

@@ -3,7 +3,7 @@ const KoaRouter = require('koa-router');
 const koaElasticUtils = require('elastic-apm-utils').koa;
 const _ = require('lodash');
 
-const globalpingSitemap = require('../middleware/sitemap/globalping');
+const globalpingSitemap = require('../middleware/sitemap');
 const ogImage = require('../middleware/open-graph/image');
 const ogMetadata = require('../middleware/open-graph/globalping');
 

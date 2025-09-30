@@ -3,44 +3,62 @@ require('./polyfills');
 const http = require('./utils/http');
 
 const _ = require('./_');
-const has = require('./utils/has');
-const cAbout = require('../../views/pages/about.html');
-const cGithub = require('../../views/pages/github.html');
-const cFoundationCdn = require('../../views/pages/foundationcdn.html');
-const cUnpkg = require('../../views/pages/unpkg.html');
-const cGoogle = require('../../views/pages/google.html');
-const cBecomeASponsor = require('../../views/pages/become-a-sponsor.html');
-const cIndex = require('../../views/pages/_index.html');
-const cNetwork = require('../../views/pages/network.html');
-const cNetworkInfographic = require('../../views/pages/network/infographic.html');
-const cNewJsdelivr = require('../../views/pages/new-jsdelivr.html');
-const cPackage = require('../../views/pages/_package.html');
-const cSponsors = require('../../views/pages/sponsors.html');
-const cStatistics = require('../../views/pages/statistics.html');
-const cSri = require('../../views/pages/using-sri-with-dynamic-files.html');
+const cGlobalping = require('../../views/pages/_index.html');
+const cGlobalpingCli = require('../../views/pages/cli.html');
+const cGlobalpingSlack = require('../../views/pages/slack.html');
+const cGlobalpingDiscord = require('../../views/pages/discord.html');
+const cGlobalpingNetworkTools = require('../../views/pages/network-tools.html');
+const cGlobalpingIntegrations = require('../../views/pages/integrations.html');
+const cGlobalpingAbout = require('../../views/pages/about-us.html');
+const cGlobalpingSponsors = require('../../views/pages/sponsors.html');
+const cGlobalpingCredits = require('../../views/pages/credits.html');
+const cGlobalpingNetwork = require('../../views/pages/network.html');
+const cGlobalpingNetworks = require('../../views/pages/_networks.html');
+const cGlobalpingUsers = require('../../views/pages/_users.html');
 const cPP = require('../../views/pages/terms.html');
-const cPurge = require('../../views/pages/tools/purge.html');
-const cEsm = require('../../views/pages/esm.html');
-const cHistory = require('../../views/pages/history.html');
-const cGsap = require('../../views/pages/gsap.html');
-const cSkypack = require('../../views/pages/skypack.html');
-const cEsmsh = require('../../views/pages/esmsh.html');
-const cCustomCdnOss = require('../../views/pages/oss-cdn.html');
-const cCustomCdnOssProject = require('../../views/pages/_oss-cdn-project.html');
-const cDocumentation = require('../../views/pages/documentation.html');
+const { getGlobalpingUser } = require('./utils/http');
 
 Ractive.DEBUG = location.hostname === 'localhost';
 
-// Redirect from the old URL format.
-if (location.pathname === '/' && location.hash) {
-	location.href = '/projects/' + location.hash.substr(2);
-}
+const historyChangeMethods = [ 'pushState', 'replaceState', 'back', 'forward', 'go' ];
+const historyProxy = new Proxy(history, {
+	get (target, prop) {
+		let value = target[prop];
+
+		// If it's a method that changes history, wrap it to emit an event
+		if (historyChangeMethods.includes(prop) && typeof value === 'function') {
+			return function (...args) {
+				let result = value.apply(target, args);
+
+				// Emit historyChange event
+				let event = new CustomEvent('historyChange', {
+					detail: {
+						method: prop,
+						args,
+					},
+				});
+
+				window.dispatchEvent(event);
+				return result;
+			};
+		}
+
+		// For all other properties/methods, return as-is
+		if (typeof value === 'function') {
+			return value.bind(target);
+		}
+
+		return value;
+	},
+
+	set (target, prop, value) {
+		target[prop] = value;
+		return true;
+	},
+});
 
 let app = {
-	config: {
-		animateScrolling: true,
-	},
-	usedCdn: '',
+	config: {},
 };
 
 app.router = new Ractive.Router({
@@ -48,40 +66,57 @@ app.router = new Ractive.Router({
 	data () {
 		return {
 			app,
-			collection: has.localStorage() && localStorage.getItem('collection2') ? JSON.parse(localStorage.getItem('collection2')) : [],
 		};
 	},
 	globals: [ 'query', 'collection' ],
+	history: historyProxy,
 });
 
-app.router.addRoute('/', cIndex, { qs: [ 'docs', 'limit', 'page', 'query', 'type', 'style' ] });
-app.router.addRoute('/esm', cEsm);
-app.router.addRoute('/about', cAbout);
-app.router.addRoute('/rawgit', () => { location.href = '/'; });
-app.router.addRoute('/features', () => { location.href = '/'; });
-app.router.addRoute('/github', cGithub);
-app.router.addRoute('/foundationcdn', cFoundationCdn);
-app.router.addRoute('/unpkg', cUnpkg);
-app.router.addRoute('/google', cGoogle);
-app.router.addRoute('/become-a-sponsor', cBecomeASponsor);
-app.router.addRoute('/network', cNetwork);
-app.router.addRoute('/network/infographic', cNetworkInfographic);
-app.router.addRoute('/new-jsdelivr', cNewJsdelivr);
-app.router.addRoute('/package/:type(npm)/:scope?/:name', cPackage, { qs: [ 'path', 'tab', 'version', 'slide' ] });
-app.router.addRoute('/package/:type(gh)/:user/:repo', cPackage, { qs: [ 'path', 'tab', 'version', 'slide' ] });
-app.router.addRoute('/sponsors', cSponsors);
-app.router.addRoute('/statistics', cStatistics);
-app.router.addRoute('/tools/purge', cPurge);
-app.router.addRoute('/using-sri-with-dynamic-files', cSri);
+app.router.addRoute('/', cGlobalping, { qs: [ 'location', 'measurement', 'display', 'map', 'by', 'order' ] });
+app.router.addRoute('/cli', cGlobalpingCli);
+app.router.addRoute('/slack', cGlobalpingSlack);
+app.router.addRoute('/discord', cGlobalpingDiscord);
+app.router.addRoute('/network-tools/:params?', cGlobalpingNetworkTools);
+app.router.addRoute('/integrations', cGlobalpingIntegrations);
+app.router.addRoute('/about-us', cGlobalpingAbout);
+app.router.addRoute('/sponsors', cGlobalpingSponsors);
+app.router.addRoute('/credits', cGlobalpingCredits);
+app.router.addRoute('/network', cGlobalpingNetwork, { qs: [ 'filter', 'group', 'sort' ] });
 app.router.addRoute('/terms', cPP);
 app.router.addRoute('/terms/:currentPolicy', cPP);
-app.router.addRoute('/history', cHistory);
-app.router.addRoute('/gsap', cGsap);
-app.router.addRoute('/skypack', cSkypack);
-app.router.addRoute('/esmsh', cEsmsh);
-app.router.addRoute('/oss-cdn', cCustomCdnOss);
-app.router.addRoute('/oss-cdn/:name', cCustomCdnOssProject);
-app.router.addRoute('/documentation', cDocumentation);
+app.router.addRoute('/networks/:networkName', cGlobalpingNetworks);
+app.router.addRoute('/users/:username', cGlobalpingUsers, { qs: [ 'filter', 'group', 'sort' ] });
+
+app.router.replaceQueryParam = function (name, newValue, view = this.route.view) {
+	let urlSearchParams = new URLSearchParams(location.search);
+
+	if (newValue !== null && newValue !== undefined) {
+		urlSearchParams.set(name, newValue);
+	} else {
+		urlSearchParams.delete(name);
+	}
+
+	let queryString = urlSearchParams.size ? `?${urlSearchParams.toString()}` : '';
+	let hash = location.hash || '';
+
+	this.history.replaceState(this.history.state, document.title, `${location.pathname}${queryString}${hash}`);
+	view?.set(name, newValue);
+	return this;
+};
+
+app.getSignInLink = () => {
+	let url = new URL('https://dash-directus.globalping.io/auth/login/github');
+	url.searchParams.set('redirect', `${Ractive.sharedGet('serverHost')}/auth/callback?redirect=${encodeURIComponent(location.href)}`);
+	return url.toString();
+};
+
+app.signIn = () => {
+	location.href = app.getSignInLink();
+};
+
+app.signOut = () => {
+	http.gpLogOut().then(() => Ractive.sharedSet('user', null));
+};
 
 _.onDocumentReady(() => {
 	let state = {};
@@ -96,6 +131,10 @@ _.onDocumentReady(() => {
 			.replace(/\u2028/g, '\\u2028')
 			.replace(/\u2029/g, '\\u2029');
 	}
+
+	getGlobalpingUser().then((user) => {
+		ractive.set('@shared.user', user);
+	});
 
 	try {
 		let shared = JSON.parse(document.querySelector('#ractive-shared').innerHTML.trim());
