@@ -146,7 +146,7 @@
 								<img as-tooltip="'Up to 2 IP addresses or domains', ttPos"
 									width="14"
 									height="14"
-									src="{{@shared.assetsHost}}/img/globalping/help-icon.svg">
+									src="{{@shared.assetsHost}}/img/help-icon.svg">
 							{{/partial}}
 						</c-tags-input>
 					</div>
@@ -166,7 +166,7 @@
 								<img as-tooltip="[ 'This magic field supports names of continents, regions, countries, US states, cities, networks, and our custom tags.', '', 'Use + to combine multiple filters.', 'Use , to select multiple locations.' ], ttPos, undefined, undefined, 'multiline'"
 									width="14"
 									height="14"
-									src="{{@shared.assetsHost}}/img/globalping/help-icon.svg">
+									src="{{@shared.assetsHost}}/img/help-icon.svg">
 							{{/partial}}
 						</c-location-input>
 
@@ -185,7 +185,7 @@
 									<img as-tooltip="'Values up to 5 are supported for infinite measurements', ttPos, undefined, undefined, 'gp_tt-limit'"
 										width="14"
 										height="14"
-										src="{{@shared.assetsHost}}/img/globalping/help-icon.svg">
+										src="{{@shared.assetsHost}}/img/help-icon.svg">
 								{{/partial}}
 							</c-controlled-input>
 
@@ -194,7 +194,7 @@
 									on-click="@this.handleToggleMeasOpts()">
 									<img width="20"
 										height="20"
-										src="{{@shared.assetsHost}}/img/globalping/settings-icon.svg">
+										src="{{@shared.assetsHost}}/img/settings-icon.svg">
 
 									{{#if modifiedMeasOptsCnt && showMeasurementOpts === false}}
 										<div class="additional-opts-total">
@@ -691,7 +691,7 @@
 					<div class="gp_map-block_test-output_fail-msg">
 						<img width="56"
 							height="56"
-							src="{{@shared.assetsHost}}/img/globalping/fail-icon-big.svg">
+							src="{{@shared.assetsHost}}/img/fail-icon-big.svg">
 
 						<p>{{{measurementErrMsg}}}</p>
 					</div>
@@ -759,7 +759,7 @@
 					<div class="gp_map-block_test-output_info">
 						<img width="56"
 							height="56"
-							src="{{@shared.assetsHost}}/img/globalping/bulb-icon.svg">
+							src="{{@shared.assetsHost}}/img/bulb-icon.svg">
 
 						<p>
 							Run a global latency test! Benchmark your CDN provider and understand how the network performs!
@@ -784,7 +784,7 @@
 				<img class="gp_detalization_platform_img"
 					width="363"
 					height="288"
-					src="{{@shared.assetsHost}}/img/globalping/polygons_1.svg">
+					src="{{@shared.assetsHost}}/img/polygons_1.svg">
 			</div>
 
 			<div class="gp_detalization_magic">
@@ -798,7 +798,7 @@
 				<img class="gp_detalization_magic_img"
 					width="510"
 					height="289"
-					src="{{@shared.assetsHost}}/img/globalping/polygons_2.svg">
+					src="{{@shared.assetsHost}}/img/polygons_2.svg">
 			</div>
 		</div>
 
@@ -807,7 +807,7 @@
 				<span class="gp_features_item_icon">
 					<img width="48"
 						height="48"
-						src="{{@shared.assetsHost}}/img/globalping/globalping-opensource-icon.svg">
+						src="{{@shared.assetsHost}}/img/globalping-opensource-icon.svg">
 				</span>
 				<span class="gp_features_item_name">
 					Open source and free
@@ -821,7 +821,7 @@
 				<span class="gp_features_item_icon">
 					<img width="48"
 						height="48"
-						src="{{@shared.assetsHost}}/img/globalping/globalping-nonprofit-icon.svg">
+						src="{{@shared.assetsHost}}/img/globalping-nonprofit-icon.svg">
 					</span>
 				<span class="gp_features_item_name">
 					Developed by jsDelivr
@@ -835,7 +835,7 @@
 				<span class="gp_features_item_icon">
 					<img width="48"
 						height="48"
-						src="{{@shared.assetsHost}}/img/globalping/globalping-community-icon.svg">
+						src="{{@shared.assetsHost}}/img/globalping-community-icon.svg">
 					</span>
 				<span class="gp_features_item_name">
 					Powered by community and sponsors
@@ -849,7 +849,7 @@
 				<span class="gp_features_item_icon">
 					<img width="48"
 						height="48"
-						src="{{@shared.assetsHost}}/img/globalping/globalping-security-icon.svg">
+						src="{{@shared.assetsHost}}/img/globalping-security-icon.svg">
 				</span>
 				<span class="gp_features_item_name">
 					Secure and private
@@ -864,7 +864,7 @@
 			<a href="/cli" class="gp_installation_item">
 				<img width="61"
 					height="53"
-					src="{{@shared.assetsHost}}/img/globalping/cli-icon.svg">
+					src="{{@shared.assetsHost}}/img/cli-icon.svg">
 
 				<span class="gp_installation_item_title">
 					Install the Globalping CLI
@@ -878,7 +878,7 @@
 			<a href="/docs/api.globalping.io" class="gp_installation_item router-ignore">
 				<img width="61"
 					height="53"
-					src="{{@shared.assetsHost}}/img/globalping/rest-api-icon.svg">
+					src="{{@shared.assetsHost}}/img/rest-api-icon.svg">
 
 				<span class="gp_installation_item_title">
 					Integrate the Globalping REST API
@@ -892,7 +892,7 @@
 			<a href="/globalping/slack" class="gp_installation_item">
 				<img width="61"
 					height="53"
-					src="{{@shared.assetsHost}}/img/globalping/slack-icon.svg">
+					src="{{@shared.assetsHost}}/img/slack-icon.svg">
 
 				<span class="gp_installation_item_title">
 					Install the Globalping Slack App
@@ -911,8 +911,8 @@
 					<a target="_blank" rel="noopener noreferrer" href="https://www.fastly.com">
 						<img title="Used by Fastly"
 							height="48"
-							src="{{@shared.assetsHost}}/img/globalping/sponsors/fastly.png"
-							srcset="{{@shared.assetsHost}}/img/globalping/sponsors/fastly@2x.png 2x"
+							src="{{@shared.assetsHost}}/img/sponsors/fastly.png"
+							srcset="{{@shared.assetsHost}}/img/sponsors/fastly@2x.png 2x"
 							loading="lazy">
 					</a>
 				</div>
@@ -921,7 +921,7 @@
 					<a target="_blank" rel="noopener noreferrer" href="https://he.net">
 						<img title="Used by Hurricane Electric"
 							height="48"
-							src="{{@shared.assetsHost}}/img/globalping/sponsors/hurricane_electric.png"
+							src="{{@shared.assetsHost}}/img/sponsors/hurricane_electric.png"
 							loading="lazy">
 					</a>
 				</div>
@@ -930,7 +930,7 @@
 					<a target="_blank" rel="noopener noreferrer" href="https://www.dnsfilter.com/">
 						<img title="Used by DNSFilter"
 							height="48"
-							src="{{@shared.assetsHost}}/img/globalping/sponsors/dnsfilter.png"
+							src="{{@shared.assetsHost}}/img/sponsors/dnsfilter.png"
 							loading="lazy">
 					</a>
 				</div>
@@ -979,14 +979,14 @@
 					as-clipboard data-clipboard-text="{{showCommandsBlock ? netCmdTextFullClipboard : netCmdText}}">
 					<img width="20"
 						height="20"
-						src="{{@shared.assetsHost}}/img/globalping/copy-icon.svg">
+						src="{{@shared.assetsHost}}/img/copy-icon.svg">
 				</button>
 
 				<div class="gp_join-network_cmd-block_open-btn {{#if showCommandsBlock}}active{{/if}}"
 					on-click="@this.toggle('showCommandsBlock')">
 					<img width="9"
 						height="6"
-						src="{{@shared.assetsHost}}/img/globalping/chevron.svg">
+						src="{{@shared.assetsHost}}/img/chevron.svg">
 				</div>
 			</div>
 
@@ -1013,7 +1013,7 @@
 				<img class="gp_join-community_img"
 					width="363"
 					height="416"
-					src="{{@shared.assetsHost}}/img/globalping/polygons_3.svg">
+					src="{{@shared.assetsHost}}/img/polygons_3.svg">
 			</div>
 		</div>
 
@@ -1023,7 +1023,7 @@
 
 				<img width="64"
 					height="64"
-					src="{{@shared.assetsHost}}/img/globalping/github.svg">
+					src="{{@shared.assetsHost}}/img/github.svg">
 			</div>
 
 			<div class="gp_gh-links_content">
@@ -1063,8 +1063,8 @@
 			<div class="gp_probe_promo">
 				<img width="198"
 					height="198"
-					src="{{@shared.assetsHost}}/img/globalping/probe.png"
-					srcset="{{@shared.assetsHost}}/img/globalping/probe@2x.png 2x">
+					src="{{@shared.assetsHost}}/img/probe.png"
+					srcset="{{@shared.assetsHost}}/img/probe@2x.png 2x">
 
 				<div class="gp_probe_promo_content">
 					<span class="gp_probe_promo_content_title">
@@ -1078,7 +1078,7 @@
 					<a target="_blank" rel="noopener noreferrer" href="https://github.com/sponsors/jsdelivr" class="gp_probe_promo_content_btn gp_btn_green">
 						<img width="20"
 							height="20"
-							src="{{@shared.assetsHost}}/img/globalping/github.small.svg">
+							src="{{@shared.assetsHost}}/img/github.small.svg">
 
 						Become a GitHub Sponsor
 					</a>
@@ -1095,7 +1095,7 @@
 						<div class="gp_probe_get-probe_list_item_progress">
 							<img width="24"
 								height="24"
-								src="{{@shared.assetsHost}}/img/globalping/circle-icon.svg">
+								src="{{@shared.assetsHost}}/img/circle-icon.svg">
 
 							<span></span>
 						</div>
@@ -1110,7 +1110,7 @@
 						<div class="gp_probe_get-probe_list_item_progress">
 							<img width="24"
 								height="24"
-								src="{{@shared.assetsHost}}/img/globalping/circle-icon.svg">
+								src="{{@shared.assetsHost}}/img/circle-icon.svg">
 
 							<span></span>
 						</div>
@@ -1127,7 +1127,7 @@
 						<div class="gp_probe_get-probe_list_item_progress">
 							<img width="24"
 								height="24"
-								src="{{@shared.assetsHost}}/img/globalping/circle-icon.svg">
+								src="{{@shared.assetsHost}}/img/circle-icon.svg">
 						</div>
 
 						<div class="gp_probe_get-probe_list_item_content">
@@ -1165,7 +1165,7 @@
 						class="gp_probe_how-it-works_btns_sponsor gp_btn_green">
 						<img width="20"
 							height="20"
-							src="{{@shared.assetsHost}}/img/globalping/github.small.svg">
+							src="{{@shared.assetsHost}}/img/github.small.svg">
 
 						Become a GitHub Sponsor
 					</a>
@@ -1190,13 +1190,13 @@
 								<img title="Sponsored by xTom"
 									width="101"
 									height="28"
-									src="{{@shared.assetsHost}}/img/globalping/sponsors/xtom.svg">
+									src="{{@shared.assetsHost}}/img/sponsors/xtom.svg">
 							</a>
 							<a target="_blank" rel="noopener noreferrer" href="https://looking.house">
 								<img title="Sponsored by Looking.house"
 									width="151"
 									height="34"
-									src="{{@shared.assetsHost}}/img/globalping/sponsors/looking-house.svg">
+									src="{{@shared.assetsHost}}/img/sponsors/looking-house.svg">
 							</a>
 						</div>
 
@@ -1205,13 +1205,13 @@
 								<img title="Sponsored by StarryDNS"
 									width="160"
 									height="28"
-									src="{{@shared.assetsHost}}/img/globalping/sponsors/starry.png">
+									src="{{@shared.assetsHost}}/img/sponsors/starry.png">
 							</a>
 							<a target="_blank" rel="noopener noreferrer" href="https://www.ip2location.io/">
 								<img title="Sponsored by IP2Location"
 									width="169"
 									height="28"
-									src="{{@shared.assetsHost}}/img/globalping/sponsors/ip2location.svg">
+									src="{{@shared.assetsHost}}/img/sponsors/ip2location.svg">
 							</a>
 						</div>
 
@@ -1220,13 +1220,13 @@
 								<img title="Sponsored by Exoscale"
 									width="210"
 									height="28"
-									src="{{@shared.assetsHost}}/img/globalping/sponsors/exoscale.svg">
+									src="{{@shared.assetsHost}}/img/sponsors/exoscale.svg">
 							</a>
 							<a target="_blank" rel="noopener noreferrer" href="https://www.fdcservers.net">
 								<img title="Sponsored by FDCServers"
 									width="95"
 									height="28"
-									src="{{@shared.assetsHost}}/img/globalping/sponsors/fdc.svg">
+									src="{{@shared.assetsHost}}/img/sponsors/fdc.svg">
 							</a>
 						</div>
 
@@ -1235,13 +1235,13 @@
 								<img title="Sponsored by IPInfo"
 									width="93"
 									height="28"
-									src="{{@shared.assetsHost}}/img/globalping/sponsors/ipinfo.svg">
+									src="{{@shared.assetsHost}}/img/sponsors/ipinfo.svg">
 							</a>
 							<a target="_blank" rel="noopener noreferrer" href="https://www.edisglobal.com/">
 								<img title="Sponsored by EDIS Global"
 									width="91"
 									height="28"
-									src="{{@shared.assetsHost}}/img/globalping/sponsors/edis-global.svg">
+									src="{{@shared.assetsHost}}/img/sponsors/edis-global.svg">
 							</a>
 						</div>
 
@@ -1250,13 +1250,13 @@
 								<img title="Sponsored by Misaka Network, Inc."
 									width="95"
 									height="28"
-									src="{{@shared.assetsHost}}/img/globalping/sponsors/misaka.svg">
+									src="{{@shared.assetsHost}}/img/sponsors/misaka.svg">
 							</a>
 							<a target="_blank" rel="noopener noreferrer" href="https://zappiehost.com">
 								<img title="Sponsored by Zappie Host"
 									width="97"
 									height="28"
-									src="{{@shared.assetsHost}}/img/globalping/sponsors/zappiehost.png">
+									src="{{@shared.assetsHost}}/img/sponsors/zappiehost.png">
 							</a>
 						</div>
 
@@ -1265,7 +1265,7 @@
 								<img title="Sponsored by Zenlayer"
 									width="128"
 									height="28"
-									src="{{@shared.assetsHost}}/img/globalping/sponsors/zenlayer.svg">
+									src="{{@shared.assetsHost}}/img/sponsors/zenlayer.svg">
 							</a>
 							<!-- swap images for better look depending on screenWidth -->
 							{{#if screenWidth < 768}}
@@ -1273,14 +1273,14 @@
 									<img title="Sponsored by DNSFilter"
 										width="120"
 										height="28"
-										src="{{@shared.assetsHost}}/img/globalping/sponsors/dnsfilter.png">
+										src="{{@shared.assetsHost}}/img/sponsors/dnsfilter.png">
 								</a>
 							{{else}}
 								<a target="_blank" rel="noopener noreferrer" href="https://ipgeolocation.io/">
 									<img title="Sponsored by IP Geolocation"
 										width="97"
 										height="56"
-										src="{{@shared.assetsHost}}/img/globalping/sponsors/ipgeolocation.svg">
+										src="{{@shared.assetsHost}}/img/sponsors/ipgeolocation.svg">
 								</a>
 							{{/if}}
 						</div>
@@ -1290,7 +1290,7 @@
 								<img title="Sponsored by Cloud Looking Glass"
 									width="147"
 									height="40"
-									src="{{@shared.assetsHost}}/img/globalping/sponsors/cloud-looking-glass.png">
+									src="{{@shared.assetsHost}}/img/sponsors/cloud-looking-glass.png">
 							</a>
 							<!-- swap images for better look depending on screenWidth -->
 							{{#if screenWidth < 768}}
@@ -1298,14 +1298,14 @@
 									<img title="Sponsored by IP Geolocation"
 										width="97"
 										height="56"
-										src="{{@shared.assetsHost}}/img/globalping/sponsors/ipgeolocation.svg">
+										src="{{@shared.assetsHost}}/img/sponsors/ipgeolocation.svg">
 								</a>
 							{{else}}
 								<a target="_blank" rel="noopener noreferrer" href="https://www.dnsfilter.com/">
 									<img title="Sponsored by DNSFilter"
 										width="120"
 										height="28"
-										src="{{@shared.assetsHost}}/img/globalping/sponsors/dnsfilter.png">
+										src="{{@shared.assetsHost}}/img/sponsors/dnsfilter.png">
 								</a>
 							{{/if}}
 						</div>
@@ -1315,13 +1315,13 @@
 								<img title="Sponsored by Onidel"
 									width="130"
 									height="32"
-									src="{{@shared.assetsHost}}/img/globalping/sponsors/onidel.svg">
+									src="{{@shared.assetsHost}}/img/sponsors/onidel.svg">
 							</a>
 							<a target="_blank" rel="noopener noreferrer" href="https://www.kuroit.com/">
 								<img title="Sponsored by Kuroit"
 									width="128"
 									height="34"
-									src="{{@shared.assetsHost}}/img/globalping/sponsors/kuroit.png">
+									src="{{@shared.assetsHost}}/img/sponsors/kuroit.png">
 							</a>
 						</div>
 
@@ -1330,13 +1330,13 @@
 								<img title="Sponsored by ExServers"
 									width="156"
 									height="28"
-									src="{{@shared.assetsHost}}/img/globalping/sponsors/exservers.png">
+									src="{{@shared.assetsHost}}/img/sponsors/exservers.png">
 							</a>
 							<a target="_blank" rel="noopener noreferrer" href="https://netshop-isp.com.cy/">
 								<img title="Sponsored by NetShop ISP"
 									width="145"
 									height="40"
-									src="{{@shared.assetsHost}}/img/globalping/sponsors/netshop-logo-dark.svg">
+									src="{{@shared.assetsHost}}/img/sponsors/netshop-logo-dark.svg">
 							</a>
 						</div>
 
@@ -1345,14 +1345,14 @@
 								<img title="Sponsored by HostStage"
 									width="189"
 									height="40"
-									src="{{@shared.assetsHost}}/img/globalping/sponsors/host-stage.svg">
+									src="{{@shared.assetsHost}}/img/sponsors/host-stage.svg">
 							</a>
 
 							<a target="_blank" rel="noopener noreferrer" href="https://www.mvps.net/">
 								<img title="Sponsored by MVPS"
 									width="158"
 									height="50"
-									src="{{@shared.assetsHost}}/img/globalping/sponsors/mvps.svg">
+									src="{{@shared.assetsHost}}/img/sponsors/mvps.svg">
 							</a>
 						</div>
 
@@ -1361,14 +1361,14 @@
 								<img title="Sponsored by IPLocate"
 									width="164"
 									height="27"
-									src="{{@shared.assetsHost}}/img/globalping/sponsors/iplocate.svg">
+									src="{{@shared.assetsHost}}/img/sponsors/iplocate.svg">
 							</a>
 
 							<a target="_blank" rel="noopener noreferrer" href="https://breezehost.io/">
 								<img title="Sponsored by BreezeHost"
 									width="121"
 									height="46"
-									src="{{@shared.assetsHost}}/img/globalping/sponsors/breezehost.svg">
+									src="{{@shared.assetsHost}}/img/sponsors/breezehost.svg">
 							</a>
 						</div>
 
@@ -1378,7 +1378,7 @@
 
 								<img width="57"
 									height="19"
-									src="{{@shared.assetsHost}}/img/globalping/sponsors/dell.svg">
+									src="{{@shared.assetsHost}}/img/sponsors/dell.svg">
 
 								<div class="gp_person-sponsor">Magdalene Tabhita</div>
 							</div>
@@ -1393,7 +1393,7 @@
 				<img class="gp_sponsors_content_img"
 					width="289"
 					height="288"
-					src="{{@shared.assetsHost}}/img/globalping/polygons_4.svg">
+					src="{{@shared.assetsHost}}/img/polygons_4.svg">
 			</div>
 		</div>
 	</div>
@@ -3354,7 +3354,7 @@
 
 			infoWindowContent += '</div>';
 			infoWindowContent += `<div class="gp-map_popup_see-results ${targetsCnt > 1 ? 'centered' : ''}" id="iw-${currentMarkerIdx}">`;
-			infoWindowContent += `<img width="20" height="20" src="${this.get('@shared.assetsHost')}/img/globalping/see-results-icon.svg">`;
+			infoWindowContent += `<img width="20" height="20" src="${this.get('@shared.assetsHost')}/img/see-results-icon.svg">`;
 			infoWindowContent += '<span>Results and Actions</span>';
 			infoWindowContent += '</div>';
 			infoWindowContent += '</div>';
@@ -3776,7 +3776,7 @@ rtt min/avg/max/mdev = ${minTiming}/${avgTiming}/${maxTiming}/${mdev}${showRttUn
 					if (mIdx === 0) {
 						// add header content
 						infoWindowContent += '<span class="gp_map-cluster-iw_header">';
-						infoWindowContent += `<img width="16" height="16" src="${this.get('@shared.assetsHost')}/img/globalping/location-icon.svg">`;
+						infoWindowContent += `<img width="16" height="16" src="${this.get('@shared.assetsHost')}/img/location-icon.svg">`;
 						infoWindowContent += `<span class="gp_map-cluster-iw_header_location">${m.location.city}, ${m.location.country}</span>`;
 						infoWindowContent += `<span class="gp_map-cluster-iw_header_cnt">${markersByCoords.length}</span>`;
 						infoWindowContent += '</span>';

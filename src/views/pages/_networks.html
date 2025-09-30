@@ -100,7 +100,7 @@
 				<button type="button"
 						aria-label="{{mapExpanded ? 'Collapse map' : 'Expand map'}}"
 						on-click="@this.toggle('mapExpanded')">
-					<img width="20" height="20" alt="" src="{{@shared.assetsHost}}/img/globalping/{{#if mapExpanded}}minimize-icon.svg{{else}}maximize-icon.svg{{/if}}">
+					<img width="20" height="20" alt="" src="{{@shared.assetsHost}}/img/{{#if mapExpanded}}minimize-icon.svg{{else}}maximize-icon.svg{{/if}}">
 				</button>
 				<c-google-maps
 						class="p-globalping-networks_network_map-wrapper_map"
@@ -176,7 +176,7 @@
 					<img width="56"
 						height="56"
 						alt="Fail icon"
-						src="{{@shared.assetsHost}}/img/globalping/fail-icon-big.svg">
+						src="{{@shared.assetsHost}}/img/fail-icon-big.svg">
 
 					<p>
 						{{#if serverErrorMessage}}

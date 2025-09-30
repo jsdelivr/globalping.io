@@ -52,48 +52,6 @@ module.exports = {
 		return Math.floor(number).toString().replace(/\d(?=(?:\d{3})+$)/g, '$& ');
 	},
 
-	formatNumberWithSpace (val) {
-		// remove sign if negative
-		let sign = 1;
-
-		if (val < 0) {
-			sign = -1;
-			val = -val;
-		}
-
-		let num = val.toString().includes('.') ? val.toString().split('.')[0] : val.toString();
-
-		while (/(\d+)(\d{3})/.test(num.toString())) {
-			num = num.toString().replace(/(\d+)(\d{3})/, '$1 $2');
-		}
-
-		if (val.toString().includes('.')) {
-			num = num + '.' + val.toString().split('.')[1];
-		}
-
-		return sign < 0 ? '-' + num : num;
-	},
-
-	getMinifiedName (name) {
-		return name.replace(/\.(js|css)$/i, '.min.$1');
-	},
-
-	getNonMinifiedName (name) {
-		return name.replace(/\.min\.(js|css)$/i, '.$1');
-	},
-
-	listFiles: function listFiles (files = [], path) {
-		if (!path.length) {
-			return files;
-		}
-
-		let p = path.slice();
-		let n = p.shift();
-		let d = files.filter(f => f.name === n)[0];
-
-		return d && d.files ? listFiles(d.files, p) : null;
-	},
-
 	makeHTTPRequest (obj) {
 		let {
 			method = 'GET',
@@ -216,30 +174,6 @@ module.exports = {
 			fn();
 		} else {
 			document.addEventListener('DOMContentLoaded', fn);
-		}
-	},
-
-	// create barChart, lineChart improved tooltip title
-	createImprovedExternalTooltipTitle (periodStart, periodEnd, groupedBy) {
-		if (groupedBy === 'month') {
-			let [ monthName, , year ] = periodStart.split(' ');
-
-			return `${monthName}, ${year}`;
-		}
-
-		return periodStart === periodEnd ? `${periodStart}` : `${periodStart} - ${periodEnd}`;
-	},
-
-	translatePeriodsToSNotation (periodValue) {
-		switch (periodValue) {
-			case 'month':
-				return 's-month';
-			case 'quarter':
-				return 's-quarter';
-			case 'year':
-				return 's-year';
-			default:
-				return periodValue;
 		}
 	},
 

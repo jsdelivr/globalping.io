@@ -17,13 +17,13 @@
 				<div class="content-wrapper_ctrls_display-settings_switch" on-click="@this.handleOutputModeSwitch()">
 					<img width="16"
 						height="16"
-						src="{{@shared.assetsHost}}/img/globalping/raw-output-icon{{#if rawOutputMode}}.active{{/if}}.svg">
+						src="{{@shared.assetsHost}}/img/raw-output-icon{{#if rawOutputMode}}.active{{/if}}.svg">
 
 					<div class="content-wrapper_ctrls_display-settings_switch_line"></div>
 
 					<img width="16"
 						height="16"
-						src="{{@shared.assetsHost}}/img/globalping/table-output-icon{{#unless rawOutputMode}}.active{{/unless}}.svg"
+						src="{{@shared.assetsHost}}/img/table-output-icon{{#unless rawOutputMode}}.active{{/unless}}.svg"
 						{{#if testType !== 'ping'}}style="opacity: 0.5; cursor: not-allowed;"{{/if}}>
 				</div>
 			</div>
@@ -31,7 +31,7 @@
 			<div class="content-wrapper_ctrls_map-switch">
 				<span>Map: </span>
 				<div class="content-wrapper_ctrls_map-switch_switch" on-click="@this.set('originalShowMap', !showMap),@this.set('showMap', !showMap)">
-					<img width="16" height="16" src="{{@shared.assetsHost}}/img/globalping/map-icon{{#if showMap}}.active{{/if}}.svg">
+					<img width="16" height="16" src="{{@shared.assetsHost}}/img/map-icon{{#if showMap}}.active{{/if}}.svg">
 				</div>
 			</div>
 
@@ -43,7 +43,7 @@
 						data-toggle="dropdown"
 						aria-haspopup="true"
 						aria-expanded="false">
-						<img width="18" height="18" src="{{@shared.assetsHost}}/img/globalping/sort-{{sortOrder}}.svg">
+						<img width="18" height="18" src="{{@shared.assetsHost}}/img/sort-{{sortOrder}}.svg">
 					</button>
 
 					<ul role="listbox" class="dropdown-menu dropdown-menu-right">
@@ -55,7 +55,7 @@
 							>
 								{{this.name}}
 								{{#if sortBy === this.value}}
-									<img width="9" src="{{@shared.assetsHost}}/img/globalping/sort-{{sortOrder}}-sm.svg">
+									<img width="9" src="{{@shared.assetsHost}}/img/sort-{{sortOrder}}-sm.svg">
 								{{/if}}
 							</li>
 						{{/each}}
