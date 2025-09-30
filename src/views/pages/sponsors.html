@@ -1,289 +1,362 @@
-<link rel="ractive" href="../r-page.html">
-<link rel="ractive" href="../components/header.html" name="c-header">
-<link rel="ractive" href="../components/footer.html" name="c-footer">
+<link rel="ractive" href="../r-page-globalping.html" name="r-page">
+<link rel="ractive" href="../components/gp-header.html" name="c-gp-header">
+<link rel="ractive" href="../components/gp-footer.html" name="c-gp-footer">
 <link rel="ractive" href="../components/notification.html" name="c-notification">
+<link rel="ractive" href="../components/gp-jumbotron.html" name="c-gp-jumbotron">
 
 <r-page noYield="{{noYield}}" title="{{title}}" description="{{description}}">
 	<c-notification></c-notification>
-	<c-header></c-header>
 
-	<div class="p-sponsors">
-		<div class="navigation">
-			<a class="active">Our sponsors</a>
-			<a href="/become-a-sponsor">Become our sponsor</a>
+	<c-gp-header additionalClasses="header-with-gp-translucent-bg"></c-gp-header>
+
+	<div class="p-globalping-sponsors">
+		<c-gp-jumbotron className="sponsors" gridType="type4"></c-gp-jumbotron>
+
+		<h1 class="gp-sponsors_header">Our Sponsors</h1>
+
+		<div class="gp-sponsors_main-info">
+			<div class="gp-sponsors_main-info_descr">
+				As an open-source project that relies on the community to operate, we are also highly appreciative of larger organizations that support our work.
+			</div>
+
+			<div class="gp-sponsors_main-info_list-wrapper">
+				<span class="gp-sponsors_main-info_list-wrapper_title">
+					Globalping sponsors can be listed here for considerable and ongoing contributions to the project in the form of:
+				</span>
+
+				<div class="gp-sponsors_main-info_list-wrapper_list">
+					<span class="gp-sponsors_main-info_list-wrapper_list_item">
+						<img src="{{@shared.assetsHost}}/img/globalping/check.svg" width="20" height="20">
+						<span>Infrastructure, like servers and services</span>
+					</span>
+
+					<span class="gp-sponsors_main-info_list-wrapper_list_item">
+						<img src="{{@shared.assetsHost}}/img/globalping/check.svg" width="20" height="20">
+						<span>Mass hosting of probes managed by us</span>
+					</span>
+
+					<span class="gp-sponsors_main-info_list-wrapper_list_item">
+						<img src="{{@shared.assetsHost}}/img/globalping/check.svg" width="20" height="20">
+						<span>Grants and ongoing sponsorships</span>
+					</span>
+
+					<span class="gp-sponsors_main-info_list-wrapper_list_item">
+						<img src="{{@shared.assetsHost}}/img/globalping/check.svg" width="20" height="20">
+						<span>Developer hours and code contributions</span>
+					</span>
+				</div>
+			</div>
+
+			<div class="gp-sponsors_main-info_contact-us">
+				<span>Contact us at</span>
+
+				<a href="mailto:d@globalping.io" class="gp-sponsors_main-info_contact-us_mail">
+					<img src="{{@shared.assetsHost}}/img/globalping/mail-icon.svg" width="20" height="20">
+					<span>d@globalping.io</span>
+				</a>
+			</div>
 		</div>
 
-		<div class="container">
-			<div class="head-wrapper">
-				<div class="head-wrapper_map-wrapper">
-					<img class="head-map-bg" width="908" height="428" src="{{@shared.assetsHost}}/img/sponsors/map.svg" />
-				</div>
+		<div class="gp-sponsors_sponsors-list">
+			<div class="gp-sponsors_sponsors-list_platinum">
+				<div class="gp-sponsors_sponsors-list_platinum_title">PLATINUM</div>
 
-				<div class="head-title">
-					Our Sponsors
-				</div>
+				<div class="gp-sponsors_sponsors-list_platinum_list">
+					{{#each platinumSponsors}}
+						<div class="gp-sponsors_sponsors-list_platinum_list_item">
+							<div class="gp-sponsors_sponsors-list_platinum_list_item_logo">
+								<img title="{{this.imgTitle}}"
+									width="{{this.imgWidth}}"
+									height="{{this.imgHeight}}"
+									src="{{@shared.assetsHost}}{{this.imgSrc[0]}}"
+									{{#if this.imgSrc[1]}}
+										srcset="{{@shared.assetsHost}}{{this.imgSrc[1]}}"
+									{{/if}}
+									loading="lazy"/>
+							</div>
 
-				<div class="head-subtitle">
-					Support us
-				</div>
+							<p class="gp-sponsors_sponsors-list_platinum_list_item_descr">
+								{{this.spDescr}}
+							</p>
 
-				<div class="head-descr">
-					<span>Support jsDelivr by donating to us through GitHub Sponsors and Open Collective and help cover the expenses of our infrastructure and sponsor the development of new features</span>
-				</div>
+							<span class="gp-sponsors_sponsors-list_platinum_list_item_link">
+								<img src="{{@shared.assetsHost}}/img/globalping/link-icon.svg" width="20" height="20">
 
-				<div class="head-ctrls">
-					<a target="_blank" rel="noopener noreferrer" href="https://github.com/sponsors/jsdelivr">
-						<img width="20" height="20" src="{{@shared.assetsHost}}/img/icons/github.black.svg" />
-						GitHub Sponsors
-					</a>
-					<a target="_blank" rel="noopener noreferrer" href="https://opencollective.com/jsdelivr">
-						<img width="18" height="18" src="{{@shared.assetsHost}}/img/icons/open-collective.svg" />
-						Open Collective
-					</a>
-				</div>
-			</div>
-
-			<h3 class="sp-header platinum-header" id="platinum">PLATINUM</h3>
-
-			<div class="sp-row">
-				<div class="sp-item">
-					<div class="sp">
-						<img class="sp-img" width="167" height="60" src="{{@shared.assetsHost}}/img/sponsors/cloudflare.png" srcset="{{@shared.assetsHost}}/img/sponsors/cloudflare@2x.png 2x">
-
-						<div class="sp-text">
-							Main backend CDN for jsDelivr offering unlimited bandwidth and locations.
-							"Offers free and commercial, cloud-based services to help secure and accelerate
-							websites."
+								<a href="{{this.href}}">{{this.linkDisplayed}}</a>
+							</span>
 						</div>
+					{{/each}}
 
-						<a class="sp-link" target="_blank" rel="noopener noreferrer" href="https://www.cloudflare.com">
-							<img width="20" height="20" src="{{@shared.assetsHost}}/img/icons/share.svg">
-							www.cloudflare.com
-						</a>
-					</div>
-				</div>
-
-				<div class="sp-item">
-					<div class="sp">
-						<img class="sp-img" width="126" height="60" src="{{@shared.assetsHost}}/img/sponsors/fastly.png" srcset="{{@shared.assetsHost}}/img/sponsors/fastly@2x.png 2x">
-
-						<div class="sp-text">
-							Main backend CDN for jsDelivr offering unlimited bandwidth and locations.
-							"Fastly's edge cloud platform powers fast, secure, and scalable digital experiences."
-						</div>
-
-						<a target="_blank" rel="noopener noreferrer" href="https://www.fastly.com" class="sp-link">
-							<img width="20" height="20" src="{{@shared.assetsHost}}/img/icons/share.svg">
-							www.fastly.com
-						</a>
-					</div>
-				</div>
-
-				<div class="sp-item">
-					<div class="sp">
-						<img class="sp-img" width="150" height="60" src="{{@shared.assetsHost}}/img/sponsors/ibm.svg">
-
-						<div class="sp-text">
-							Our DNS hosting provider offering unlimited DNS queries and an additional
-							layer of failover.
-							"Industry leading DNS traffic management - managed DNS, private DNS networks, and
-							powerful turnkey traffic routing setups."
-						</div>
-
-						<a target="_blank" rel="noopener noreferrer" href="https://www.ibm.com/products/ns1-connect" class="sp-link">
-							<img width="20" height="20" src="{{@shared.assetsHost}}/img/icons/share.svg">
-							www.ibm.com
-						</a>
-					</div>
-				</div>
-
-				<div class="sp-item">
-					<div class="sp">
-						<img class="sp-img"
-							height="60"
-							src="{{@shared.assetsHost}}/img/sponsors/g-core.svg"
-							loading="lazy">
-						<div class="sp-text">
-							Regional and backup CDN for jsDelivr offering unlimited bandwidth and locations.
-							"A secure Edge & Cloud Platform to go global faster. Offering low-latency services
-							around the world, trusted by the largest online businesses."
-						</div>
-
-						<a target="_blank" rel="noopener noreferrer" href="https://gcore.com" class="sp-link">
-							<img width="20" height="20" src="{{@shared.assetsHost}}/img/icons/share.svg">
-							gcore.com
-						</a>
-					</div>
-				</div>
-
-				<div class="sp-item">
-					<div class="sp">
-						<img class="sp-img" width="207" height="60" src="{{@shared.assetsHost}}/img/sponsors/bunny.png" srcset="{{@shared.assetsHost}}/img/sponsors/bunny@2x.png 2x">
-
-						<div class="sp-text">
-							Regional and backup CDN for jsDelivr offering unlimited bandwidth and locations.
-							"Go faster than the fastest with our next-generation CDN, edge storage, and optimization service."
-						</div>
-
-						<a target="_blank" rel="noopener noreferrer" href="https://bunny.net" class="sp-link">
-							<img width="20" height="20" src="{{@shared.assetsHost}}/img/icons/share.svg">
-							bunny.net
-						</a>
-					</div>
-				</div>
-
-				<div class="sp-item">
-					<div class="sp">
-						<img class="sp-img render" width="157" height="30" src="{{@shared.assetsHost}}/img/sponsors/render-black.svg">
-
-						<div class="sp-text">
-							Main hosting provider for jsDelivr related websites and APIs.
-							"Render is a unified cloud to build and run all your apps and websites with free SSL,
-							a global CDN, private networks and auto deploys from Git."
-						</div>
-
-						<a target="_blank" rel="noopener noreferrer" href="https://render.com" class="sp-link">
-							<img width="20" height="20" src="{{@shared.assetsHost}}/img/icons/share.svg">
-							render.com
-						</a>
+					<div class="gp-sponsors_sponsors-list_platinum_list_item become-a-sponsor">
+						<span class="gp-sponsors_sponsors-list_platinum_list_item_title">Become a sponsor</span>
+						<span class="gp-sponsors_sponsors-list_platinum_list_item_descr">
+							Developer hours, donations, servers, and partnerships.
+						</span>
 					</div>
 				</div>
 			</div>
 
-			<h3 class="sp-header gold-header" id="gold">GOLD</h3>
+			<div class="gp-sponsors_sponsors-list_gold">
+				<div class="gp-sponsors_sponsors-list_gold_title">GOLD</div>
 
-			<div class="sp-row row-gold">
-				<div class="sp-item">
-					<div class="sp">
-						<img class="sp-img" width="169" height="60" src="{{@shared.assetsHost}}/img/sponsors/algolia.png" srcset="{{@shared.assetsHost}}/img/sponsors/algolia@2x.png 2x" loading="lazy">
+				<div class="gp-sponsors_sponsors-list_gold_list">
+					{{#each goldSponsors}}
+						<div class="gp-sponsors_sponsors-list_gold_list_item">
+							<div class="gp-sponsors_sponsors-list_gold_list_item_logo">
+								<img title="{{this.imgTitle}}"
+									width="{{this.imgWidth}}"
+									height="{{this.imgHeight}}"
+									src="{{@shared.assetsHost}}{{this.imgSrc[0]}}"
+									{{#if this.imgSrc[1]}}
+										srcset="{{@shared.assetsHost}}{{this.imgSrc[1]}}"
+									{{/if}}
+									loading="lazy"/>
+							</div>
 
-						<div class="sp-text">
-							Algolia Search provides hosted full-text, numerical, faceted and geolocalized search.
+							<p class="gp-sponsors_sponsors-list_gold_list_item_descr">
+								{{this.spDescr}}
+							</p>
+
+							<span class="gp-sponsors_sponsors-list_gold_list_item_link">
+								<img src="{{@shared.assetsHost}}/img/globalping/link-icon.svg" width="20" height="20">
+
+								<a href="{{this.href}}">{{this.linkDisplayed}}</a>
+							</span>
 						</div>
+					{{/each}}
 
-						<a target="_blank" rel="noopener noreferrer" href="https://www.algolia.com" class="sp-link">
-							<img width="20" height="20" src="{{@shared.assetsHost}}/img/icons/share.svg">
-							www.algolia.com
-						</a>
-					</div>
-				</div>
-
-				<div class="sp-item">
-					<div class="sp">
-						<img class="sp-img" width="150" height="60" src="{{@shared.assetsHost}}/img/sponsors/cloudns.png" srcset="{{@shared.assetsHost}}/img/sponsors/cloudns@2x.png 2x" loading="lazy">
-
-						<div class="sp-text">
-							ClouDNS is offering Premium, DDoS Protected, and GeoDNS services supported by Global Anycast network.
-						</div>
-
-						<a target="_blank" rel="noopener noreferrer" href="https://www.cloudns.net" class="sp-link">
-							<img width="20" height="20" src="{{@shared.assetsHost}}/img/icons/share.svg">
-							www.cloudns.net
-						</a>
-					</div>
-				</div>
-
-				<div class="sp-item">
-					<div class="sp">
-						<img class="sp-img" width="237" height="60" src="{{@shared.assetsHost}}/img/sponsors/digitalocean.png" srcset="{{@shared.assetsHost}}/img/sponsors/digitalocean@2x.png 2x" loading="lazy">
-
-						<div class="sp-text">
-							Helping millions of developers easily build, test, manage, and scale applications of any size.
-						</div>
-
-						<a target="_blank" rel="noopener noreferrer" href="https://www.digitalocean.com" class="sp-link">
-							<img width="20" height="20" src="{{@shared.assetsHost}}/img/icons/share.svg">
-							www.digitalocean.com
-						</a>
+					<div class="gp-sponsors_sponsors-list_gold_list_item become-a-sponsor">
+						<span class="gp-sponsors_sponsors-list_gold_list_item_title">Become a sponsor</span>
+						<span class="gp-sponsors_sponsors-list_gold_list_item_descr">
+							Developer hours, donations, servers, and partnerships.
+						</span>
 					</div>
 				</div>
 			</div>
 
-			<h3 class="sp-header bronze-header" id="bronze">BRONZE</h3>
+			<div class="gp-sponsors_sponsors-list_bronze">
+				<div class="gp-sponsors_sponsors-list_bronze_title">BRONZE</div>
 
-			<div class="sp-row row-bronze">
-				<div class="sp-item">
-					<div class="sp" title="Clever Cloud">
-						<a target="_blank" rel="noopener noreferrer" href="https://www.clever-cloud.com">
-							<img class="sp-img" width="231" height="60" src="{{@shared.assetsHost}}/img/sponsors/clever-cloud.png" srcset="{{@shared.assetsHost}}/img/sponsors/clever-cloud@2x.png 2x" loading="lazy">
-						</a>
-					</div>
-				</div>
+				<div class="gp-sponsors_sponsors-list_bronze_list">
+					{{#each bronzeSponsors}}
+						<div class="gp-sponsors_sponsors-list_bronze_list_item">
+							<a class="gp-sponsors_sponsors-list_bronze_list_item_logo" target="_blank" rel="noopener noreferrer" href="{{this.href}}">
+								<img title="{{this.imgTitle}}"
+									width="{{this.imgWidth}}"
+									height="{{this.imgHeight}}"
+									src="{{@shared.assetsHost}}{{this.imgSrc[0]}}"
+									{{#if this.imgSrc[1]}}
+										srcset="{{@shared.assetsHost}}{{this.imgSrc[1]}}"
+									{{/if}}
+									loading="lazy"/>
+							</a>
+						</div>
+					{{/each}}
 
-				<div class="sp-item">
-					<div class="sp" title="Prebid">
-						<a target="_blank" rel="noopener noreferrer" href="https://prebid.org">
-							{{! filename is "pb" because "prebid" keyword is commonly blocked by ad blockers }}
-							<img class="sp-img" width="201" height="60" src="{{@shared.assetsHost}}/img/sponsors/pb.png" srcset="{{@shared.assetsHost}}/img/sponsors/pb@2x.png 2x" loading="lazy">
-						</a>
-					</div>
-				</div>
-
-				<div class="sp-item">
-					<div class="sp" title="SpeedCurve">
-						<a target="_blank" rel="noopener noreferrer" href="https://www.speedcurve.com">
-							<img class="sp-img" width="265" height="60" src="{{@shared.assetsHost}}/img/sponsors/speedcurve.png" srcset="{{@shared.assetsHost}}/img/sponsors/speedcurve@2x.png 2x" loading="lazy">
-						</a>
-					</div>
-				</div>
-
-				<div class="sp-item">
-					<div class="sp" title="PackageCloud">
-						<a target="_blank" rel="noopener noreferrer" href="https://packagecloud.io">
-							<img class="sp-img packagecloud" width="223" height="30" src="{{@shared.assetsHost}}/img/sponsors/packagecloud.png" srcset="{{@shared.assetsHost}}/img/sponsors/packagecloud@2x.png 2x" loading="lazy">
-						</a>
-					</div>
-				</div>
-
-				<div class="sp-item">
-					<div class="sp" title="BairesDev">
-						<a target="_blank" rel="noopener noreferrer" href="https://www.bairesdev.com/sponsoring-open-source-projects/">
-							<img class="sp-img" width="223" height="60" src="{{@shared.assetsHost}}/img/sponsors/bairesdev.svg" loading="lazy">
-						</a>
-					</div>
-				</div>
-
-				<div class="sp-item">
-					<div class="sp" title="Route4Me">
-						<a target="_blank" rel="noopener noreferrer" href="https://route4me.com/">
-							<img class="sp-img" width="250" height="60" src="{{@shared.assetsHost}}/img/sponsors/route_4_me.svg" alt="Route Planner and Route Optimizer" loading="lazy">
-						</a>
-					</div>
-				</div>
-
-				<div class="sp-item">
-					<div class="sp"
-						title="Dotcom-Monitor is a trusted leader in website and network monitoring, providing a comprehensive suite of tools to keep digital assets secure, optimized, and available 24/7. With over two decades of experience, Dotcom-Monitor serves thousands of organizations globally.">
-						<a target="_blank" rel="noopener noreferrer" href="https://www.dotcom-monitor.com/sponsoring-open-source-projects/">
-							<img class="sp-img dotcom-monitor"
-								width="245"
-								height="25"
-								src="{{@shared.assetsHost}}/img/sponsors/dotcom-monitor.svg"
-								alt="Advanced Website Monitoring Solutions"
-								loading="lazy">
-						</a>
+					<div class="gp-sponsors_sponsors-list_bronze_list_item become-a-sponsor">
+						<span class="gp-sponsors_sponsors-list_bronze_list_item_title">Become a sponsor</span>
+						<span class="gp-sponsors_sponsors-list_bronze_list_item_descr">
+							Developer hours, donations, servers, and partnerships.
+						</span>
 					</div>
 				</div>
 			</div>
+		</div>
 
-			<div class="be-a-sp">
-				<img width="41" height="40" src="{{@shared.assetsHost}}/img/icons/heart.svg">
-				<span class="be-a-sp-text">Help us make jsDelivr even better</span>
-				<a class="btn-primary be-a-sp-btn" target="_blank" href="/become-a-sponsor">Become our sponsor</a>
-			</div>
+		<div class="gp-sponsors_help-us">
+			<img width="40"
+				height="40"
+				src="{{@shared.assetsHost}}/img/globalping/heart.svg"
+				loading="lazy" />
+
+			<span class="gp-sponsors_help-us_text">
+				Help us make jsDelivr even better
+			</span>
+
+			<a href="https://github.com/sponsors/jsdelivr" target="_blank" class="gp_btn_green">Become our sponsor</a>
 		</div>
 	</div>
 
-	<c-footer></c-footer>
+	<c-gp-footer></c-gp-footer>
 </r-page>
-
 
 <script>
 	component.exports = {
 		data () {
 			return {
-				title: 'Our Sponsors - jsDelivr',
-				description: 'jsDelivr is sponsored by Cloudflare, Fastly, Bunny, IBM, and other awesome companies.',
+				title: 'Our Sponsors - Globalping',
+				description: 'Globalping is sponsored by Zenlayer, xTom, and other awesome companies.',
+				platinumSponsors: [
+					// {
+					// 	href: 'https://www.sponsor-example.domain/',
+					// 	linkDisplayed: 'www.sponsor-example.domain',
+					// 	imgTitle: 'Title example',
+					// 	imgWidth: 0,
+					// 	imgHeight: 0,
+					// 	imgSrc: [ '/path/to/img.ext' ],
+					// 	spDescr: 'Sponsor description',
+					// },
+				],
+				goldSponsors: [
+					{
+						href: 'https://www.zenlayer.com/',
+						linkDisplayed: 'www.zenlayer.com',
+						imgTitle: 'Sponsored by Zenlayer',
+						imgWidth: 228,
+						imgHeight: 50,
+						imgSrc: [ '/img/globalping/sponsors/zenlayer.svg' ],
+						spDescr: 'Deploy and run your applications on the #1 hyperconnected cloud for emerging markets.',
+					},
+				],
+				bronzeSponsors: [
+					{
+						href: 'https://xtom.com',
+						imgTitle: 'Sponsored by xTom',
+						imgWidth: 216,
+						imgHeight: 60,
+						imgSrc: [ '/img/globalping/sponsors/xtom.svg' ],
+					},
+					{
+						href: 'https://looking.house',
+						imgTitle: 'Sponsored by Looking.house',
+						imgWidth: 222,
+						imgHeight: 50,
+						imgSrc: [ '/img/globalping/sponsors/looking-house.svg' ],
+					},
+					{
+						href: 'https://www.starrydns.com',
+						imgTitle: 'Sponsored by StarryDNS',
+						imgWidth: 229,
+						imgHeight: 40,
+						imgSrc: [ '/img/globalping/sponsors/starry.png' ],
+					},
+					{
+						href: 'https://www.ip2location.io/',
+						imgTitle: 'Sponsored by IP2Location',
+						imgWidth: 241,
+						imgHeight: 40,
+						imgSrc: [ '/img/globalping/sponsors/ip2location.svg' ],
+					},
+					{
+						href: 'https://www.exoscale.com',
+						imgTitle: 'Sponsored by Exoscale',
+						imgWidth: 262,
+						imgHeight: 35,
+						imgSrc: [ '/img/globalping/sponsors/exoscale.svg' ],
+					},
+					{
+						href: 'https://www.fdcservers.net',
+						imgTitle: 'Sponsored by FDCServers',
+						imgWidth: 205,
+						imgHeight: 60,
+						imgSrc: [ '/img/globalping/sponsors/fdc.svg' ],
+					},
+					{
+						href: 'https://ipinfo.io/',
+						imgTitle: 'Sponsored by IPInfo',
+						imgWidth: 200,
+						imgHeight: 60,
+						imgSrc: [ '/img/globalping/sponsors/ipinfo.svg' ],
+					},
+					{
+						href: 'https://www.edisglobal.com/',
+						imgTitle: 'Sponsored by EDIS Global',
+						imgWidth: 196,
+						imgHeight: 60,
+						imgSrc: [ '/img/globalping/sponsors/edis-global.svg' ],
+					},
+					{
+						href: 'https://www.misaka.io',
+						imgTitle: 'Sponsored by Misaka Network, Inc.',
+						imgWidth: 203,
+						imgHeight: 60,
+						imgSrc: [ '/img/globalping/sponsors/misaka.svg' ],
+					},
+					{
+						href: 'https://zappiehost.com',
+						imgTitle: 'Sponsored by Zappie Host',
+						imgWidth: 208,
+						imgHeight: 60,
+						imgSrc: [ '/img/globalping/sponsors/zappiehost.png' ],
+					},
+					{
+						href: 'https://www.dnsfilter.com/',
+						imgTitle: 'Sponsored by DNSFilter',
+						imgWidth: 214,
+						imgHeight: 50,
+						imgSrc: [ '/img/globalping/sponsors/dnsfilter.png' ],
+					},
+					{
+						href: 'https://ipgeolocation.io/',
+						imgTitle: 'Sponsored by IP Geolocation',
+						imgWidth: 121,
+						imgHeight: 70,
+						imgSrc: [ '/img/globalping/sponsors/ipgeolocation.svg' ],
+					},
+					{
+						href: 'https://cloudlooking.glass/',
+						imgTitle: 'Sponsored by Cloud Looking Glass',
+						imgWidth: 221,
+						imgHeight: 60,
+						imgSrc: [ '/img/globalping/sponsors/cloud-looking-glass.png' ],
+					},
+					{
+						href: 'https://onidel.com/',
+						imgTitle: 'Sponsored by Onidel',
+						imgWidth: 244,
+						imgHeight: 60,
+						imgSrc: [ '/img/globalping/sponsors/onidel.svg' ],
+					},
+					{
+						href: 'https://www.kuroit.com/',
+						imgTitle: 'Sponsored by Kuroit',
+						imgWidth: 226,
+						imgHeight: 60,
+						imgSrc: [ '/img/globalping/sponsors/kuroit.png' ],
+					},
+					{
+						href: 'https://exservers.net/',
+						imgTitle: 'Sponsored by ExServers',
+						imgWidth: 250,
+						imgHeight: 45,
+						imgSrc: [ '/img/globalping/sponsors/exservers.png' ],
+					},
+					{
+						href: 'https://netshop-isp.com.cy/',
+						imgTitle: 'Sponsored by NetShop ISP',
+						imgWidth: 217,
+						imgHeight: 60,
+						imgSrc: [ '/img/globalping/sponsors/netshop-logo-dark.svg' ],
+					},
+					{
+						href: 'https://www.host-stage.net/',
+						imgTitle: 'Sponsored by HostStage',
+						imgWidth: 259,
+						imgHeight: 55,
+						imgSrc: [ '/img/globalping/sponsors/host-stage.svg' ],
+					},
+					{
+						href: 'https://www.mvps.net/',
+						imgTitle: 'Sponsored by MVPS',
+						imgWidth: 253,
+						imgHeight: 80,
+						imgSrc: [ '/img/globalping/sponsors/mvps.svg' ],
+					},
+					{
+						href: 'https://www.iplocate.io/',
+						imgTitle: 'Sponsored by IPLocate',
+						imgWidth: 252,
+						imgHeight: 42,
+						imgSrc: [ '/img/globalping/sponsors/iplocate.svg' ],
+					},
+					{
+						href: 'https://breezehost.io/',
+						imgTitle: 'Sponsored by BreezeHost',
+						imgWidth: 204,
+						imgHeight: 77,
+						imgSrc: [ '/img/globalping/sponsors/breezehost.svg' ],
+					},
+				],
 			};
 		},
 	};

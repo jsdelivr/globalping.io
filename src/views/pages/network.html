@@ -1,281 +1,172 @@
-<link rel="ractive" href="../r-page.html">
-<link rel="ractive" href="../components/header.html" name="c-header">
-<link rel="ractive" href="../components/footer.html" name="c-footer">
+<link rel="ractive" href="../r-page-globalping.html" name="r-page">
+<link rel="ractive" href="../components/gp-header.html" name="c-gp-header">
+<link rel="ractive" href="../components/google-maps.html" name="c-google-maps">
+<link rel="ractive" href="../components/gp-footer.html" name="c-gp-footer">
 <link rel="ractive" href="../components/notification.html" name="c-notification">
-<link rel="ractive" href="../components/new-infographic-banner.html" name="c-new-infographic-banner">
+<link rel="ractive" href="../components/gp-filtered-probe-list.html" name="c-filtered-probe-list">
 
 <r-page noYield="{{noYield}}" title="{{title}}" description="{{description}}">
-	<style>
-		{{#each providers}}
-			.{{name}}.switch-inline + label:before {
-				background-color: {{color}};
-			}
+	<c-notification />
 
-			.{{name}}.switch-inline:checked + label {
-				background-color: {{color}};
-				border-color: {{color}};
-			}
+	<c-gp-header additionalClasses="header-with-globalping-bg" />
 
-			.{{name}}.switch-inline:checked + label:before {
-				background-color: #fff;
-			}
-		{{/each}}
-	</style>
-
-	{{#if !@shared.isServer && !@shared.googleMapsLoaded}}
-		<script>
-			function onDocumentReady (fn) {
-				if (document.readyState !== 'loading') {
-					fn();
-				} else {
-					document.addEventListener('DOMContentLoaded', fn);
-				}
-			}
-			/* eslint-disable */
-			function initMap () {
-				onDocumentReady(function () {
-					app.loaded = true;
-
-					if (app.router.route && app.router.route.view && app.router.route.view.initMap) {
-						app.router.route.view.initMap();
-					}
-				});
-			}
-		</script>
-		<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBTICLY5LgWNJ0Uly61Q1sNXz_1KZIECwg&amp;language=en&amp;callback=initMap&amp;libraries=marker&amp;loading=async" async></script>
-	{{/if}}
-
-	<c-notification></c-notification>
-	<c-header></c-header>
-
-	<div class="p-network">
-		<div id="map" class="map-wrapper">
-			<h1 class="page-title">Network</h1>
-
-			<div class="network-controls network-controls_type-{{providers.length}}">
-				{{#each providers:idx}}
-					<div class="network-controls_switcher {{#if providers.length - 1 == idx && providers.length % 2 != 0 }}unpaired{{/if}}">
-						<input class="switch-inline {{name}}"
-							type="checkbox"
-							id="provider-{{name}}"
-							checked="{{~/enabled[idx]}}"
-							twoway="false">
-						<label for="provider-{{name}}" on-click="@this.toggleMap(idx)"></label>{{name}}
-					</div>
-				{{/each}}
+	<div class="gp-network">
+		<div class="gp-network_hero">
+			<div class="gp-network_stats">
+				<div class="gp-network_stats_item">
+					<img src="{{@shared.assetsHost}}/img/icons/radio.svg">
+					<b>{{filteredProbesStats.count}}</b> {{_.pluralize('probe', filteredProbesStats.count)}}
+				</div>
+				<div class="gp-network_stats_item">
+					<img src="{{@shared.assetsHost}}/img/icons/file-text.svg">
+					<b>{{filteredProbesStats.asns}}</b> {{_.pluralize('ASN', filteredProbesStats.asns)}}
+				</div>
 			</div>
 
-			<div class="network-map"></div>
+			<div class="gp-network_hero_map-wrapper">
+				<c-google-maps
+					class="gp-network_hero_map-wrapper_map"
+					iwClass="gp-network_iw"
+					probesByCoords="{{filteredMarkersData}}"
+					hasCluster="{{true}}"
+					onProbesByCoordsChange="{{@this.handleProbesByCoordsChange}}"
+				/>
+			</div>
 		</div>
 
-		<div class="content-wrapper">
-			<section class="content-wrapper_section">
-				<h2>Production ready</h2>
-				<p>
-					Unlike the competition, jsDelivr uses a unique Multi-CDN infrastructure built on top of CDN networks provided by Cloudflare, Fastly, Bunny, and GCore.
-					Additionally, we use custom servers in locations where CDNs have little or no presence.
-				</p>
-
-				<br />
-
-				<p>
-					Our smart load balancing system ensures the best possible uptime and the best possible performance.
-					Each time a user downloads a file from jsDelivr, our algorithm figures out the optimal provider
-					for that particular user and that particular time based on the performance and availability data for the last few minutes.
-					All that happens within a few milliseconds.
-				</p>
-
-				<br />
-
-				<p>
-					This algorithm also immediately responds to performance degradation. For example, if a CDN provider gets DDoSed in Europe
-					and their response times increase, jsDelivr will notice the change and simply stop using this provider in Europe
-					but still consider it for users in other locations.
-				</p>
-			</section>
-
-			<c-new-infographic-banner></c-new-infographic-banner>
-
-			<section id="failover" class="content-wrapper_section">
-				<h2>Failover on every layer</h2>
-
-				<p>
-					We use two independent DNS providers. For jsDelivr to go down, both of these companies would have to go down at the same time.
-					Both of our DNS providers monitor our load-balanced endpoint and if they detect problems they automatically switch all traffic to a single CDN provider.
-				</p>
-
-				<br />
-
-				<p>
-					Our load-balancer monitors the uptime of all CDN providers using both RUM and synthetic data.
-					If any of those detect downtime or performance degradation, the affected CDN provider is removed immediately.
-				</p>
-
-				<br />
-
-				<p>
-					Our origin servers are located in several data-centers in different states.
-					If a server goes down, the CDNs automatically switch to the remaining healthy servers.
-				</p>
-
-				<br />
-
-				<p>
-					In total, we have one of the most resilient systems out there, ready to be used in production by even the largest websites.
-				</p>
-			</section>
-
-			<section id="china" class="content-wrapper_section">
-				<h2>Low latency "Near China" network</h2>
-				<p>jsDelivr has multiple locations close Chinese urban centers to ensure low latency and high performance for all Chinese users.</p>
-
-				<div class="china-map">
-					<img src="{{@shared.assetsHost}}/img/network/china-map.svg" loading="lazy">
-				</div>
-			</section>
+		<div class="gp-network_filtered-list">
+			<c-filtered-probe-list
+				rawProbes="{{probesResponse}}"
+				filteredProbes="{{filteredProbes}}"
+				location="{{location}}"
+				locationCompletedValue="{{locationCompletedValue}}"
+				groupBy="{{groupBy}}"
+				sortOrder="{{sortOrder}}"
+				refresh="{{@this.getProbesData}}"
+				probesLoading="{{probesLoading}}"
+				probesError="{{probesError}}"
+			/>
 		</div>
 	</div>
 
-	<c-footer></c-footer>
+	<c-gp-footer></c-gp-footer>
 </r-page>
 
 <script>
-	const providers = Object.values(require('../../assets/json/net-providers.json')).filter(provider => provider.enabled);
-	const xIndexes = { GCore: 1, Cloudflare: 2, Fastly: 3, Bunny: 4 };
-	const getProvider = location => providers.find(provider => location.title.startsWith(provider.name));
-	let infoWindows = [];
-	let markers = [];
-	let map;
+	const _ = require('../../assets/js/_');
+	const listeners = require('../../assets/js/utils/listeners');
+	const dataCache = require('../../assets/js/utils/data-cache');
+	const http = require('../../assets/js/utils/http');
+
+	const GROUP_DEFAULT = 'city-network';
+	const SORT_DEFAULT = 'alphabetically';
 
 	component.exports = {
-		computed: {
-			locations () {
-				return this.get('allLocations').filter((location) => {
-					let p = getProvider(location);
-
-					return providers.some((provider, index) => {
-						return provider === p && this.get('enabled')[index];
-					});
-				});
-			},
-		},
 		data () {
 			return {
-				providers,
-				enabled: providers.map(() => true),
-				title: 'Our Network - jsDelivr',
-				description: 'jsDelivr uses Cloudflare, Fastly, Bunny, and Gcore, as well as custom servers in locations where CDNs have little or no presence.',
-				allLocations: [],
+				_,
+				title: 'Network - Globalping',
+				description: 'Explore the global network map of Globalping probes.',
+				location: 'World',
+				locationCompletedValue: '',
+				groupBy: GROUP_DEFAULT,
+				sortOrder: SORT_DEFAULT,
+				probesResponse: null,
+				probesLoading: false,
+				probesError: null,
+				filteredProbes: null,
+				filteredMarkersData: null,
+				filteredProbesStats: null,
 			};
+		},
+		computed: {
+			filter: {
+				get () {
+					let location = this.get('locationCompletedValue') || '';
+
+					if (location.toLowerCase() === 'world') {
+						return '';
+					}
+
+					return location.replace(/\+/g, '%');
+				},
+				set (location) {
+					this.set('location', location.replace(/%/g, '+'));
+					this.set('locationCompletedValue', location.replace(/%/g, '+'));
+				},
+			},
+			group: {
+				get () {
+					return this.get('groupBy') === GROUP_DEFAULT ? '' : this.get('groupBy');
+				},
+				set (group) {
+					this.set('groupBy', group);
+				},
+			},
+			sort: {
+				get () {
+					return this.get('sortOrder') === SORT_DEFAULT || this.get('groupBy') === 'disabled' ? '' : this.get('sortOrder');
+				},
+				set (sort) {
+					this.set('sortOrder', sort);
+				},
+			},
 		},
 		oninit () {
 			if (!Ractive.isServer) {
-				fetch(`${this.get('@shared.assetsHost')}/js/map/map.json`).then(r => r.json())
-					.then((locations) => {
-						this.set('allLocations', locations.sort((a, b) => a.title > b.title ? -1 : a.title < b.title));
-					});
-			}
-		},
-		initMap () {
-			infoWindows.splice(0);
-			markers.splice(0);
-			let mq = window.matchMedia('(min-width: 768px)');
-			let CENTER = { lat: 48, lng: 16 };
-			map = new google.maps.Map(this.find('.network-map'), {
-				zoom: 3.74,
-				center: CENTER,
-				mapTypeId: 'roadmap',
-				draggableCursor: 'default',
-				mapTypeControl: false,
-				streetViewControl: false,
-				fullscreenControl: false,
-				mapId: 'ce04bbf9d49b6f34',
-			});
+				this.getProbesData();
 
-			if (mq.matches) {
-				CENTER = { lat: 30, lng: 18 };
-				map.setZoom(2.14);
-			}
+				this.observe('filteredProbes', (filteredProbes) => {
+					if (filteredProbes === null) {
+						return;
+					}
 
-			this.observe('locations', () => {
-				this.updateMarkers();
-			});
+					// recalculate ASNs
+					let asns = filteredProbes.reduce((asns, probe) => {
+						asns.add(probe.location.asn);
+						return asns;
+					}, new Set());
+
+					this.set('filteredProbesStats', { count: filteredProbes.length, asns: asns.size });
+
+					// recalculate map markers
+					let groupedByCoords = filteredProbes.reduce((res, probe) => {
+						let coords = `${probe.location.latitude}, ${probe.location.longitude}`;
+
+						// group by Coordinates
+						if (!Object.hasOwn(res, coords)) {
+							res[coords] = [];
+						}
+
+						res[coords].push(probe);
+
+						return res;
+					}, {});
+
+					setTimeout(() => this.set('filteredMarkersData', groupedByCoords), 50);
+				});
+			}
 		},
 		onrender () {
-			this.set('@shared.googleMapsLoaded', true);
-
-			if (app.loaded) {
-				setTimeout(this.initMap.bind(this));
+			if (!Ractive.isServer) {
+				listeners.screenWidthListener(this);
 			}
 		},
-		updateMarkers () {
-			let locations = this.get('locations');
-			let added = [], removed = [];
+		getProbesData () {
+			this.set('probesLoading', true);
+			this.set('probesError', null);
 
-			// Compute added and removed markers.
-			// Don't do anything with markers that haven't changed (re-rendering everything is too slow).
-			locations.forEach((location, index) => {
-				if (!infoWindows.some(iw => location.title === iw.content)) {
-					added.push(index);
-				}
-			});
-
-			infoWindows.forEach((iw, index) => {
-				if (!locations.some(location => location.title === iw.content)) {
-					removed.push(index);
-				}
-			});
-
-			// Remove old markers.
-			removed.forEach((index) => {
-				infoWindows[index].close();
-				markers[index].setMap(null);
-				infoWindows[index] = null;
-				markers[index] = null;
-			});
-
-			infoWindows = infoWindows.filter(v => v);
-			markers = markers.filter(v => v);
-
-			// Add new markers.
-			added.forEach((index) => {
-				let location = locations[index];
-				let infoWindow = new google.maps.InfoWindow({
-					content: location.title,
-				});
-
-				let markerContent = document.createElement('div');
-				markerContent.style.backgroundImage = `url(${this.get('@shared.assetsHost')}/img/features/map-${getProvider(location).name.toLowerCase()}.svg)`;
-				markerContent.style.backgroundRepeat = 'no-repeat';
-				markerContent.style.backgroundPosition = 'center';
-				markerContent.style.backgroundSize = 'contain';
-				markerContent.style.width = '14px';
-				markerContent.style.height = '14px';
-				markerContent.title = location.title;
-
-				let marker = new google.maps.marker.AdvancedMarkerElement({
-					map,
-					content: markerContent,
-					position: new google.maps.LatLng(location.latitude, location.longitude),
-					zIndex: xIndexes[getProvider(location).name],
-				});
-
-				google.maps.event.addListener(marker, 'click', () => {
-					infoWindows.forEach(iw => iw.close());
-					infoWindow.open(map, marker);
-				});
-
-				google.maps.event.addListener(map, 'click', () => {
-					infoWindow.close();
-				});
-
-				infoWindows.push(infoWindow);
-				markers.push(marker);
-			});
+			dataCache.getCache('probesResponse', 60 * 1000, http.fetchGlobalpingProbes)
+				.then(value => this.set('probesResponse', value))
+				.catch((error) => {
+					console.error('Failed to fetch probes', error);
+					this.set('probesError', error);
+				})
+				.finally(() => this.set('probesLoading', false));
 		},
-		toggleMap (key) {
-			this.toggle(Ractive.joinKeys('enabled', key));
-			return false;
+		handleProbesByCoordsChange () {
+			let locationCompletedValue = this.get('locationCompletedValue');
+			return !!locationCompletedValue?.length;
 		},
 	};
 </script>

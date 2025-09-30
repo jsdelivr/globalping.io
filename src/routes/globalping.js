@@ -36,7 +36,7 @@ koaElasticUtils.addRoutes(router, [
 	};
 
 	try {
-		ctx.body = await ctx.render('pages/globalping/terms.html', data);
+		ctx.body = await ctx.render('pages/terms.html', data);
 		ctx.maxAge = 5 * 60;
 	} catch (e) {
 		if (ctx.app.env === 'development') {
@@ -59,7 +59,7 @@ koaElasticUtils.addRoutes(router, [
 
 	if (!username) {
 		ctx.status = 404;
-		ctx.body = await ctx.render(`pages/globalping/_404.html`, { actualPath: ctx.path });
+		ctx.body = await ctx.render(`pages/_404.html`, { actualPath: ctx.path });
 		return;
 	}
 
@@ -73,7 +73,7 @@ koaElasticUtils.addRoutes(router, [
 	};
 
 	try {
-		ctx.body = await ctx.render('pages/globalping/_users.html', data);
+		ctx.body = await ctx.render('pages/_users.html', data);
 		ctx.maxAge = 5 * 60;
 	} catch (e) {
 		if (ctx.app.env === 'development') {
@@ -135,7 +135,7 @@ koaElasticUtils.addRoutes(router, [
 			throw new Error(`Measurement type ${testType} is incorrect! Redirecting to ${newPath}!`);
 		}
 
-		ctx.body = await ctx.render('pages/globalping/network-tools.html', data);
+		ctx.body = await ctx.render('pages/network-tools.html', data);
 		ctx.maxAge = 5 * 60;
 	} catch (e) {
 		if (ctx.app.env === 'development') {
@@ -161,7 +161,7 @@ koaElasticUtils.addRoutes(router, [
 
 	if (!networkName) {
 		ctx.status = 404;
-		ctx.body = await ctx.render(`pages/globalping/_404.html`, { actualPath: ctx.path });
+		ctx.body = await ctx.render(`pages/_404.html`, { actualPath: ctx.path });
 		return;
 	}
 
@@ -170,7 +170,7 @@ koaElasticUtils.addRoutes(router, [
 	};
 
 	try {
-		ctx.body = await ctx.render('pages/globalping/_networks.html', data);
+		ctx.body = await ctx.render('pages/_networks.html', data);
 		ctx.maxAge = 5 * 60;
 	} catch (e) {
 		if (ctx.app.env === 'development') {
@@ -235,7 +235,7 @@ koaElasticUtils.addRoutes(router, [
 	}
 
 	try {
-		ctx.body = await ctx.render(`pages/globalping/` + (path === '/' ? '_index' : path) + '.html', data);
+		ctx.body = await ctx.render(`pages/` + (path === '/' ? '_index' : path) + '.html', data);
 		ctx.maxAge = 5 * 60;
 	} catch (e) {
 		if (ctx.app.env === 'development') {
@@ -243,7 +243,7 @@ koaElasticUtils.addRoutes(router, [
 		}
 
 		ctx.status = 404;
-		ctx.body = await ctx.render(`pages/globalping/_404.html`, { actualPath: ctx.path });
+		ctx.body = await ctx.render(`pages/_404.html`, { actualPath: ctx.path });
 	}
 });
 

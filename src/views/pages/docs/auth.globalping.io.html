@@ -1,6 +1,5 @@
-<link rel="ractive" href="../../r-docs.html">
-<link rel="ractive" href="../../components/header.html" name="c-header">
-<link rel="ractive" href="../../components/footer.html" name="c-footer">
+<link rel="ractive" href="../../r-docs-globalping.html" name="r-docs">
+<link rel="ractive" href="../../components/gp-header.html" name="c-gp-header">
 <link rel="ractive" href="../../components/notification.html" name="c-notification">
 <link rel="ractive" href="../../components/header-gradient.html" name="c-header-gradient">
 
@@ -14,11 +13,11 @@
 	</style>
 
 	<c-notification></c-notification>
-	<c-header useWhiteLogos="true" additionalClasses="header-with-dark-bg header-fw-docs"></c-header>
+	<c-gp-header additionalClasses="header-with-dark-bg header-fw-docs"></c-gp-header>
 
 	{{#if screenWidth}}
 		<rapi-doc
-			spec-url="{{@shared.apiDocsHost}}/v1/spec.yaml"
+			spec-url="https://auth.globalping.io/spec.yaml"
 			id="thedoc"
 			theme="light"
 			load-fonts="false"
@@ -32,8 +31,9 @@
 			allow-spec-file-load="false"
 			allow-spec-file-download="true"
 			allow-server-selection="false"
-			allow-authentication="false"
+			allow-authentication="true"
 			schema-description-expanded="true"
+			schema-expand-level="1"
 			match-type="includes"
 			allow-schema-description-expand-toggle="false"
 		>
@@ -47,7 +47,8 @@
 	component.exports = {
 		data () {
 			return {
-				title: 'jsDelivr API',
+				title: 'Globalping Authentication API',
+				description: 'Authenticate your Globalping integrations using our OAuth API for the best user flow.',
 			};
 		},
 		computed: {
@@ -57,7 +58,7 @@
 		},
 		onrender () {
 			if (!Ractive.isServer) {
-				this.set('screenWidth', innerWidth);
+				this.set('screenWidth', window.innerWidth);
 
 				listeners.screenWidthListener(this);
 

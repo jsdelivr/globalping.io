@@ -29,7 +29,6 @@ const serverConfig = config.get(site === 'globalping' ? 'globalping.server' : 's
 const stripTrailingSlash = require('./middleware/strip-trailing-slash');
 const render = require('./middleware/render');
 const debugHandler = require('./routes/debug');
-const jsDelivrRouter = require('./routes/jsdelivr');
 const globalpingRouter = require('./routes/globalping');
 const legacyMapping = require('../data/legacy-mapping.json');
 const isRenderPreview = process.env.IS_PULL_REQUEST === 'true' && process.env.RENDER_EXTERNAL_URL;
@@ -56,7 +55,7 @@ app.use(async (ctx, next) => {
 /**
  * Handle favicon requests before anything else.
  */
-app.use(koaFavicon(`${__dirname}/public/${site === 'globalping' ? 'globalping/' : ''}favicon.ico`));
+app.use(koaFavicon(`${__dirname}/public/favicon.ico`));
 
 /**
  * Log requests during development.
@@ -99,7 +98,7 @@ app.use(async (ctx, next) => {
  * Livereload support during development.
  */
 if (app.env === 'development') {
-	app.use(koaLivereload({ port: site === 'globalping' ? 35730 : 35729 }));
+	app.use(koaLivereload({ port: 35730 }));
 }
 
 /**
@@ -268,11 +267,7 @@ router.get('/auth/callback', '/auth/callback', async (ctx) => {
 /**
  * Site-specific routes.
  */
-if (site === 'globalping') {
-	router.use(globalpingRouter.routes(), globalpingRouter.allowedMethods());
-} else {
-	router.use(jsDelivrRouter.routes(), jsDelivrRouter.allowedMethods());
-}
+router.use(globalpingRouter.routes(), globalpingRouter.allowedMethods());
 
 /**
  * All other pages.
@@ -281,7 +276,7 @@ koaElasticUtils.addRoutes(router, [
 	[ '/(.*)', '/(.*)' ],
 ], async (ctx) => {
 	let path = ctx.path.startsWith('/_') ? '/_404' : ctx.path;
-	let root = site === 'globalping' ? 'globalping/' : '';
+	let root = '';
 	let data = {
 		..._.pick(ctx.query, [ 'docs', 'limit', 'page', 'query', 'type', 'style', 'measurement' ]),
 		actualPath: ctx.path,

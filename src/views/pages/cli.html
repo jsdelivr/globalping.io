@@ -1,8 +1,8 @@
-<link rel="ractive" href="../../r-page-globalping.html" name="r-page">
-<link rel="ractive" href="../../components/gp-header.html" name="c-gp-header">
-<link rel="ractive" href="../../components/gp-footer.html" name="c-gp-footer">
-<link rel="ractive" href="../../components/notification.html" name="c-notification">
-<link rel="ractive" href="../../components/gp-jumbotron.html" name="c-gp-jumbotron">
+<link rel="ractive" href="../r-page-globalping.html" name="r-page">
+<link rel="ractive" href="../components/gp-header.html" name="c-gp-header">
+<link rel="ractive" href="../components/gp-footer.html" name="c-gp-footer">
+<link rel="ractive" href="../components/notification.html" name="c-notification">
+<link rel="ractive" href="../components/gp-jumbotron.html" name="c-gp-jumbotron">
 
 <r-page noYield="{{noYield}}" title="{{title}}" description="{{description}}">
 	<c-notification></c-notification>
@@ -173,9 +173,9 @@ Use "globalping [command] --help" for more information about a command.
 </r-page>
 
 <script>
-	const http = require('../../../assets/js/utils/http');
-	const dataCache = require('../../../assets/js/utils/data-cache');
-	const clipboard = require('../../../assets/js/decorators/clipboard');
+	const http = require('../../assets/js/utils/http');
+	const dataCache = require('../../assets/js/utils/data-cache');
+	const clipboard = require('../../assets/js/decorators/clipboard');
 	const DEB_DATA = {
 		name: 'DEB',
 		descr: 'Debian, UbuntuDEB, Ubuntu',

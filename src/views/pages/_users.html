@@ -1,9 +1,9 @@
-<link rel="ractive" href="../../r-page-globalping.html" name="r-page">
-<link rel="ractive" href="../../components/gp-header.html" name="c-gp-header">
-<link rel="ractive" href="../../components/google-maps.html" name="c-google-maps">
-<link rel="ractive" href="../../components/gp-footer.html" name="c-gp-footer">
-<link rel="ractive" href="../../components/notification.html" name="c-notification">
-<link rel="ractive" href="../../components/gp-filtered-probe-list.html" name="c-filtered-probe-list">
+<link rel="ractive" href="../r-page-globalping.html" name="r-page">
+<link rel="ractive" href="../components/gp-header.html" name="c-gp-header">
+<link rel="ractive" href="../components/google-maps.html" name="c-google-maps">
+<link rel="ractive" href="../components/gp-footer.html" name="c-gp-footer">
+<link rel="ractive" href="../components/notification.html" name="c-notification">
+<link rel="ractive" href="../components/gp-filtered-probe-list.html" name="c-filtered-probe-list">
 
 <r-page noYield="{{noYield}}" title="{{title}}" description="{{description}}">
 	{{#partial seo}}
@@ -77,10 +77,10 @@
 </r-page>
 
 <script>
-	const _ = require('../../../assets/js/_');
-	const listeners = require('../../../assets/js/utils/listeners');
-	const http = require('../../../assets/js/utils/http');
-	const dataCache = require('../../../assets/js/utils/data-cache');
+	const _ = require('../../assets/js/_');
+	const listeners = require('../../assets/js/utils/listeners');
+	const http = require('../../assets/js/utils/http');
+	const dataCache = require('../../assets/js/utils/data-cache');
 
 	const GROUP_DEFAULT = 'disabled';
 	const SORT_DEFAULT = 'alphabetically';
