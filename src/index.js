@@ -29,7 +29,7 @@ const serverConfig = config.get(site === 'globalping' ? 'globalping.server' : 's
 const stripTrailingSlash = require('./middleware/strip-trailing-slash');
 const render = require('./middleware/render');
 const debugHandler = require('./routes/debug');
-const globalpingRouter = require('./routes/globalping');
+const globalpingRouter = require('./routes');
 const legacyMapping = require('../data/legacy-mapping.json');
 const isRenderPreview = process.env.IS_PULL_REQUEST === 'true' && process.env.RENDER_EXTERNAL_URL;
 

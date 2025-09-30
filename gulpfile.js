@@ -22,7 +22,7 @@ const liveReloadOptions = { port: 35730 };
 
 const srcDir = './src';
 const srcAssetsDir = `${srcDir}/assets`;
-const srcPublicDir = `${srcDir}/public/globalping`;
+const srcPublicDir = `${srcDir}/public`;
 const dstAssetsDir = `./dist/globalping/assets`;
 const dstPublicDir = `./dist/globalping`;
 let cache;
