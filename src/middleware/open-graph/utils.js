@@ -1,4 +1,4 @@
-const got = require('../../../lib/got');
+const got = require('../../lib/got');
 
 const GLOBALPING_API_HOST = 'https://api.globalping.io';
 const MEASUREMENT_TYPES = [ 'ping', 'traceroute', 'mtr', 'dns', 'http' ];

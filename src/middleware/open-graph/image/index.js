@@ -12,17 +12,17 @@ const algoliaNode = require('../../../lib/algolia-node');
 const got = require('../../../lib/got');
 
 const { cleanString, truncateString, fontsProcessor } = require('./utils');
-const { fetchGlobalpingStats, validateMeasurementData } = require('../utils/globalping');
+const { fetchGlobalpingStats, validateMeasurementData } = require('../utils');
 
 const gpGenerators = {
-	dns: require('./globalping/dns'),
-	http: require('./globalping/http'),
-	mtr: require('./globalping/mtr'),
-	ping: require('./globalping/ping'),
-	traceroute: require('./globalping/traceroute'),
+	dns: require('./measurements/dns'),
+	http: require('./measurements/http'),
+	mtr: require('./measurements/mtr'),
+	ping: require('./measurements/ping'),
+	traceroute: require('./measurements/traceroute'),
 };
 
-const globalpingOG = fs.readFileSync(path.resolve(__dirname, '../../../assets/img/og-globalping.png'));
+const globalpingOG = fs.readFileSync(path.resolve(__dirname, '../../../assets/img/og-measurements.png'));
 
 const API_HOST = 'https://data.jsdelivr.com';
 const LOGO_MAX_SIZE = 2 * 2 ** 20; // 2MiB

@@ -1599,7 +1599,7 @@ module.exports = {
 			if (hasToken) {
 				msg += '<span>You can get higher limits by sponsoring us or hosting probes</span>';
 			} else {
-				msg += '<span>You can get higher limits by creating an account. <a href="https://dash.globalping.io">Sign up</a><span>';
+				msg += '<span>You can get higher limits by creating an account. <a href="https://dash.measurements.io">Sign up</a><span>';
 			}
 
 			return msg;

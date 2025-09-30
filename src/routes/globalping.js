@@ -5,7 +5,7 @@ const _ = require('lodash');
 
 const globalpingSitemap = require('../middleware/sitemap');
 const ogImage = require('../middleware/open-graph/image');
-const ogMetadata = require('../middleware/open-graph/globalping');
+const ogMetadata = require('../middleware/open-graph');
 
 let asnDomains = null;
 

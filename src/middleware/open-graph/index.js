@@ -4,7 +4,7 @@ const { fetchGlobalpingStats,
 	getStatusCodes,
 	getViableData,
 	validateMeasurementData,
-} = require('./utils/globalping');
+} = require('./utils');
 
 function formatMeasurements (data, formatter) {
 	return data.map(formatter).join('; ') + '.';

@@ -1,4 +1,4 @@
-const { getRangeString, getStatusCodes, getViableData } = require('../../utils/globalping');
+const { getRangeString, getStatusCodes, getViableData } = require('../../utils');
 const {
 	getBaseInfo,
 	getHeaderWidths,

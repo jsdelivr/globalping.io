@@ -202,7 +202,7 @@ router.use(
 
 		return next();
 	},
-	koaStatic(__dirname + `/../dist${site === 'globalping' ? '/globalping' : '/jsdelivr'}/assets`, {
+	koaStatic(__dirname + `/../dist${site === 'globalping' ? '/measurements' : '/jsdelivr'}/assets`, {
 		index: false,
 		maxage: 365 * 24 * 60 * 60 * 1000,
 		setHeaders (res) {
@@ -219,7 +219,7 @@ router.use(
 	},
 );
 
-router.use(koaStatic(__dirname + `/../dist${site === 'globalping' ? '/globalping' : '/jsdelivr'}`, {
+router.use(koaStatic(__dirname + `/../dist${site === 'globalping' ? '/measurements' : '/jsdelivr'}`, {
 	index: false,
 	maxage: 60 * 60 * 1000,
 	setHeaders (res) {

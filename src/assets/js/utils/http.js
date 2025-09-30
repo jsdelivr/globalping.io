@@ -303,7 +303,7 @@ module.exports.getCdnOssFiles = (
 module.exports.getGlobalpingUser = () => {
 	// Note: The authentication won't work out of the box on localhost because the cookie is set with SameSite=Strict
 	// If you need to test the page as an authenticated user (and don't want to set up a local dash and API),
-	// just set the production cookie "dash_session_token" (.globalping.io) to SameSite=None via devtools.
+	// just set the production cookie "dash_session_token" (.measurements.io) to SameSite=None via devtools.
 	return _.makeHTTPRequest({ url: `${GLOBALPING_DASH_HOST}/users/me`, withCredentials: true }).then(body => body.data).catch(() => null);
 };
 

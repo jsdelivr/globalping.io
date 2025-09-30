@@ -31,8 +31,8 @@ Ractive.Router.prototype.dispatch = function (...args) {
 	return this;
 };
 
-app.router.addRoute('/docs/api.globalping.io', cDocsGP);
-app.router.addRoute('/docs/auth.globalping.io', cDocsGPAuth);
+app.router.addRoute('/docs/api.measurements.io', cDocsGP);
+app.router.addRoute('/docs/auth.measurements.io', cDocsGPAuth);
 
 _.onDocumentReady(() => {
 	let state = {};
