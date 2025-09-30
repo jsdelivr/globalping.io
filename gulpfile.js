@@ -21,10 +21,11 @@ const source = require('vinyl-source-stream');
 const liveReloadOptions = { port: 35730 };
 
 const srcDir = './src';
+const distDir = './dist';
 const srcAssetsDir = `${srcDir}/assets`;
 const srcPublicDir = `${srcDir}/public`;
-const dstAssetsDir = `./dist/globalping/assets`;
-const dstPublicDir = `./dist/globalping`;
+const dstAssetsDir = `${distDir}/assets`;
+const dstPublicDir = distDir;
 let cache;
 
 const getRollupStream = file => rollupStream({

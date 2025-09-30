@@ -152,7 +152,6 @@
 		"mocha": "mocha --exit test/tests.js",
 		"prepare": "node bin/fetch-data.js; husky install",
 		"start": "cross-env NODE_ENV=development gulp",
-		"start:gp": "cross-env NODE_ENV=development SITE=globalping gulp",
 		"test": "npm run lint && npm run mocha"
 	},
 	"lint-staged": {
@@ -162,7 +161,7 @@
 	},
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/jsdelivr/www.jsdelivr.com.git"
+		"url": "https://github.com/PavelKopecky/globalping.io"
 	},
 	"engines": {
 		"node": "24"

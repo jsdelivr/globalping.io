@@ -9,7 +9,7 @@ const countries = require('../../assets/json/countries.json');
 const continents = require('../../assets/json/continents.json');
 const usaStates = require('../../assets/json/usa-states.json');
 
-const serverHost = config.get('globalping.server.host');
+const serverHost = config.get('server.host');
 const viewsPath = __dirname + '/../../views';
 const usernameTagPattern = /^u-[^:]+$/;
 
