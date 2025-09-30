@@ -1,19 +1,60 @@
-<footer class="c-footer">
+<footer class="c-footer c-gp-footer">
 	<div class="wrapper">
 		<div class="container-fluid container-mw">
 			<div class="row block-main">
-				<div class="col-xs-12 col-sm-6 main-left">
-					<div class="maintain-header">
-						<span class="text-footer-14 op-64">Maintained by</span>
-						<a class="text-footer-14" href="/about#people">jsDelivr team and contributors</a>
-						<br>
-						<span class="text-footer-14 op-64">Founded by</span>
-						<a class="text-footer-14" target="_blank" rel="noopener noreferrer"
-							href="https://dakulov.com/">Dmitriy Akulov</a>
+				<div class="col-xs-12 col-sm-4 main-left">
+					<div class="block-list" style="padding: 0;">
+						<div class="title-copy op-64">&copy; globalping.io, 2022 - {{date.getFullYear()}}</div>
+
 					</div>
 				</div>
 
-				<div class="col-xs-12 col-sm-6 main-right">
+				<div class="col-xs-12 col-sm-8 main-right">
+					<div class="main-right-container">
+						<div class="block-list" style="padding: 0;">
+							<div class="row list-primary list-small-row">
+								<div class="col-sm-12">
+									<ul>
+										<li><a href="/about-us">About</a></li>
+										<li><a href="/sponsors">Our Sponsors</a></li>
+										<li><a href="/terms">Terms &amp; Policies</a></li>
+										<li><a href="mailto:d@jsdelivr.com"> d@globalping.io</a></li>
+									</ul>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<div class="footer-separator"></div>
+
+			<div class="row block-main">
+				<div class="col-xs-12 col-sm-8 main-left">
+					<div class="block-list" style="padding: 0;">
+						<div class="title-copy-bottom op-64">Integrations</div>
+
+						<div class="row list-primary">
+							<div class="col-sm-12">
+								<div class="title-copy op-64">Integrations</div>
+							</div>
+						</div>
+
+						<div class="row list-second list-small-column">
+							<div class="col-sm-12">
+								<ul>
+									<li><a href="/docs/api.globalping.io" class="router-ignore">REST API</a></li>
+									<li><a href="/cli">CLI</a></li>
+									<li><a href="/slack">Slack App</a></li>
+									<li><a href="/discord">Discord App</a></li>
+									<li><a href="https://github.com/globalping" target="_blank">GitHub Bot <i class="fa fa-external-link" aria-hidden="true"></i></a></li>
+								</ul>
+							</div>
+						</div>
+					</div>
+				</div>
+
+				<div class="col-xs-12 col-sm-4 main-right">
 					<div class="main-right-container">
 						<div class="subscribe-header">
 							<span class="text-footer-14">Sign up to our newsletter</span>
@@ -32,47 +73,26 @@
 
 			<div class="footer-separator"></div>
 
-			<div class="block-list">
-				<div class="title-copy-bottom op-64">&copy; jsdelivr.com, 2012 - {{date.getFullYear()}}</div>
-
-				<div class="row list-primary">
-					<div class="col-sm-12">
-						<div class="title-copy op-64">&copy; jsdelivr.com, 2012 - {{date.getFullYear()}}</div>
-						<ul>
-							<li> <a href="/about"> About </a> </li>
-							<li> <a href="/history"> Our History </a> </li>
-							<li> <a href="/sponsors"> Our Sponsors </a> </li>
-							<li> <a href="/oss-cdn"> Custom OSS CDN </a> </li>
-							<li> <a href="https://status.jsdelivr.com/"> Status </a> </li>
-							<li> <a href="/terms"> Terms &amp; Policies </a> </li>
-							<li> <a href="mailto:d@jsdelivr.com"> d@jsdelivr.com </a> </li>
-						</ul>
-					</div>
-				</div>
-
-				<div class="row list-second">
-					<div class="col-sm-12">
-						<div class="title-convert op-64">Convert from:</div>
-						<ul>
-							<li><a href="/github">GitHub</a></li>
-							<li><a href="/google">Google Hosted Libraries</a></li>
-							<li><a href="/rawgit">RawGit</a></li>
-							<li><a href="/unpkg">unpkg</a></li>
-						</ul>
-					</div>
-				</div>
-			</div>
-
-			<div class="footer-separator"></div>
-
 			<div class="footer-blog-links">
 				<div class="footer-blog-links_title op-64">From our Blog</div>
 
 				<div class="footer-blog-links_block">
 					{{#each blogLinksData}}
-						<a class="router-ignore" target="_blank" href="{{@shared.serverHost}}{{this.url}}">{{this.text}}</a>
+						<a class="router-ignore" target="_blank" href="{{this.url}}">{{this.text}}</a>
 					{{/each}}
 				</div>
+			</div>
+
+			<div class="footer-separator"></div>
+
+			<div class="footer-gp-links">
+				{{#each gpLinksData}}
+					<div class="footer-gp-links_block">
+						{{#each this}}
+							<a class="router-ignore" href="{{@shared.serverHost}}{{this.url}}">{{this.text}}</a>
+						{{/each}}
+					</div>
+				{{/each}}
 			</div>
 		</div>
 	</div>
@@ -86,12 +106,86 @@
 			return {
 				date: new Date(),
 				docInnerHtml: null,
+				gpLinksData: [
+					[
+						{
+							text: 'Ping from Europe',
+							url: '/network-tools/ping-from-europe',
+						},
+						{
+							text: 'Ping from USA',
+							url: '/network-tools/ping-from-united-states',
+						},
+						{
+							text: 'Ping globally',
+							url: '/network-tools/ping',
+						},
+						{
+							text: 'Ping from AWS',
+							url: '/network-tools/ping-from-amazoncom-inc',
+						},
+					],
+					[
+						{
+							text: 'Traceroute from Europe',
+							url: '/network-tools/traceroute-from-europe',
+						},
+						{
+							text: 'Traceroute from USA',
+							url: '/network-tools/traceroute-from-united-states',
+						},
+						{
+							text: 'Traceroute globally',
+							url: '/network-tools/traceroute',
+						},
+						{
+							text: 'Traceroute from AWS',
+							url: '/network-tools/traceroute-from-amazoncom-inc',
+						},
+					],
+					[
+						{
+							text: 'DNS/dig resolve from Europe',
+							url: '/network-tools/dns-from-europe',
+						},
+						{
+							text: 'DNS/dig resolve from USA',
+							url: '/network-tools/dns-from-united-states',
+						},
+						{
+							text: 'DNS/dig resolve globally',
+							url: '/network-tools/dns',
+						},
+						{
+							text: 'DNS/dig resolve from AWS',
+							url: '/network-tools/dns-from-amazoncom-inc',
+						},
+					],
+					[
+						{
+							text: 'HTTP/curl from Europe',
+							url: '/network-tools/http-from-europe',
+						},
+						{
+							text: 'HTTP/curl from USA',
+							url: '/network-tools/http-from-united-states',
+						},
+						{
+							text: 'HTTP/curl globally',
+							url: '/network-tools/http',
+						},
+						{
+							text: 'HTTP/curl from AWS',
+							url: '/network-tools/http-from-amazoncom-inc',
+						},
+					],
+				],
 				blogLinksData: null,
 			};
 		},
 		oninit () {
 			if (!Ractive.isServer) {
-				http.getBlogRss().then((response) => {
+				http.getGPBlogRss().then((response) => {
 					if (response) {
 						let document = new window.DOMParser().parseFromString(response, 'text/xml');
 						let items = document.documentElement.childNodes[0].getElementsByTagName('item');
@@ -115,7 +209,7 @@
 
 							data.push({
 								text: currItemTitle,
-								url: `/blog${new URL(currItemLink, 'https://www.jsdelivr.com').pathname}`,
+								url: currItemLink,
 								date: new Date(currItemPubDate).getTime(),
 							});
 						}

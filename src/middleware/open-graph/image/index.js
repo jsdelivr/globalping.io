@@ -22,7 +22,7 @@ const gpGenerators = {
 	traceroute: require('./measurements/traceroute'),
 };
 
-const globalpingOG = fs.readFileSync(path.resolve(__dirname, '../../../assets/img/og-measurements.png'));
+const globalpingOG = fs.readFileSync(path.resolve(__dirname, '../../../assets/img/og-globalping.png'));
 
 const API_HOST = 'https://data.jsdelivr.com';
 const LOGO_MAX_SIZE = 2 * 2 ** 20; // 2MiB
