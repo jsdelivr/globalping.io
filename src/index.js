@@ -15,7 +15,6 @@ const koaStatic = require('koa-static');
 const koaFavicon = require('koa-favicon');
 const koaLivereload = require('koa-livereload');
 const koaResponseTime = require('koa-response-time');
-// const koaConditionalGet = require('koa-conditional-get');
 const koaCompress = require('koa-compress');
 const koaLogger = require('koa-logger');
 const koaETag = require('koa-etag');

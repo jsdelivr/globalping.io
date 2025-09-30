@@ -1,4 +1,4 @@
-# www.jsdelivr.com
+# globalping.io
 
 This repository is used to host the source code for the [Globalping website](https://globalping.io).
 
