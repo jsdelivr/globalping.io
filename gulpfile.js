@@ -74,7 +74,7 @@ gulp.task('copy', gulp.parallel(
 ));
 
 gulp.task('less', () => {
-	return gulp.src([ `${srcAssetsDir}/less/app-globalping.less` ])
+	return gulp.src([ `${srcAssetsDir}/less/app.less` ])
 		.pipe(plumber())
 		.pipe(sourcemaps.init())
 		.pipe(less({ relativeUrls: true, strictMath: true }))
@@ -85,7 +85,7 @@ gulp.task('less', () => {
 });
 
 gulp.task('less:prod', () => {
-	return gulp.src([ `${srcAssetsDir}/less/app-globalping.less` ])
+	return gulp.src([ `${srcAssetsDir}/less/app.less` ])
 		.pipe(sourcemaps.init())
 		.pipe(less({ relativeUrls: true, strictMath: true }))
 		.pipe(autoprefixer())

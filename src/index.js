@@ -30,7 +30,6 @@ const stripTrailingSlash = require('./middleware/strip-trailing-slash');
 const render = require('./middleware/render');
 const debugHandler = require('./routes/debug');
 const globalpingRouter = require('./routes');
-const legacyMapping = require('../data/legacy-mapping.json');
 const isRenderPreview = process.env.IS_PULL_REQUEST === 'true' && process.env.RENDER_EXTERNAL_URL;
 
 let app = new Koa();
@@ -148,37 +147,6 @@ app.use(render({
 	logoDevPublicToken: config.get('globalping.logoDevPublicToken'),
 	assetsVersion,
 }, app));
-
-
-if (site === 'jsdelivr') {
-	/**
-	 * Redirect old URLs #1.
-	 */
-	app.use(async (ctx, next) => {
-		if (!ctx.query._escaped_fragment_) {
-			return next();
-		}
-
-		let name = ctx.query._escaped_fragment_.trim();
-
-		if (Object.hasOwn(legacyMapping, name)) {
-			ctx.status = 301;
-			return ctx.redirect(`/package/${legacyMapping[name].type}/${legacyMapping[name].name}`);
-		}
-	});
-
-	/**
-	 * Redirect previous Globalping pages.
-	 */
-	app.use(async (ctx, next) => {
-		if (/^\/globalping(?:\/|$)/.test(ctx.path)) {
-			ctx.status = 301;
-			return ctx.redirect(`https://globalping.io${ctx.url.replace(/^\/[^/?]+/, '')}`);
-		}
-
-		return next();
-	});
-}
 
 /**
  * More accurate APM route names.
