@@ -22,7 +22,7 @@
 						<span class="user-banner_user_contact_username">{{username}}</span>
 						<span class="user-banner_user_contact_gh">
 							<span>
-								<img width="16" height="16" src="{{@shared.assetsHost}}/img/icons/github-outline.svg">
+								<img width="16" height="16" src="{{@shared.assetsHost}}/img/github-outline.svg">
 								<a target="_blank" rel="noreferrer" href="https://github.com/{{username}}">{{username}}</a>
 							</span>
 						</span>
@@ -31,14 +31,14 @@
 				{{#if filteredProbes}}
 					<div class="user-banner_stats">
 						<span>
-							<img width="20" height="20" src="{{@shared.assetsHost}}/img/icons/radio.svg">
+							<img width="20" height="20" src="{{@shared.assetsHost}}/img/radio.svg">
 							{{filteredProbes.length}} {{_.pluralize('probe', filteredProbes.length)}}
 						</span>
 
 						{{#each userStats}}
 							{{#if count}}
 								<span>
-									<img width="20" height="20" src="{{@shared.assetsHost}}/img/icons/{{icon}}">
+									<img width="20" height="20" src="{{@shared.assetsHost}}/img/{{icon}}">
 									{{count}} {{~/_.pluralize(...name, count)}}
 								</span>
 							{{/if}}
