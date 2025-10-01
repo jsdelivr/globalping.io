@@ -1,6 +1,6 @@
 {
 	"name": "globalping.io",
-	"version": "3.0",
+	"version": "3.0.0",
 	"license": "OSL-3.0",
 	"private": true,
 	"dependencies": {
