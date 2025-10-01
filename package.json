@@ -1,6 +1,6 @@
 {
 	"name": "globalping.io",
-	"version": "2.0",
+	"version": "3.0",
 	"license": "OSL-3.0",
 	"private": true,
 	"dependencies": {
@@ -124,7 +124,7 @@
 	},
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/PavelKopecky/globalping.io"
+		"url": "https://github.com/jsdelivr/globalping.io"
 	},
 	"engines": {
 		"node": "24"

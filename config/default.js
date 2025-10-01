@@ -8,7 +8,7 @@ module.exports = {
 		blogHost: 'https://jsdelivr-blog.ghost.io',
 		assetsHost: `/assets/${assetsVersion}`,
 		apiDocsHost: 'https://api.globalping.io',
-		userAgent: `globalping.io/${version} (https://github.com/jsdelivr/www.jsdelivr.com)`,
+		userAgent: `globalping.io/${version} (https://github.com/jsdelivr/globalping.io)`,
 		headers: {
 			'Cache-Control': 'no-cache, no-store, must-revalidate',
 			'Vary': 'Accept-Encoding',
