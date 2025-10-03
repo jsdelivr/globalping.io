@@ -144,10 +144,6 @@ _.onDocumentReady(() => {
 				ractive.set(`@shared.${key}`, shared[key]);
 			});
 		}
-
-		http.fetchListStatPeriods().then((response) => {
-			ractive.set('@shared.rawListStatPeriods', response);
-		});
 	} catch (e) {}
 
 	try {

@@ -1,31 +1,6 @@
 const _ = require('../_');
 const API_HOST = 'https://api.globalping.io';
 const DASH_HOST = 'https://dash-directus.globalping.io';
-const HTTP_CACHE = new Map();
-
-const getWithCache = (url, params = {}, responseHeadersToGet = null) => {
-	url += _.createQueryString(params);
-
-	if (HTTP_CACHE.has(url)) {
-		return HTTP_CACHE.get(url);
-	}
-
-	let request;
-
-	if (responseHeadersToGet) {
-		request = _.makeHTTPRequest({ url, responseHeadersToGet });
-	} else {
-		request = _.makeHTTPRequest({ url });
-	}
-
-	HTTP_CACHE.set(url, request);
-
-	return request;
-};
-
-module.exports.fetchListStatPeriods = () => {
-	return getWithCache(`${API_HOST}/v1/stats/periods`);
-};
 
 module.exports.fetchGlobalpingProbes = () => {
 	return _.makeHTTPRequest({ url: `${API_HOST}/v1/probes` });
