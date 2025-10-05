@@ -362,7 +362,11 @@
 						}
 
 						&.targets {
-							width: 194px;
+							width: 100%;
+
+							@media (min-width: @screen-lg-min) {
+								width: 194px;
+							}
 
 							.results-table_row_stats_subrow_cell_value > span {
 								display: inline-block;
