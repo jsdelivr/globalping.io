@@ -362,7 +362,11 @@
 						}
 
 						&.targets {
-							width: 194px;
+							width: 100%;
+
+							@media (min-width: @screen-lg-min) {
+								width: 194px;
+							}
 
 							.results-table_row_stats_subrow_cell_value > span {
 								display: inline-block;
@@ -398,9 +402,12 @@
 							}
 
 							span {
+								white-space: nowrap;
+							}
+
+							.text-ellipsis {
 								overflow: hidden;
 								text-overflow: ellipsis;
-								white-space: nowrap;
 							}
 
 							.c-placeholder-skeleton {
@@ -447,6 +454,7 @@
 							align-items: center;
 							flex-grow: 1;
 							width: 100%;
+							gap: 8px;
 							font-size: 14px;
 							font-weight: 400;
 							line-height: 20px;
