@@ -380,18 +380,26 @@
 		handleOptsOnTargetInputFullURL (url, tagsArr = null, delimiter = null) {
 			try {
 				let { protocol, port, pathname, hostname, search } = new URL(url);
+				pathname = pathname !== '/' ? pathname : '';
+				search = search.replace('?', '');
 
 				if (!hostname) {
 					// Just one extra check. The constructor above may throw too.
 					throw new Error('Invalid URL');
 				}
 
-				this.set('gpMainOpts.type', 'HTTP');
+				if (pathname || search) {
+					this.set('gpMainOpts.type', 'HTTP');
+				}
+
+				if (this.get('gpMainOpts.type') === 'HTTP') {
+					this.set('gpHttpOpts.protocol', protocol.replace(':', '').toUpperCase());
+					this.set('gpNotAppliedOpts.request.path', pathname);
+					this.set('gpNotAppliedOpts.request.query', search);
+				}
+
 				this.set('gpMainOpts.target', tagsArr ? [ ...tagsArr, hostname ].join(delimiter) : hostname);
-				this.set('gpHttpOpts.protocol', protocol.replace(':', '').toUpperCase());
 				this.set('gpNotAppliedOpts.port', port);
-				this.set('gpNotAppliedOpts.request.path', pathname !== '/' ? pathname : '');
-				this.set('gpNotAppliedOpts.request.query', search.replace('?', ''));
 				this.set('tagsArr', tagsArr ? [ ...tagsArr, hostname ] : [ hostname ]);
 			} catch (err) {
 				this.set('gpMainOpts.target', tagsArr ? [ ...tagsArr, url ].join(delimiter) : url);
