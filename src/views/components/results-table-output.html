@@ -204,14 +204,14 @@
 
 									<div class="results-table_row_stats_subrow_cell ip">
 										<div class="results-table_row_stats_subrow_cell_value">
-											<span class="results-table_row_stats_subrow_cell_value_header">Resolved IP</span>
+											<span class="results-table_row_stats_subrow_cell_value_header"><span class="hidden-xs">Resolved </span>IP</span>
 											{{#if this.ipAddr}}
 												<span class="visible-lg"> <!-- We break in two lines if the value has more than 4 non-empty groups. -->
 													{{#each splitIPv6(ipAddr)}}
 														{{this}}<br>
 													{{/each}}
 												</span>
-												<span class="hidden-lg">{{this.ipAddr}}</span>
+												<span class="hidden-lg text-ellipsis">{{this.ipAddr}}</span>
 											{{elseif !this.ipAddr}}
 												<c-placeholder-skeleton type="subheader"></c-placeholder-skeleton>
 											{{/if}}

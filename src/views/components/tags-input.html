@@ -109,9 +109,7 @@
 						this.set('ipVersion', null);
 						this.set('ipVersionDisplayed', null);
 					} else {
-						let tagsArr = this.get('tagsArr');
-
-						this.handleIpSwitchState(tagsArr[0]);
+						this.handleIpSwitchState();
 					}
 				}, { init: false });
 
@@ -139,22 +137,8 @@
 				});
 
 				// handle ip type switch
-				this.observe('tagsArr', (tagsArr) => {
-					let currIpVersionDisplayed = this.get('ipVersionDisplayed');
-
-					if (tagsArr.length > 1) {
-						this.set('ipVersion', null);
-						this.set('ipVersionDisplayed', null);
-						this.set('ipSwitchLocked', true);
-
-						if (currIpVersionDisplayed) {
-							this.set('prevIpVersionDisplayed', currIpVersionDisplayed);
-						}
-
-						return;
-					}
-
-					this.handleIpSwitchState(tagsArr[0]);
+				this.observe('tagsArr', () => {
+					this.handleIpSwitchState();
 				});
 
 				// set default value is it was passed as prop
@@ -422,18 +406,29 @@
 		handleIpTypeSwitchFocus (e, tagsBlockEl) {
 			tagsBlockEl.classList.remove('focused');
 		},
-		handleIpSwitchState (target) {
+		handleIpSwitchState () {
+			let tagsArr = this.get('tagsArr');
 			let ipv4regex = ipRegex.v4({ exact: true });
 			let ipv6regex = ipRegex.v6({ exact: true, allowBrackets: true });
 
-			if (ipv4regex.test(target)) {
+			if (tagsArr.length && tagsArr.every(target => ipv4regex.test(target))) {
 				this.set('ipVersion', null);
 				this.set('ipVersionDisplayed', IP_V4_VALUE);
 				this.set('ipSwitchLocked', true);
-			} else if (ipv6regex.test(target)) {
+			} else if (tagsArr.length && tagsArr.every(target => ipv6regex.test(target))) {
 				this.set('ipVersion', null);
 				this.set('ipVersionDisplayed', IP_V6_VALUE);
 				this.set('ipSwitchLocked', true);
+			} else if (tagsArr.some(target => ipv4regex.test(target) || ipv6regex.test(target))) {
+				// hide the IP switch in the case IP versions are mixed, or there is one domain and one IP address
+				let currIpVersionDisplayed = this.get('ipVersionDisplayed');
+				this.set('ipVersion', null);
+				this.set('ipVersionDisplayed', null);
+				this.set('ipSwitchLocked', true);
+
+				if (currIpVersionDisplayed) {
+					this.set('prevIpVersionDisplayed', currIpVersionDisplayed);
+				}
 			} else {
 				let ipVersionDisplayed = this.get('ipVersionDisplayed') || this.get('prevIpVersionDisplayed') || IP_V4_VALUE;
 
