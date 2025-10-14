@@ -2357,7 +2357,12 @@
 						// Update the URL without creating a new history entry.
 						app.router.replaceQueryParam('measurement', `${this.get('measurement')},${res1.response.id}`);
 					}).catch((err) => {
-						this.handlePostGPMeasError(err);
+						this.set('showMap', this.get('originalShowMap'));
+
+						this.getTestMeasurementById({ measurementId: res.response.id }).then(() => {
+							this.handlePostGPMeasError(err, true);
+							this.set('targetsArr', [ targetsArr[0] ]);
+						});
 					});
 				} else {
 					this.getTestMeasurementById({ measurementId: res.response.id });
@@ -3172,9 +3177,10 @@
 			this.set('isInfiniteMeasStopped', true);
 			this.set('runTestBtnText', 'Run Again');
 		},
-		handlePostGPMeasError (err) {
+		handlePostGPMeasError (err, isSecondTarget = false) {
 			let isInfiniteModeRes = this.get('isInfiniteModeRes');
 			let testResults = this.get('testResults');
+			let targetsArr = this.get('targetsArr');
 
 			this.set('testInProgress', false);
 			// we show the error block under the map block only if it is not an infinite measurement or the one with no results
@@ -3188,11 +3194,12 @@
 					this.get('@shared.user'),
 					isInfiniteModeRes,
 					!!testResults,
+					isSecondTarget,
 				);
 
 				this.set('measurementErrMsg', measurementErrMsg);
 
-				if (isInfiniteModeRes && testResults) {
+				if (testResults && (isSecondTarget || isInfiniteModeRes)) {
 					this.set('showCreditsError', true);
 				} else {
 					this.set('showCreditsData', false);
@@ -3200,7 +3207,7 @@
 				}
 			} else if (err.error.type === 'validation_error') {
 				let measurementOptsErr = Object.keys(err.error.params || {}).some(key => key.split('.')[0] === 'measurementOptions');
-				let inputErrors = _.parseValidationErrors(err.error);
+				let inputErrors = _.parseValidationErrors(err.error, isSecondTarget && targetsArr[1]);
 
 				this.set('inputErrors', inputErrors);
 

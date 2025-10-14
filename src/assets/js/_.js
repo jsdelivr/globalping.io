@@ -534,9 +534,9 @@ module.exports = {
 		return count === 1 ? singular : plural;
 	},
 
-	createMeasCreditsErrMsg (responseHeaders, hasToken = false, isInfinite = false, hasResults = false) {
-		// do not show err msg if while infinite meas we've got the 429's err and we already have results
-		if (hasResults && isInfinite) {
+	createMeasCreditsErrMsg (responseHeaders, hasToken = false, isInfinite = false, hasResults = false, isSecondTarget = false) {
+		// do not show err msg if we get a 429 and have results for infinite measurement or another target
+		if (hasResults && (isInfinite || isSecondTarget)) {
 			return null;
 		}
 
@@ -574,7 +574,9 @@ module.exports = {
 		return 'All tests failed. Maybe you specified a non-existing endpoint?';
 	},
 
-	parseValidationErrors (errorBody) {
+	parseValidationErrors (errorBody, target = '') {
+		let prefix = target ? `${target}: ` : '';
+
 		return Object.keys(errorBody.params || {}).reduce((res, key) => {
 			let fieldName = key.split('.')[key.split('.').length - 1];
 
@@ -582,7 +584,7 @@ module.exports = {
 				fieldName = 'location';
 			}
 
-			res[fieldName] = errorBody.params[key].replace(/".*"/, fieldName);
+			res[fieldName] = `${prefix}${this.capitalizeFirstLetter(errorBody.params[key].replace(/".*"/, fieldName))}`;
 
 			return res;
 		}, {});
