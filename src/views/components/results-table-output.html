@@ -329,7 +329,7 @@
 				if (listWrapperEl) {
 					let itemsAmount = results.length;
 					let listElScrollHeight = listWrapperEl.scrollHeight;
-					let avgItemElHeight = Math.round(listElScrollHeight / itemsAmount);
+					let avgItemElHeight = Math.ceil(listElScrollHeight / itemsAmount);
 
 					listWrapperEl.style.height = `${itemsAmount < 8 ? avgItemElHeight * itemsAmount : avgItemElHeight * 8}px`;
 				}
