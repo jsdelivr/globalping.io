@@ -534,10 +534,21 @@ module.exports = {
 		return count === 1 ? singular : plural;
 	},
 
-	createMeasCreditsErrMsg (responseHeaders, hasToken = false, isInfinite = false, hasResults = false, isSecondTarget = false) {
+	createMeasCreditsErrMsg (
+		responseHeaders,
+		hasToken = false,
+		isInfinite = false,
+		hasResults = false,
+		isSecondTarget = false,
+		primaryTarget = '',
+	) {
 		// do not show err msg if we get a 429 and have results for infinite measurement or another target
-		if (hasResults && (isInfinite || isSecondTarget)) {
+		if (hasResults && isInfinite) {
 			return null;
+		}
+
+		if (hasResults && isSecondTarget && primaryTarget) {
+			return `Not enough credits to test both targets, showing results for ${primaryTarget} only. You can get higher limits by creating an account.`;
 		}
 
 		let minutes = responseHeaders['x-ratelimit-reset'] / 60;

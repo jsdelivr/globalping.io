@@ -16,7 +16,15 @@
 		},
 		oninit () {
 			if (!Ractive.isServer) {
-				this.observe('rateCreditsData', (rateCreditsData) => {
+				this.observe('rateCreditsData measurementErrMsg', () => {
+					let rateCreditsData = this.get('rateCreditsData');
+					let measurementErrMsg = this.get('measurementErrMsg');
+
+					if (measurementErrMsg) {
+						this.set('message', measurementErrMsg);
+						return;
+					}
+
 					if (rateCreditsData) {
 						let message;
 						let hasToken = this.get('@shared.user');
