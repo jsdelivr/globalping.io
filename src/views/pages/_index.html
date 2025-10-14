@@ -1658,7 +1658,7 @@
 				inputErrors: {},
 				testResults: null,
 				testInProgress: false,
-				testReqInterval: null,
+				testReqCancelFn: null,
 				notAppliedOpts: {},
 				defaultPacketsAmount: DEFAULT_PACKETS_AMOUNT,
 				defaultLimit: DEFAULT_LIMIT,
@@ -1945,10 +1945,10 @@
 				this.observe('realTimeTestResResponse', (realTimeTestResResponse) => {
 					if (!realTimeTestResResponse) { return; }
 
-					// clear interval for the related request when it's finished, collect reponses statuses
+					// clear refetch timeout for the related request when it's finished, collect response statuses
 					let respStatuses = realTimeTestResResponse.reduce((statusObj, r, rIdx) => {
 						if (r.status === 'finished') {
-							clearInterval(this.get('testReqInterval')[rIdx]);
+							this.get('testReqCancelFn')?.[rIdx]?.();
 
 							return { ...statusObj, [rIdx]: true };
 						}
@@ -2646,158 +2646,179 @@
 			reqParams = {},
 		}) {
 			return new Promise((resolve, reject) => {
-				let testReqInterval = setInterval(() => {
-					http.getGlobalpingMeasurement(measurementId).then((testRes) => {
-						if (isShareResCase) {
-							let currentTargets = this.get('mainOptions.target');
-							let currTargetsArr = _.removeDuplicatedTargets(currentTargets ? currentTargets.split(',') : []);
-							let updTargetsArr = currTargetsArr.indexOf(testRes.target) < 0 ? [ ...currTargetsArr, testRes.target ] : currTargetsArr;
+				let cancelled = false;
+				let timeout = null;
 
-							this.set('mainOptions.target', updTargetsArr.join(','));
+				let cancel = () => {
+					cancelled = true;
+					clearTimeout(timeout);
+					timeout = null;
+				};
 
-							// if infinite measurement we need to set targetsArr ASAP since we know there is only one target
-							if (isInfiniteMeas) {
-								this.set('targetsArr', updTargetsArr);
-							}
+				let scheduleFetch = () => {
+					if (cancelled) {
+						return;
+					}
 
-							// only the first target's response returns locations
-							if (isFirstShareReq) {
-								let magicValue = testRes.locations?.reduce((res, loc) => {
-									if (loc.magic) {
-										res += res.length ? `, ${loc.magic}` : loc.magic;
+					timeout = setTimeout(() => {
+						http.getGlobalpingMeasurement(measurementId).then((testRes) => {
+							if (isShareResCase) {
+								let currentTargets = this.get('mainOptions.target');
+								let currTargetsArr = _.removeDuplicatedTargets(currentTargets ? currentTargets.split(',') : []);
+								let updTargetsArr = currTargetsArr.indexOf(testRes.target) < 0 ? [ ...currTargetsArr, testRes.target ] : currTargetsArr;
+
+								this.set('mainOptions.target', updTargetsArr.join(','));
+
+								// if infinite measurement we need to set targetsArr ASAP since we know there is only one target
+								if (isInfiniteMeas) {
+									this.set('targetsArr', updTargetsArr);
+								}
+
+								// only the first target's response returns locations
+								if (isFirstShareReq) {
+									let magicValue = testRes.locations?.reduce((res, loc) => {
+										if (loc.magic) {
+											res += res.length ? `, ${loc.magic}` : loc.magic;
+
+											return res;
+										}
 
 										return res;
+									}, '');
+
+									this.set('mainOptions.location', magicValue);
+								}
+
+								if (isLastShareReq) {
+									this.set('targetsArr', updTargetsArr);
+									this.set('shareResHeaderData', `Showing results from ${_.formatDateTime(new Date(testRes.createdAt))}`);
+									this.set('mainOptions.type', this.translateTestTypeName(testRes.type));
+									this.set('mainOptions.limit', testRes.limit || DEFAULT_LIMIT);
+
+									// handle map max timing for HTTP measurement
+									if (testRes.type.toLowerCase() === 'http') {
+										this.set('probesMaxTiming', 1000);
 									}
 
-									return res;
-								}, '');
+									// ipVersion (target ip-type-switch) came with the measurementOptions but should be treated as the mainOptions
+									if (testRes.measurementOptions?.ipVersion) {
+										// if there is one target and it has IPv6 format (not a domain name) we shouldn't set ipVersion
+										if (updTargetsArr.length !== 1 || !ipRegex.v6({ exact: true, allowBrackets: true }).test(updTargetsArr[0])) {
+											this.set('mainOptions.ipVersion', testRes.measurementOptions.ipVersion);
+										}
 
-								this.set('mainOptions.location', magicValue);
-							}
-
-							if (isLastShareReq) {
-								this.set('targetsArr', updTargetsArr);
-								this.set('shareResHeaderData', `Showing results from ${_.formatDateTime(new Date(testRes.createdAt))}`);
-								this.set('mainOptions.type', this.translateTestTypeName(testRes.type));
-								this.set('mainOptions.limit', testRes.limit || DEFAULT_LIMIT);
-
-								// handle map max timing for HTTP measurement
-								if (testRes.type.toLowerCase() === 'http') {
-									this.set('probesMaxTiming', 1000);
-								}
-
-								// ipVersion (target ip-type-switch) came with the measurementOptions but should be treated as the mainOptions
-								if (testRes.measurementOptions?.ipVersion) {
-									// if there is one target and it has IPv6 format (not a domain name) we shouldn't set ipVersion
-									if (updTargetsArr.length !== 1 || !ipRegex.v6({ exact: true, allowBrackets: true }).test(updTargetsArr[0])) {
-										this.set('mainOptions.ipVersion', testRes.measurementOptions.ipVersion);
+										delete testRes.measurementOptions.ipVersion;
 									}
 
-									delete testRes.measurementOptions.ipVersion;
-								}
+									let defaultAPIOpts = this.getDefaultAPIMeasOptsByTestName(testRes.type);
+									let combinedOptions = _.deepExtend({}, defaultAPIOpts, testRes.measurementOptions);
+									let receivedInitPresetOpts = this.filterForInitPresetOpts(defaultAPIOpts, combinedOptions);
+									let receivedNotPresetOpts = this.filterForNotPresetOpts(defaultAPIOpts, combinedOptions);
 
-								let defaultAPIOpts = this.getDefaultAPIMeasOptsByTestName(testRes.type);
-								let combinedOptions = _.deepExtend({}, defaultAPIOpts, testRes.measurementOptions);
-								let receivedInitPresetOpts = this.filterForInitPresetOpts(defaultAPIOpts, combinedOptions);
-								let receivedNotPresetOpts = this.filterForNotPresetOpts(defaultAPIOpts, combinedOptions);
+									this.set('notAppliedOpts', receivedNotPresetOpts);
+									this.set(`${testRes.type.toLowerCase()}Opts`, receivedInitPresetOpts);
+									this.applyOptions();
 
-								this.set('notAppliedOpts', receivedNotPresetOpts);
-								this.set(`${testRes.type.toLowerCase()}Opts`, receivedInitPresetOpts);
-								this.applyOptions();
+									if (!isInfiniteMeas) {
+										this.set('runTestBtnText', 'Run Again');
+									}
 
-								if (!isInfiniteMeas) {
-									this.set('runTestBtnText', 'Run Again');
-								}
-
-								// clear qsMeasurementIdsArr so the mainOptions.type observer could work now
-								this.set('qsMeasurementIdsArr', []);
-							}
-						}
-
-						let isInfiniteMeasStopped = this.get('isInfiniteMeasStopped');
-
-						// check if infinite measurement was stopped
-						if (isInfiniteMeas && isInfiniteMeasStopped) {
-							clearInterval(testReqInterval);
-							resolve();
-						}
-
-						// prepare and set request params to pass them to gp-test-results
-						let testReqParams = JSON.parse(JSON.stringify(testRes));
-
-						delete testReqParams.results;
-						delete testReqParams.status;
-						delete testReqParams.updatedAt;
-						delete testReqParams.createdAt;
-
-						testReqParams = {
-							inProgressUpdates: true,
-							limit: DEFAULT_LIMIT,
-							...testReqParams,
-							measurementOptions: {
-								trace: false,
-								...testReqParams.measurementOptions,
-							},
-						};
-
-						// set testReqParams to pass them to c-gp-results-raw-output
-						this.set('testReqParams', testReqParams);
-
-						// collect IDs of each target's measurement response
-						let updMeasMetadata = {
-							...this.get('measurementsMetadata'),
-							[resNumber]: {
-								target: testReqParams.target,
-								measurementId: testReqParams.id,
-							},
-						};
-
-						this.set('measurementsMetadata', updMeasMetadata);
-
-						// set the local/client time of the response received
-						let currentTimestamp = Date.now();
-						let testResUpd = {
-							...testRes,
-							clientSideStartedAt: currentTimestamp,
-							clientSideUpdatedAt: currentTimestamp,
-						};
-
-						// should be after the mainOptions.type was set
-						this.set(`realTimeTestResResponse[${resNumber}]`, testResUpd);
-
-						// handle infinite test flow, once at least one probe is finished we shuld run measurement again
-						if (this.get('shareResFlow') === false && isInfiniteMeas && testRes.results.some(r => r.result.status === 'finished')) {
-							let infiniteMeasIds = this.get('infiniteMeasIds');
-
-							if (!infiniteMeasIds.includes(testRes.id)) {
-								this.set('infiniteMeasIds', [ ...infiniteMeasIds, testRes.id ]);
-
-								if (!isInfiniteMeasStopped) {
-									this.postInfiniteGlobalpingMeasurement({
-										reqParams,
-										target: testRes.target,
-										isInfiniteMeas: true,
-										resNumber: infiniteMeasIds.length + 1,
-									});
+									// clear qsMeasurementIdsArr so the mainOptions.type observer could work now
+									this.set('qsMeasurementIdsArr', []);
 								}
 							}
-						}
 
-						resolve(testRes);
-					}).catch((e) => {
-						clearInterval(testReqInterval);
+							let isInfiniteMeasStopped = this.get('isInfiniteMeasStopped');
 
-						if (e.responseStatusCode === 404) {
-							this.set('shareResHeaderData', 'This measurement has expired!');
-							this.set('runTestBtnText', 'Run Test');
-							this.scrollMapIntoView();
-						}
+							// check if infinite measurement was stopped
+							if (isInfiniteMeas && isInfiniteMeasStopped) {
+								cancel();
+								resolve();
+							}
 
-						reject(e);
-					});
-				}, 1000);
+							// prepare and set request params to pass them to gp-test-results
+							let testReqParams = JSON.parse(JSON.stringify(testRes));
 
-				this.set(`testReqInterval[${resNumber}]`, testReqInterval);
+							delete testReqParams.results;
+							delete testReqParams.status;
+							delete testReqParams.updatedAt;
+							delete testReqParams.createdAt;
+
+							testReqParams = {
+								inProgressUpdates: true,
+								limit: DEFAULT_LIMIT,
+								...testReqParams,
+								measurementOptions: {
+									trace: false,
+									...testReqParams.measurementOptions,
+								},
+							};
+
+							// set testReqParams to pass them to c-gp-results-raw-output
+							this.set('testReqParams', testReqParams);
+
+							// collect IDs of each target's measurement response
+							let updMeasMetadata = {
+								...this.get('measurementsMetadata'),
+								[resNumber]: {
+									target: testReqParams.target,
+									measurementId: testReqParams.id,
+								},
+							};
+
+							this.set('measurementsMetadata', updMeasMetadata);
+
+							// set the local/client time of the response received
+							let currentTimestamp = Date.now();
+							let testResUpd = {
+								...testRes,
+								clientSideStartedAt: currentTimestamp,
+								clientSideUpdatedAt: currentTimestamp,
+							};
+
+							// should be after the mainOptions.type was set
+							this.set(`realTimeTestResResponse[${resNumber}]`, testResUpd);
+
+							// handle infinite test flow, once at least one probe is finished we shuld run measurement again
+							if (this.get('shareResFlow') === false && isInfiniteMeas && testRes.results.some(r => r.result.status === 'finished')) {
+								let infiniteMeasIds = this.get('infiniteMeasIds');
+
+								if (!infiniteMeasIds.includes(testRes.id)) {
+									this.set('infiniteMeasIds', [ ...infiniteMeasIds, testRes.id ]);
+
+									if (!isInfiniteMeasStopped) {
+										this.postInfiniteGlobalpingMeasurement({
+											reqParams,
+											target: testRes.target,
+											isInfiniteMeas: true,
+											resNumber: infiniteMeasIds.length + 1,
+										});
+									}
+								}
+							}
+
+							resolve(testRes);
+
+							if (!cancelled) {
+								this.set(`testReqCancelFn[${resNumber}]`, cancel);
+								scheduleFetch();
+							}
+						}).catch((e) => {
+							cancel();
+
+							if (e.responseStatusCode === 404) {
+								this.set('shareResHeaderData', 'This measurement has expired!');
+								this.set('runTestBtnText', 'Run Test');
+								this.scrollMapIntoView();
+							}
+
+							reject(e);
+						});
+					}, 1000);
+				};
+
+				this.set(`testReqCancelFn[${resNumber}]`, cancel);
+				scheduleFetch();
 			});
 		},
 		handleProbesResponse (response) {
