@@ -542,7 +542,7 @@ module.exports = {
 		isSecondTarget = false,
 		primaryTarget = '',
 	) {
-		// do not show err msg if we get a 429 and have results for infinite measurement or another target
+		// do not show err msg if we get a 429 and have results for infinite measurement
 		if (hasResults && isInfinite) {
 			return null;
 		}
