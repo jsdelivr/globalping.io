@@ -2210,6 +2210,9 @@
 				limitInput.addEventListener('keypress', handleEnterBtn);
 			}
 		},
+		onunrender () {
+			this.get('testReqCancelFn')?.forEach(cancel => cancel?.());
+		},
 		proceedToTest (prevProbesMeasId) {
 			let { type, target, location, limit, ipVersion } = this.get('mainOptions');
 			let appliedMeasOpts = this.get('appliedMeasOpts');

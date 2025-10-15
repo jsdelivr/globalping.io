@@ -452,6 +452,9 @@
 				limitInput.addEventListener('keypress', handleEnterBtn);
 			}
 		},
+		onunrender () {
+			this.get('testReqCancelFn')?.();
+		},
 		proceedToTest () {
 			let type = this.get('selectedTestType');
 			let testOpts = this.get('testOpts');
