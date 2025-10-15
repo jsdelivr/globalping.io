@@ -277,7 +277,7 @@
 				networkDomainName: null,
 				testResults: null,
 				testInProgress: false,
-				testReqInterval: null,
+				testReqCancelFn: null,
 				testReqParams: null,
 				testOpts: {
 					target: INITIAL_OPTS_VALUES.target,
@@ -349,7 +349,7 @@
 					if (!realTimeTestResResponse) { return; }
 
 					if (realTimeTestResResponse.status === 'finished') {
-						clearInterval(this.get('testReqInterval'));
+						this.get('testReqCancelFn')?.();
 						this.set('testInProgress', false);
 					}
 
@@ -398,9 +398,7 @@
 			}
 		},
 		onunrender () {
-			if (this.get('testReqInterval')) {
-				clearInterval(this.get('testReqInterval'));
-			}
+			this.get('testReqCancelFn')?.();
 		},
 		setLocation (newLocation) {
 			this.set('selectedLocation', newLocation);
@@ -575,7 +573,20 @@
 			});
 		},
 		getTestMeasurementById (measurementId) {
-			let testReqInterval = setInterval(() => {
+			let cancelled = false;
+			let timeout = null;
+
+			let cancel = () => {
+				cancelled = true;
+				clearTimeout(timeout);
+				timeout = null;
+			};
+
+			let fetch = () => {
+				if (cancelled) {
+					return;
+				}
+
 				http.getGlobalpingMeasurement(measurementId).then((testRes) => {
 					// prepare and set request params to pass them to gp-test-results
 					let testReqParams = JSON.parse(JSON.stringify(testRes));
@@ -600,14 +611,19 @@
 
 					// should be after the mainOptions.type was set
 					this.set('realTimeTestResResponse', testRes);
+
+					if (!cancelled) {
+						timeout = setTimeout(fetch, 500);
+					}
 				}).catch(() => {
-					clearInterval(testReqInterval);
+					cancel();
 					this.set('serverErrorMessage', 'An unexpected error occurred.');
 					this.set('testInProgress', false);
 				});
-			}, 1000);
+			};
 
-			this.set('testReqInterval', testReqInterval);
+			fetch();
+			this.set('testReqCancelFn', cancel);
 		},
 		prepareRegularResults (testResults) {
 			let dnsTraceEnabled = this.get('testReqParams.measurementOptions.trace');
