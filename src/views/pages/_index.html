@@ -1659,7 +1659,7 @@
 				inputErrors: {},
 				testResults: null,
 				testInProgress: false,
-				testReqInterval: null,
+				testReqCancelFn: null,
 				notAppliedOpts: {},
 				defaultPacketsAmount: DEFAULT_PACKETS_AMOUNT,
 				defaultLimit: DEFAULT_LIMIT,
@@ -1946,11 +1946,10 @@
 				this.observe('realTimeTestResResponse', (realTimeTestResResponse) => {
 					if (!realTimeTestResResponse) { return; }
 
-					// clear interval for the related request when it's finished, collect reponses statuses
+					// clear refetch timeout for the related request when it's finished, collect response statuses
 					let respStatuses = realTimeTestResResponse.reduce((statusObj, r, rIdx) => {
 						if (r.status === 'finished') {
-							clearInterval(this.get('testReqInterval')[rIdx]);
-
+							this.get(`testReqCancelFn[${rIdx}]`)?.();
 							return { ...statusObj, [rIdx]: true };
 						}
 
@@ -2210,6 +2209,9 @@
 				targetInput.addEventListener('keypress', handleEnterBtn);
 				limitInput.addEventListener('keypress', handleEnterBtn);
 			}
+		},
+		onunrender () {
+			this.get('testReqCancelFn')?.forEach(cancel => cancel?.());
 		},
 		proceedToTest (prevProbesMeasId) {
 			let { type, target, location, limit, ipVersion } = this.get('mainOptions');
@@ -2647,7 +2649,20 @@
 			reqParams = {},
 		}) {
 			return new Promise((resolve, reject) => {
-				let testReqInterval = setInterval(() => {
+				let cancelled = false;
+				let timeout = null;
+
+				let cancel = () => {
+					cancelled = true;
+					clearTimeout(timeout);
+					timeout = null;
+				};
+
+				let fetch = () => {
+					if (cancelled) {
+						return;
+					}
+
 					http.getGlobalpingMeasurement(measurementId).then((testRes) => {
 						if (isShareResCase) {
 							let currentTargets = this.get('mainOptions.target');
@@ -2719,7 +2734,7 @@
 
 						// check if infinite measurement was stopped
 						if (isInfiniteMeas && isInfiniteMeasStopped) {
-							clearInterval(testReqInterval);
+							cancel();
 							resolve();
 						}
 
@@ -2785,8 +2800,12 @@
 						}
 
 						resolve(testRes);
+
+						if (!cancelled) {
+							timeout = setTimeout(fetch, 500);
+						}
 					}).catch((e) => {
-						clearInterval(testReqInterval);
+						cancel();
 
 						if (e.responseStatusCode === 404) {
 							this.set('shareResHeaderData', 'This measurement has expired!');
@@ -2796,9 +2815,10 @@
 
 						reject(e);
 					});
-				}, 1000);
+				};
 
-				this.set(`testReqInterval[${resNumber}]`, testReqInterval);
+				this.set(`testReqCancelFn[${resNumber}]`, cancel);
+				fetch();
 			});
 		},
 		handleProbesResponse (response) {
