@@ -59,7 +59,7 @@ koaElasticUtils.addRoutes(router, [
 
 	if (!username) {
 		ctx.status = 404;
-		ctx.body = await ctx.render(`pages/_404.html`, { actualPath: ctx.path });
+		ctx.body = await ctx.render(`pages/_404.html`);
 		return;
 	}
 
@@ -161,7 +161,7 @@ koaElasticUtils.addRoutes(router, [
 
 	if (!networkName) {
 		ctx.status = 404;
-		ctx.body = await ctx.render(`pages/_404.html`, { actualPath: ctx.path });
+		ctx.body = await ctx.render(`pages/_404.html`);
 		return;
 	}
 
@@ -219,7 +219,6 @@ koaElasticUtils.addRoutes(router, [
 	let path = ctx.path.startsWith('/_') ? '/_404' : ctx.path;
 	let data = {
 		..._.pick(ctx.query, [ 'measurement' ]),
-		actualPath: ctx.path,
 	};
 
 	if (ctx.query.measurement) {
@@ -243,7 +242,7 @@ koaElasticUtils.addRoutes(router, [
 		}
 
 		ctx.status = 404;
-		ctx.body = await ctx.render(`pages/_404.html`, { actualPath: ctx.path });
+		ctx.body = await ctx.render(`pages/_404.html`);
 	}
 });
 

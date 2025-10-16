@@ -25,7 +25,7 @@
 			</div>
 
 			<div class="collapse navbar-collapse" id="main-navbar">
-				<ul class="nav navbar-nav navbar-right {{!actualPath ? 'navbar-hidden' : 'about-navbar-right'}}">
+				<ul class="nav navbar-nav navbar-right {{!@shared.actualPath ? 'navbar-hidden' : 'about-navbar-right'}}">
 					<li><a href="/cli">CLI</a></li>
 					<li class="dropdown">
 						<a class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
@@ -110,13 +110,6 @@
 	component.exports = {
 		data () {
 			return {};
-		},
-		oninit () {
-			if (Ractive.isServer) {
-				this.set('actualPath', this.root.get('actualPath'));
-			} else {
-				this.set('actualPath', this.get('@shared')?.app?.router?.uri?.path);
-			}
 		},
 	};
 </script>
