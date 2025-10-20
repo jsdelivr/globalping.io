@@ -21,16 +21,80 @@ const koaETag = require('koa-etag');
 const KoaRouter = require('koa-router');
 const koaElasticUtils = require('elastic-apm-utils').koa;
 const assetsVersion = require('./lib/assets').version;
+const { toNodeListener } = require('h3');
 
 const serverConfig = config.get('server');
 const stripTrailingSlash = require('./middleware/strip-trailing-slash');
 const render = require('./middleware/render');
 const debugHandler = require('./routes/debug');
 const globalpingRouter = require('./routes');
+const { resolve } = require('node:path');
 const isRenderPreview = process.env.IS_PULL_REQUEST === 'true' && process.env.RENDER_EXTERNAL_URL;
+let isDev = process.env.NODE_ENV === 'development';
 
 let app = new Koa();
 let router = new KoaRouter();
+let nuxtRouteHandler = null;
+
+const initNuxt = async () => {
+	// nuxt does not support cjs
+	let { loadNuxt, build } = await import('nuxt');
+	let { writeTypes } = await import('nuxt/kit');
+
+	if (isDev) {
+		let nuxt = await loadNuxt({
+			ready: true,
+			dev: true,
+		});
+
+		// create tsconfig
+		await writeTypes(nuxt);
+
+		// create .nuxt
+		await build(nuxt);
+
+		// get route handler
+		nuxtRouteHandler = toNodeListener(nuxt.server.app);
+		return;
+	}
+
+	// in prod, use the built route
+	let { i: useNitroApp } = await import('../.output/server/chunks/nitro/nitro.mjs');
+	let nitroApp = useNitroApp();
+	nuxtRouteHandler = toNodeListener(nitroApp.h3App);
+};
+
+/**
+ * Nuxt prod files
+ */
+if (!isDev) {
+	router.use(
+		'/_nuxt',
+		koaStatic(resolve(__dirname, '../.output/public/'), {
+			index: false,
+			maxage: 31536000000,
+			setHeaders (res) {
+				res.set('Cache-Control', 'public, max-age=31536000, immutable');
+			},
+		}),
+	);
+}
+
+/**
+ * Nuxt routes and files.
+ */
+router.get(/^\/(nuxt|_nuxt|__nuxt|__nuxt_devtools__)(\/.*)?$/, async (ctx) => {
+	if (!nuxtRouteHandler) {
+		ctx.status = 404;
+		return;
+	}
+
+	ctx.status = 200;
+	ctx.req.ctx = ctx;
+	ctx.respond = false;
+	await nuxtRouteHandler(ctx.req, ctx.res);
+});
+
 
 /**
  * Server config.
@@ -339,3 +403,5 @@ process.on('unhandledRejection', (error) => {
 		process.exit(1);
 	}, 10000);
 });
+
+initNuxt();

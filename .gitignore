@@ -10,3 +10,5 @@ test/screenshots
 yarn.lock
 .eslintcache
 .eslintcache-html
+.output
+.nuxt
