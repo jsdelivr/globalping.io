@@ -3,19 +3,19 @@
 	{{#each users}}
 	<url>
 		<loc>https://globalping.io/users/{{this}}</loc>
-		<changefreq>monthly</changefreq>
+		<changefreq>weekly</changefreq>
 	</url>
 	{{/each}}
 	{{#each probes}}
 	<url>
 		<loc>https://globalping.io/network-tools/{{this}}</loc>
-		<changefreq>monthly</changefreq>
+		<changefreq>weekly</changefreq>
 	</url>
 	{{/each}}
 	{{#each networks}}
 	<url>
 		<loc>https://globalping.io/networks/{{this}}</loc>
-		<changefreq>monthly</changefreq>
+		<changefreq>weekly</changefreq>
 	</url>
 	{{/each}}
 </urlset>
