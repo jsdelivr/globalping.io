@@ -55,7 +55,7 @@
 				{{#each filtersSet}}
 					<span class="gp-filtered-list_filters_quick_list_selected">
                         {{this.name}}
-                        <button on-click="@this.rmFilterRule(@key)"
+                        <button data-testid="quick-filter-{{this.name}}" on-click="@this.rmFilterRule(@key)"
                             type="button"
                             class="gp-filtered-list_filters_quick_list_selected_remove">
                             <img width="16" height="16" src="{{@shared.assetsHost}}/img/tag-input-close-icon.svg">
@@ -65,7 +65,7 @@
 
 				{{#each availableFilters}}
 					{{#unless this.selected}}
-						<button on-click="@this.setFilterRule(@key)"
+						<button data-testid="quick-filter-{{this.name}}" on-click="@this.setFilterRule(@key)"
 							type="button"
 							class="gp-filtered-list_filters_quick_list_item">
 							{{this.name}}
@@ -121,7 +121,8 @@
 							{{/each}}
 						{{else}}
 							{{#each column as continentGroup}}
-								<div class="gp-filtered-list_list_column_group {{groupBy === 'city-network' || groupBy === 'country-network' ? 'has-networks' : ''}}">
+								<div class="gp-filtered-list_list_column_group {{groupBy === 'city-network' || groupBy === 'country-network' ? 'has-networks' : ''}}"
+									data-testid="probe-column-group">
 									{{#if continentGroup.title}}
 										<span class="gp-filtered-list_list_column_group_item cont-header" id="probe-group-{{continentGroup.title}}">
                                             {{@this.getContinentName(continentGroup.title)}}

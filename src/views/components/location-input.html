@@ -395,6 +395,9 @@
 
 				let input = this.el.querySelector('.aa-Input');
 
+				// for testing
+				input.setAttribute('data-testid', 'autocomplete-input');
+
 				// Enter handling - run the measurement.
 				let handleEnter = (event) => {
 					if (event.key === 'Enter' && !isAsyncOpen) {
