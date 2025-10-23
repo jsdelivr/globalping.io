@@ -24,7 +24,7 @@ jobs:
           npm run build
       - name: Install Playwright browsers
         run: |
-          npm exec playwright install --with-deps chromium
+          npx playwright install --with-deps chromium
       - name: Run tests
         run: |
           npm run test:e2e
