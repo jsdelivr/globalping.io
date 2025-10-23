@@ -10,3 +10,10 @@ test/screenshots
 yarn.lock
 .eslintcache
 .eslintcache-html
+
+# Playwright
+/test/e2e/results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+/playwright/.auth/

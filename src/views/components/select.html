@@ -7,18 +7,20 @@
 		on-keydown="@this.onKeyDown(@event)"
 		aria-expanded="{{dropdownOpened}}"
 		aria-haspopup="listbox"
-		aria-controls="{{name}}">
+		aria-controls="{{name}}"
+		data-testid="{{name}}">
 		<span class="select_selected_label">{{selectedName}}</span>
 		<img width="20" height="20" src="{{@shared.assetsHost}}/img/chevron-down.svg" loading="lazy" alt=""/>
 	</button>
 
 	<div id="{{name}}" class="select_wrapper {{#if dropdownOpened}}opened{{/if}}" role="listbox">
-		<ul class="select_wrapper_list">
+		<ul data-testid="{{name}}-options" class="select_wrapper_list">
 			{{#each options}}
 				<li
 					class="select_wrapper_list_item {{#if this.value === selected}}selected{{/if}} {{#if currSelectedItemIdx === @index}}focused{{/if}}"
 					role="option"
 					aria-selected="{{this.value === selected}}"
+					data-testid="select-option-{{this.value}}"
 					tabindex="-1"
 					on-click="@this.selectItem(this.value)">
 					<span>{{this.name}}</span>
