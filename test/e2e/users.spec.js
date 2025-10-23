@@ -35,9 +35,11 @@ test('User page', async ({ page }) => {
 	await sortBySelect.click();
 	await page.keyboard.press('ArrowDown');
 	await page.keyboard.press('Enter');
+	await expect(sortBySelect).not.toContainText('Alphabetically');
 
 	await autocomplete.fill('Europe');
 	await autocomplete.press('Enter');
+	await expect(autocomplete).toHaveValue('Europe');
 
 	await expect(page).toHaveURL('users/jimaek?group=country&sort=probe-count&filter=Europe');
 
