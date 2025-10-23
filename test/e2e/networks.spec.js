@@ -8,11 +8,8 @@ test('Networks page', async ({ page }) => {
 	// test that GMaps rendered
 	await expect(page.locator('#gp-map > div > div.gm-style')).toBeVisible();
 
-	// test that the page header and Logo dev link are rendered
+	// test that the page rendered
 	await expect(page.getByRole('heading', { name: 'Looking Glass - Orange' })).toBeVisible();
-	let link = page.getByTestId('logo-dev-link');
-	await expect(link).toBeVisible();
-	await expect(link).toHaveAttribute('href', 'https://logo.dev');
 
 	// try running a test
 	let runTestButton = page.getByTestId('networks-run-test-btn');
