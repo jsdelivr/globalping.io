@@ -227,6 +227,10 @@
 						];
 					},
 					getSources: ({ query }) => {
+						if (!indexForConditions) {
+							return;
+						}
+
 						// The input allows several queries separated by a comma.
 						// Each query may have multiple parts separated by a plus sign.
 						// We always operate on the last part of the last query but need to preserve anything before it.
