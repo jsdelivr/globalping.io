@@ -36,11 +36,9 @@ test('User page', async ({ page }) => {
 	await page.keyboard.press('ArrowDown');
 	await page.keyboard.press('Enter');
 
-	await autocomplete.click();
 	await autocomplete.fill('Europe');
 	await page.keyboard.press('Enter');
 
-	await page.waitForURL('**/users/jimaek?group=country&sort=probe-count&filter=Europe', { timeout: 10000 });
 	await expect(page).toHaveURL('users/jimaek?group=country&sort=probe-count&filter=Europe');
 
 	// reset filters
