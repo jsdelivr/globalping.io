@@ -159,6 +159,7 @@
 				<button type="button"
 					on-click="@this.proceedToTest()"
 					class=" p-globalping-networks_network-tests_body_btn-test gp_btn_green {{#if testInProgress}}gp_btn_green_disabled gp_btn_green_loading{{/if}}"
+					data-testid="networks-run-test-btn"
 					disabled="{{testInProgress || !selectedLocation}}">
 					{{#if testInProgress}}
 						<div></div>
@@ -188,11 +189,11 @@
 				</div>
 			{{elseif testResults}}
 				<div class="p-globalping-networks_network-tests_results">
-					<pre>{{testResults[0].result.rawOutput}}</pre>
+					<pre data-testid="networks-test-output">{{testResults[0].result.rawOutput}}</pre>
 				</div>
 			{{else}}
 				<div class="p-globalping-networks_network-tests_descr">
-					<span class="p-globalping-networks_network-tests_descr_msg">
+					<span class="p-globalping-networks_network-tests_descr_msg" data-testid="networks-test-placeholder">
 						Enter a target and click <span class="highlighted">"Run Test"</span> to start a network test from:
 						<br/>
 						<span class="highlighted">{{selectedLocation.city}}, {{selectedLocation.country}}</span> with <span class="highlighted">{{networkFullName}}</span>.
@@ -209,7 +210,7 @@
 
 				<div class="p-globalping-networks_explore_body">
 					{{#each otherNetworks}}
-						<a href="/networks/{{this.name}}" class="p-globalping-networks_explore_network">
+						<a href="/networks/{{this.name}}" class="p-globalping-networks_explore_network" data-testid="other-network">
 							{{#if this.networkDomainName && @shared.logoDevPublicToken}}
 								<img width="24"
 									height="24"
@@ -228,7 +229,7 @@
 		{{/if}}
 
 		{{#if shouldDisplayLogoDevLink}}
-			<a href="https://logo.dev" target="_blank" rel="noopener" class="p-globalping-networks_logos-by">Network logos provided by Logo.dev</a>
+			<a data-testid="logo-dev-link" href="https://logo.dev" target="_blank" rel="noopener" class="p-globalping-networks_logos-by">Network logos provided by Logo.dev</a>
 		{{/if}}
 	</div>
 
