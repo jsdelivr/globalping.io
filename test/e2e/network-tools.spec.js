@@ -27,7 +27,7 @@ test('Network tools page', async ({ page }) => {
 	await expect(page).toHaveURL('network-tools/ping-from-world');
 });
 
-test('Network tools - ping from world page', async ({ page }) => {
+test('Network tools - ping from world', async ({ page }) => {
 	let response = await page.goto('/network-tools/ping-from-world');
 	expect(response.ok()).toBeTruthy();
 
