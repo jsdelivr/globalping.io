@@ -1,7 +1,7 @@
 const { test } = require('./fixtures');
 const { expect } = require('@playwright/test');
 
-const runTest = async (page, type, target) => {
+const runTest = async (page, target) => {
 	// test that a measurement can be started and finishes
 	await expect(page.getByTestId('network-tools-description')).toBeVisible();
 
