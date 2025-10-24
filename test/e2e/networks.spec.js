@@ -11,6 +11,10 @@ test('Networks page', async ({ page }) => {
 	// test that the page rendered
 	await expect(page.getByRole('heading', { name: 'Looking Glass - Orange' })).toBeVisible();
 
+	// there should be at least one other network
+	let otherNetwork = page.getByTestId('other-network');
+	await expect(otherNetwork).not.toHaveCount(0);
+
 	// try running a test
 	let runTestButton = page.getByTestId('networks-run-test-btn');
 	await expect(runTestButton).toBeVisible();
@@ -23,8 +27,4 @@ test('Networks page', async ({ page }) => {
 
 	await expect(testPlaceholder).not.toBeVisible();
 	await expect(page.getByTestId('networks-test-output')).toBeVisible();
-
-	// there should be at least one other network
-	let otherNetwork = page.getByTestId('other-network');
-	await expect(otherNetwork).not.toHaveCount(0);
 });
