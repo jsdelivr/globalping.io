@@ -62,9 +62,11 @@ module.exports = defineConfig([
 	},
 	{
 		files: [
-			'*.html',
+			'**/*.html',
 		],
-		parser: htmlParser,
+		languageOptions: {
+			parser: htmlParser,
+		},
 		rules: {
 			'spaced-comment': [
 				'off',
