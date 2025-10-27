@@ -35,7 +35,7 @@ the pages work, but the logos don't load. Set the following to work on those pag
 
 ## Testing
 
--   JS, HTML, and JSON code style: `npm run lint`
+-   JS, HTML, and JSON code style: `npm run lint:js`
 -   CSS code style: `npm run lint:css`
 -   e2e tests: `npm run test:e2e`
 -   All combined: `npm test`
