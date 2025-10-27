@@ -22,7 +22,7 @@ module.exports = (options) => {
 
 			let Component = await getComponent(template, options);
 			let component = new Component({ data: { ...data } });
-			component.set('@shared.escape', escape);
+			component.set('@shared.escape', escapeRactiveData);
 			component.set('@shared.isServer', true);
 			component.set('@shared.serverHost', options.serverHost);
 			component.set('@shared.assetsHost', options.assetsHost);
@@ -32,7 +32,7 @@ module.exports = (options) => {
 			component.set('@shared.actualPath', ctx.path);
 			component.set('@shared.options', ctx.options);
 			component.set('@shared.router', ctx.router);
-			let html = component.toHtml().replace('<<RACTIVE_SERIALIZED_DATA>>', () => escape(JSON.stringify(data)));
+			let html = component.toHtml().replace('<<RACTIVE_SERIALIZED_DATA>>', () => escapeRactiveData(JSON.stringify(data)));
 
 			component.teardown();
 
@@ -72,7 +72,7 @@ async function makeComponent (href, options) {
 	});
 }
 
-function escape (string = '') {
+function escapeRactiveData (string = '') {
 	return string
 		.replace(/</g, '\\u003c')
 		.replace(/>/g, '\\u003e')

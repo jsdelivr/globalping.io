@@ -7,6 +7,7 @@
 		"@babel/core": "^7.27.4",
 		"@babel/preset-env": "^7.27.2",
 		"@elastic/elasticsearch": "^8.18.2",
+		"@html-eslint/eslint-plugin": "^0.47.0",
 		"algoliasearch": "^4.25.2",
 		"bluebird": "^3.7.2",
 		"config": "^3.3.12",
@@ -104,22 +105,19 @@
 	"scripts": {
 		"build": "node bin/fetch-data.js && gulp build",
 		"heroku-postbuild": "echo \"$SOURCE_VERSION\" > sha.txt",
-		"lint": "npm run lint:css && npm run lint:html && npm run lint:js",
-		"lint:fix": "npm run lint:css:fix && npm run lint:html:fix && npm run lint:js:fix",
+		"lint": "npm run lint:css && npm run lint:eslint",
+		"lint:fix": "npm run lint:css:fix && npm run lint:eslint:fix",
 		"lint:css": "stylelint --config .stylelintrc \"./src/**/*.{css,less}\"",
 		"lint:css:fix": "stylelint --fix --config .stylelintrc \"./src/**/*.{css,less}\"",
-		"lint:html": "eslint --no-eslintrc --config .eslintrc-html --cache-location .eslintcache-html --cache --ext .html .",
-		"lint:html:fix": "eslint --no-eslintrc --config .eslintrc-html --cache-location .eslintcache-html --cache --fix --ext .html .",
-		"lint:js": "eslint --cache --ext .html,.js,.json .",
-		"lint:js:fix": "eslint --cache --fix --ext .html,.js,.json .",
+		"lint:eslint": "eslint --cache .",
+		"lint:eslint:fix": "eslint --cache --fix .",
 		"prepare": "node bin/fetch-data.js; husky install",
 		"start": "cross-env NODE_ENV=development gulp",
 		"test": "npm run lint"
 	},
 	"lint-staged": {
 		"*.{css,less}": "stylelint --fix",
-		"*.{html,js}": "eslint --cache --fix",
-		"*.html": "eslint --no-eslintrc --config .eslintrc-html --cache-location .eslintcache-html --cache --fix --ext .html"
+		"*.{html,js,json}": "eslint --cache --fix"
 	},
 	"repository": {
 		"type": "git",

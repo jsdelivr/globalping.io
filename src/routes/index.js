@@ -1,7 +1,6 @@
 const fs = require('node:fs');
 const KoaRouter = require('koa-router');
 const koaElasticUtils = require('elastic-apm-utils').koa;
-const _ = require('lodash');
 
 const globalpingSitemap = require('../middleware/sitemap');
 const ogImage = require('../middleware/open-graph/image');
@@ -11,7 +10,7 @@ let asnDomains = null;
 
 try {
 	asnDomains = JSON.parse(fs.readFileSync(__dirname + '/../../data/asn-domain.json', 'utf8'));
-} catch (e) {
+} catch {
 	console.error('ASN to domain name data not downloaded.');
 }
 

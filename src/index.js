@@ -3,7 +3,7 @@ global.apmClient = require('elastic-apm-node').start({});
 global.apmClient.addTransactionFilter(require('elastic-apm-utils').apm.transactionFilter());
 require('./lib/startup');
 
-const _ = require('lodash');
+const pick = require('lodash/pick');
 const config = require('config');
 const signalExit = require('signal-exit');
 const isSafePath = require('is-safe-path');
@@ -243,7 +243,7 @@ koaElasticUtils.addRoutes(router, [
 	let path = ctx.path.startsWith('/_') ? '/_404' : ctx.path;
 	let root = '';
 	let data = {
-		..._.pick(ctx.query, [ 'docs', 'limit', 'page', 'query', 'type', 'style', 'measurement' ]),
+		...pick(ctx.query, [ 'docs', 'limit', 'page', 'query', 'type', 'style', 'measurement' ]),
 	};
 
 	try {

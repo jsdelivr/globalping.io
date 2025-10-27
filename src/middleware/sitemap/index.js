@@ -1,4 +1,3 @@
-const _ = require('lodash');
 const fs = require('fs-extra');
 const config = require('config');
 const path = require('path');

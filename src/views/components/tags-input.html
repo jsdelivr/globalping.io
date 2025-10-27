@@ -385,7 +385,7 @@
 				this.set('gpMainOpts.target', tagsArr ? [ ...tagsArr, hostname ].join(delimiter) : hostname);
 				this.set('gpNotAppliedOpts.port', port);
 				this.set('tagsArr', tagsArr ? [ ...tagsArr, hostname ] : [ hostname ]);
-			} catch (err) {
+			} catch {
 				this.set('gpMainOpts.target', tagsArr ? [ ...tagsArr, url ].join(delimiter) : url);
 				this.set('tagsArr', tagsArr ? [ ...tagsArr, url ] : [ url ]);
 			} finally {

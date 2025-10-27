@@ -1,8 +1,9 @@
+const globals = require('globals');
 const { defineConfig } = require('eslint/config');
 const compat = require('eslint-plugin-compat');
 const html = require('eslint-plugin-html');
 const htmlParser = require('@html-eslint/parser');
-const globals = require('globals');
+const htmlEslint = require('@html-eslint/eslint-plugin');
 const javascript = require('@martin-kolarik/eslint-config');
 
 module.exports = defineConfig([
@@ -21,21 +22,6 @@ module.exports = defineConfig([
 			globals: {
 				...globals.browser,
 				...globals.jquery,
-				_: false,
-				db: false,
-				log: false,
-				logger: false,
-				Ractive: false,
-				redis: false,
-				ClipboardJS: false,
-				gtag: false,
-				component: false,
-				Pace: false,
-				google: false,
-				browser: false,
-				BASE_URL: false,
-				perfopsRumJs: false,
-				app: true,
 			},
 		},
 	},
@@ -61,16 +47,47 @@ module.exports = defineConfig([
 		},
 	},
 	{
+		files: [ 'src/**' ],
+		ignores: [ 'src/views/**', 'src/assets/**' ],
+
+		languageOptions: {
+			globals: {
+				_: 'readonly',
+				db: 'readonly',
+				log: 'readonly',
+				logger: 'readonly',
+				redis: 'readonly',
+				gtag: 'readonly',
+				component: 'readonly',
+				Pace: 'readonly',
+				browser: 'readonly',
+				BASE_URL: 'readonly',
+				perfopsRumJs: 'readonly',
+			},
+		},
+	},
+	{
 		files: [
 			'**/*.html',
+			'src/assets/**',
 		],
 		languageOptions: {
 			parser: htmlParser,
+			globals: {
+				...globals.browser,
+				...globals.jquery,
+				Ractive: 'readonly',
+				ClipboardJS: 'readonly',
+				component: 'readonly',
+				app: 'writable',
+				google: 'readonly',
+			},
+		},
+		plugins: {
+			'@html-eslint': htmlEslint,
 		},
 		rules: {
-			'spaced-comment': [
-				'off',
-			],
+			'@stylistic/spaced-comment': 'off',
 		},
 	},
 ]);
