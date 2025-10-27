@@ -9,7 +9,7 @@ const javascript = require('@martin-kolarik/eslint-config');
 module.exports = defineConfig([
 	javascript,
 	{
-		ignores: [ 'dist/**' ],
+		ignores: [ 'dist/**', 'test-results/**' ],
 	},
 	{
 		plugins: {
@@ -64,18 +64,28 @@ module.exports = defineConfig([
 	},
 	{
 		files: [
-			'**/*.html',
-			'src/assets/**',
+			'src/views/**',
 		],
 		languageOptions: {
 			parser: htmlParser,
+			globals: {
+				app: 'writable',
+			},
+		},
+	},
+	{
+		files: [
+			'src/views/**',
+			'src/assets/**',
+			'src/public/**',
+		],
+		languageOptions: {
 			globals: {
 				...globals.browser,
 				...globals.jquery,
 				Ractive: 'readonly',
 				ClipboardJS: 'readonly',
 				component: 'readonly',
-				app: 'writable',
 				google: 'readonly',
 			},
 		},
@@ -84,7 +94,7 @@ module.exports = defineConfig([
 		},
 		rules: {
 			'@stylistic/spaced-comment': 'off',
-			'@/no-mixed-spaces-and-tabs': 'error',
+			'no-mixed-spaces-and-tabs': 'error',
 		},
 	},
 	{

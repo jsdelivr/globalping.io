@@ -122,7 +122,7 @@ module.exports = {
 						};
 					}
 
-					// eslint-disable-next-line prefer-promise-reject-errors
+
 					reject(rejectData);
 				}
 			};
@@ -206,7 +206,7 @@ module.exports = {
 			}
 
 			return parsed.toString();
-		} catch (e) {
+		} catch {
 			return url;
 		}
 	},
@@ -216,7 +216,7 @@ module.exports = {
 			let parsed = new URL(url.replace(/^\/+/, ''), location.href);
 
 			return parsed.hostname !== location.hostname;
-		} catch (e) {
+		} catch {
 			return false;
 		}
 	},
