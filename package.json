@@ -54,6 +54,7 @@
 		"@html-eslint/parser": "^0.47.0",
 		"@martin-kolarik/eslint-config": "^8.0.4",
 		"@martin-kolarik/stylelint-config": "^3.0.0",
+		"@playwright/test": "^1.56.1",
 		"@rollup/stream": "^2.0.0",
 		"@types/config": "^3.3.5",
 		"@types/eslint": "^8.56.12",
@@ -70,6 +71,7 @@
 		"@types/less": "^3.0.8",
 		"@types/lodash": "^4.17.18",
 		"@types/mocha": "^10.0.10",
+		"@types/node": "^24.9.1",
 		"@types/recursive-readdir": "^2.2.4",
 		"@types/rollup-plugin-json": "^3.0.7",
 		"@types/signal-exit": "^3.0.4",
@@ -113,7 +115,8 @@
 		"lint:eslint:fix": "eslint --cache --fix .",
 		"prepare": "node bin/fetch-data.js; husky install",
 		"start": "cross-env NODE_ENV=development gulp",
-		"test": "npm run lint"
+		"test": "npm run lint",
+		"test:e2e": "NODE_ENV=e2e npx playwright test"
 	},
 	"lint-staged": {
 		"*.{css,less}": "stylelint --fix",
