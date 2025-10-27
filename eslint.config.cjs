@@ -88,6 +88,7 @@ module.exports = defineConfig([
 		},
 		rules: {
 			'@stylistic/spaced-comment': 'off',
+			'@/no-mixed-spaces-and-tabs': 'error',
 		},
 	},
 ]);
