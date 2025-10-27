@@ -19,10 +19,6 @@ module.exports = defineConfig([
 		languageOptions: {
 			ecmaVersion: 2020,
 			sourceType: 'script',
-			globals: {
-				...globals.browser,
-				...globals.jquery,
-			},
 		},
 	},
 	{
@@ -89,6 +85,14 @@ module.exports = defineConfig([
 		rules: {
 			'@stylistic/spaced-comment': 'off',
 			'@/no-mixed-spaces-and-tabs': 'error',
+		},
+	},
+	{
+		files: [
+			'test/e2e/**',
+		],
+		rules: {
+			'no-redeclare': 'off',
 		},
 	},
 ]);
