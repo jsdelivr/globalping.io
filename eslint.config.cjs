@@ -9,7 +9,10 @@ const javascript = require('@martin-kolarik/eslint-config');
 module.exports = defineConfig([
 	javascript,
 	{
-		ignores: [ 'dist/**', 'test-results/**' ],
+		ignores: [
+			'dist/**',
+			'test-results/**',
+		],
 	},
 	{
 		plugins: {
@@ -27,25 +30,34 @@ module.exports = defineConfig([
 			'src/public/**',
 			'src/views/**',
 		],
-
 		settings: {
 			lintAllEsApis: true,
 			polyfills: [],
 		},
-
+		languageOptions: {
+			globals: {
+				...globals.browser,
+				...globals.jquery,
+				Ractive: 'readonly',
+				ClipboardJS: 'readonly',
+				component: 'readonly',
+				google: 'readonly',
+			},
+		},
 		rules: {
-			'compat/compat': [
-				'error',
-			],
-			'promise/catch-or-return': [
-				'off',
-			],
+			'compat/compat': 'error',
+			'no-mixed-spaces-and-tabs': 'error',
+			'@stylistic/spaced-comment': 'off',
+			'promise/catch-or-return': 'off',
 		},
 	},
 	{
 		files: [ 'src/**' ],
-		ignores: [ 'src/views/**', 'src/assets/**' ],
-
+		ignores: [
+			'src/views/**',
+			'src/assets/**',
+			'src/public/**',
+		],
 		languageOptions: {
 			globals: {
 				_: 'readonly',
@@ -63,43 +75,21 @@ module.exports = defineConfig([
 		},
 	},
 	{
-		files: [
-			'src/views/**',
-		],
+		files: [ 'src/views/**/*.html' ],
 		languageOptions: {
 			parser: htmlParser,
 			globals: {
-				app: 'writable',
-			},
-		},
-	},
-	{
-		files: [
-			'src/views/**',
-			'src/assets/**',
-			'src/public/**',
-		],
-		languageOptions: {
-			globals: {
-				...globals.browser,
-				...globals.jquery,
-				Ractive: 'readonly',
-				ClipboardJS: 'readonly',
-				component: 'readonly',
-				google: 'readonly',
+				app: 'readonly',
 			},
 		},
 		plugins: {
 			'@html-eslint': htmlEslint,
 		},
-		rules: {
-			'@stylistic/spaced-comment': 'off',
-			'no-mixed-spaces-and-tabs': 'error',
-		},
 	},
 	{
 		files: [
 			'test/e2e/**',
+			'src/index.js',
 		],
 		rules: {
 			'no-redeclare': 'off',
