@@ -116,7 +116,8 @@
 		"prepare": "node bin/fetch-data.js; husky install",
 		"start": "cross-env NODE_ENV=development gulp",
 		"test": "npm run lint",
-		"test:e2e": "NODE_ENV=e2e npx playwright test"
+		"test:e2e": "npm run build && npm run test:e2e:run",
+		"test:e2e:run": "NODE_ENV=e2e npx playwright test"
 	},
 	"lint-staged": {
 		"*.{css,less}": "stylelint --fix",
