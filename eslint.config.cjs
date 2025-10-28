@@ -11,7 +11,7 @@ module.exports = defineConfig([
 	{
 		ignores: [
 			'dist/**',
-			'test-results/**',
+			'test/e2e/results/**',
 		],
 	},
 	{
