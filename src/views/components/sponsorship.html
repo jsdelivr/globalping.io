@@ -1,5 +1,5 @@
 <div class="c-gp-sponsorship">
-	<div class="payment-type-select" data-testid="donation-switch">
+	<div class="payment-type-select">
 		<input id="switch-payment-type" type="checkbox" aria-checked="{{oneTimeChecked}}" checked="{{oneTimeChecked}}" class="switch-input {{#if oneTimeChecked}} checked {{/if}}">
 
 		<label for="switch-payment-type">
@@ -18,7 +18,7 @@
 	</div>
 
 	{{#if oneTimeChecked}}
-		<div class="one-time-donation" data-testid="one-time-donation">
+		<div class="one-time-donation">
 			<div class="donation-information">
 				<div class="donation-information_block">
 					<span>{{#if !isLoggedIn}}Estimated{{/if}} Bonus:</span>
@@ -49,7 +49,7 @@
 			</a>
 		</div>
 	{{else}}
-		<div class="monthly-donation" data-testid="monthly-donation">
+		<div class="monthly-donation">
 			<div class="monthly-donation_information">
 				<p>Your bonus grows as your total donations increase.</p>
 

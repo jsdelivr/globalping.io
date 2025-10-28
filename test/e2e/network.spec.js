@@ -13,7 +13,7 @@ test('Network page', async ({ page }) => {
 	await expect(autocomplete).toBeVisible();
 	await expect(autocomplete).toHaveValue('World');
 
-	let probeCards = await page.getByTestId('probe-single-card');
+	let probeCards = await page.locator('.probe-single-card');
 	let probeColumnGroups = await page.getByTestId('probe-column-group');
 
 	await expect(probeCards).toHaveCount(0);
@@ -70,7 +70,7 @@ test('Network page', async ({ page }) => {
 	await expect(sortBySelect).toBeDisabled();
 	await expect(page).toHaveURL('network?filter=Europe%25datacenter-network&group=disabled');
 
-	probeCards = await page.getByTestId('probe-single-card');
+	probeCards = await page.locator('.probe-single-card');
 	probeColumnGroups = await page.getByTestId('probe-column-group');
 
 	await expect(probeCards).not.toHaveCount(0);

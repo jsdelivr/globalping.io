@@ -14,7 +14,7 @@ const runTest = async (page, target) => {
 		await input.fill(target);
 	}
 
-	let results = page.getByTestId('results-raw-output');
+	let results = page.locator('.c-gp-results-raw-output');
 	await expect(results).not.toBeVisible();
 
 	await runBtn.click();
