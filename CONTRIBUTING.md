@@ -35,9 +35,9 @@ the pages work, but the logos don't load. Set the following to work on those pag
 
 ## Testing
 
--   JS code style: `npm run lint:js`
+-   JS, HTML, and JSON code style: `npm run lint:js`
 -   CSS code style: `npm run lint:css`
--   Integration tests: `npm run mocha`
+-   e2e tests: `npm run test:e2e`
 -   All combined: `npm test`
 
 Most IDEs have plugins integrating the used linters (eslint, stylelint), including support for automated fixes on save.

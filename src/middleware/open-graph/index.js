@@ -1,5 +1,6 @@
 const { pluralize } = require('../../assets/js/_');
-const { fetchGlobalpingStats,
+const {
+	fetchGlobalpingStats,
 	getRangeString,
 	getStatusCodes,
 	getViableData,
