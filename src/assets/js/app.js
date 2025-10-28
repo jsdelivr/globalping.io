@@ -144,11 +144,11 @@ _.onDocumentReady(() => {
 				ractive.set(`@shared.${key}`, shared[key]);
 			});
 		}
-	} catch (e) {}
+	} catch {}
 
 	try {
 		state = JSON.parse(document.querySelector('#ractive-data').innerHTML.trim());
-	} catch (e) {}
+	} catch {}
 
 	if (!document.title.includes('not found')) {
 		app.router
