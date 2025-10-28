@@ -132,8 +132,7 @@
 
 				this.observe('value', (value) => {
 					let valuesDelimiter = this.get('valuesDelimiter');
-
-					this.set('tagsArr', value ? value.split(valuesDelimiter) : []);
+					this.set('tagsArr', value ? value.split(valuesDelimiter).map(tag => tag.trim()) : []);
 				});
 
 				// handle ip type switch
@@ -260,7 +259,7 @@
 				// handle paste event
 				inputEl.addEventListener('paste', (event) => {
 					event.preventDefault();
-					let rawPasteContent = (event.clipboardData || window.clipboardData).getData('text');
+					let rawPasteContent = (event.clipboardData || window.clipboardData).getData('text').trim();
 					let tagsArr = this.get('tagsArr');
 					let valuesDelimiter = this.get('valuesDelimiter');
 
@@ -292,7 +291,7 @@
 		addTag (clearInput = true) {
 			let maxTagsAllowed = this.get('maxTagsAllowed');
 			let valuesDelimiter = this.get('valuesDelimiter');
-			let inputValue = this.get('inputValue');
+			let inputValue = this.get('inputValue').trim();
 			let tagsArr = this.get('tagsArr');
 
 			if (tagsArr.length < maxTagsAllowed) {
