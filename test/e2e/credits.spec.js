@@ -11,11 +11,11 @@ test('Credits page', async ({ page }) => {
 	await expect(page.getByRole('heading', { name: 'Host a probe' })).toBeVisible();
 
 	// test donation type switch
-	let donationSwitch = page.getByTestId('donation-switch');
+	let donationSwitch = page.locator('.payment-type-select');
 	await expect(donationSwitch).toBeVisible();
 
-	let oneTimeDonation = page.getByTestId('one-time-donation');
-	let monthlyDonation = page.getByTestId('monthly-donation');
+	let oneTimeDonation = page.locator('.one-time-donation');
+	let monthlyDonation = page.locator('.monthly-donation');
 
 	await expect(oneTimeDonation).not.toBeVisible();
 	await expect(monthlyDonation).toBeVisible();
