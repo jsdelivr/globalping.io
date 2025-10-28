@@ -497,7 +497,7 @@
 			});
 		},
 		parseProbesResponse (data) {
-			return data.reduce((res, { location }) => {
+			return data.reduce((res, { tags, location }) => {
 				let cityNameLC = location.city.toLowerCase();
 				let cityNameAsUrlPart = cityNameLC.split(' ').join('-');
 				let countryCodeLC = location.country.toLowerCase();
@@ -513,6 +513,22 @@
 				let stateCodeLC = location.state ? location.state.toLowerCase() : null;
 				let stateNameLC = stateCodeLC ? usaStates.find(i => i.code.toLowerCase() === stateCodeLC).name.toLowerCase() : null;
 				let stateNameAsUrlPart = stateNameLC ? stateNameLC.split(' ').join('-') : null;
+
+				tags.forEach((tag) => {
+					if (!tag.match(/(gcp|aws|azure|oci)-\S+/)) {
+						return;
+					}
+
+					if (!Object.keys(res.cloudRegions).includes(tag)) {
+						res.cloudRegions[tag] = {
+							from: tag,
+							probesCnt: 1,
+							fromAsUrlPart: tag,
+						};
+					} else {
+						res.cloudRegions[tag].probesCnt += 1;
+					}
+				});
 
 				// collect uniques cities and count amount of probes per city
 				if (!Object.keys(res.cities).includes(cityNameAsUrlPart)) {
@@ -609,6 +625,7 @@
 				continents: {},
 				regions: {},
 				states: {},
+				cloudRegions: {},
 			});
 		},
 		getLocDataByLocValue (location = '') {
@@ -705,6 +722,10 @@
 					type: 'state',
 				};
 			}
+
+			if (parsedLocations.cloudRegions[locationLC]) {
+				return { ...parsedLocations.cloudRegions[locationLC], type: 'magic' };
+			}
 		},
 		getTestMeasurementById (measurementId) {
 			let cancelled = false;
@@ -787,6 +808,7 @@
 			dataCache.getCache('probesResponse', 60 * 1000, http.fetchGlobalpingProbes)
 				.then((response) => {
 					this.set('parsedLocations', this.parseProbesResponse(response));
+					console.log(this.get('parsedLocations').cloudRegions);
 					this.set('totalProbesCnt', response.length);
 					this.set('probesParsed', true);
 				})
