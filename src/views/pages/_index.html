@@ -2469,7 +2469,7 @@
 					// update Markers on the map (replace or add new) if Markers data is different
 					this.updateMarkers(markersData, prevMarkersData);
 				}
-			}, { init: false });
+			});
 		},
 		updateMarkers (markersData, prevMarkersData) {
 			markersData.forEach((markerData) => {
