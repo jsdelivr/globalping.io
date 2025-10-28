@@ -42,8 +42,8 @@ test('Homepage', async ({ page, context }) => {
 	await newPage.close();
 
 	// try running a test and check URL query params
-	let rawResults = page.getByTestId('results-raw-output');
-	let tableResults = page.getByTestId('results-table-output');
+	let rawResults = page.locator('.c-gp-results-raw-output');
+	let tableResults = page.locator('.c-gp-results-table-output');
 	let displayControls = page.getByTestId('results-display-switch');
 	let mapSwitch = page.getByTestId('map-switch');
 

@@ -1,6 +1,8 @@
 const { test } = require('./fixtures');
 const { expect } = require('@playwright/test');
 
+const removeCarriageReturn = str => str.replace(/\r/g, '');
+
 test('CLI page', async ({ page, context }) => {
 	let response = await page.goto('/cli');
 	expect(response.ok()).toBeTruthy();
@@ -25,7 +27,7 @@ test('CLI page', async ({ page, context }) => {
 			lines.push(await spans.nth(i).innerText());
 		}
 
-		return lines.join('\n');
+		return removeCarriageReturn(lines.join('\n'));
 	};
 
 	let initialActiveText = await getActiveCmdText();
@@ -44,7 +46,7 @@ test('CLI page', async ({ page, context }) => {
 	await copyBtn.click();
 
 	let clipboardText = await page.evaluate(() => navigator.clipboard.readText());
-	expect(clipboardText).toEqual(rpmActiveText);
+	expect(removeCarriageReturn(clipboardText)).toEqual(rpmActiveText);
 
 	// quick start section
 	await expect(page.getByTestId('cli-quick-start-ping')).toBeVisible();

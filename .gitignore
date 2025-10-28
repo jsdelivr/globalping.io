@@ -12,7 +12,7 @@ yarn.lock
 .eslintcache-html
 
 # Playwright
-/test-results/
+/test/e2e/results/
 /playwright-report/
 /blob-report/
 /playwright/.cache/
