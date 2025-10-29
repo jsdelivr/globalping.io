@@ -21,13 +21,14 @@ module.exports = async (ctx) => {
 	ctx.params.page = ctx.params.page.replace(/\.xml$/, '');
 	let pages = (await readDirRecursive(viewsPath + '/pages', [ '_*' ])).map(p => path.relative(viewsPath + '/pages', p).replace(/\\/g, '/').slice(0, -5));
 	let response = await probesPromise;
-	let maxPage = Math.ceil(response.probes.length / 50000);
+	let probesStartIncl = 3;
+	let probesEndExclus = Math.ceil(response.probes.length / 50000) + probesStartIncl;
 	let page = Number(ctx.params.page);
 
 	if (ctx.params.page === 'index') {
-		ctx.body = siteMapIndexTemplate({ serverHost, maps: _.range(1, maxPage + 2) });
-	} else if (page > 2 && page <= maxPage + 1) {
-		ctx.body = siteMapTemplate({ probes: response.probes.slice((page - 3) * 50000, (page - 2) * 50000) });
+		ctx.body = siteMapIndexTemplate({ serverHost, maps: _.range(1, probesEndExclus) });
+	} else if (page >= probesStartIncl && page < probesEndExclus) {
+		ctx.body = siteMapTemplate({ probes: response.probes.slice((page - probesStartIncl) * 50000, (page - probesStartIncl + 1) * 50000) });
 	} else if (page === 2) {
 		ctx.body = siteMapTemplate({ networks: response.networks });
 	} else if (page === 1) {
