@@ -1,0 +1,30 @@
+name: E2E
+
+on:
+  push:
+    branches: [ "*" ]
+  pull_request:
+    branches: [ "*" ]
+
+jobs:
+  build:
+    name: Run e2e tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.x
+      - name: Install dependencies
+        run: |
+          npm install
+      - name: Build project
+        run: |
+          npm run build
+      - name: Install Playwright browsers
+        run: |
+          npx playwright install --with-deps chromium
+      - name: Run tests
+        run: |
+          npm run test:e2e:run

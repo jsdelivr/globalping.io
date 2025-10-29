@@ -43,7 +43,7 @@
 			<div class="gp-cli_how-install_list">
 				<div class="gp-cli_how-install_list_desktop-header">
 					{{#each osDataList}}
-						<div on-click="@this.set('selectedOsTab', this.name)"
+						<div data-testid="cli-os-{{this.name}}" on-click="@this.set('selectedOsTab', this.name)"
 							class="gp-cli_how-install_list_desktop-header_item">
 							<img width="auto"
 								height="32"
@@ -75,12 +75,15 @@
 						</div>
 
 						<div class="gp-cli_how-install_list_item_body">
-							<span>{{{this.cmd1.html}}}</span>
-							<br>
-							<span>{{this.cmd2}}</span>
-							<br>
-							<span>{{this.cmd3}}</span>
+							<span data-testid="cli-os-cmd{{#if selectedOsTab === this.name}}-active{{/if}}">
+								<span>{{{this.cmd1.html}}}</span>
+								<br>
+								<span>{{this.cmd2}}</span>
+								<br>
+								<span>{{this.cmd3}}</span>
+							</span>
 							<button class="gp-cli_how-install_list_item_body_btn gp_btn_green"
+								data-testid="cpy-btn{{#if selectedOsTab === this.name}}-active{{/if}}"
 								as-clipboard data-clipboard-text="{{this.cmd1.clearText + '\n' + this.cmd2 + '\n' + this.cmd3}}">
 								<img width="20"
 									height="20"
@@ -105,7 +108,7 @@
 			<div class="gp-cli_quick-start_content">
 				<div class="gp-cli_quick-start_content_header">
 					{{#each quickStartData}}
-						<div class="gp-cli_quick-start_content_header_item {{#if qsTabName === this.name}}active{{/if}}"
+						<div data-testid="cli-quick-start-{{this.name.split()[0]}}" class="gp-cli_quick-start_content_header_item {{#if qsTabName === this.name}}active{{/if}}"
 							on-click="@this.set('qsTabName', this.name)">
 							{{ this.title }}
 						</div>
@@ -114,7 +117,8 @@
 
 				<div class="gp-cli_quick-start_content_body">
 					{{#each quickStartData}}
-						<pre class="{{#if qsTabName === this.name}}visible{{/if}}">{{this.content}}</pre>
+						<pre data-testid="cli-quick-start-content{{#if qsTabName === this.name}}-active{{/if}}"
+							class="{{#if qsTabName === this.name}}visible{{/if}}">{{this.content}}</pre>
 					{{/each}}
 				</div>
 			</div>

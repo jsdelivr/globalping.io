@@ -631,6 +631,7 @@
 					{{else}}
 						<button on-click="@this.resetMapAndRunTest()"
 							class="gp_map-block_settings-wrapper_btn gp_btn_green {{#if testInProgress}}gp_btn_green_disabled gp_btn_green_loading{{/if}}"
+							data-testid="run-test-btn"
 							disabled="{{testInProgress}}">
 							{{#if testInProgress}}
 								<div></div>
@@ -1183,7 +1184,7 @@
 					</span>
 				</div>
 
-				<div class="gp_sponsors_content_list">
+				<div class="gp_sponsors_content_list" data-testid="gp-sponsors">
 					<div class="gp_sponsors_content_list_tier-one">
 						<div class="gp_sponsors_content_list_tier-one_row">
 							<a target="_blank" rel="noopener noreferrer" href="https://xtom.com">
@@ -2469,7 +2470,7 @@
 					// update Markers on the map (replace or add new) if Markers data is different
 					this.updateMarkers(markersData, prevMarkersData);
 				}
-			}, { init: false });
+			});
 		},
 		updateMarkers (markersData, prevMarkersData) {
 			markersData.forEach((markerData) => {
