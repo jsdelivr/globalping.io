@@ -518,19 +518,21 @@
 				let stateNameAsUrlPart = stateNameLC ? stateNameLC.split(' ').join('-') : null;
 
 				tags.forEach((tag) => {
-					if (!tag.match(/(gcp|aws|azure|oci)-\S+/)) {
+					let tagLC = tag.toLowerCase();
+
+					if (!tagLC.match(/(gcp|aws|azure|oci)-\S+/)) {
 						return;
 					}
 
-					if (!Object.keys(res.cloudRegions).includes(tag)) {
-						res.cloudRegions[tag] = {
-							name: tag,
+					if (!Object.keys(res.cloudRegions).includes(tagLC)) {
+						res.cloudRegions[tagLC] = {
+							name: tagLC,
 							from: 'world',
 							probesCnt: 1,
-							fromAsUrlPart: tag,
+							fromAsUrlPart: tagLC,
 						};
 					} else {
-						res.cloudRegions[tag].probesCnt += 1;
+						res.cloudRegions[tagLC].probesCnt += 1;
 					}
 				});
 
