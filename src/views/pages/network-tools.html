@@ -25,7 +25,7 @@
 							<span>{{locationData.name}}</span>
 						{{/if}}
 
-						{{#unless locationData.type === 'asn' || locationData.type === 'isp'}}
+						{{#unless locationData.type === 'asn' || locationData.type === 'isp' || locationData.type === 'cloudRegion'}}
 							{{#if locationData.name}}
 								<span>,&nbsp;</span>
 							{{/if}}
@@ -522,7 +522,8 @@
 
 					if (!Object.keys(res.cloudRegions).includes(tag)) {
 						res.cloudRegions[tag] = {
-							from: tag,
+							name: tag,
+							from: 'world',
 							probesCnt: 1,
 							fromAsUrlPart: tag,
 						};
@@ -725,7 +726,7 @@
 			}
 
 			if (parsedLocations.cloudRegions[locationLC]) {
-				return { ...parsedLocations.cloudRegions[locationLC], type: 'magic' };
+				return { ...parsedLocations.cloudRegions[locationLC], type: 'cloudRegion' };
 			}
 		},
 		getTestMeasurementById (measurementId) {
@@ -809,7 +810,6 @@
 			dataCache.getCache('probesResponse', 60 * 1000, http.fetchGlobalpingProbes)
 				.then((response) => {
 					this.set('parsedLocations', this.parseProbesResponse(response));
-					console.log(this.get('parsedLocations').cloudRegions);
 					this.set('totalProbesCnt', response.length);
 					this.set('probesParsed', true);
 				})
