@@ -654,6 +654,6 @@ module.exports = {
 	},
 
 	isTagCloudRegion (tag) {
-		return !!tag.match(/^(gcp|aws|azure|oci)-\S+/);
+		return /^(gcp|aws|azure|oci)-\S+/.test(tag);
 	},
 };
