@@ -7,6 +7,7 @@ const got = require('../../lib/got');
 const countries = require('../../assets/json/countries.json');
 const continents = require('../../assets/json/continents.json');
 const usaStates = require('../../assets/json/usa-states.json');
+const { isTagCloudRegion } = require('../../assets/js/_');
 
 const serverHost = config.get('server.host');
 const viewsPath = __dirname + '/../../views';
@@ -61,7 +62,7 @@ function updateProbesData () {
 }
 
 function parseProbesResponse (data) {
-	return data.reduce((res, { location }) => {
+	return data.reduce((res, { tags, location }) => {
 		let cityNameAsUrlPart = location.city.split(' ').join('-').toLowerCase();
 		let countryNameLC = countries.find(i => i.code.toLowerCase() === location.country.toLowerCase()).name.toLowerCase();
 		let countryNameAsUrlPart = countryNameLC.split(' ').join('-');
@@ -109,6 +110,16 @@ function parseProbesResponse (data) {
 			res.states.push(stateNameAsUrlPart);
 		}
 
+		tags.forEach((tag) => {
+			let tagLC = tag.toLowerCase();
+
+			if (!isTagCloudRegion(tagLC) || res.cloudRegions.includes(tagLC)) {
+				return;
+			}
+
+			res.cloudRegions.push(tagLC);
+		});
+
 		return res;
 	}, {
 		cities: [],
@@ -118,6 +129,7 @@ function parseProbesResponse (data) {
 		continents: [],
 		regions: [],
 		states: [],
+		cloudRegions: [],
 	});
 }
 

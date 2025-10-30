@@ -652,4 +652,8 @@ module.exports = {
 			}
 		}
 	},
+
+	isTagCloudRegion (tag) {
+		return !!tag.match(/(gcp|aws|azure|oci)-\S+/);
+	},
 };

@@ -520,7 +520,7 @@
 				tags.forEach((tag) => {
 					let tagLC = tag.toLowerCase();
 
-					if (!tagLC.match(/(gcp|aws|azure|oci)-\S+/)) {
+					if (!_.isTagCloudRegion(tagLC)) {
 						return;
 					}
 
