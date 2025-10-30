@@ -25,7 +25,7 @@
 							<span>{{locationData.name}}</span>
 						{{/if}}
 
-						{{#unless locationData.type === 'asn' || locationData.type === 'isp'}}
+						{{#unless locationData.type === 'asn' || locationData.type === 'isp' || locationData.type === 'cloudRegion'}}
 							{{#if locationData.name}}
 								<span>,&nbsp;</span>
 							{{/if}}
@@ -288,6 +288,8 @@
 					countries: {},
 					continents: {},
 					regions: {},
+					states: {},
+					cloudRegions: {},
 				},
 				highLevelLocationHref: null,
 				probesParsed: false,
@@ -498,7 +500,7 @@
 			});
 		},
 		parseProbesResponse (data) {
-			return data.reduce((res, { location }) => {
+			return data.reduce((res, { tags, location }) => {
 				let cityNameLC = location.city.toLowerCase();
 				let cityNameAsUrlPart = cityNameLC.split(' ').join('-');
 				let countryCodeLC = location.country.toLowerCase();
@@ -514,6 +516,25 @@
 				let stateCodeLC = location.state ? location.state.toLowerCase() : null;
 				let stateNameLC = stateCodeLC ? usaStates.find(i => i.code.toLowerCase() === stateCodeLC).name.toLowerCase() : null;
 				let stateNameAsUrlPart = stateNameLC ? stateNameLC.split(' ').join('-') : null;
+
+				tags.forEach((tag) => {
+					let tagLC = tag.toLowerCase();
+
+					if (!_.isTagCloudRegion(tagLC)) {
+						return;
+					}
+
+					if (!Object.keys(res.cloudRegions).includes(tagLC)) {
+						res.cloudRegions[tagLC] = {
+							name: tagLC,
+							from: 'world',
+							probesCnt: 1,
+							fromAsUrlPart: tagLC,
+						};
+					} else {
+						res.cloudRegions[tagLC].probesCnt += 1;
+					}
+				});
 
 				// collect uniques cities and count amount of probes per city
 				if (!Object.keys(res.cities).includes(cityNameAsUrlPart)) {
@@ -610,6 +631,7 @@
 				continents: {},
 				regions: {},
 				states: {},
+				cloudRegions: {},
 			});
 		},
 		getLocDataByLocValue (location = '') {
@@ -705,6 +727,10 @@
 					fromAsUrlPart,
 					type: 'state',
 				};
+			}
+
+			if (parsedLocations.cloudRegions[locationLC]) {
+				return { ...parsedLocations.cloudRegions[locationLC], type: 'cloudRegion' };
 			}
 		},
 		getTestMeasurementById (measurementId) {
