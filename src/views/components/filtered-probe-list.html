@@ -77,16 +77,18 @@
 	</div>
 
 	{{#if preparedProbesColumns && preparedProbesColumns.length > 0}}
-		<p class="gp-filtered-list_result-count">Showing <b>{{totalResults}} {{_.pluralize('result', totalResults)}}</b>
+		<p class="gp-filtered-list_result-count">
+			Showing <b>{{totalResults}} unique {{_.pluralize('result', totalResults)}}</b>{{#if groupBy === 'network'}}.{{/if}}
+
 			{{#if groupBy === 'country'}}
-				from <b>{{probeLocationCounts.continent}} {{_.pluralize('continent', probeLocationCounts.continent)}}</b>
+				from <b>{{probeLocationCounts.continent}} {{_.pluralize('continent', probeLocationCounts.continent)}}</b>.
 			{{elseif groupBy === 'city' || groupBy === 'country-network'}}
 				from <b>{{probeLocationCounts.continent}} {{_.pluralize('continent', probeLocationCounts.continent)}}</b>
-				and <b>{{probeLocationCounts.country}} {{_.pluralize('country', 'countries', probeLocationCounts.country)}}</b>
+				and <b>{{probeLocationCounts.country}} {{_.pluralize('country', 'countries', probeLocationCounts.country)}}</b>.
 			{{elseif groupBy === 'city-network' || groupBy === 'disabled'}}
 				from <b>{{probeLocationCounts.continent}} {{_.pluralize('continent', probeLocationCounts.continent)}}</b>,
 				<b>{{probeLocationCounts.country}} {{_.pluralize('country', 'countries', probeLocationCounts.country)}}</b>,
-				and <b>{{probeLocationCounts.city}} {{_.pluralize('city', 'cities', probeLocationCounts.city)}}</b>
+				and <b>{{probeLocationCounts.city}} {{_.pluralize('city', 'cities', probeLocationCounts.city)}}</b>.
 			{{/if}}
 		</p>
 	{{/if}}
