@@ -76,6 +76,23 @@
 		</div>
 	</div>
 
+	{{#if preparedProbesColumns && preparedProbesColumns.length > 0}}
+		<p class="gp-filtered-list_result-count">
+			Showing <b>{{totalResults}} unique {{_.pluralize('result', totalResults)}}</b>{{#if groupBy === 'network'}}.{{/if}}
+
+			{{#if groupBy === 'country'}}
+				from <b>{{probeLocationCounts.continent}} {{_.pluralize('continent', probeLocationCounts.continent)}}</b>.
+			{{elseif groupBy === 'city' || groupBy === 'country-network'}}
+				from <b>{{probeLocationCounts.country}} {{_.pluralize('country', 'countries', probeLocationCounts.country)}}</b>
+				and <b>{{probeLocationCounts.continent}} {{_.pluralize('continent', probeLocationCounts.continent)}}</b>.
+			{{elseif groupBy === 'city-network' || groupBy === 'disabled'}}
+				from <b>{{probeLocationCounts.city}} {{_.pluralize('city', 'cities', probeLocationCounts.city)}}</b>,
+				<b>{{probeLocationCounts.country}} {{_.pluralize('country', 'countries', probeLocationCounts.country)}}</b>,
+				and <b>{{probeLocationCounts.continent}} {{_.pluralize('continent', probeLocationCounts.continent)}}</b>.
+			{{/if}}
+		</p>
+	{{/if}}
+
 	{{#if probeContinents.length > 1}}
 		<div class="gp-filtered-list_jump">
 			<div class="gp-filtered-list_jump_field">
@@ -286,6 +303,62 @@
 				selectedContinent: null,
 				maxTagCount: 2,
 			};
+		},
+		computed: {
+			probeLocationCounts () {
+				let probes = this.get('locationProbes');
+
+				if (!probes) {
+					return {
+						continent: 0,
+						country: 0,
+						city: 0,
+						network: 0,
+					};
+				}
+
+				let uniqueValues = probes.reduce((acc, probe) => {
+					acc.continent.add(probe.location.continent);
+					acc.country.add(probe.location.country);
+					acc.city.add(probe.location.country + probe.location.city);
+					acc.network.add(probe.location.network);
+					return acc;
+				}, { continent: new Set(), country: new Set(), city: new Set(), network: new Set() });
+
+				return {
+					continent: uniqueValues.continent.size,
+					country: uniqueValues.country.size,
+					city: uniqueValues.city.size,
+					network: uniqueValues.network.size,
+				};
+			},
+			totalResults () {
+				let probes = this.get('locationProbes');
+				let groupBy = this.get('groupBy');
+
+				if (!probes) {
+					return 0;
+				}
+
+				if (groupBy === 'disabled') {
+					return probes.length;
+				}
+
+				// do not recalculate the total if we already have it in probeLocationCounts
+				if (!groupBy.includes('-')) {
+					return this.get('probeLocationCounts')[groupBy];
+				}
+
+				let keyParts = {
+					'country-network': [ 'country', 'network' ],
+					'city-network': [ 'country', 'city', 'network' ],
+				}[groupBy];
+
+				return probes.reduce((uniqueKeys, probe) => {
+					uniqueKeys.add(keyParts.map(part => probe.location[part]).join());
+					return uniqueKeys;
+				}, new Set()).size;
+			},
 		},
 		oninit () {
 			if (!Ractive.isServer) {
