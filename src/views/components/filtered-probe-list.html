@@ -306,6 +306,15 @@
 			probeLocationCounts () {
 				let probes = this.get('locationProbes');
 
+				if (!probes) {
+					return {
+						continent: 0,
+						country: 0,
+						city: 0,
+						network: 0,
+					};
+				}
+
 				let uniqueValues = probes.reduce((acc, probe) => {
 					acc.continent.add(probe.location.continent);
 					acc.country.add(probe.location.country);
@@ -324,6 +333,10 @@
 			totalResults () {
 				let probes = this.get('locationProbes');
 				let groupBy = this.get('groupBy');
+
+				if (!probes) {
+					return 0;
+				}
 
 				if (groupBy === 'disabled') {
 					return probes.length;
