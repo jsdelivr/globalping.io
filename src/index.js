@@ -29,7 +29,7 @@ const render = require('./middleware/render');
 const debugHandler = require('./routes/debug');
 const globalpingRouter = require('./routes');
 const isRenderPreview = process.env.IS_PULL_REQUEST === 'true' && process.env.RENDER_EXTERNAL_URL;
-let isDev = process.env.NODE_ENV === 'development';
+const isDev = process.env.NODE_ENV === 'development';
 
 let app = new Koa();
 let router = new KoaRouter();
