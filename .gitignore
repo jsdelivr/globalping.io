@@ -12,3 +12,10 @@ yarn.lock
 .eslintcache-html
 .output
 .nuxt
+
+# Playwright
+/test/e2e/results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+/playwright/.auth/
