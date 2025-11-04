@@ -7,6 +7,7 @@
 		"@babel/core": "^7.27.4",
 		"@babel/preset-env": "^7.27.2",
 		"@elastic/elasticsearch": "^8.18.2",
+		"@nuxt/eslint": "^1.10.0",
 		"@tailwindcss/vite": "^4.1.14",
 		"algoliasearch": "^4.25.2",
 		"bluebird": "^3.7.2",

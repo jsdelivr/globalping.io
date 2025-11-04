@@ -1,19 +1,109 @@
 const globals = require('globals');
-const { defineConfig } = require('eslint/config');
 const compat = require('eslint-plugin-compat');
 const html = require('eslint-plugin-html');
 const htmlParser = require('@html-eslint/parser');
 const htmlEslint = require('@html-eslint/eslint-plugin');
 const javascript = require('@martin-kolarik/eslint-config');
+const { withNuxt } = require('./.nuxt/eslint.config.mjs');
 
-module.exports = defineConfig([
+module.exports = withNuxt(
 	javascript,
 	{
 		ignores: [
 			'dist/**',
 			'test/e2e/results/**',
+			'.output',
 		],
 	},
+	// Nuxt rules
+	{
+		files: [ 'app/*/**' ],
+		rules: {
+			'import/order': [ 'error', {
+				distinctGroup: false,
+				pathGroups: [
+					{
+						pattern: '#**',
+						group: 'external',
+						position: 'before',
+					},
+				],
+				alphabetize: {
+					order: 'asc',
+				},
+			}],
+
+			// Preset overrides.
+			'camelcase': 'off',
+			'jsonc/no-comments': 'off',
+			'n/no-missing-import': 'off',
+			'@typescript-eslint/no-explicit-any': 'off',
+			'@typescript-eslint/no-unused-vars': [
+				'warn',
+				{
+					args: 'all',
+					argsIgnorePattern: '^_',
+					caughtErrors: 'all',
+					caughtErrorsIgnorePattern: '^_',
+					destructuredArrayIgnorePattern: '^_',
+					varsIgnorePattern: '^_',
+					ignoreRestSiblings: true,
+				},
+			],
+		},
+	},
+	{
+		files: [
+			'{app,server}/**/*.{ts,vue}',
+		],
+		rules: {
+			'import/extensions': [ 'error', 'never' ],
+		},
+	},
+	{
+		files: [
+			'**/*.vue',
+		],
+		rules: {
+			'@stylistic/indent': 'off',
+			'vue/component-tags-order': 'off',
+			'vue/block-order': [ 'error', {
+				order: [ 'template', 'script', 'style' ],
+			}],
+			'vue/html-indent': [
+				'error',
+				'tab',
+				{
+					baseIndent: 1,
+				},
+			],
+			'vue/script-indent': [
+				'error',
+				'tab',
+				{
+					baseIndent: 1,
+					switchCase: 1,
+				},
+			],
+			'vue/html-closing-bracket-spacing': [
+				'error',
+				{
+					selfClosingTag: 'never',
+				},
+			],
+			'vue/max-attributes-per-line': [ 'error', {
+				singleline: {
+					max: 5,
+				},
+				multiline: {
+					max: 1,
+				},
+			}],
+			'vue/singleline-html-element-content-newline': 'off',
+			'tailwindcss/no-custom-classname': 'off',
+		},
+	},
+	// Ractive + js rules
 	{
 		plugins: {
 			compat,
@@ -95,4 +185,4 @@ module.exports = defineConfig([
 			'no-redeclare': 'off',
 		},
 	},
-]);
+);
