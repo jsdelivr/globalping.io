@@ -17,13 +17,14 @@ const rollupJson = require('rollup-plugin-json');
 
 const buffer = require('vinyl-buffer');
 const source = require('vinyl-source-stream');
-
 const liveReloadOptions = { port: 35730 };
 
 const srcDir = './src';
 const distDir = './dist';
+const srcViewsDir = `${srcDir}/views`;
 const srcAssetsDir = `${srcDir}/assets`;
 const srcPublicDir = `${srcDir}/public`;
+const dstAppDir = `./app`;
 const dstAssetsDir = `${distDir}/assets`;
 const dstPublicDir = distDir;
 let cache;
@@ -56,6 +57,28 @@ const getRollupStream = file => rollupStream({
 			algoliasearch: 'algoliasearch',
 			ractive: 'Ractive',
 		},
+	},
+}).on('bundle', (bundle) => {
+	cache = bundle;
+});
+
+const getRollupStreamRactiveComp = file => rollupStream({
+	cache,
+	input: srcViewsDir + '/components/' + file,
+	external: [
+		'ractive',
+	],
+	plugins: [
+		rollupRactive({
+			format: 'cjs',
+			parseOptions: { interpolate: { script: true, style: true }, includeLinePositions: false, stripComments: false },
+		}),
+		rollupCommonjs({ extensions: [ '.html', '.js' ], ignore: [] }),
+		rollupJson(),
+	],
+	output: {
+		format: 'esm',
+		sourcemap: true,
 	},
 }).on('bundle', (bundle) => {
 	cache = bundle;
@@ -132,9 +155,22 @@ gulp.task('js:prod', gulp.parallel(
 		.pipe(gulp.dest(`${dstAssetsDir}/js`)),
 ));
 
+gulp.task('nuxt:ractive:components', gulp.parallel(
+	() => getRollupStreamRactiveComp('header.html')
+		.pipe(source('header.js'))
+		.pipe(buffer())
+		.pipe(gulp.dest(`${dstAppDir}/ractive`))
+		.pipe(livereload(liveReloadOptions)),
+	() => getRollupStreamRactiveComp('footer.html')
+		.pipe(source('footer.js'))
+		.pipe(buffer())
+		.pipe(gulp.dest(`${dstAppDir}/ractive`))
+		.pipe(livereload(liveReloadOptions)),
+));
+
 gulp.task('build', gulp.series('clean', 'copy', 'less:prod', 'js:prod'));
 
-gulp.task('dev', gulp.series('copy', 'less', 'js'));
+gulp.task('dev', gulp.series('copy', 'less', 'js', 'nuxt:ractive:components'));
 
 gulp.task('serve', () => {
 	require('./src');
