@@ -650,14 +650,17 @@
 					}, {});
 
 					let sortedLocations = Object.keys(groupedLocations).sort((a, b) => {
+						if (sortOrder !== 'alphabetically') {
+							return groupedLocations[b].length - groupedLocations[a].length;
+						}
+
 						let [ countryA, cityA ] = a.split(', ');
 						let [ countryB, cityB ] = b.split(', ');
 
-						if (sortOrder === 'alphabetically') {
-							return countryA.localeCompare(countryB) || (cityA && cityB ? cityA.localeCompare(cityB) : 0);
-						}
+						let countryKeyA = groupBy.includes('country') ? this.getCountryName(countryA) : countryA;
+						let countryKeyB = groupBy.includes('country') ? this.getCountryName(countryB) : countryB;
 
-						return groupedLocations[b].length - groupedLocations[a].length;
+						return countryKeyA.localeCompare(countryKeyB) || (cityA && cityB ? cityA.localeCompare(cityB) : 0);
 					});
 
 					acc.push(...sortedLocations.map((location) => {
