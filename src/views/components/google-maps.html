@@ -77,7 +77,7 @@
 				probesByCoords: null,
 				onProbesByCoordsChange: null,
 				onMarkerClick: null,
-				selectedProbe: null,
+				selectedLocation: null,
 				displayInfoWindow: true,
 				lockMapBoundaries: false,
 				mapMinZoom: MAP_MIN_ZOOM,
@@ -150,22 +150,25 @@
 				infoWindows.forEach(iw => iw.close());
 			});
 
-			this.observe('selectedProbe', (selectedProbe, prevSelectedProbe) => {
-				let markerToFade = mapMarkers
-					.find(mm => mm.position.lat === prevSelectedProbe?.latitude && mm.position.lng === prevSelectedProbe?.longitude);
-				let markerToHighlight = mapMarkers
-					.find(mm => mm.position.lat === selectedProbe?.latitude && mm.position.lng === selectedProbe?.longitude);
+			this.observe('selectedLocation', (selectedLocation, prevSelectedLocation) => {
+				// find markers whose coordinates are contained in the (previously) selected location
+				let markersToHighlight = mapMarkers
+					.filter(mm => selectedLocation.coords.some(c => c.latitude === mm.position.lat && c.longitude === mm.position.lng));
+
+				let markersToFade = mapMarkers
+					.filter(mm => !markersToHighlight.includes(mm)
+					&& prevSelectedLocation.coords.some(c => c.latitude === mm.position.lat && c.longitude === mm.position.lng));
 
 				// update marker bg colors
-				if (markerToFade) {
+				markersToFade.forEach((markerToFade) => {
 					let svgUnselected = this.createClusterMarkerSVG(markerToFade.markersCount || 0, false);
 					markerToFade.content.style.backgroundImage = `url('data:image/svg+xml;base64,${svgUnselected}')`;
-				}
+				});
 
-				if (markerToHighlight) {
+				markersToHighlight.forEach((markerToHighlight) => {
 					let svgSelected = this.createClusterMarkerSVG(markerToHighlight.markersCount || 0, true);
 					markerToHighlight.content.style.backgroundImage = `url('data:image/svg+xml;base64,${svgSelected}')`;
-				}
+				});
 
 				// update cluster marker bg colors
 				markerCluster?.clusters.forEach((cluster) => {
@@ -175,23 +178,23 @@
 
 					let totalProbeCount = cluster.markers.reduce((sum, marker) => sum + (marker.markersCount || 0), 0);
 
-					if (cluster.markers.includes(markerToHighlight)) {
+					if (markersToHighlight.some(markerToHighlight => cluster.markers.includes(markerToHighlight))) {
 						let svgHighlighted = this.createClusterMarkerSVG(totalProbeCount, true);
 						cluster.marker.content.style.backgroundImage = `url('data:image/svg+xml;base64,${svgHighlighted}')`;
-					} else if (cluster.markers.includes(markerToFade)) {
+					} else if (markersToFade.some(markerToFade => cluster.markers.includes(markerToFade))) {
 						let svgUnselected = this.createClusterMarkerSVG(totalProbeCount, false);
 						cluster.marker.content.style.backgroundImage = `url('data:image/svg+xml;base64,${svgUnselected}')`;
 					}
 				});
 
-				if (!selectedProbe) {
+				if (!selectedLocation) {
 					return;
 				}
 
 				// make sure the selected probe is visible
 				let bounds = map.getBounds();
 				let probesByCoords = this.get('probesByCoords');
-				let position = { lat: selectedProbe.latitude, lng: selectedProbe.longitude };
+				let position = { lat: selectedLocation.coords[0].latitude, lng: selectedLocation.coords[0].longitude };
 
 				if (!bounds?.contains(position)) {
 					this.focusMapOnMarkers(probesByCoords);
@@ -219,7 +222,7 @@
 					});
 
 					let createClusterMarkerSVG = this.createClusterMarkerSVG;
-					let getSelectedProbe = () => this.get('selectedProbe');
+					let getSelectedLocation = () => this.get('selectedLocation');
 
 					if (markerCluster) {
 						markerCluster.clearMarkers();
@@ -231,9 +234,9 @@
 							renderer: {
 								render ({ markers, position }) {
 									let totalCustomNumber = markers.reduce((sum, marker) => sum + (marker.markersCount || 0), 0);
-									let selectedProbe = getSelectedProbe();
-									let shouldHighlight = !selectedProbe
-										|| markers.some(m => m.position.lat === selectedProbe.latitude && m.position.lng === selectedProbe.longitude);
+									let selectedLocation = getSelectedLocation();
+									let shouldHighlight = !selectedLocation
+										|| markers.some(m => selectedLocation.coords.some(pos => m.position.lat === pos.latitude && m.position.lng === pos.longitude));
 									let svg = createClusterMarkerSVG(totalCustomNumber, shouldHighlight);
 
 									let clusterDiv = document.createElement('div');
@@ -302,8 +305,9 @@
 		createMapMarkerWithIW (key, markerData) {
 			let [ lat, lng ] = key.split(', ');
 			let onMarkerClick = this.get('onMarkerClick');
-			let selectedProbe = this.get('selectedProbe');
-			let shouldHighlight = !selectedProbe || (selectedProbe.latitude === Number(lat) && selectedProbe.longitude === Number(lng));
+			let selectedLocation = this.get('selectedLocation');
+			let shouldHighlight = !selectedLocation
+				|| selectedLocation.coords.some(pos => pos.latitude === Number(lat) && pos.longitude === Number(lng));
 
 			let svg = this.createMapMarkerSvg(markerData, shouldHighlight);
 
