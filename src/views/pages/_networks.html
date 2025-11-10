@@ -108,7 +108,7 @@
 						hasCluster="{{true}}"
 						onMarkerClick="{{@this.onMarkerClick}}"
 						displayInfoWindow="{{false}}"
-						selectedProbe="{{selectedLocation}}"
+						selectedLocation="{{selectedLocation}}"
 						focusOnChange="{{true}}"
 						lockMapBoundaries="{{true}}"
 						mapMinZoom="{{1}}"
@@ -241,7 +241,6 @@
 	const http = require('../../assets/js/utils/http');
 	const dataCache = require('../../assets/js/utils/data-cache');
 	const listeners = require('../../assets/js/utils/listeners');
-	const isArrContainsExactObj = require('../../assets/js/utils/check-if-array-contains-exact-object');
 	const tooltip = require('../../assets/js/decorators/tooltip');
 	const countries = require('../../assets/json/countries.json');
 	const DEFAULT_LIMIT = 1;
@@ -326,7 +325,7 @@
 
 					let networkName = this.get('networkName');
 					let parsedLocations = this.get('parsedLocations');
-					let { name: networkFullName, asnList = [], locationsList = [], probesByCoords = {} } = parsedLocations[networkName] || {};
+					let { name: networkFullName, asnList = [], locations = {}, probesByCoords = {} } = parsedLocations[networkName] || {};
 
 					if (networkFullName) {
 						this.set('networkFullName', networkFullName);
@@ -336,7 +335,8 @@
 						return;
 					}
 
-					locationsList.sort((lhs, rhs) => lhs.country.localeCompare(rhs.country) || lhs.city.localeCompare(rhs.city));
+					let locationsList = Object.values(locations)
+						.sort((lhs, rhs) => lhs.country.localeCompare(rhs.country) || lhs.city.localeCompare(rhs.city));
 
 					this.set('asnList', asnList);
 					this.set('locationsList', locationsList);
@@ -480,17 +480,18 @@
 
 			return data.reduce((res, probe) => {
 				let { location } = probe;
-				let locationInfo = extractLocationInfo(location);
+				let { latitude, longitude, ...locationInfo } = extractLocationInfo(location);
 				let networkNameAsKey = location.network.replace(/\./g, '').replace(/[\W]|_/g, ' ').replace(/\s\s+|_/g, ' ').trim().split(' ').join('-').toLowerCase();
-				let coords = `${location.latitude}, ${location.longitude}`;
+				let coords = `${latitude}, ${longitude}`;
+				let locationKey = `${location.country}, ${location.city}`;
 
 				// collect uniques Networks and count amount of probes per Network
 				if (!Object.hasOwn(res, networkNameAsKey)) {
 					res[networkNameAsKey] = {
 						name: location.network,
 						asnList: [ location.asn ],
-						locationsList: [ locationInfo ],
 						probesByCoords: { [coords]: [ probe ] },
+						locations: { [locationKey]: { ...locationInfo, coords: [{ latitude, longitude }] } },
 						probeCount: 1,
 					};
 
@@ -504,14 +505,16 @@
 					res[networkNameAsKey].asnList.push(location.asn);
 				}
 
-				// collect all unique network's locations (city, country)
-				if (!isArrContainsExactObj(res[networkNameAsKey].locationsList, locationInfo)) {
-					res[networkNameAsKey].locationsList.push(locationInfo);
+
+				// group probes by location (for select)
+				if (!Object.hasOwn(res[networkNameAsKey].locations, locationKey)) {
+					res[networkNameAsKey].locations[locationKey] = { ...locationInfo, coords: [] };
 				}
 
-				// group probes by coords
+				// group probes by coords (for the map)
 				if (!Object.hasOwn(res[networkNameAsKey].probesByCoords, coords)) {
 					res[networkNameAsKey].probesByCoords[coords] = [];
+					res[networkNameAsKey].locations[locationKey].coords.push({ latitude, longitude });
 				}
 
 				res[networkNameAsKey].probesByCoords[coords].push(probe);
@@ -520,7 +523,9 @@
 			}, {});
 		},
 		onMarkerClick ({ latitude, longitude }) {
-			let newSelectedLocation = this.get('locationsList').find(loc => loc.latitude === latitude && loc.longitude === longitude);
+			// find the location which contains the clicked marker's coordinates
+			let newSelectedLocation
+				= this.get('locationsList').find(loc => loc.coords.some(c => c.latitude === latitude && c.longitude === longitude));
 
 			if (newSelectedLocation) {
 				this.set('selectedLocation', newSelectedLocation);
