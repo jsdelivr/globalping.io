@@ -87,7 +87,7 @@ const initNuxt = async () => {
  * Nuxt routes and files.
  */
 if (isDev) {
-	router.get(/^\/(new)(\/.*)?$/, async (ctx) => {
+	router.get(/^\/(new)(\/.+)?$/, async (ctx) => {
 		if (!nuxtRouteHandler) {
 			ctx.status = 404;
 			return;

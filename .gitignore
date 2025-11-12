@@ -19,3 +19,6 @@ yarn.lock
 /blob-report/
 /playwright/.cache/
 /playwright/.auth/
+
+/app/ractive/*.js
+/app/assets/css/legacy.css*

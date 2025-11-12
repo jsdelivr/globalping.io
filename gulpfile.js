@@ -17,6 +17,8 @@ const rollupJson = require('rollup-plugin-json');
 
 const buffer = require('vinyl-buffer');
 const source = require('vinyl-source-stream');
+const postcss = require('gulp-postcss');
+const prefixSelector = require('postcss-prefix-selector');
 const liveReloadOptions = { port: 35730 };
 
 const srcDir = './src';
@@ -108,6 +110,22 @@ gulp.task('less', () => {
 		.pipe(livereload(liveReloadOptions));
 });
 
+gulp.task('nuxt:less', () => {
+	return gulp.src([ `${srcAssetsDir}/less/reduced.less` ])
+		.pipe(plumber())
+		.pipe(sourcemaps.init())
+		.pipe(less({ relativeUrls: true, strictMath: true }))
+		.pipe(postcss([
+			prefixSelector({
+				prefix: '.ractive-component',
+			}),
+		]))
+		.pipe(rename('legacy.css'))
+		.pipe(sourcemaps.write('.'))
+		.pipe(gulp.dest(`${dstAppDir}/assets/css`))
+		.pipe(livereload(liveReloadOptions));
+});
+
 gulp.task('less:prod', () => {
 	return gulp.src([ `${srcAssetsDir}/less/app.less` ])
 		.pipe(sourcemaps.init())
@@ -170,7 +188,7 @@ gulp.task('nuxt:ractive:components', gulp.parallel(
 
 gulp.task('build', gulp.series('clean', 'copy', 'less:prod', 'js:prod'));
 
-gulp.task('dev', gulp.series('copy', 'less', 'js', 'nuxt:ractive:components'));
+gulp.task('dev', gulp.series('copy', 'less', 'js', 'nuxt:less', 'nuxt:ractive:components'));
 
 gulp.task('serve', () => {
 	require('./src');

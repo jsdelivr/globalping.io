@@ -1,14 +1,25 @@
+<!-- eslint-disable vue/no-v-html -->
 <template>
-	<div class="page-shell">
-		<div ref="headerEl" class="head"/>
-		<NuxtPage/>
-		<div ref="footerEl"/>
+	<div class="flex min-h-screen flex-col justify-between">
+		<div ref="headerEl" class="ractive-component" v-html="headerHtml"/>
+		<NuxtPage class="flex-1"/>
+		<div ref="footerEl" class="ractive-component" v-html="footerHtml"/>
 	</div>
 </template>
 
 <script setup lang="ts">
-	const headerEl = ref<HTMLElement>(null);
-	const footerEl = ref(null);
+	import type Ractive from 'ractive';
+	import { useGlobalpingUser } from '~/composables/useGlobalpingUser';
+	import Footer from '~/ractive/footer';
+	import Header from '~/ractive/header';
+
+	const headerEl = ref<HTMLElement>();
+	const footerEl = ref<HTMLElement>();
+	const headerInstance = ref<Ractive<Ractive>>();
+	const footerInstance = ref<Ractive<Ractive>>();
+	const headerHtml = ref('');	// SSR
+	const footerHtml = ref('');	// SSR
+
 	const { path } = useRoute();
 
 	const {
@@ -16,36 +27,70 @@
 		assetsHost,
 		apiDocsHost,
 		assetsVersion,
+		dashboardHost,
 	} = useRuntimeConfig().public;
 
-	let headerInstance;
-	let footerInstance;
+	const { data: gpUserData } = await useGlobalpingUser();
+	const user = computed(() => gpUserData.value?.data ?? null);
 
-	onMounted(async () => {
-		let [
-			{ default: Header },
-			{ default: Footer },
-		] = await Promise.all([
-			import('~/ractive/header'),
-			import('~/ractive/footer'),
-		]);
+	const signIn = () => {
+		const url = new URL(`${dashboardHost}/auth/login/github`);
 
-		footerInstance = new Footer({ target: footerEl.value, data: {} });
-		headerInstance = new Header({ target: headerEl.value, data: {} });
+		url.searchParams.set(
+			'redirect',
+			`${serverHost}/auth/callback?redirect=${encodeURIComponent(window.location.href)}`,
+		);
 
-		for (const component of [ headerInstance, footerInstance ]) {
-			component.set('@shared.serverHost', serverHost);
-			component.set('@shared.assetsHost', assetsHost);
-			component.set('@shared.apiDocsHost', apiDocsHost);
-			component.set('@shared.assetsVersion', assetsVersion);
-			component.set('@shared.actualPath', path);
+		navigateTo(url.toString(), { external: true });
+	};
+
+	const signOut = async () => {
+		await $fetch(`${dashboardHost}/auth/logout`, {
+			method: 'POST',
+			body: JSON.stringify({ mode: 'session' }),
+		});
+	};
+
+	const setRactiveData = () => {
+		for (const component of [ footerInstance, headerInstance ]) {
+			component.value?.set('@shared.serverHost', serverHost);
+			component.value?.set('@shared.assetsHost', assetsHost);
+			component.value?.set('@shared.apiDocsHost', apiDocsHost);
+			component.value?.set('@shared.assetsVersion', assetsVersion);
+			component.value?.set('@shared.actualPath', path);
+			component.value?.set('@shared.user', user.value);
 		}
+	};
 
-		headerEl?.value.querySelector('.c-header')?.classList.add('header-with-globalping-bg');
+	// SSR (to avoid layout shift during hydration)
+	if (import.meta.server) {
+		footerInstance.value = new Footer();
+		headerInstance.value = new Header();
+
+		setRactiveData();
+
+		footerHtml.value = footerInstance.value.toHTML();
+		headerHtml.value = headerInstance.value.toHTML().replace('c-header', 'c-header header-with-globalping-bg');
+	}
+
+	onMounted(() => {
+		// clear SSR'd components
+		headerInstance.value?.teardown?.();
+		footerInstance.value?.teardown?.();
+		footerHtml.value = '';
+		headerHtml.value = '';
+
+		footerInstance.value = new Footer({ target: footerEl.value });
+		headerInstance.value = new Header({ target: headerEl.value });
+		headerInstance.value.set('@global.app.signIn', signIn);
+		headerInstance.value.set('@global.app.signOut', signOut);
+		headerEl.value?.querySelector('.c-header')?.classList.add('header-with-globalping-bg');
+
+		setRactiveData();
 	});
 
 	onBeforeUnmount(() => {
-		headerInstance?.teardown?.();
-		footerInstance?.teardown?.();
+		headerInstance.value?.teardown?.();
+		footerInstance.value?.teardown?.();
 	});
 </script>
