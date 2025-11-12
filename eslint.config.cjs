@@ -4,13 +4,22 @@ const html = require('eslint-plugin-html');
 const htmlParser = require('@html-eslint/parser');
 const htmlEslint = require('@html-eslint/eslint-plugin');
 const javascript = require('@martin-kolarik/eslint-config');
-const { withNuxt } = require('./.nuxt/eslint.config.mjs');
+const typescript = require('@martin-kolarik/eslint-config/typescript.js');
+const { createConfigForNuxt } = require('@nuxt/eslint-config');
+const tailwindcss = require('eslint-plugin-tailwindcss');
+const path = require("node:path");
 
-module.exports = withNuxt(
+javascript[0].ignores = [ 'app/**', '**.ts', '**.vue' ];
+
+module.exports = createConfigForNuxt().prepend(
+	...tailwindcss.configs['flat/recommended'],
+	typescript.forFiles([ '**/*.ts', '**/*.vue' ]),
+).append(
 	javascript,
 	{
 		ignores: [
 			'dist/**',
+			'app/ractive/*.js',
 			'test/e2e/results/**',
 			'.output',
 		],
@@ -34,6 +43,7 @@ module.exports = withNuxt(
 			}],
 
 			// Preset overrides.
+			'prefer-let/prefer-let': 'off',
 			'camelcase': 'off',
 			'jsonc/no-comments': 'off',
 			'n/no-missing-import': 'off',
@@ -105,6 +115,9 @@ module.exports = withNuxt(
 	},
 	// Ractive + js rules
 	{
+		files: [
+			'src/**',
+		],
 		plugins: {
 			compat,
 			html,
