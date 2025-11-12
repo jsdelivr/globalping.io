@@ -117,7 +117,7 @@
 		"vue-eslint-parser": "^10.2.0"
 	},
 	"scripts": {
-		"build": "node bin/fetch-data.js && nuxt build && gulp build",
+		"build": "node bin/fetch-data.js && gulp build && nuxt build",
 		"heroku-postbuild": "echo \"$SOURCE_VERSION\" > sha.txt",
 		"lint": "npm run lint:css && npm run lint:js",
 		"lint:fix": "npm run lint:css:fix && npm run lint:js:fix",

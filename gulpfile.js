@@ -186,7 +186,7 @@ gulp.task('nuxt:ractive:components', gulp.parallel(
 		.pipe(livereload(liveReloadOptions)),
 ));
 
-gulp.task('build', gulp.series('clean', 'copy', 'less:prod', 'js:prod'));
+gulp.task('build', gulp.series('clean', 'copy', 'less:prod', 'js:prod', 'nuxt:less', 'nuxt:ractive:components'));
 
 gulp.task('dev', gulp.series('copy', 'less', 'js', 'nuxt:less', 'nuxt:ractive:components'));
 
