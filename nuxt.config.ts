@@ -68,7 +68,7 @@ export default defineNuxtConfig({
 			],
 			link: [
 				{ rel: 'icon', type: 'image/x-icon', href: '/icons/favicon.ico' },
-				{ rel: 'icon', type: 'image/svg+xml', href: '/icons/favicon.ico' },
+				{ rel: 'icon', type: 'image/svg+xml', href: '/icons/favicon.svg' },
 				{ rel: 'icon', type: 'image/png', href: '/icons/favicon-48x48.png', sizes: '48x48' },
 				{ rel: 'icon', type: 'image/png', href: '/icons/favicon-32x32.png', sizes: '32x32' },
 				{ rel: 'icon', type: 'image/png', href: '/icons/favicon-16x16.png', sizes: '16x16' },
@@ -81,8 +81,8 @@ export default defineNuxtConfig({
 				{ rel: 'stylesheet', href: 'https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css' },
 			],
 			script: [
-				{ src: 'https://cdn.jsdelivr.net/npm/jquery@3.6.3/dist/jquery.slim.min.js', defer: false },
-				{ src: 'https://cdn.jsdelivr.net/npm/bootstrap@3.3.7/dist/js/bootstrap.js', defer: false },
+				{ src: 'https://cdn.jsdelivr.net/npm/jquery@3.6.3/dist/jquery.slim.min.js', defer: true },
+				{ src: 'https://cdn.jsdelivr.net/npm/bootstrap@3.3.7/dist/js/bootstrap.js', defer: true },
 			],
 		},
 	},
