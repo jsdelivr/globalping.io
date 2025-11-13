@@ -11,7 +11,7 @@ const tailwindcss = require('eslint-plugin-tailwindcss');
 const jsScoped = [
 	{ ...javascript[0], ignores: [ 'app/**', '**.ts', '**.vue' ] },
 	...javascript.slice(1),
-]
+];
 
 // https://github.com/francoismassart/eslint-plugin-tailwindcss/issues/431
 module.exports = createConfigForNuxt().prepend(
