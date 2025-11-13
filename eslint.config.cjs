@@ -8,14 +8,17 @@ const typescript = require('@martin-kolarik/eslint-config/typescript.js');
 const { createConfigForNuxt } = require('@nuxt/eslint-config');
 const tailwindcss = require('eslint-plugin-tailwindcss');
 
-javascript[0].ignores = [ 'app/**', '**.ts', '**.vue' ];
+const jsScoped = [
+	{ ...javascript[0], ignores: [ 'app/**', '**.ts', '**.vue' ] },
+	...javascript.slice(1),
+]
 
 // https://github.com/francoismassart/eslint-plugin-tailwindcss/issues/431
 module.exports = createConfigForNuxt().prepend(
 	...tailwindcss.configs['flat/recommended'],
 	typescript.forFiles([ '**/*.ts', '**/*.vue' ]),
 ).append(
-	javascript,
+	jsScoped,
 	{
 		ignores: [
 			'dist/**',
