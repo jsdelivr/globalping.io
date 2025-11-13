@@ -17,13 +17,16 @@ const rollupJson = require('rollup-plugin-json');
 
 const buffer = require('vinyl-buffer');
 const source = require('vinyl-source-stream');
-
+const postcss = require('gulp-postcss');
+const prefixSelector = require('postcss-prefix-selector');
 const liveReloadOptions = { port: 35730 };
 
 const srcDir = './src';
 const distDir = './dist';
+const srcViewsDir = `${srcDir}/views`;
 const srcAssetsDir = `${srcDir}/assets`;
 const srcPublicDir = `${srcDir}/public`;
+const dstAppDir = `./app`;
 const dstAssetsDir = `${distDir}/assets`;
 const dstPublicDir = distDir;
 let cache;
@@ -61,6 +64,28 @@ const getRollupStream = file => rollupStream({
 	cache = bundle;
 });
 
+const getRollupStreamRactiveComp = file => rollupStream({
+	cache,
+	input: srcViewsDir + '/components/' + file,
+	external: [
+		'ractive',
+	],
+	plugins: [
+		rollupRactive({
+			format: 'cjs',
+			parseOptions: { interpolate: { script: true, style: true }, includeLinePositions: false, stripComments: false },
+		}),
+		rollupCommonjs({ extensions: [ '.html', '.js' ], ignore: [] }),
+		rollupJson(),
+	],
+	output: {
+		format: 'esm',
+		sourcemap: true,
+	},
+}).on('bundle', (bundle) => {
+	cache = bundle;
+});
+
 gulp.task('clean', () => {
 	return del([ dstPublicDir ]);
 });
@@ -82,6 +107,22 @@ gulp.task('less', () => {
 		.pipe(rename('app.css'))
 		.pipe(sourcemaps.write('.'))
 		.pipe(gulp.dest(`${dstAssetsDir}/css`))
+		.pipe(livereload(liveReloadOptions));
+});
+
+gulp.task('nuxt:less', () => {
+	return gulp.src([ `${srcAssetsDir}/less/reduced.less` ])
+		.pipe(plumber())
+		.pipe(sourcemaps.init())
+		.pipe(less({ relativeUrls: true, strictMath: true }))
+		.pipe(postcss([
+			prefixSelector({
+				prefix: '.ractive-component',
+			}),
+		]))
+		.pipe(rename('legacy.css'))
+		.pipe(sourcemaps.write('.'))
+		.pipe(gulp.dest(`${dstAppDir}/assets/css`))
 		.pipe(livereload(liveReloadOptions));
 });
 
@@ -132,9 +173,22 @@ gulp.task('js:prod', gulp.parallel(
 		.pipe(gulp.dest(`${dstAssetsDir}/js`)),
 ));
 
-gulp.task('build', gulp.series('clean', 'copy', 'less:prod', 'js:prod'));
+gulp.task('nuxt:ractive:components', gulp.parallel(
+	() => getRollupStreamRactiveComp('header.html')
+		.pipe(source('header.js'))
+		.pipe(buffer())
+		.pipe(gulp.dest(`${dstAppDir}/ractive`))
+		.pipe(livereload(liveReloadOptions)),
+	() => getRollupStreamRactiveComp('footer.html')
+		.pipe(source('footer.js'))
+		.pipe(buffer())
+		.pipe(gulp.dest(`${dstAppDir}/ractive`))
+		.pipe(livereload(liveReloadOptions)),
+));
 
-gulp.task('dev', gulp.series('copy', 'less', 'js'));
+gulp.task('build', gulp.series('clean', 'copy', 'less:prod', 'js:prod', 'nuxt:less', 'nuxt:ractive:components'));
+
+gulp.task('dev', gulp.series('copy', 'less', 'js', 'nuxt:less', 'nuxt:ractive:components'));
 
 gulp.task('serve', () => {
 	require('./src');

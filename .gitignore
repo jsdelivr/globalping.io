@@ -10,6 +10,8 @@ test/screenshots
 yarn.lock
 .eslintcache
 .eslintcache-html
+.output
+.nuxt
 
 # Playwright
 /test/e2e/results/
@@ -17,3 +19,6 @@ yarn.lock
 /blob-report/
 /playwright/.cache/
 /playwright/.auth/
+
+/app/ractive/*.js
+/app/assets/css/legacy.css*
