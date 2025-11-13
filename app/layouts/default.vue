@@ -9,9 +9,9 @@
 
 <script setup lang="ts">
 	import type Ractive from 'ractive';
-	import { useGlobalpingUser } from '~/composables/useGlobalpingUser';
 	import Footer from '~/ractive/footer';
 	import Header from '~/ractive/header';
+	import { useAuth } from '~/stores/auth';
 
 	const headerEl = ref<HTMLElement>();
 	const footerEl = ref<HTMLElement>();
@@ -20,45 +20,27 @@
 	const headerHtml = ref('');	// SSR
 	const footerHtml = ref('');	// SSR
 
-	const { path } = useRoute();
+	const route = useRoute();
 
 	const {
 		serverHost,
 		assetsHost,
 		apiDocsHost,
 		assetsVersion,
-		dashboardHost,
 	} = useRuntimeConfig().public;
 
-	const { data: gpUserData } = await useGlobalpingUser();
-	const user = computed(() => gpUserData.value?.data ?? null);
+	const auth = useAuth();
 
-	const signIn = () => {
-		const url = new URL(`${dashboardHost}/auth/login/github`);
+	watch(() => auth.user, () => setRactiveData());
 
-		url.searchParams.set(
-			'redirect',
-			`${serverHost}/auth/callback?redirect=${encodeURIComponent(window.location.href)}`,
-		);
-
-		navigateTo(url.toString(), { external: true });
-	};
-
-	const signOut = async () => {
-		await $fetch(`${dashboardHost}/auth/logout`, {
-			method: 'POST',
-			body: JSON.stringify({ mode: 'session' }),
-		});
-	};
-
-	const setRactiveData = () => {
+	const setRactiveData = (ssr = false) => {
 		for (const component of [ footerInstance, headerInstance ]) {
 			component.value?.set('@shared.serverHost', serverHost);
 			component.value?.set('@shared.assetsHost', assetsHost);
 			component.value?.set('@shared.apiDocsHost', apiDocsHost);
 			component.value?.set('@shared.assetsVersion', assetsVersion);
-			component.value?.set('@shared.actualPath', path);
-			component.value?.set('@shared.user', user.value);
+			component.value?.set('@shared.actualPath', route.path);
+			component.value?.set('@shared.user', ssr && !auth.user ? undefined : auth.user);
 		}
 	};
 
@@ -67,13 +49,16 @@
 		footerInstance.value = new Footer();
 		headerInstance.value = new Header();
 
-		setRactiveData();
+		headerInstance.value.set('additionalClasses', 'header-with-globalping-bg');
+		setRactiveData(true);
 
 		footerHtml.value = footerInstance.value.toHTML();
-		headerHtml.value = headerInstance.value.toHTML().replace('c-header', 'c-header header-with-globalping-bg');
+		headerHtml.value = headerInstance.value.toHTML();
 	}
 
-	onMounted(() => {
+	onMounted(async () => {
+		await auth.fetchUser();
+
 		// clear SSR'd components
 		headerInstance.value?.teardown?.();
 		footerInstance.value?.teardown?.();
@@ -82,9 +67,9 @@
 
 		footerInstance.value = new Footer({ target: footerEl.value });
 		headerInstance.value = new Header({ target: headerEl.value });
-		headerInstance.value.set('@global.app.signIn', signIn);
-		headerInstance.value.set('@global.app.signOut', signOut);
-		headerEl.value?.querySelector('.c-header')?.classList.add('header-with-globalping-bg');
+		headerInstance.value.set('@global.app.signIn', auth.signIn);
+		headerInstance.value.set('@global.app.signOut', auth.signOut);
+		headerInstance.value.set('additionalClasses', 'header-with-globalping-bg');
 
 		setRactiveData();
 	});
