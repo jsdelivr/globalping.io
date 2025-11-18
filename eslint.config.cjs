@@ -70,7 +70,7 @@ module.exports = createConfigForNuxt().prepend(
 			'{app,server}/**/*.{ts,vue}',
 		],
 		rules: {
-			'import/extensions': [ 'error', 'never' , { svg: 'always' } ],
+			'import/extensions': [ 'error', 'never', { svg: 'always' }],
 		},
 	},
 	{
