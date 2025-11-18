@@ -30,7 +30,7 @@
 	} = useRuntimeConfig().public;
 
 	if (error?.statusCode !== 404) {
-		window.location.href = '/';
+		navigateTo('/', { external: true });
 	}
 
 	// SSR
