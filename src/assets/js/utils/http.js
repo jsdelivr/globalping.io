@@ -55,7 +55,7 @@ module.exports.gpLogOut = () => {
 		withCredentials: true,
 		rawResponse: true,
 	}).then(() => {
-		document.cookie = `gp-user=;`;
+		document.cookie = 'gp-user=;';
 	});
 };
 
