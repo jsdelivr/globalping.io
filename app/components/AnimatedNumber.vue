@@ -16,7 +16,12 @@
 		}
 
 		timeout.value = setTimeout(() => {
-			displayedNumber.value = Math.min(number, displayedNumber.value + step);
+			if (displayedNumber.value > number) {
+				displayedNumber.value = Math.max(number, displayedNumber.value - step);
+			} else {
+				displayedNumber.value = Math.min(number, displayedNumber.value + step);
+			}
+
 			animateChange(step + 1);
 		}, 10);
 	};
