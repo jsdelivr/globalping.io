@@ -6,8 +6,13 @@ export const getSessionStorageData = (key: string) => {
 	}
 
 	const data = window?.sessionStorage?.getItem(key);
-	const cache = data ? JSON.parse(data) : null;
-	return cache?.data && cache?.ttl > Date.now() ? cache.data : null;
+
+	try {
+		const cache = data ? JSON.parse(data) : null;
+		return cache?.data && cache?.ttl > Date.now() ? cache.data : null;
+	} catch {
+		return null;
+	}
 };
 
 export const setSessionStorageData = <T>(data: T, key: string, ttl: number) => {
@@ -15,5 +20,7 @@ export const setSessionStorageData = <T>(data: T, key: string, ttl: number) => {
 		return;
 	}
 
-	window?.sessionStorage?.setItem(key, JSON.stringify({ data, ttl: Date.now() + ttl }));
+	try {
+		window?.sessionStorage?.setItem(key, JSON.stringify({ data, ttl: Date.now() + ttl }));
+	} catch {}
 };
