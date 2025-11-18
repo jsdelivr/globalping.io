@@ -375,7 +375,7 @@ const OLD_PATHS = [ '/cli' ];
 
 server.use((req, res, next) => {
 	if (OLD_PATHS.some(path => req.path.startsWith(`${path}/`) || req.path === path)) {
-		return res.redirect(`/new${req.path}`);
+		return res.redirect(`/new${req.url}`);
 	}
 
 	next();
