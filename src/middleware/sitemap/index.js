@@ -11,6 +11,7 @@ const { isTagCloudRegion } = require('../../assets/js/_');
 
 const serverHost = config.get('server.host');
 const viewsPath = __dirname + '/../../views';
+const nuxtPagesPath = __dirname + '/../../../app/pages';
 const usernameTagPattern = /^u-[^:]+$/;
 
 let siteMapTemplate = Handlebars.compile(fs.readFileSync(viewsPath + '/sitemap.xml', 'utf8'));
@@ -21,6 +22,8 @@ let probesPromise = updateProbesData();
 module.exports = async (ctx) => {
 	ctx.params.page = ctx.params.page.replace(/\.xml$/, '');
 	let pages = (await readDirRecursive(viewsPath + '/pages', [ '_*' ])).map(p => path.relative(viewsPath + '/pages', p).replace(/\\/g, '/').slice(0, -5));
+	let nuxtPages = (await readDirRecursive(nuxtPagesPath, [ '_*' ])).map(p => `new/${path.relative(nuxtPagesPath, p)}`.replace(/\\/g, '/').slice(0, -4));
+	pages = [ ...pages, ...nuxtPages ];
 	let response = await probesPromise;
 	let probesStartIncl = 3;
 	let probesEndExclus = Math.ceil(response.probes.length / 50000) + probesStartIncl;

@@ -44,7 +44,7 @@
 							<div class="col-sm-12">
 								<ul>
 									<li><a href="/docs/api.globalping.io" class="router-ignore">REST API</a></li>
-									<li><a href="/cli">CLI</a></li>
+									<li><a href="/new/cli">CLI</a></li>
 									<li><a href="/slack">Slack App</a></li>
 									<li><a href="/discord">Discord App</a></li>
 									<li><a href="https://github.com/globalping" target="_blank">GitHub Bot <i class="fa fa-external-link" aria-hidden="true"></i></a></li>
@@ -218,7 +218,7 @@
 
 						this.set('blogLinksData', data.slice(0, 5));
 					}
-				});
+				}).catch(() => {});
 			}
 		},
 	};

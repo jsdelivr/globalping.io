@@ -1,0 +1,25 @@
+
+@keyframes swap-primary-blue {
+    0%, 25% { background-color: var(--color-primary); }
+    75%, 100% { background-color: var(--color-blue-500); }
+}
+
+@keyframes swap-blue-primary {
+    0%, 25% { background-color: var(--color-blue-500); }
+    75%, 100% { background-color: var(--color-primary); }
+}
+
+.animate-swap-primary-blue {
+    animation: swap-primary-blue 3s ease-in-out infinite alternate;
+}
+
+.animate-swap-blue-primary {
+    animation: swap-blue-primary 3s ease-in-out infinite alternate;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .animate-swap-primary-blue,
+    .animate-swap-blue-primary {
+        animation: none;
+    }
+}

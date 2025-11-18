@@ -29,7 +29,7 @@ module.exports = createConfigForNuxt().prepend(
 	},
 	// Nuxt rules
 	{
-		files: [ 'app/*/**' ],
+		files: [ 'app/**' ],
 		rules: {
 			'import/order': [ 'error', {
 				distinctGroup: false,
@@ -70,7 +70,7 @@ module.exports = createConfigForNuxt().prepend(
 			'{app,server}/**/*.{ts,vue}',
 		],
 		rules: {
-			'import/extensions': [ 'error', 'never' ],
+			'import/extensions': [ 'error', 'never' , { svg: 'always' } ],
 		},
 	},
 	{

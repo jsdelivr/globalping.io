@@ -1,7 +1,8 @@
-export const usePageHead = (pageTitle: string, description?: string) => {
-	const fullTitle = `${pageTitle} - Globalping`;
-	const desc
-		= description
+type UsePageHeadOpts = ({ title: string } | { prefix: string }) & { description?: string };
+
+export default (opts: UsePageHeadOpts) => {
+	const fullTitle = 'title' in opts ? opts.title : `${opts.prefix} - Globalping`;
+	const desc = opts.description
 		|| 'Run free latency tests and network commands like ping, traceroute, HTTP and DNS resolve on probes located worldwide.';
 
 	useHead({

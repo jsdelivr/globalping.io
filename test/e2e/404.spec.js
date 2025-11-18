@@ -59,3 +59,8 @@ test('Nonexistent page', async ({ page }) => {
 	await test404PageContent(page);
 });
 
+test('Nonexistent nuxt page', async ({ page }) => {
+	let response = await page.goto('/new/nonexistent-page');
+	expect(response.status()).toEqual(404);
+	await test404PageContent(page);
+});

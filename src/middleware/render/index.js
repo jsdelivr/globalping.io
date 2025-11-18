@@ -15,6 +15,15 @@ module.exports = (options) => {
 	}
 
 	return async (ctx, next) => {
+		let rawUser = ctx.cookies.get('gp-user') || null;
+		let user = null;
+
+		if (rawUser) {
+			try {
+				user = JSON.parse(decodeURIComponent(rawUser));
+			} catch {}
+		}
+
 		ctx.render = async (template, data = {}) => {
 			if (!path.extname(template)) {
 				template += '.html';
@@ -32,6 +41,7 @@ module.exports = (options) => {
 			component.set('@shared.actualPath', ctx.path);
 			component.set('@shared.options', ctx.options);
 			component.set('@shared.router', ctx.router);
+			component.set('@shared.user', user);
 			let html = component.toHtml().replace('<<RACTIVE_SERIALIZED_DATA>>', () => escapeRactiveData(JSON.stringify(data)));
 
 			component.teardown();

@@ -1,7 +1,7 @@
 <!-- eslint-disable vue/no-v-html -->
 <template>
 	<div class="flex min-h-screen flex-col justify-between">
-		<div ref="headerEl" class="ractive-component" v-html="headerHtml"/>
+		<div ref="headerEl" class="ractive-component z-50" v-html="headerHtml"/>
 		<NuxtPage class="flex-1"/>
 		<div ref="footerEl" class="ractive-component" v-html="footerHtml"/>
 	</div>
@@ -30,17 +30,18 @@
 	} = useRuntimeConfig().public;
 
 	const auth = useAuth();
+	await auth.loadUser();
 
 	watch(() => auth.user, () => setRactiveData());
 
-	const setRactiveData = (ssr = false) => {
+	const setRactiveData = () => {
 		for (const component of [ footerInstance, headerInstance ]) {
 			component.value?.set('@shared.serverHost', serverHost);
 			component.value?.set('@shared.assetsHost', assetsHost);
 			component.value?.set('@shared.apiDocsHost', apiDocsHost);
 			component.value?.set('@shared.assetsVersion', assetsVersion);
 			component.value?.set('@shared.actualPath', route.path);
-			component.value?.set('@shared.user', ssr && !auth.user ? undefined : auth.user);
+			component.value?.set('@shared.user', auth.user);
 		}
 	};
 
@@ -50,15 +51,13 @@
 		headerInstance.value = new Header();
 
 		headerInstance.value.set('additionalClasses', 'header-with-globalping-bg');
-		setRactiveData(true);
+		setRactiveData();
 
 		footerHtml.value = footerInstance.value.toHTML();
 		headerHtml.value = headerInstance.value.toHTML();
 	}
 
 	onMounted(async () => {
-		await auth.fetchUser();
-
 		// clear SSR'd components
 		headerInstance.value?.teardown?.();
 		footerInstance.value?.teardown?.();

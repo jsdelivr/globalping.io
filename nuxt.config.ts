@@ -1,6 +1,8 @@
 import tailwindcss from '@tailwindcss/vite';
 import config from 'config';
 import assets from './src/lib/assets/index';
+import Aura from '@primeuix/themes/aura';
+
 const version = assets.version;
 
 const isRenderPreview = process.env.IS_PULL_REQUEST === 'true' && process.env.RENDER_EXTERNAL_URL;
@@ -90,9 +92,20 @@ export default defineNuxtConfig({
 		'~/assets/css/main.css',
 	],
 	modules: [
+		'@primevue/nuxt-module',
 		'@pinia/nuxt',
 	],
 	devtools: { enabled: true },
+	primevue: {
+		options: {
+			theme: {
+				preset: Aura,
+			},
+		},
+		components: {
+			prefix: 'pv',
+		},
+	},
 	vite: {
 		plugins: [
 			tailwindcss(),

@@ -22,3 +22,4 @@ yarn.lock
 
 /app/ractive/*.js
 /app/assets/css/legacy.css*
+/app/components.d.ts

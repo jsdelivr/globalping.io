@@ -4,7 +4,6 @@ const http = require('./utils/http');
 
 const _ = require('./_');
 const cGlobalping = require('../../views/pages/_index.html');
-const cGlobalpingCli = require('../../views/pages/cli.html');
 const cGlobalpingSlack = require('../../views/pages/slack.html');
 const cGlobalpingDiscord = require('../../views/pages/discord.html');
 const cGlobalpingNetworkTools = require('../../views/pages/network-tools.html');
@@ -73,7 +72,6 @@ app.router = new Ractive.Router({
 });
 
 app.router.addRoute('/', cGlobalping, { qs: [ 'location', 'measurement', 'display', 'map', 'by', 'order' ] });
-app.router.addRoute('/cli', cGlobalpingCli);
 app.router.addRoute('/slack', cGlobalpingSlack);
 app.router.addRoute('/discord', cGlobalpingDiscord);
 app.router.addRoute('/network-tools/:params?', cGlobalpingNetworkTools);

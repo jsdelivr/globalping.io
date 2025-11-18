@@ -22,6 +22,7 @@ const KoaRouter = require('koa-router');
 const koaElasticUtils = require('elastic-apm-utils').koa;
 const assetsVersion = require('./lib/assets').version;
 const { toNodeListener } = require('h3');
+const { resolve } = require('node:path');
 
 const serverConfig = config.get('server');
 const stripTrailingSlash = require('./middleware/strip-trailing-slash');
@@ -66,39 +67,37 @@ const initNuxt = async () => {
 /**
  * Nuxt production-only files
  */
-// if (!isDev) {
-// 	router.use(
-// 		'/new/_nuxt',
-// 		async (ctx, next) => {
-// 			ctx.path = ctx.path.replace(/^\/new\/_nuxt/, '/_nuxt');
-// 			await next();
-// 		},
-// 		koaStatic(resolve(__dirname, '../.output/public/'), {
-// 			index: false,
-// 			maxage: 31536000000,
-// 			setHeaders (res) {
-// 				res.set('Cache-Control', 'public, max-age=31536000, immutable');
-// 			},
-// 		}),
-// 	);
-// }
+if (!isDev) {
+	router.use(
+		'/new/_nuxt',
+		async (ctx, next) => {
+			ctx.path = ctx.path.replace(/^\/new\/_nuxt/, '/_nuxt');
+			await next();
+		},
+		koaStatic(resolve(__dirname, '../.output/public/'), {
+			index: false,
+			maxage: 31536000000,
+			setHeaders (res) {
+				res.set('Cache-Control', 'public, max-age=31536000, immutable');
+			},
+		}),
+	);
+}
 
 /**
  * Nuxt routes and files.
  */
-if (isDev) {
-	router.get(/^\/(new)(\/.+)?$/, async (ctx) => {
-		if (!nuxtRouteHandler) {
-			ctx.status = 404;
-			return;
-		}
+router.get(/^\/(new)(\/.+)?$/, async (ctx) => {
+	if (!nuxtRouteHandler) {
+		ctx.status = 404;
+		return;
+	}
 
-		ctx.status = 200;
-		ctx.req.ctx = ctx;
-		ctx.respond = false;
-		await nuxtRouteHandler(ctx.req, ctx.res);
-	});
-}
+	ctx.status = 200;
+	ctx.req.ctx = ctx;
+	ctx.respond = false;
+	await nuxtRouteHandler(ctx.req, ctx.res);
+});
 
 /**
  * Server config.
@@ -370,6 +369,19 @@ server.use((req, res, next) => {
 });
 
 /**
+ * Redirect to Nuxt pages
+ */
+const OLD_PATHS = [ '/cli' ];
+
+server.use((req, res, next) => {
+	if (OLD_PATHS.some(path => req.path.startsWith(`${path}/`) || req.path === path)) {
+		return res.redirect(`/new${req.path}`);
+	}
+
+	next();
+});
+
+/**
  * Forward everything else to Koa (main website).
  */
 server.use(app.callback());
@@ -407,5 +419,4 @@ process.on('unhandledRejection', (error) => {
 	}, 10000);
 });
 
-// for now, do not enable nuxt in prod
-isDev && initNuxt();
+initNuxt();
