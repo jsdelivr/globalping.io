@@ -26,7 +26,7 @@
 					How to install
 				</h2>
 				<p class="mb-6 text-xl md:px-14 md:font-semibold">
-					Install the correct repo for your OS to make sure you get the latest updated we release.
+					Install the correct repo for your OS to make sure you get the latest updates we release.
 				</p>
 				<CliInstallCommands/>
 			</div>
