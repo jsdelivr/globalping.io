@@ -33,7 +33,7 @@
 		</section>
 		<section class="max-w-section flex flex-col gap-6 max-md:px-2">
 			<h2 class="lg:px-20">
-				Globalping CLI is a must have all-in-one tool for network optimization
+				Globalping CLI is a must-have all-in-one tool for network optimization
 			</h2>
 			<p class="mb-2 text-xl md:font-semibold lg:px-20">
 				Run network commands, write scripts, automate uptime monitoring, do latency checks and make sure your anycast network continues to perform up to your standards, globally! <a class="inline-link" href="https://github.com/jsdelivr/globalping#best-practices-and-tips" target="_blank" rel="noreferrer">Learn more about the best practices.</a>
@@ -45,7 +45,7 @@
 				Globalping CLI - Quick Start
 			</h2>
 			<p class="mb-2 text-xl md:font-semibold lg:px-20">
-				The Globalping command line tool provides a simple and familiar interface that works on Linux, Mac and Windows
+				The Globalping command line tool provides a simple and familiar interface that works on Linux, Mac, and Windows
 			</p>
 			<div class="relative mb-4 max-w-full rounded-xl border bg-white p-6 shadow-xl max-md:p-0 max-md:shadow-md">
 				<pre class="bg-surface-50 max-h-96 max-w-full overflow-auto rounded-xl p-6 max-md:p-3">
