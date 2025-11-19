@@ -35,7 +35,6 @@ export default defineNuxtConfig({
 		},
 	},
 	app: {
-		baseURL: '/new',
 		head: {
 			title: 'Globalping - Internet and web infrastructure monitoring and benchmarking',
 			meta: [

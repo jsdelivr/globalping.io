@@ -22,7 +22,7 @@ let probesPromise = updateProbesData();
 module.exports = async (ctx) => {
 	ctx.params.page = ctx.params.page.replace(/\.xml$/, '');
 	let pages = (await readDirRecursive(viewsPath + '/pages', [ '_*' ])).map(p => path.relative(viewsPath + '/pages', p).replace(/\\/g, '/').slice(0, -5));
-	let nuxtPages = (await readDirRecursive(nuxtPagesPath, [ '_*' ])).map(p => `new/${path.relative(nuxtPagesPath, p)}`.replace(/\\/g, '/').slice(0, -4));
+	let nuxtPages = (await readDirRecursive(nuxtPagesPath, [ '_*' ])).map(p => path.relative(nuxtPagesPath, p).replace(/\\/g, '/').slice(0, -4));
 	pages = [ ...pages, ...nuxtPages ];
 	let response = await probesPromise;
 	let probesStartIncl = 3;

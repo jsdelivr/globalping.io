@@ -69,11 +69,7 @@ const initNuxt = async () => {
  */
 if (!isDev) {
 	router.use(
-		'/new/_nuxt',
-		async (ctx, next) => {
-			ctx.path = ctx.path.replace(/^\/new\/_nuxt/, '/_nuxt');
-			await next();
-		},
+		'/_nuxt',
 		koaStatic(resolve(__dirname, '../.output/public/'), {
 			index: false,
 			maxage: 31536000000,
@@ -87,16 +83,23 @@ if (!isDev) {
 /**
  * Nuxt routes and files.
  */
-router.get(/^\/(new)(\/.+)?$/, async (ctx) => {
-	if (!nuxtRouteHandler) {
-		ctx.status = 404;
+const NUXT_ROUTES = [ '/cli', '/_nuxt' ];
+
+router.use((ctx, next) => {
+	if (NUXT_ROUTES.some(route => ctx.req.path.startsWith(`${route}/`) || ctx.req.path === route)) {
+		if (!nuxtRouteHandler) {
+			ctx.status = 404;
+			return;
+		}
+
+		ctx.status = 200;
+		ctx.req.ctx = ctx;
+		ctx.respond = false;
+		nuxtRouteHandler(ctx.req, ctx.res);
 		return;
 	}
 
-	ctx.status = 200;
-	ctx.req.ctx = ctx;
-	ctx.respond = false;
-	await nuxtRouteHandler(ctx.req, ctx.res);
+	return next();
 });
 
 /**
@@ -363,19 +366,6 @@ server.disable('etag');
 server.use((req, res, next) => {
 	if (req.path === '/blog') {
 		return res.redirect(`${req.path}/`);
-	}
-
-	next();
-});
-
-/**
- * Redirect to Nuxt pages
- */
-const OLD_PATHS = [ '/cli' ];
-
-server.use((req, res, next) => {
-	if (OLD_PATHS.some(path => req.path.startsWith(`${path}/`) || req.path === path)) {
-		return res.redirect(`/new${req.url}`);
 	}
 
 	next();
