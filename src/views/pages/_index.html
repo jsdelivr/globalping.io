@@ -2234,7 +2234,7 @@
 				inProgressUpdates: true,
 			};
 
-			// ipVersion should be passed only if there is 1 target and it is a domain name and test type is not a DNS
+			// ipVersion should only be passed if all targets are a domain name and the test type is not 'DNS'
 			if (ipVersion && type.toLowerCase() !== 'dns') {
 				measurementOpts = {
 					...measurementOpts,
