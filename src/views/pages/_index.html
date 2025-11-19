@@ -13,6 +13,7 @@
 <link rel="ractive" href="../components/credits-message.html" name="c-gp-credits-message">
 <link rel="ractive" href="../components/credits.html" name="c-gp-credits">
 <link rel="ractive" href="../components/jumbotron.html" name="c-gp-jumbotron">
+<link rel="ractive" href="../components/test-examples.html" name="c-test-examples">
 
 <r-page
 	noYield="{{noYield}}"
@@ -758,16 +759,19 @@
 			{{else}}
 				<div class="gp_map-block_test-output with-padding">
 					<div class="gp_map-block_test-output_info">
-						<img width="56"
-							height="56"
-							src="{{@shared.assetsHost}}/img/bulb-icon.svg">
+						<div class="gp_map-block_test-output_info_text">
+							<img width="56"
+								height="56"
+								src="{{@shared.assetsHost}}/img/bulb-icon.svg">
 
-						<p>
-							Run a global latency test! Benchmark your CDN provider and understand how the network performs!
-							Compare DNS providers to find the fastest one globally or in your region.
-							Run network tests globally or from specific locations and regions.
-							Debug and troubleshoot your networking problems and share the test results with others!
-						</p>
+							<p>
+								Run a global latency test! Benchmark your CDN provider and understand how the network performs!
+								Compare DNS providers to find the fastest one globally or in your region.
+								Run network tests globally or from specific locations and regions.
+								Debug and troubleshoot your networking problems and share the test results with others!
+							</p>
+						</div>
+						<c-test-examples onExampleClick="{{@this.onExampleClick}}"></c-test-examples>
 					</div>
 				</div>
 			{{/if}}
@@ -1878,14 +1882,7 @@
 						return;
 					}
 
-					this.set('showMeasurementOpts', false);
-					this.set('inputErrors', {});
-					this.set(`${type.toLowerCase()}Opts`, this.getDefaultClientMeasOptsByTestName(type));
-					this.set('appliedMeasOpts', {});
-					this.set('notAppliedOpts', {});
-					this.set('measurementErrMsg', null);
-					this.set('modifiedMeasOptsCnt', 0);
-					this.set('infiniteSwitchEnabled', false);
+					this.resetMeasurementOptions(type);
 				}, { init: false });
 
 				// when infinite switch is enabled set limit to INFINITE_MEASUREMENT_LIMIT if limit is bigger than INFINITE_MEASUREMENT_LIMIT
@@ -3934,5 +3931,36 @@ rtt min/avg/max/mdev = ${minTiming}/${avgTiming}/${maxTiming}/${mdev}${showRttUn
 				return false;
 			});
 		},
-	};
+		resetMeasurementOptions (type) {
+			type ||= this.get('mainOptions.type');
+			this.set('showMeasurementOpts', false);
+			this.set('inputErrors', {});
+			this.set(`${type.toLowerCase()}Opts`, this.getDefaultClientMeasOptsByTestName(type));
+			this.set('appliedMeasOpts', {});
+			this.set('notAppliedOpts', {});
+			this.set('measurementErrMsg', null);
+			this.set('modifiedMeasOptsCnt', 0);
+			this.set('infiniteSwitchEnabled', false);
+		},
+		onExampleClick (options) {
+			let { extended, infinite, ...mainOptions } = options;
+
+			this.resetMeasurementOptions(mainOptions.type);
+
+			if (infinite) {
+				this.set('infiniteSwitchEnabled', true);
+				this.set('notAppliedOpts.packets', INFINITE_MEASUREMENT_PACKETS);
+			}
+
+			this.set('mainOptions', mainOptions);
+
+			if (extended) {
+				this.set(`${mainOptions.type}Opts`, extended);
+			}
+
+			this.applyOptions();
+			this.resetMapAndRunTest();
+			this.scrollMapIntoView();
+		},
+};
 </script>

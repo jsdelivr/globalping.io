@@ -1,0 +1,95 @@
+<link rel="ractive" href="./html.html" name="c-html">
+
+<div class="c-test-examples">
+	<h4>
+		Quick examples you can run instantly
+	</h4>
+	<div class="c-test-examples_container">
+		{{#each testExamples}}
+			<button class="c-test-examples_item" on-click="onExampleClick(opts)">
+				<img src="{{@shared.assetsHost}}/img/quick-examples/{{icon}}" alt=""/>
+				{{title}}
+			</button>
+		{{/each}}
+	</div>
+</div>
+
+<script>
+	component.exports = {
+		data () {
+			return {
+				testExamples: [
+					{
+						title: 'Ping from Amazon+Virginia',
+						icon: 'ping.svg',
+						opts: {
+							type: 'ping',
+							target: 'cdn.jsdelivr.net',
+							location: 'Amazon.com+US-VA',
+							limit: 10,
+							ipVersion: 4,
+						},
+					},
+					{
+						title: 'Compare bing.com to google.com from Eastern Europe',
+						icon: 'compare.svg',
+						opts: {
+							type: 'ping',
+							target: 'bing.com,google.com',
+							location: 'Eastern Europe',
+							limit: 5,
+							ipVersion: 4,
+						},
+					},
+					{
+						title: 'Infinite Ping from Berlin',
+						icon: 'infiniteping.svg',
+						opts: {
+							type: 'ping',
+							target: 'cdn.jsdelivr.net',
+							location: 'Berlin',
+							limit: 5,
+							ipVersion: 4,
+							infinite: true,
+						},
+					},
+					{
+						title: 'IPv6 HTTP GET from USA, Canada, Mexico',
+						icon: 'ipv6.svg',
+						opts: {
+							type: 'HTTP',
+							target: 'cdn.jsdelivr.net',
+							location: 'USA, Canada, Mexico',
+							limit: 10,
+							ipVersion: 6,
+						},
+					},
+					{
+						title: 'TCP Ping from California+Eyeball',
+						icon: 'tcpping.svg',
+						opts: {
+							type: 'ping',
+							target: 'cdn.jsdelivr.net',
+							location: 'California+eyeball-network',
+							limit: 10,
+							ipVersion: 4,
+							extended: {
+								protocol: 'TCP',
+							},
+						},
+					},
+					{
+						title: 'DNS Resolve from China',
+						icon: 'dns.svg',
+						opts: {
+							type: 'DNS',
+							target: 'cdn.jsdelivr.net',
+							location: 'China',
+							limit: 10,
+						},
+					},
+				],
+			};
+		},
+};
+</script>

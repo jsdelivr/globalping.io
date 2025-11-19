@@ -429,7 +429,7 @@
 					this.set('prevIpVersionDisplayed', currIpVersionDisplayed);
 				}
 			} else {
-				let ipVersionDisplayed = this.get('ipVersionDisplayed') || this.get('prevIpVersionDisplayed') || IP_V4_VALUE;
+				let ipVersionDisplayed = this.get('ipVersion') || this.get('ipVersionDisplayed') || this.get('prevIpVersionDisplayed') || IP_V4_VALUE;
 
 				this.set('ipVersion', ipVersionDisplayed);
 				this.set('ipVersionDisplayed', ipVersionDisplayed);
