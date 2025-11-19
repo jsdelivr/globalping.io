@@ -94,7 +94,6 @@ const rollupBabelRenamePlugin = (rules) => {
 
 			return {
 				code: result.code,
-				map: result.map,
 			};
 		},
 	};
