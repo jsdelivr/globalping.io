@@ -16,6 +16,13 @@ const jsScoped = [
 // https://github.com/francoismassart/eslint-plugin-tailwindcss/issues/431
 module.exports = createConfigForNuxt().prepend(
 	...tailwindcss.configs['flat/recommended'],
+	{
+		settings: {
+			tailwindcss: {
+				config: false,
+			},
+		},
+	},
 	typescript.forFiles([ '**/*.ts', '**/*.vue' ]),
 ).append(
 	jsScoped,
