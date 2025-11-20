@@ -21,9 +21,6 @@ const postcss = require('gulp-postcss');
 const prefixSelector = require('postcss-prefix-selector');
 const liveReloadOptions = { port: 35730 };
 
-const babel = require('@babel/core');
-const traverse = require('@babel/traverse').default;
-
 const srcDir = './src';
 const distDir = './dist';
 const srcViewsDir = `${srcDir}/views`;
@@ -67,40 +64,7 @@ const getRollupStream = file => rollupStream({
 	cache = bundle;
 });
 
-// construct an AST of the js file, traverse it, and rename all variables from rules
-const rollupBabelRenamePlugin = (rules) => {
-	return {
-		name: 'babel-rename-variables',
-		renderChunk (code) {
-			let ast = babel.parse(code);
-
-			traverse(ast, {
-				Program (path) {
-					// rename all variables from rules
-					Object.entries(rules).forEach(([ oldName, newName ]) => {
-						// https://github.com/jamiebuilds/babel-handbook/blob/master/translations/en/plugin-handbook.md#bindings
-						let binding = path.scope.getBinding(oldName);
-
-						if (binding) {
-							binding.path.scope.rename(oldName, newName);
-						}
-					});
-				},
-			});
-
-			let result = babel.transformFromAstSync(ast, code, {
-				sourceType: 'module',
-			});
-
-			return {
-				code: result.code,
-			};
-		},
-	};
-};
-
 const getRollupStreamRactiveComp = file => rollupStream({
-	cache,
 	input: srcViewsDir + file,
 	external: [ 'ractive' ],
 	plugins: [
@@ -110,16 +74,12 @@ const getRollupStreamRactiveComp = file => rollupStream({
 		}),
 		rollupCommonjs({ extensions: [ '.html', '.js' ], ignore: [] }),
 		rollupJson(),
-		// avoid conflict with node:process
-		rollupBabelRenamePlugin({
-			process: 'processrc',
-		}),
 	],
 	output: {
 		format: 'esm',
 		sourcemap: true,
 	},
-}).on('bundle', (bundle) => { cache = bundle; });
+});
 
 gulp.task('clean', () => {
 	return del([ dstPublicDir ]);
