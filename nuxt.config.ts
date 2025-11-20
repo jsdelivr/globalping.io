@@ -114,6 +114,26 @@ export default defineNuxtConfig({
 		plugins: [
 			tailwindcss(),
 		],
+		build: {
+			rollupOptions: {
+				external: [ 'ractive' ],
+			},
+		},
+	},
+	hooks: {
+		'vite:extendConfig': (config, { isClient }) => {
+			if (isClient) {
+				config.build = config.build || {};
+				config.build.rollupOptions = config.build.rollupOptions || {};
+
+				config.build.rollupOptions.output = {
+					...config.build.rollupOptions.output || {},
+					paths: {
+						ractive: 'https://cdn.jsdelivr.net/npm/ractive@1.4.0/runtime.min.mjs',
+					},
+				};
+			}
+		},
 	},
 	nitro: {
 		externals: {
