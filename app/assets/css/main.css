@@ -2,7 +2,6 @@
 @import "./fonts.css";
 @import "./legacy.css";
 @import "./animations.css";
-@import "./primevue.css";
 
 @layer base {
 	html {

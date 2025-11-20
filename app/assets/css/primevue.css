@@ -1,9 +1,0 @@
-/* Tooltip */
-.p-tooltip {
-    --p-tooltip-background: var(--color-dark-700);
-    --p-tooltip-padding: 0.375rem 0.5rem;
-}
-
-.p-tooltip-text {
-    @apply text-xs font-medium;
-}

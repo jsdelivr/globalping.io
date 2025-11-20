@@ -8,7 +8,6 @@
 		"@babel/preset-env": "^7.27.2",
 		"@elastic/elasticsearch": "^8.18.2",
 		"@pinia/nuxt": "^0.11.2",
-		"@primeuix/themes": "^1.2.5",
 		"@tailwindcss/vite": "^4.1.17",
 		"algoliasearch": "^4.25.2",
 		"bluebird": "^3.7.2",

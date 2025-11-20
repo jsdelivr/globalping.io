@@ -1,7 +1,6 @@
 import tailwindcss from '@tailwindcss/vite';
 import config from 'config';
 import assets from './src/lib/assets/index';
-import Aura from '@primeuix/themes/aura';
 
 const version = assets.version;
 
@@ -97,12 +96,18 @@ export default defineNuxtConfig({
 	devtools: { enabled: true },
 	primevue: {
 		options: {
-			theme: {
-				preset: Aura,
-			},
+			unstyled: true,
 		},
+		importPT: { as: 'Aura', from: '~/presets/aura' },
 		components: {
 			prefix: 'pv',
+			include: [], // <- add primevue components to be bundled here (the same applies below)
+		},
+		directives: {
+			include: [ 'Tooltip' ],
+		},
+		composables: {
+			include: [],
 		},
 	},
 	vite: {
