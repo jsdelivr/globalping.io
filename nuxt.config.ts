@@ -115,4 +115,9 @@ export default defineNuxtConfig({
 			tailwindcss(),
 		],
 	},
+	nitro: {
+		externals: {
+			trace: false,
+		},
+	},
 });
