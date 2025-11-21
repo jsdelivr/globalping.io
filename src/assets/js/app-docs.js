@@ -10,6 +10,8 @@ let app = {
 	config: {},
 };
 
+window.app = app; // <- necessary when loading inside a module script
+
 app.router = new Ractive.Router({
 	el: '#page',
 	data () {

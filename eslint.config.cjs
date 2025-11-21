@@ -138,6 +138,12 @@ module.exports = createConfigForNuxt().prepend(
 		},
 	},
 	{
+		files: [ 'src/views/r-page.html', 'src/views/r-docs.html' ],
+		languageOptions: {
+			sourceType: 'module',
+		},
+	},
+	{
 		files: [
 			'src/assets/**',
 			'src/public/**',
