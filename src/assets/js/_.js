@@ -656,4 +656,21 @@ module.exports = {
 	isTagCloudRegion (tag) {
 		return /^(gcp|aws|azure|oci)-\S+/.test(tag);
 	},
+
+	injectGlobalStyle (href) {
+		if (!document) {
+			return;
+		}
+
+		for (let link of document.getElementsByTagName('link')) {
+			if (link.href === href) {
+				return;
+			}
+		}
+
+		let link = document.createElement('link');
+		link.rel = 'stylesheet';
+		link.href = href;
+		document.head.appendChild(link);
+	},
 };
