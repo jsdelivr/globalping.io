@@ -189,7 +189,7 @@
 				</div>
 			{{elseif testResults}}
 				<div class="p-globalping-networks_network-tests_results">
-					<pre data-testid="networks-test-output">{{testResults[0].result.rawOutput}}</pre>
+					<pre data-testid="networks-test-output"><em>{{measurementLocationText}}</em>{{testResults[0].result.rawOutput}}</pre>
 				</div>
 			{{else}}
 				<div class="p-globalping-networks_network-tests_descr">
@@ -295,6 +295,17 @@
 			shouldDisplayLogoDevLink () {
 				let otherNetworks = this.get('otherNetworks');
 				return this.get('networkDomainName') || (otherNetworks && otherNetworks.filter(n => n.networkDomainName).length);
+			},
+			measurementLocationText () {
+				let testResults = this.get('testResults');
+
+				if (!testResults || !testResults.length) {
+					return '';
+				}
+
+				let probe = testResults[0].probe;
+
+				return `> ${probe.city}${probe.state ? ` (${probe.state})` : ''}, ${probe.country}, ${probe.continent}, ${probe.network} (AS${probe.asn})\n`;
 			},
 		},
 		onconfig () {
