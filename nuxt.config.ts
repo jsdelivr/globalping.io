@@ -129,7 +129,7 @@ export default defineNuxtConfig({
 				config.build.rollupOptions.output = {
 					...config.build.rollupOptions.output || {},
 					paths: {
-						ractive: 'https://cdn.jsdelivr.net/npm/ractive@1.4.0/runtime.min.mjs',
+						ractive: 'https://cdn.jsdelivr.net/npm/ractive@1.4.4/runtime.min.mjs',
 					},
 				};
 			}

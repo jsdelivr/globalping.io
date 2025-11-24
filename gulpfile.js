@@ -59,7 +59,7 @@ const getRollupStream = file => rollupStream({
 			algoliasearch: 'algoliasearch',
 		},
 		paths: {
-			ractive: 'https://cdn.jsdelivr.net/npm/ractive@1.4.0/runtime.min.mjs',
+			ractive: 'https://cdn.jsdelivr.net/npm/ractive@1.4.4/runtime.min.mjs',
 		},
 	},
 }).on('bundle', (bundle) => {
