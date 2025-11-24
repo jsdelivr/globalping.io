@@ -86,7 +86,7 @@ const initApp = () => {
 		ractive.set('@shared.escape', escape);
 
 		function escape (string) {
-			string
+			return string
 				.replace(/</g, '\\u003c')
 				.replace(/>/g, '\\u003e')
 				.replace(/\u2028/g, '\\u2028')
