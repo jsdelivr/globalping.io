@@ -24,12 +24,15 @@
 		display: flex;
 		justify-content: end;
 		margin: -24px 0 0;
-		color: #79849a;
-		font-size: 12px;
-		line-height: 16px;
 
-		&:hover {
-			color: inherit;
+		a {
+			color: #79849a;
+			font-size: 12px;
+			line-height: 16px;
+
+			&:hover {
+				color: inherit;
+			}
 		}
 	}
 
@@ -314,7 +317,7 @@
 		}
 
 		&_results {
-			>pre {
+			> pre {
 				margin: 0;
 				padding: 16px;
 				border: 1px solid #e7e7ee;
@@ -326,6 +329,11 @@
 				line-height: 24px;
 				letter-spacing: 0;
 				color: #17233a;
+
+				em {
+					font-style: normal;
+					color: #6e7377;
+				}
 			}
 		}
 
