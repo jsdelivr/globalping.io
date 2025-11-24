@@ -658,7 +658,7 @@ module.exports = {
 	},
 
 	injectGlobalStyle (href) {
-		if (!document) {
+		if (typeof document === 'undefined') {
 			return;
 		}
 

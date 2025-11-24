@@ -53,11 +53,13 @@ const getRollupStream = file => rollupStream({
 	],
 	output: {
 		name: 'app',
-		format: 'umd',
+		format: 'esm',
 		sourcemap: true,
 		globals: {
 			algoliasearch: 'algoliasearch',
-			ractive: 'Ractive',
+		},
+		paths: {
+			ractive: 'https://cdn.jsdelivr.net/npm/ractive@1.4.0/runtime.min.mjs',
 		},
 	},
 }).on('bundle', (bundle) => {
