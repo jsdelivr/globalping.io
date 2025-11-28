@@ -3,7 +3,9 @@
 		<section class="from-bluegray-50 to-bluegray-0 relative flex w-full flex-col items-center overflow-hidden bg-linear-to-tr from-50%">
 			<div class="z-10 flex max-w-[820px] flex-col gap-7 px-8 pt-26 pb-32 max-md:py-12">
 				<h1>
-					Run network commands on a <span class="text-primary-500">global network of <span class="inline-block min-w-[5ch] text-end"><AnimatedNumber :number="roundedProbeCount"/>+</span> probes</span> to test, debug and benchmark your infrastructure, routing and web services.
+					Run network commands on a <span class="text-primary-500">global network of
+						<span class="inline-block min-w-[5ch] text-end"><AnimatedNumber :number="roundedProbeCount"/>+</span> probes</span>
+					to test, debug and benchmark your infrastructure, routing and web services.
 				</h1>
 				<p class="text-xl font-semibold">
 					All in your command line, simple to use and fully scriptable.
@@ -36,7 +38,8 @@
 				Globalping CLI is a must-have all-in-one tool for network optimization
 			</h2>
 			<p class="mb-2 text-xl md:font-semibold lg:px-20">
-				Run network commands, write scripts, automate uptime monitoring, do latency checks and make sure your anycast network continues to perform up to your standards, globally! <a class="inline-link" href="https://github.com/jsdelivr/globalping#best-practices-and-tips" target="_blank" rel="noreferrer">Learn more about the best practices.</a>
+				Run network commands, write scripts, automate uptime monitoring, do latency checks and make sure your anycast network continues to perform up to your standards, globally!
+				<a class="inline-link" href="https://github.com/jsdelivr/globalping#best-practices-and-tips" target="_blank" rel="noreferrer">Learn more about the best practices.</a>
 			</p>
 			<CliCommandExamples/>
 		</section>
@@ -95,6 +98,6 @@ Use "globalping [command] --help" for more information about a command.</pre>
 
 <style scoped>
 	.max-w-section {
-	  max-width: min(90vw, 1016px);
+		max-width: min(90vw, 1016px);
 	}
 </style>

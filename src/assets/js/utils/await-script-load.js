@@ -10,10 +10,7 @@ const awaitScriptLoad = (initApp) => {
 			}
 
 			plugin.addEventListener('load', () => resolve(plugin), { once: true });
-
-			plugin.addEventListener('error', () => {
-				resolve(plugin);
-			}, { once: true });
+			plugin.addEventListener('error', () => resolve(plugin), { once: true });
 		});
 	});
 
