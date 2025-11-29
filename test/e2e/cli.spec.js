@@ -5,6 +5,9 @@ test('CLI page', async ({ page }) => {
 	let response = await page.goto('/cli');
 	expect(response.ok()).toBeTruthy();
 
+	// wait until hydration is finished (otherwise reading clipboard fails regardless of test composition)
+	await page.waitForLoadState('networkidle');
+
 	await expect(page.getByText('Run network commands on a global network')).toBeVisible();
 
 	// how to install commands
@@ -24,7 +27,13 @@ test('CLI page', async ({ page }) => {
 	let copyBtn = page.getByTestId('copy-btn');
 	await expect(copyBtn).toBeVisible();
 
-	// TODO: test that the command is copied to clipboard (seems to be broken with playwright + Nuxt?)
+	await page.context().grantPermissions([ 'clipboard-read', 'clipboard-write' ]);
+
+	await copyBtn.click();
+
+	let clipboardText = await page.evaluate(() => navigator.clipboard.readText());
+	let innerCmdText = (await cmd.innerText()).trim();
+	await expect(clipboardText).toEqual(innerCmdText);
 
 	// quick start section
 	await expect(page.getByTestId('cli-quick-start-ping')).toBeVisible();
