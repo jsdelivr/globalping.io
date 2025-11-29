@@ -10,6 +10,10 @@
 		background-color: var(--color-surface-0);
 	}
 
+	.ractive-component * {
+		transition: none;
+	}
+
 	::-webkit-scrollbar {
 		width: 8px;
 	}
