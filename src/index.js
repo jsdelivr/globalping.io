@@ -59,7 +59,7 @@ const initNuxt = async () => {
 	}
 
 	// in prod, use the built route
-	let { i: useNitroApp } = await import('../.output/server/chunks/nitro/nitro.mjs');
+	let { i: useNitroApp } = await import('../.output/server/chunks/nitro.mjs');
 	let nitroApp = useNitroApp();
 	nuxtRouteHandler = toNodeListener(nitroApp.h3App);
 };

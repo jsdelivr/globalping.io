@@ -139,5 +139,10 @@ export default defineNuxtConfig({
 		externals: {
 			trace: false,
 		},
+		rollupConfig: {
+			output: {
+				chunkFileNames: 'chunks/[name].mjs',
+			},
+		},
 	},
 });
