@@ -78,50 +78,11 @@
 		}
 	}
 
-	&.cli {
-		height: 528px;
-		background: #f3f5f7;
-
-		@media (min-width: @screen-sm-min) {
-			height: 652px;
-		}
-
-		.jumbotron_grid {
-			position: absolute;
-			top: 45px;
-			left: 50%;
-			transform: translateX(-50%);
-
-			@media (min-width: @screen-sm-min) {
-				top: 60px;
-			}
-		}
-
-		.jumbotron_blur {
-			top: 232px;
-			height: 296px;
-
-			@media (min-width: @screen-sm-min) {
-				top: 356px;
-			}
-
-			&_circle-one {
-				height: 500px;
-				top: 13%;
-				left: -30%;
-			}
-
-			&_circle-two {
-				height: 522px;
-				top: -22%;
-				left: -1.5%;
-			}
-		}
-	}
-
 	&.integration {
 		height: 512px;
-		background: #f3f5f7;
+		background-image: linear-gradient(to top right, #f7f8f9 50%, #fff);
+		padding-top: 0;
+		overflow: hidden;
 
 		@media (min-width: @screen-sm-min) {
 			height: 616px;
@@ -129,12 +90,15 @@
 
 		.jumbotron_grid {
 			position: absolute;
-			top: 45px;
-			left: 50%;
-			transform: translateX(-50%);
+			margin-inline: auto;
+			height: 100%;
+			object-fit: cover;
+			top: 0;
+			bottom: auto;
 
 			@media (min-width: @screen-sm-min) {
-				top: 60px;
+				min-height: 652px;
+				bottom: 0;
 			}
 		}
 
