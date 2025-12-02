@@ -11,6 +11,7 @@ export const getSessionStorageData = (key: string) => {
 		const cache = data ? JSON.parse(data) : null;
 		return cache?.data && cache?.ttl > Date.now() ? cache.data : null;
 	} catch {
+		clearSessionStorageData(key);
 		return null;
 	}
 };
