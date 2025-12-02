@@ -1,5 +1,5 @@
 const _ = require('../_');
-const { withCookieCache } = require('./cookie-cache');
+const { getCache } = require('./data-cache');
 const API_HOST = 'https://api.globalping.io';
 const DASH_HOST = 'https://dash-directus.globalping.io';
 
@@ -37,8 +37,9 @@ module.exports.getGlobalpingUser = () => {
 	// Note: The authentication won't work out of the box on localhost because the cookie is set with SameSite=Strict
 	// If you need to test the page as an authenticated user (and don't want to set up a local dash and API),
 	// just set the production cookie "dash_session_token" (.globalping.io) to SameSite=None via devtools.
-	return withCookieCache(
+	return getCache(
 		'gp-user',
+		1000 * 60 * 60 * 24,
 		() => _.makeHTTPRequest({ url: `${DASH_HOST}/users/me`, withCredentials: true }).then(body => body.data).catch(() => null),
 	);
 };
@@ -55,7 +56,7 @@ module.exports.gpLogOut = () => {
 		withCredentials: true,
 		rawResponse: true,
 	}).then(() => {
-		document.cookie = 'gp-user=;';
+		window.sessionStorage.removeItem('gp-user');
 	});
 };
 

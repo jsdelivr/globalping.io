@@ -24,3 +24,13 @@ export const setSessionStorageData = <T>(data: T, key: string, ttl: number) => {
 		window?.sessionStorage?.setItem(key, JSON.stringify({ data, ttl: Date.now() + ttl }));
 	} catch {}
 };
+
+export const clearSessionStorageData = (key: string) => {
+	if (!isClient()) {
+		return;
+	}
+
+	try {
+		window?.sessionStorage?.removeItem(key);
+	} catch {}
+};

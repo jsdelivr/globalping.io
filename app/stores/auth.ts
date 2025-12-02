@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia';
+import { clearSessionStorageData, getSessionStorageData, setSessionStorageData } from '~/utils/session-storage';
 
-const COOKIE_NAME = 'gp-user';
+const STORAGE_KEY = 'gp-user';
 
 export const useAuth = defineStore('auth', {
 	state: () => ({
@@ -8,11 +9,10 @@ export const useAuth = defineStore('auth', {
 	}),
 	actions: {
 		async loadUser () {
-			const userCookie = useCookie(COOKIE_NAME, { path: '/' });
+			const userDetails = getSessionStorageData(STORAGE_KEY);
 
-			if (userCookie.value) {
-				// useCookie deserializes the value automatically.. but this property is missing in ts
-				this.user = userCookie.value as unknown as User;
+			if (userDetails) {
+				this.user = userDetails as User;
 			}
 
 			// revalidate
@@ -31,7 +31,7 @@ export const useAuth = defineStore('auth', {
 				// 401
 				this.user = null;
 			} finally {
-				this.writeCookie();
+				this.setSessionData();
 			}
 		},
 		async signIn () {
@@ -44,7 +44,7 @@ export const useAuth = defineStore('auth', {
 			);
 
 			navigateTo(url.toString(), { external: true });
-			this.writeCookie();
+			this.setSessionData();
 		},
 		async signOut () {
 			const { dashboardHost } = useRuntimeConfig().public;
@@ -57,19 +57,17 @@ export const useAuth = defineStore('auth', {
 				});
 
 				this.user = null;
-				this.writeCookie(true);
+				this.setSessionData(true);
 			} catch {}
 		},
-		writeCookie (clear = false) {
-			const userCookie = useCookie(COOKIE_NAME);
-
+		setSessionData (clear = false) {
 			if (clear || !this.user) {
-				userCookie.value = undefined;
+				clearSessionStorageData(STORAGE_KEY);
 				return;
 			}
 
 			if (this.user) {
-				userCookie.value = JSON.stringify(this.user);
+				setSessionStorageData(this.user, STORAGE_KEY, 1000 * 60 * 60 * 24);
 			}
 		},
 	},

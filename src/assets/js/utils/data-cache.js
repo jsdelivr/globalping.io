@@ -14,7 +14,7 @@ module.exports.getCache = (key, ttl, getDefaultValue) => {
 		value = JSON.parse(sessionStorage.getItem(key) || '{}');
 	} catch {}
 
-	if (value && value.ttl && value.ttl > Date.now()) {
+	if (value && value.data && value.ttl && value.ttl > Date.now()) {
 		return Promise.resolve(value.data);
 	}
 
