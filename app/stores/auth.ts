@@ -44,7 +44,6 @@ export const useAuth = defineStore('auth', {
 			);
 
 			navigateTo(url.toString(), { external: true });
-			this.setSessionData();
 		},
 		async signOut () {
 			const { dashboardHost } = useRuntimeConfig().public;
