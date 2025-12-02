@@ -28,7 +28,7 @@ export const useAuth = defineStore('auth', {
 				const res = await $fetch<{ data: User }>(`${dashboardHost}/users/me`, { credentials: 'include' });
 				this.user = res?.data ?? null;
 			} catch {
-				// 401
+				// typically 401
 				this.user = null;
 			} finally {
 				this.setSessionData();
