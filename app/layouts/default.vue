@@ -34,14 +34,14 @@
 
 	watch(() => auth.user, () => setRactiveData());
 
-	const setRactiveData = () => {
+	const setRactiveData = (isSsr = false) => {
 		for (const component of [ footerInstance, headerInstance ]) {
 			component.value?.set('@shared.serverHost', serverHost);
 			component.value?.set('@shared.assetsHost', assetsHost);
 			component.value?.set('@shared.apiDocsHost', apiDocsHost);
 			component.value?.set('@shared.assetsVersion', assetsVersion);
 			component.value?.set('@shared.actualPath', route.path);
-			component.value?.set('@shared.user', auth.user);
+			component.value?.set('@shared.user', isSsr && !auth.user ? undefined : auth.user);
 		}
 	};
 
@@ -51,7 +51,7 @@
 		headerInstance.value = new Header();
 
 		headerInstance.value.set('additionalClasses', 'header-with-globalping-bg');
-		setRactiveData();
+		setRactiveData(true);
 
 		footerHtml.value = footerInstance.value.toHTML();
 		headerHtml.value = headerInstance.value.toHTML();
