@@ -65,9 +65,7 @@ export const useAuth = defineStore('auth', {
 				return;
 			}
 
-			if (this.user) {
-				setSessionStorageData(this.user, STORAGE_KEY, 1000 * 60 * 60 * 24);
-			}
+			setSessionStorageData(this.user, STORAGE_KEY, 1000 * 60 * 60 * 24);
 		},
 	},
 });
