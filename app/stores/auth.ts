@@ -1,3 +1,4 @@
+import type { FetchError } from 'ofetch';
 import { defineStore } from 'pinia';
 import { clearSessionStorageData, getSessionStorageData, setSessionStorageData } from '~/utils/session-storage';
 
@@ -27,9 +28,10 @@ export const useAuth = defineStore('auth', {
 				const { dashboardHost } = useRuntimeConfig().public;
 				const res = await $fetch<{ data: User }>(`${dashboardHost}/users/me`, { credentials: 'include' });
 				this.user = res?.data ?? null;
-			} catch {
-				// typically 401
-				this.user = null;
+			} catch (error) {
+				if ((error as FetchError).statusCode === 401) {
+					this.user = null;
+				}
 			} finally {
 				this.setSessionData();
 			}
