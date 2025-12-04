@@ -50,7 +50,7 @@ module.exports = async (handler, ctx) => {
 						});
 					}
 
-					return this;
+					return resProxy;
 				};
 			}
 
