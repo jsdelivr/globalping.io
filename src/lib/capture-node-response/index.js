@@ -74,6 +74,12 @@ module.exports = async (handler, ctx) => {
 
 			if (property === 'end') {
 				return function (chunk, encoding, callback) {
+					if (typeof chunk === 'function') {
+						callback = chunk;
+						chunk = null;
+						encoding = null;
+					}
+
 					if (typeof encoding === 'function') {
 						callback = encoding;
 						encoding = null;
@@ -91,6 +97,7 @@ module.exports = async (handler, ctx) => {
 
 					callback?.();
 					requestFinished();
+					return resProxy;
 				};
 			}
 
