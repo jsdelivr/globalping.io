@@ -85,7 +85,7 @@ if (!isDev) {
  */
 const NUXT_ROUTES = [ '/cli', '/_nuxt' ];
 
-router.use((ctx, next) => {
+router.use(async (ctx, next) => {
 	if (NUXT_ROUTES.some(route => ctx.req.path.startsWith(`${route}/`) || ctx.req.path === route)) {
 		if (!nuxtRouteHandler) {
 			ctx.status = 404;
@@ -94,9 +94,134 @@ router.use((ctx, next) => {
 
 		ctx.status = 200;
 		ctx.req.ctx = ctx;
-		ctx.respond = false;
-		nuxtRouteHandler(ctx.req, ctx.res);
-		return;
+
+		if (isDev) {
+			nuxtRouteHandler(ctx.req, ctx.res);
+			ctx.respond = false;
+			return;
+		}
+
+		// let nuxt process the request, save res body, headers, and status code via a proxy and pass the request to the remaining koa middleware
+		let resolveNuxtPromise;
+		let nuxtPromise = new Promise((resolve) => {
+			resolveNuxtPromise = resolve;
+		});
+
+		let bodyChunks = [];
+		let bodyBuffer = Buffer.alloc(0);
+		let headers = {};
+		let capturedStatusCode = 200;
+
+		let resProxy = new Proxy(ctx.res, {
+			get (target, property, receiver) {
+				// do not send anything to the client
+				if ([ 'writeContinue', 'writeEarlyHints', 'flushHeaders' ].includes(property)) {
+					return () => null;
+				}
+
+				if (property === 'setHeader') {
+					return function (name, value) {
+						headers[name.toLowerCase()] = value;
+					};
+				}
+
+				if (property === 'getHeader') {
+					return function (name) {
+						return headers[name.toLowerCase()];
+					};
+				}
+
+				if (property === 'removeHeader') {
+					return function (name) {
+						delete headers[name.toLowerCase()];
+					};
+				}
+
+				if (property === 'writeHead') {
+					return function (statusCode, statusMessage, newHeaders) {
+						capturedStatusCode = statusCode;
+
+						if (typeof statusMessage === 'object' && statusMessage !== null) {
+							newHeaders = statusMessage;
+							statusMessage = null;
+						}
+
+						if (newHeaders) {
+							Object.entries(newHeaders).forEach(([ key, value ]) => {
+								headers[key.toLowerCase()] = value;
+							});
+						}
+
+						return this;
+					};
+				}
+
+				if (property === 'write') {
+					return function (chunk, encoding, callback) {
+						if (typeof encoding === 'function') {
+							callback = encoding;
+							encoding = null;
+						}
+
+						if (typeof chunk === 'string') {
+							chunk = Buffer.from(chunk, encoding ?? 'utf8');
+						}
+
+						bodyChunks.push(chunk);
+						callback?.();
+
+						return true;
+					};
+				}
+
+				if (property === 'end') {
+					return function (chunk, encoding, callback) {
+						if (typeof encoding === 'function') {
+							callback = encoding;
+							encoding = null;
+						}
+
+						if (chunk) {
+							if (typeof chunk === 'string') {
+								chunk = Buffer.from(chunk, encoding || 'utf8');
+							}
+
+							bodyChunks.push(chunk);
+						}
+
+						bodyBuffer = Buffer.concat(bodyChunks);
+
+						callback?.();
+						resolveNuxtPromise();
+					};
+				}
+
+				return Reflect.get(target, property, receiver);
+			},
+
+			set (target, property, value, receiver) {
+				if (property === 'statusCode') {
+					capturedStatusCode = value;
+					return true;
+				}
+
+				return Reflect.set(target, property, value, receiver);
+			},
+		});
+
+		// pass req to nuxt
+		nuxtRouteHandler(ctx.req, resProxy);
+		await nuxtPromise;
+
+		// apply captured nuxt data
+		ctx.status = capturedStatusCode;
+		ctx.set(headers);
+		ctx.body = bodyBuffer;
+
+		// properties for the remaining middleware
+		ctx.res.processed = true;
+		ctx.res.allowCaching = true;
+		ctx.maxAge = 5 * 60;
 	}
 
 	return next();
@@ -310,6 +435,11 @@ router.use(globalpingRouter.routes(), globalpingRouter.allowedMethods());
 koaElasticUtils.addRoutes(router, [
 	[ '/(.*)', '/(.*)' ],
 ], async (ctx) => {
+	if (ctx.res.processed) {
+		delete ctx.res.processed;
+		return;
+	}
+
 	let path = ctx.path.startsWith('/_') ? '/_404' : ctx.path;
 	let root = '';
 	let data = {
