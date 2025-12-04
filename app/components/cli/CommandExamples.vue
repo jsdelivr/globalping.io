@@ -1,6 +1,6 @@
 <template>
-	<div class="flex flex-col gap-4 rounded-xl border p-6 shadow-xl max-md:p-4 max-md:shadow-md">
-		<div class="flex flex-nowrap justify-evenly gap-1 overflow-x-auto rounded-xl max-lg:flex-col max-lg:overflow-visible">
+	<div class="isolate flex transform-gpu flex-col gap-4 overflow-hidden rounded-xl border p-6 shadow-xl max-md:p-0 max-md:shadow-md">
+		<div class="flex flex-nowrap justify-evenly gap-1 overflow-x-auto rounded-xl max-lg:flex-col max-lg:overflow-visible max-md:p-4">
 			<button
 				v-for="command in COMMAND_EXAMPLES"
 				:key="command.key"
@@ -14,7 +14,7 @@
 				{{command.title}}
 			</button>
 		</div>
-		<pre ref="outputContainer" class="bg-surface-50 h-[25rem] overflow-auto rounded-xl p-4" data-testid="cli-quick-start-content">{{selectedCommand.output}}</pre>
+		<pre ref="outputContainer" class="bg-surface-50 h-[25rem] overflow-auto p-4 max-md:border-t md:rounded-xl" data-testid="cli-quick-start-content">{{selectedCommand.output}}</pre>
 	</div>
 </template>
 

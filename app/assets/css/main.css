@@ -1,7 +1,6 @@
 @import "tailwindcss";
 @import "./fonts.css";
 @import "./legacy.css";
-@import "./animations.css";
 
 @layer base {
 	html {
@@ -67,11 +66,11 @@
 	}
 
 	h1 {
-		@apply text-[2.5rem] max-md:text-[2rem] font-semibold leading-[3.75rem] max-md:leading-[2.5rem];
+		@apply text-[2.5rem] max-md:text-[1.62rem] font-semibold leading-[3.75rem] max-md:leading-[2.25rem];
 	}
 
 	h2 {
-		@apply text-[2rem] max-md:text-[1.75rem] font-semibold leading-12 max-md:leading-8;
+		@apply text-[2rem] max-md:text-[1.5rem] font-semibold leading-12 max-md:leading-8;
 	}
 
 	h3 {
