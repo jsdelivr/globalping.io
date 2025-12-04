@@ -5,6 +5,7 @@ require('./lib/startup');
 
 const _ = require('lodash');
 const config = require('config');
+const { resolve } = require('node:path');
 const signalExit = require('signal-exit');
 const isSafePath = require('is-safe-path');
 const express = require('express');
@@ -22,7 +23,6 @@ const KoaRouter = require('koa-router');
 const koaElasticUtils = require('elastic-apm-utils').koa;
 const assetsVersion = require('./lib/assets').version;
 const captureNodeResponse = require('./lib/nuxt/captureNodeResponse');
-const { resolve } = require('node:path');
 const initializeNuxt = require('./lib/nuxt/initialize');
 
 const serverConfig = config.get('server');
