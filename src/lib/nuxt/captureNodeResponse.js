@@ -114,8 +114,21 @@ module.exports = async (handler, ctx) => {
 		},
 	});
 
+	let onFailure = (err) => {
+		console.error(err);
+		capturedStatusCode = 500;
+		bodyChunks.length = 0;
+		bodyChunks.push(Buffer.from('Internal Server Error'));
+		requestFinished();
+	};
+
 	// pass req to the handler
-	handler(ctx.req, resProxy);
+	try {
+		handler(ctx.req, resProxy)?.catch(onFailure);
+	} catch (err) {
+		onFailure(err);
+	}
+
 	await processingPromise;
 
 	// apply captured handler data
