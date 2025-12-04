@@ -21,9 +21,9 @@ const koaETag = require('koa-etag');
 const KoaRouter = require('koa-router');
 const koaElasticUtils = require('elastic-apm-utils').koa;
 const assetsVersion = require('./lib/assets').version;
-const captureNodeResponse = require('./lib/capture-node-response');
+const captureNodeResponse = require('./lib/nuxt/captureNodeResponse');
 const { resolve } = require('node:path');
-const initializeNuxt = require('./lib/initialize-nuxt');
+const initializeNuxt = require('./lib/nuxt/initialize');
 
 const serverConfig = config.get('server');
 const stripTrailingSlash = require('./middleware/strip-trailing-slash');
