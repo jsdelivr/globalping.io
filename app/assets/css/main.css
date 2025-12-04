@@ -9,10 +9,6 @@
 		background-color: var(--color-surface-0);
 	}
 
-	.ractive-component * {
-		transition: none;
-	}
-
 	::-webkit-scrollbar {
 		width: 8px;
 	}
@@ -51,7 +47,8 @@
 		display: none;
 	}
 
-	html * {
+	/* apply everywhere except for ractive components */
+	html :where(*:not(.ractive-component):not(.ractive-component *)) {
 		transition: color 0.2s ease-in-out, background-color 0.2s ease-in-out;
 		@apply shadow-surface-200/50 border-surface-200 focus:outline-primary;
 	}
