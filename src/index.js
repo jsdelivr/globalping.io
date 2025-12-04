@@ -22,8 +22,8 @@ const KoaRouter = require('koa-router');
 const koaElasticUtils = require('elastic-apm-utils').koa;
 const assetsVersion = require('./lib/assets').version;
 const captureNodeResponse = require('./lib/capture-node-response');
-const { toNodeListener } = require('h3');
 const { resolve } = require('node:path');
+const initializeNuxt = require('./lib/initialize-nuxt');
 
 const serverConfig = config.get('server');
 const stripTrailingSlash = require('./middleware/strip-trailing-slash');
@@ -37,33 +37,11 @@ let app = new Koa();
 let router = new KoaRouter();
 let nuxtRouteHandler = null;
 
-const initNuxt = async () => {
-	// nuxt does not support cjs
-	let { loadNuxt, build } = await import('nuxt');
-	let { writeTypes } = await import('nuxt/kit');
-
-	if (isDev) {
-		let nuxt = await loadNuxt({
-			ready: true,
-			dev: true,
-		});
-
-		// create tsconfig
-		await writeTypes(nuxt);
-
-		// create .nuxt
-		await build(nuxt);
-
-		// get route handler
-		nuxtRouteHandler = toNodeListener(nuxt.server.app);
-		return;
-	}
-
-	// in prod, use the built route
-	let { i: useNitroApp } = await import('../.output/server/chunks/nitro.mjs');
-	let nitroApp = useNitroApp();
-	nuxtRouteHandler = toNodeListener(nitroApp.h3App);
-};
+initializeNuxt().then((handler) => {
+	nuxtRouteHandler = handler;
+}).catch((err) => {
+	console.error(err);
+});
 
 /**
  * Nuxt production-only files
@@ -80,33 +58,6 @@ if (!isDev) {
 		}),
 	);
 }
-
-/**
- * Nuxt routes and files.
- */
-const NUXT_ROUTES = [ '/cli', '/_nuxt' ];
-
-router.use(async (ctx, next) => {
-	if (NUXT_ROUTES.some(route => ctx.req.path.startsWith(`${route}/`) || ctx.req.path === route)) {
-		if (!nuxtRouteHandler) {
-			ctx.status = 404;
-			return;
-		}
-
-		ctx.status = 200;
-		ctx.req.ctx = ctx;
-
-		if (isDev) {
-			nuxtRouteHandler(ctx.req, ctx.res);
-			ctx.respond = false;
-			return;
-		}
-
-		return captureNodeResponse(nuxtRouteHandler, ctx);
-	}
-
-	return next();
-});
 
 /**
  * Server config.
@@ -306,6 +257,33 @@ router.get('/auth/callback', '/auth/callback', async (ctx) => {
 });
 
 /**
+ * Nuxt routes and files.
+ */
+const NUXT_ROUTES = [ '/cli', '/_nuxt' ];
+
+router.use(async (ctx, next) => {
+	if (NUXT_ROUTES.some(route => ctx.req.path.startsWith(`${route}/`) || ctx.req.path === route)) {
+		if (!nuxtRouteHandler) {
+			ctx.status = 404;
+			return;
+		}
+
+		ctx.status = 200;
+		ctx.req.ctx = ctx;
+
+		if (isDev) {
+			nuxtRouteHandler(ctx.req, ctx.res);
+			ctx.respond = false;
+			return;
+		}
+
+		return captureNodeResponse(nuxtRouteHandler, ctx);
+	}
+
+	return next();
+});
+
+/**
  * Site-specific routes.
  */
 router.use(globalpingRouter.routes(), globalpingRouter.allowedMethods());
@@ -414,5 +392,3 @@ process.on('unhandledRejection', (error) => {
 		process.exit(1);
 	}, 10000);
 });
-
-initNuxt();
