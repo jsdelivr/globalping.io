@@ -7,7 +7,7 @@ module.exports = async (handler, ctx) => {
 
 	let bodyChunks = [];
 	let bodyBuffer = Buffer.alloc(0);
-	let headers = Object.create(null);
+	let headers = new Headers();
 	let capturedStatusCode = 200;
 
 	let resProxy = new Proxy(ctx.res, {
@@ -19,19 +19,19 @@ module.exports = async (handler, ctx) => {
 
 			if (property === 'setHeader') {
 				return function (name, value) {
-					headers[name.toLowerCase()] = value;
+					headers.set(name, value);
 				};
 			}
 
 			if (property === 'getHeader') {
 				return function (name) {
-					return headers[name.toLowerCase()];
+					return headers.get(name);
 				};
 			}
 
 			if (property === 'removeHeader') {
 				return function (name) {
-					delete headers[name.toLowerCase()];
+					headers.delete(name);
 				};
 			}
 
@@ -46,7 +46,7 @@ module.exports = async (handler, ctx) => {
 
 					if (newHeaders) {
 						Object.entries(newHeaders).forEach(([ key, value ]) => {
-							headers[key.toLowerCase()] = value;
+							headers.set(key, value);
 						});
 					}
 
@@ -133,7 +133,7 @@ module.exports = async (handler, ctx) => {
 
 	// apply captured handler data
 	ctx.status = capturedStatusCode;
-	ctx.set(headers);
+	ctx.set(Object.fromEntries(headers));
 	ctx.body = bodyBuffer;
 
 	// properties for the remaining middleware
