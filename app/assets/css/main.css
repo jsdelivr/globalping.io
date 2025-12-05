@@ -6,6 +6,88 @@
 	html {
 		font-family: Lexend, sans-serif;
 		color: var(--color-dark-800);
+		background-color: var(--color-surface-0);
+	}
+
+	::-webkit-scrollbar {
+		width: 8px;
+	}
+
+	::-webkit-scrollbar:horizontal {
+		height: 7px;
+	}
+
+	::-webkit-scrollbar-button {
+		display: none;
+	}
+
+	::-webkit-scrollbar-track {
+		background-color: #e5e5e5;
+		border-radius: 8px;
+	}
+
+	body::-webkit-scrollbar-track {
+		border-radius: 0;
+	}
+
+	::-webkit-scrollbar-track-piece {
+		background: 0 0;
+	}
+
+	::-webkit-scrollbar-thumb {
+		background: rgba(51, 51, 51, .3);
+		border-radius: 8px;
+	}
+
+	::-webkit-scrollbar-thumb:hover {
+		background: rgba(51, 51, 51, .1);
+	}
+
+	::-webkit-scrollbar-corner {
+		display: none;
+	}
+
+	/* apply everywhere except for ractive components */
+	html :where(*:not(.ractive-component):not(.ractive-component *)) {
+		transition: color 0.2s ease-in-out, background-color 0.2s ease-in-out;
+		@apply shadow-surface-200/50 border-surface-200 focus:outline-primary;
+	}
+
+	pre {
+		font-family: 'Source Code Pro', monospace;
+		@apply font-medium;
+	}
+
+	button {
+		@apply cursor-pointer;
+	}
+
+	h1 {
+		@apply text-[2.5rem] max-md:text-[1.62rem] font-semibold leading-[3.75rem] max-md:leading-[2.25rem];
+	}
+
+	h2 {
+		@apply text-[2rem] max-md:text-[1.5rem] font-semibold leading-12 max-md:leading-8;
+	}
+
+	h3 {
+		@apply text-[1.5rem] max-md:text-[1.25rem] font-semibold leading-10 max-md:leading-6;
+	}
+
+	h4 {
+		@apply text-[1rem] max-md:text-[0.75rem] font-semibold;
+	}
+
+	.btn-primary {
+		@apply bg-primary hover:bg-primary-300 text-white inline-flex gap-0.5 items-center justify-between rounded-lg min-h-10 w-fit p-2 cursor-pointer focus:outline-surface-700;
+	}
+
+	.btn-secondary {
+		@apply bg-dark-800 hover:bg-dark-500 text-white inline-flex gap-0.5 items-center justify-between rounded-lg min-h-10 w-fit p-2 cursor-pointer;
+	}
+
+	.inline-link {
+		@apply bg-gradient-to-b from-primary to-primary bg-no-repeat bg-left-bottom  text-primary no-underline transition-all duration-300 bg-[length:0_0.15rem] hover:bg-[length:100%_0.15rem] max-md:bg-[length:0_0.12rem] max-md:hover:bg-[length:100%_0.12rem];
 	}
 }
 
@@ -16,6 +98,7 @@
 }
 
 @theme {
+	--font-size-xs: .8rem;
 	--font-size-2xs: .7rem;
 	--font-size-3xs: .6rem;
 	--color-primary-50: #f3fdfb;
@@ -43,6 +126,7 @@
 	--color-surface-950: #020617;
 	--color-bluegray-0: #fff;
 	--color-bluegray-50: #f7f8f9;
+	--color-bluegray-75: #f3f5f7;
 	--color-bluegray-100: #dadee3;
 	--color-bluegray-200: #bcc3cd;
 	--color-bluegray-300: #9fa9b7;

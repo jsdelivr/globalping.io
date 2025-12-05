@@ -53,11 +53,13 @@ const getRollupStream = file => rollupStream({
 	],
 	output: {
 		name: 'app',
-		format: 'umd',
+		format: 'esm',
 		sourcemap: true,
 		globals: {
 			algoliasearch: 'algoliasearch',
-			ractive: 'Ractive',
+		},
+		paths: {
+			ractive: 'https://cdn.jsdelivr.net/npm/ractive@1.4.4/runtime.min.mjs',
 		},
 	},
 }).on('bundle', (bundle) => {
@@ -65,11 +67,8 @@ const getRollupStream = file => rollupStream({
 });
 
 const getRollupStreamRactiveComp = file => rollupStream({
-	cache,
-	input: srcViewsDir + '/components/' + file,
-	external: [
-		'ractive',
-	],
+	input: srcViewsDir + file,
+	external: [ 'ractive' ],
 	plugins: [
 		rollupRactive({
 			format: 'cjs',
@@ -82,8 +81,6 @@ const getRollupStreamRactiveComp = file => rollupStream({
 		format: 'esm',
 		sourcemap: true,
 	},
-}).on('bundle', (bundle) => {
-	cache = bundle;
 });
 
 gulp.task('clean', () => {
@@ -174,13 +171,18 @@ gulp.task('js:prod', gulp.parallel(
 ));
 
 gulp.task('nuxt:ractive:components', gulp.parallel(
-	() => getRollupStreamRactiveComp('header.html')
+	() => getRollupStreamRactiveComp('/components/header.html')
 		.pipe(source('header.js'))
 		.pipe(buffer())
 		.pipe(gulp.dest(`${dstAppDir}/ractive`))
 		.pipe(livereload(liveReloadOptions)),
-	() => getRollupStreamRactiveComp('footer.html')
+	() => getRollupStreamRactiveComp('/components/footer.html')
 		.pipe(source('footer.js'))
+		.pipe(buffer())
+		.pipe(gulp.dest(`${dstAppDir}/ractive`))
+		.pipe(livereload(liveReloadOptions)),
+	() => getRollupStreamRactiveComp('/pages/_404.html')
+		.pipe(source('404.js'))
 		.pipe(buffer())
 		.pipe(gulp.dest(`${dstAppDir}/ractive`))
 		.pipe(livereload(liveReloadOptions)),

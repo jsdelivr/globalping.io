@@ -1,6 +1,6 @@
 const has = require('../../../assets/js/utils/has');
 
-module.exports.getCache = (key, ttl, getDefaultValue) => {
+module.exports.getCache = (key, ttl, getDefaultValue, revalidate = false, onRevalidate = undefined) => {
 	if (!has.sessionStorage()) {
 		return getDefaultValue().then((value) => {
 			sessionStorage.setItem(key, JSON.stringify({ data: value, ttl: Date.now() + ttl }));
@@ -15,6 +15,11 @@ module.exports.getCache = (key, ttl, getDefaultValue) => {
 	} catch {}
 
 	if (value && value.ttl && value.ttl > Date.now()) {
+		revalidate && getDefaultValue().then((value) => {
+			sessionStorage.setItem(key, JSON.stringify({ data: value, ttl: Date.now() + ttl }));
+			onRevalidate && onRevalidate(value);
+		});
+
 		return Promise.resolve(value.data);
 	}
 

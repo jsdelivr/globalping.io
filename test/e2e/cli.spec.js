@@ -1,11 +1,12 @@
 const { test } = require('./fixtures');
 const { expect } = require('@playwright/test');
 
-const removeCarriageReturn = str => str.replace(/\r/g, '');
-
-test('CLI page', async ({ page, context }) => {
+test('CLI page', async ({ page }) => {
 	let response = await page.goto('/cli');
 	expect(response.ok()).toBeTruthy();
+
+	// wait until hydration is finished (otherwise reading clipboard fails regardless of test composition)
+	await page.waitForLoadState('networkidle');
 
 	await expect(page.getByText('Run network commands on a global network')).toBeVisible();
 
@@ -15,38 +16,24 @@ test('CLI page', async ({ page, context }) => {
 	await expect(page.getByTestId('cli-os-Homebrew')).toBeVisible();
 
 	// test that the active command changes when clicking on different OS's
-	let getActiveCmdText = async () => {
-		let el = page.getByTestId('cli-os-cmd-active');
-		await expect(el).toBeVisible();
+	let cmd = page.getByTestId('cli-os-cmd');
 
-		let spans = el.locator('span');
-		let lineCount = await spans.count();
-		let lines = [];
-
-		for (let i = 0; i < lineCount; i++) {
-			lines.push(await spans.nth(i).innerText());
-		}
-
-		return removeCarriageReturn(lines.join('\n'));
-	};
-
-	let initialActiveText = await getActiveCmdText();
+	let initialActiveText = await cmd.innerText();
 	expect(initialActiveText.length).toBeGreaterThan(0);
 
 	await page.getByTestId('cli-os-RPM').click();
+	await expect(cmd.innerText()).not.toEqual(initialActiveText);
 
-	let rpmActiveText = await getActiveCmdText();
-	await expect(rpmActiveText).not.toEqual(initialActiveText);
-
-	// test clipboard copy
-	await context.grantPermissions([ 'clipboard-read' ]);
-
-	let copyBtn = page.getByTestId('cpy-btn-active');
+	let copyBtn = page.getByTestId('copy-btn');
 	await expect(copyBtn).toBeVisible();
+
+	await page.context().grantPermissions([ 'clipboard-read', 'clipboard-write' ]);
+
 	await copyBtn.click();
 
 	let clipboardText = await page.evaluate(() => navigator.clipboard.readText());
-	expect(removeCarriageReturn(clipboardText)).toEqual(rpmActiveText);
+	let innerCmdText = (await cmd.innerText()).trim();
+	await expect(clipboardText).toEqual(innerCmdText);
 
 	// quick start section
 	await expect(page.getByTestId('cli-quick-start-ping')).toBeVisible();
@@ -56,12 +43,13 @@ test('CLI page', async ({ page, context }) => {
 	await expect(page.getByTestId('cli-quick-start-mtr')).toBeVisible();
 
 	// test that the displayed output changes when clicking on different test types
-	let initialQuickStartText = await page.getByTestId('cli-quick-start-content-active').innerText();
+	let initialQuickStartText = await page.getByTestId('cli-quick-start-content').innerText();
 	expect(initialQuickStartText.length).toBeGreaterThan(0);
 
 	await page.getByTestId('cli-quick-start-traceroute').click();
 
-	let quickStartTracerouteText = await page.getByTestId('cli-quick-start-content-active').innerText();
-	await expect(quickStartTracerouteText.length).toBeGreaterThan(0);
-	await expect(quickStartTracerouteText).not.toEqual(initialQuickStartText);
+	let quickStartTraceroute = page.getByTestId('cli-quick-start-content');
+	await expect(quickStartTraceroute.innerText()).not.toEqual(initialQuickStartText);
+	let quickStartTracerouteLen = (await quickStartTraceroute.innerText()).length;
+	await expect(quickStartTracerouteLen).toBeGreaterThan(0);
 });

@@ -1,6 +1,7 @@
 import tailwindcss from '@tailwindcss/vite';
 import config from 'config';
 import assets from './src/lib/assets/index';
+
 const version = assets.version;
 
 const isRenderPreview = process.env.IS_PULL_REQUEST === 'true' && process.env.RENDER_EXTERNAL_URL;
@@ -33,7 +34,6 @@ export default defineNuxtConfig({
 		},
 	},
 	app: {
-		baseURL: '/new',
 		head: {
 			title: 'Globalping - Internet and web infrastructure monitoring and benchmarking',
 			meta: [
@@ -90,12 +90,60 @@ export default defineNuxtConfig({
 		'~/assets/css/main.css',
 	],
 	modules: [
+		'@primevue/nuxt-module',
 		'@pinia/nuxt',
 	],
 	devtools: { enabled: true },
+	primevue: {
+		options: {
+			unstyled: true,
+		},
+		importPT: { as: 'Aura', from: '~/presets/aura' },
+		components: {
+			prefix: 'pv',
+			include: [], // <- add primevue components to be bundled here (the same applies below)
+		},
+		directives: {
+			include: [ 'Tooltip' ],
+		},
+		composables: {
+			include: [],
+		},
+	},
 	vite: {
 		plugins: [
 			tailwindcss(),
 		],
+		build: {
+			rollupOptions: {
+				external: [ 'ractive' ],
+			},
+		},
+	},
+	hooks: {
+		'vite:extendConfig': (config, { isClient }) => {
+			if (isClient) {
+				config.build = config.build || {};
+				config.build.rollupOptions = config.build.rollupOptions || {};
+
+				config.build.rollupOptions.output = {
+					...config.build.rollupOptions.output || {},
+					paths: {
+						ractive: 'https://cdn.jsdelivr.net/npm/ractive@1.4.4/runtime.min.mjs',
+					},
+				};
+			}
+		},
+	},
+	nitro: {
+		externals: {
+			trace: false,
+		},
+		rollupConfig: {
+			output: {
+				minifyInternalExports: false,
+				chunkFileNames: 'chunks/[name].mjs',
+			},
+		},
 	},
 });

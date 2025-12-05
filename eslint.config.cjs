@@ -16,6 +16,13 @@ const jsScoped = [
 // https://github.com/francoismassart/eslint-plugin-tailwindcss/issues/431
 module.exports = createConfigForNuxt().prepend(
 	...tailwindcss.configs['flat/recommended'],
+	{
+		settings: {
+			tailwindcss: {
+				config: false,
+			},
+		},
+	},
 	typescript.forFiles([ '**/*.ts', '**/*.vue' ]),
 ).append(
 	jsScoped,
@@ -29,7 +36,7 @@ module.exports = createConfigForNuxt().prepend(
 	},
 	// Nuxt rules
 	{
-		files: [ 'app/*/**' ],
+		files: [ 'app/**' ],
 		rules: {
 			'import/order': [ 'error', {
 				distinctGroup: false,
@@ -70,7 +77,7 @@ module.exports = createConfigForNuxt().prepend(
 			'{app,server}/**/*.{ts,vue}',
 		],
 		rules: {
-			'import/extensions': [ 'error', 'never' ],
+			'import/extensions': [ 'error', 'never', { svg: 'always' }],
 		},
 	},
 	{
@@ -128,6 +135,12 @@ module.exports = createConfigForNuxt().prepend(
 		languageOptions: {
 			ecmaVersion: 2020,
 			sourceType: 'script',
+		},
+	},
+	{
+		files: [ 'src/views/r-page.html', 'src/views/r-docs.html' ],
+		languageOptions: {
+			sourceType: 'module',
 		},
 	},
 	{

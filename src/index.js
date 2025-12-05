@@ -5,6 +5,7 @@ require('./lib/startup');
 
 const _ = require('lodash');
 const config = require('config');
+const { resolve } = require('node:path');
 const signalExit = require('signal-exit');
 const isSafePath = require('is-safe-path');
 const express = require('express');
@@ -21,7 +22,8 @@ const koaETag = require('koa-etag');
 const KoaRouter = require('koa-router');
 const koaElasticUtils = require('elastic-apm-utils').koa;
 const assetsVersion = require('./lib/assets').version;
-const { toNodeListener } = require('h3');
+const captureNodeResponse = require('./lib/nuxt/captureNodeResponse');
+const initializeNuxt = require('./lib/nuxt/initialize');
 
 const serverConfig = config.get('server');
 const stripTrailingSlash = require('./middleware/strip-trailing-slash');
@@ -33,71 +35,26 @@ const isDev = process.env.NODE_ENV === 'development';
 
 let app = new Koa();
 let router = new KoaRouter();
-let nuxtRouteHandler = null;
 
-const initNuxt = async () => {
-	// nuxt does not support cjs
-	let { loadNuxt, build } = await import('nuxt');
-	let { writeTypes } = await import('nuxt/kit');
-
-	if (isDev) {
-		let nuxt = await loadNuxt({
-			ready: true,
-			dev: true,
-		});
-
-		// create tsconfig
-		await writeTypes(nuxt);
-
-		// create .nuxt
-		await build(nuxt);
-
-		// get route handler
-		nuxtRouteHandler = toNodeListener(nuxt.server.app);
-		return;
-	}
-
-	// in prod, use the built route
-	let { i: useNitroApp } = await import('../.output/server/chunks/nitro/nitro.mjs');
-	let nitroApp = useNitroApp();
-	nuxtRouteHandler = toNodeListener(nitroApp.h3App);
-};
+const nuxtRouteHandlerPromise = initializeNuxt().catch((err) => {
+	console.error(err);
+	return null;
+});
 
 /**
  * Nuxt production-only files
  */
-// if (!isDev) {
-// 	router.use(
-// 		'/new/_nuxt',
-// 		async (ctx, next) => {
-// 			ctx.path = ctx.path.replace(/^\/new\/_nuxt/, '/_nuxt');
-// 			await next();
-// 		},
-// 		koaStatic(resolve(__dirname, '../.output/public/'), {
-// 			index: false,
-// 			maxage: 31536000000,
-// 			setHeaders (res) {
-// 				res.set('Cache-Control', 'public, max-age=31536000, immutable');
-// 			},
-// 		}),
-// 	);
-// }
-
-/**
- * Nuxt routes and files.
- */
-if (isDev) {
-	router.get(/^\/(new)(\/.+)?$/, async (ctx) => {
-		if (!nuxtRouteHandler) {
-			ctx.status = 404;
-			return;
-		}
-
-		ctx.status = 200;
-		ctx.req.ctx = ctx;
-		ctx.respond = false;
-		await nuxtRouteHandler(ctx.req, ctx.res);
-	});
+if (!isDev) {
+	router.use(
+		'/_nuxt',
+		koaStatic(resolve(__dirname, '../.output/public/'), {
+			index: false,
+			maxage: 31536000000,
+			setHeaders (res) {
+				res.set('Cache-Control', 'public, max-age=31536000, immutable');
+			},
+		}),
+	);
 }
 
 /**
@@ -298,6 +255,35 @@ router.get('/auth/callback', '/auth/callback', async (ctx) => {
 });
 
 /**
+ * Nuxt routes and files.
+ */
+const NUXT_ROUTES = [ '/cli', '/_nuxt' ];
+
+router.use(async (ctx, next) => {
+	if (NUXT_ROUTES.some(route => ctx.req.path.startsWith(`${route}/`) || ctx.req.path === route)) {
+		let handler = await nuxtRouteHandlerPromise;
+
+		if (!handler) {
+			ctx.status = 404;
+			return next();
+		}
+
+		ctx.status = 200;
+		ctx.req.ctx = ctx;
+
+		if (isDev) {
+			handler(ctx.req, ctx.res);
+			ctx.respond = false;
+			return;
+		}
+
+		return captureNodeResponse(handler, ctx);
+	}
+
+	return next();
+});
+
+/**
  * Site-specific routes.
  */
 router.use(globalpingRouter.routes(), globalpingRouter.allowedMethods());
@@ -406,6 +392,3 @@ process.on('unhandledRejection', (error) => {
 		process.exit(1);
 	}, 10000);
 });
-
-// for now, do not enable nuxt in prod
-isDev && initNuxt();

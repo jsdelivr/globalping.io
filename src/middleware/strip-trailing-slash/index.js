@@ -2,7 +2,7 @@ module.exports = () => {
 	return async (ctx, next) => {
 		let { path, querystring } = ctx.request;
 
-		if (path === '/' || path.startsWith('/new') || !path.endsWith('/')) {
+		if (path === '/' || !path.endsWith('/')) {
 			return next();
 		}
 

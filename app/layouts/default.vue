@@ -1,7 +1,7 @@
 <!-- eslint-disable vue/no-v-html -->
 <template>
 	<div class="flex min-h-screen flex-col justify-between">
-		<div ref="headerEl" class="ractive-component" v-html="headerHtml"/>
+		<div ref="headerEl" class="ractive-component z-50" v-html="headerHtml"/>
 		<NuxtPage class="flex-1"/>
 		<div ref="footerEl" class="ractive-component" v-html="footerHtml"/>
 	</div>
@@ -57,8 +57,6 @@
 	}
 
 	onMounted(async () => {
-		await auth.fetchUser();
-
 		// clear SSR'd components
 		headerInstance.value?.teardown?.();
 		footerInstance.value?.teardown?.();
