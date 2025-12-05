@@ -30,16 +30,17 @@
 	} = useRuntimeConfig().public;
 
 	const auth = useAuth();
+
 	watch(() => auth.user, () => setRactiveData());
 
-	const setRactiveData = (isSsr = false) => {
+	const setRactiveData = (ssr = false) => {
 		for (const component of [ footerInstance, headerInstance ]) {
 			component.value?.set('@shared.serverHost', serverHost);
 			component.value?.set('@shared.assetsHost', assetsHost);
 			component.value?.set('@shared.apiDocsHost', apiDocsHost);
 			component.value?.set('@shared.assetsVersion', assetsVersion);
 			component.value?.set('@shared.actualPath', route.path);
-			component.value?.set('@shared.user', isSsr && !auth.user ? undefined : auth.user);
+			component.value?.set('@shared.user', ssr && !auth.user ? undefined : auth.user);
 		}
 	};
 
