@@ -141,6 +141,7 @@ export default defineNuxtConfig({
 		},
 		rollupConfig: {
 			output: {
+				minifyInternalExports: false,
 				chunkFileNames: 'chunks/[name].mjs',
 			},
 		},

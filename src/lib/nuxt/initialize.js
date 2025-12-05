@@ -22,7 +22,7 @@ module.exports = async (isDev = process.env.NODE_ENV === 'development') => {
 	}
 
 	// in prod, use the built route
-	let { i: useNitroApp } = await import('../../../.output/server/chunks/nitro.mjs');
+	let { useNitroApp } = await import('../../../.output/server/chunks/nitro.mjs');
 	let nitroApp = useNitroApp();
 	return toNodeListener(nitroApp.h3App);
 };
