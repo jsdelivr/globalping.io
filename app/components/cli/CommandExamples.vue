@@ -1,5 +1,5 @@
 <template>
-	<div class="isolate flex transform-gpu flex-col gap-4 overflow-hidden rounded-xl border p-6 shadow-xl max-md:p-0 max-md:shadow-md">
+	<div class="flex flex-col gap-4 overflow-hidden rounded-xl border p-6 shadow-xl max-md:p-0 max-md:shadow-md">
 		<div class="flex flex-nowrap justify-evenly gap-1 overflow-x-auto rounded-xl max-lg:flex-col max-lg:overflow-visible max-md:p-4">
 			<button
 				v-for="command in COMMAND_EXAMPLES"
