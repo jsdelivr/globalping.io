@@ -12,10 +12,14 @@ module.exports = async (isDev = process.env.NODE_ENV === 'development') => {
 		});
 
 		// create tsconfig
-		await writeTypes(nuxt);
+		let p1 = await writeTypes(nuxt);
 
 		// create .nuxt
-		await build(nuxt);
+		let p2 = await build(nuxt);
+
+		await Promise.all([
+			p1, p2,
+		]);
 
 		// get route handler
 		return toNodeListener(nuxt.server.app);
