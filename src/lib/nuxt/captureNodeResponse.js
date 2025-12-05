@@ -131,6 +131,8 @@ module.exports = async (handler, ctx) => {
 
 	await processingPromise;
 
+	headers.delete('X-Powered-By');
+
 	// apply captured handler data
 	ctx.status = capturedStatusCode;
 	ctx.set(Object.fromEntries(headers));
