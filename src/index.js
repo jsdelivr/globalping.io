@@ -36,7 +36,7 @@ const isDev = process.env.NODE_ENV === 'development';
 let app = new Koa();
 let router = new KoaRouter();
 
-const nuxtRouteHandler = initializeNuxt().then(handler => handler).catch((err) => {
+const nuxtRouteHandlerPromise = initializeNuxt().catch((err) => {
 	console.error(err);
 	return null;
 });
@@ -261,7 +261,7 @@ const NUXT_ROUTES = [ '/cli', '/_nuxt' ];
 
 router.use(async (ctx, next) => {
 	if (NUXT_ROUTES.some(route => ctx.req.path.startsWith(`${route}/`) || ctx.req.path === route)) {
-		let handler = await nuxtRouteHandler;
+		let handler = await nuxtRouteHandlerPromise;
 
 		if (!handler) {
 			ctx.status = 404;
