@@ -33,7 +33,7 @@ module.exports.getGPBlogRss = () => {
 	return _.makeHTTPRequest({ url: `https://blog.globalping.io/rss/`, rawResponse: true });
 };
 
-module.exports.getGlobalpingUser = () => {
+module.exports.getGlobalpingUser = (onRevalidate) => {
 	// Note: The authentication won't work out of the box on localhost because the cookie is set with SameSite=Strict
 	// If you need to test the page as an authenticated user (and don't want to set up a local dash and API),
 	// just set the production cookie "dash_session_token" (.globalping.io) to SameSite=None via devtools.
@@ -41,6 +41,8 @@ module.exports.getGlobalpingUser = () => {
 		'gp-user',
 		1000 * 60 * 60 * 24,
 		() => _.makeHTTPRequest({ url: `${DASH_HOST}/users/me`, withCredentials: true }).then(body => body.data).catch(() => null),
+		true,
+		onRevalidate,
 	);
 };
 
@@ -56,7 +58,7 @@ module.exports.gpLogOut = () => {
 		withCredentials: true,
 		rawResponse: true,
 	}).then(() => {
-		window.sessionStorage.removeItem('gp-user');
+		window.sessionStorage.setItem('gp-user', JSON.stringify({ data: null, ttl: Date.now() + 1000 * 60 * 60 * 24 }));
 	});
 };
 

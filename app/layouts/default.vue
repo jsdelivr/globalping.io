@@ -30,8 +30,6 @@
 	} = useRuntimeConfig().public;
 
 	const auth = useAuth();
-	await auth.loadUser();
-
 	watch(() => auth.user, () => setRactiveData());
 
 	const setRactiveData = (isSsr = false) => {

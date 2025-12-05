@@ -1,6 +1,6 @@
 import type { FetchError } from 'ofetch';
 import { defineStore } from 'pinia';
-import { clearSessionStorageData, getSessionStorageData, setSessionStorageData } from '~/utils/session-storage';
+import { getSessionStorageData, setSessionStorageData } from '~/utils/session-storage';
 
 const STORAGE_KEY = 'gp-user';
 
@@ -9,24 +9,20 @@ export const useAuth = defineStore('auth', {
 		user: null as User | null,
 	}),
 	actions: {
-		async loadUser () {
-			const userDetails = getSessionStorageData(STORAGE_KEY);
-
-			if (userDetails) {
-				this.user = userDetails as User;
-			}
-
-			// revalidate
-			await this.fetchUser();
-		},
 		async fetchUser () {
 			if (!isClient()) {
-				return;
+				return null;
+			}
+
+			const userDetails = getSessionStorageData(STORAGE_KEY);
+
+			if (typeof userDetails !== 'undefined') {
+				this.user = userDetails as User | null;
 			}
 
 			try {
 				const { dashboardHost } = useRuntimeConfig().public;
-				const res = await $fetch<{ data: User }>(`${dashboardHost}/users/me`, { credentials: 'include' });
+				const res = await $fetch<{ data: User }>(`${dashboardHost}/users/me`, { credentials: 'include', retry: 0 });
 				this.user = res?.data ?? null;
 			} catch (error) {
 				if ((error as FetchError).statusCode === 401) {
@@ -35,6 +31,8 @@ export const useAuth = defineStore('auth', {
 			} finally {
 				this.setSessionData();
 			}
+
+			return this.user;
 		},
 		async signIn () {
 			const { dashboardHost, serverHost } = useRuntimeConfig().public;
@@ -58,15 +56,10 @@ export const useAuth = defineStore('auth', {
 				});
 
 				this.user = null;
-				this.setSessionData(true);
+				this.setSessionData();
 			} catch {}
 		},
-		setSessionData (clear = false) {
-			if (clear || !this.user) {
-				clearSessionStorageData(STORAGE_KEY);
-				return;
-			}
-
+		setSessionData () {
 			setSessionStorageData(this.user, STORAGE_KEY, 1000 * 60 * 60 * 24);
 		},
 	},

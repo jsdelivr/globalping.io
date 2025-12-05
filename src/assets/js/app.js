@@ -93,9 +93,11 @@ const initApp = () => {
 				.replace(/\u2029/g, '\\u2029');
 		}
 
-		getGlobalpingUser().then((user) => {
+		let setUser = (user) => {
 			ractive.set('@shared.user', user);
-		});
+		};
+
+		getGlobalpingUser(setUser).then(setUser);
 
 		try {
 			let shared = JSON.parse(document.querySelector('#ractive-shared').innerHTML.trim());
