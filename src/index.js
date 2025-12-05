@@ -35,12 +35,10 @@ const isDev = process.env.NODE_ENV === 'development';
 
 let app = new Koa();
 let router = new KoaRouter();
-let nuxtRouteHandler = null;
 
-initializeNuxt().then((handler) => {
-	nuxtRouteHandler = handler;
-}).catch((err) => {
+const nuxtRouteHandler = initializeNuxt().then(handler => handler).catch((err) => {
 	console.error(err);
+	return null;
 });
 
 /**
@@ -263,21 +261,23 @@ const NUXT_ROUTES = [ '/cli', '/_nuxt' ];
 
 router.use(async (ctx, next) => {
 	if (NUXT_ROUTES.some(route => ctx.req.path.startsWith(`${route}/`) || ctx.req.path === route)) {
-		if (!nuxtRouteHandler) {
+		let handler = await nuxtRouteHandler;
+
+		if (!handler) {
 			ctx.status = 404;
-			return;
+			return next();
 		}
 
 		ctx.status = 200;
 		ctx.req.ctx = ctx;
 
 		if (isDev) {
-			nuxtRouteHandler(ctx.req, ctx.res);
+			handler(ctx.req, ctx.res);
 			ctx.respond = false;
 			return;
 		}
 
-		return captureNodeResponse(nuxtRouteHandler, ctx);
+		return captureNodeResponse(handler, ctx);
 	}
 
 	return next();
