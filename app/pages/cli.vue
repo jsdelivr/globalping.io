@@ -15,7 +15,7 @@
 				</a>
 			</div>
 			<img class="pointer-events-none absolute inset-0 z-0 mx-auto h-full object-cover" src="~/assets/images/grid-2.svg" alt="">
-			<div class="absolute inset-x-0 bottom-0 w-full opacity-80 max-md:opacity-35">
+			<div class="absolute inset-x-0 bottom-0 h-[100px] w-full opacity-80 max-md:opacity-35">
 				<span class="absolute inset-x-0 bottom-0 mx-auto h-[120px] w-[600px] max-w-1/3 translate-x-1/2 translate-y-3/5 rounded-full bg-blue-500 blur-3xl max-md:translate-x-full"/>
 				<span class="bg-primary absolute inset-x-0 bottom-0 mx-auto h-[120px] w-[600px] max-w-1/3 translate-y-3/5 rounded-full blur-3xl"/>
 				<span class="absolute inset-x-0 bottom-0 mx-auto h-[120px] w-[600px] max-w-1/3 -translate-x-1/2 translate-y-3/5 rounded-full bg-blue-500 blur-3xl max-md:-translate-x-full"/>
