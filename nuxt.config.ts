@@ -134,6 +134,13 @@ export default defineNuxtConfig({
 				};
 			}
 		},
+		'build:manifest': (manifest) => {
+			for (const file of Object.values(manifest)) {
+				if (file.resourceType === 'image') {
+					file.prefetch = false;
+				}
+			}
+		},
 	},
 	nitro: {
 		externals: {
