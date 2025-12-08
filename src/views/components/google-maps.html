@@ -443,7 +443,7 @@
 			map.fitBounds(bounds);
 
 			google.maps.event.addListenerOnce(map, 'idle', () => {
-				// resore zooming to initial
+				// restore zooming to initial
 				map.setOptions({ maxZoom: MAP_MAX_ZOOM });
 			});
 		},
