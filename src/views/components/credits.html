@@ -150,7 +150,7 @@
 					}
 				});
 
-				// update current timestamp on receiving testRResults
+				// update current timestamp on receiving testResults
 				this.observe('testResults', (testResults) => {
 					if (testResults) {
 						this.set('sessionTimestampCurrent', Date.now());

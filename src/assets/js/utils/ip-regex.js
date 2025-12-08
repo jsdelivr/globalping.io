@@ -1,7 +1,7 @@
 // MIT licensed from https://www.npmjs.com/package/ip-regex
 const word = '[a-fA-F\\d:]';
 
-const boundry = options => options && options.includeBoundaries
+const boundary = options => options && options.includeBoundaries
 	? `(?:(?<=\\s|^)(?=${word})|(?<=${word})(?=\\s|$))`
 	: '';
 
@@ -34,17 +34,17 @@ const ipRegex = options => options && options.exact
 		? v46ExactOrV6Bracketed
 		: v46Exact
 	: options?.allowBrackets
-		? new RegExp(`(?:${boundry(options)}${v4}${boundry(options)})|(?:${boundry(options)}${v6}${boundry(options)})|(?:${boundry(options)}\\[${v6}\\]${boundry(options)})`, 'g')
-		: new RegExp(`(?:${boundry(options)}${v4}${boundry(options)})|(?:${boundry(options)}${v6}${boundry(options)})`, 'g');
+		? new RegExp(`(?:${boundary(options)}${v4}${boundary(options)})|(?:${boundary(options)}${v6}${boundary(options)})|(?:${boundary(options)}\\[${v6}\\]${boundary(options)})`, 'g')
+		: new RegExp(`(?:${boundary(options)}${v4}${boundary(options)})|(?:${boundary(options)}${v6}${boundary(options)})`, 'g');
 
-ipRegex.v4 = options => options && options.exact ? v4exact : new RegExp(`${boundry(options)}${v4}${boundry(options)}`, 'g');
+ipRegex.v4 = options => options && options.exact ? v4exact : new RegExp(`${boundary(options)}${v4}${boundary(options)}`, 'g');
 
 ipRegex.v6 = options => options?.exact
 	? options?.allowBrackets
 		? v6exactOrBracketed
 		: v6exact
 	: options?.allowBrackets
-		? new RegExp(`(?:${boundry(options)}${v6}${boundry(options)})|(?:${boundry(options)}\\[${v6}\\]${boundry(options)})`, 'g')
-		: new RegExp(`${boundry(options)}${v6}${boundry(options)}`, 'g');
+		? new RegExp(`(?:${boundary(options)}${v6}${boundary(options)})|(?:${boundary(options)}\\[${v6}\\]${boundary(options)})`, 'g')
+		: new RegExp(`${boundary(options)}${v6}${boundary(options)}`, 'g');
 
 module.exports = ipRegex;

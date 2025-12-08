@@ -134,7 +134,7 @@
 							placeholder="IP or domain"
 							labelText="Target(s)"
 							isDisabled="{{testInProgress}}"
-							setDefaultValueInitialy="{{!shareResFlow}}"
+							setDefaultValueInitially="{{!shareResFlow}}"
 							useGpTargetHandler="{{true}}"
 							gpMainOpts="{{mainOptions}}"
 							gpHttpOpts="{{httpOpts}}"
@@ -777,30 +777,30 @@
 			{{/if}}
 		</div>
 
-		<div class="gp_detalization">
-			<div class="gp_detalization_platform">
-				<div class="gp_detalization_platform_title">The Globalping platform</div>
-				<div class="gp_detalization_platform_descr">
+		<div class="gp_details">
+			<div class="gp_details_platform">
+				<div class="gp_details_platform_title">The Globalping platform</div>
+				<div class="gp_details_platform_descr">
 					Globalping is a platform that allows anyone to run networking commands such as ping, traceroute,
 					dig, curl and mtr on probes distributed all around the world. Our goal is to provide a free and simple
 					service for everyone out there to make the internet faster. You can use it to optimize your anycast
 					network, monitor your latency, debug routing issues and even check for censorship in different countries.
 				</div>
-				<img class="gp_detalization_platform_img"
+				<img class="gp_details_platform_img"
 					width="363"
 					height="288"
 					src="{{@shared.assetsHost}}/img/polygons_1.svg">
 			</div>
 
-			<div class="gp_detalization_magic">
-				<div class="gp_detalization_magic_title">Test from anywhere with <span class="text-magic-color">magic</span></div>
-				<div class="gp_detalization_magic_descr">
+			<div class="gp_details_magic">
+				<div class="gp_details_magic_title">Test from anywhere with <span class="text-magic-color">magic</span></div>
+				<div class="gp_details_magic_descr">
 					All Globalping integrations and tools including the CLI <a target="_blank" href="https://github.com/jsdelivr/globalping#best-practices-and-tips">use the magic API field</a> to set the location of a test.
 					This means that you can write anything that makes sense to you as the input and we will do our best to select the
 					most appropriate probes. Valid inputs include countries, continents, cities, US states, regions
 					(Western Europe), ASNs, ISP names, eyeball or datacenter tags and cloud region names (us-east-2).
 				</div>
-				<img class="gp_detalization_magic_img"
+				<img class="gp_details_magic_img"
 					width="510"
 					height="289"
 					src="{{@shared.assetsHost}}/img/polygons_2.svg">
@@ -1022,7 +1022,7 @@
 					<li>We appreciate your work and will review your PRs in a timely manner</li>
 					<li>We are open to new ideas and technologies</li>
 					<li>You don't have to be a developer to help</li>
-					<li>Copyrighters, community moderators, dev relations, media relations... are all equally important</li>
+					<li>Copywriters, community moderators, dev relations, media relations... are all equally important</li>
 				</ul>
 
 				<img class="gp_join-community_img"
@@ -1495,7 +1495,7 @@
 		},
 		{
 			cmd: '--restart=always \\',
-			comment: ' # Restart the container in case it crashes',
+			comment: ' # Restart the container if it crashes',
 		},
 		{
 			cmd: '--name globalping-probe globalping/globalping-probe',
@@ -1522,7 +1522,7 @@
 		},
 		{
 			cmd: '--restart=always \\',
-			comment: ' # Restart the container in case it crashes',
+			comment: ' # Restart the container if it crashes',
 		},
 		{
 			cmd: '--name globalping-probe globalping/globalping-probe',
@@ -2255,7 +2255,7 @@
 			// since packets field default value is present only for Ping and MTR type
 			if (type.toLowerCase() === 'ping' || type.toLowerCase() === 'mtr') {
 				reqParams.measurementOptions = {
-					// set default values in case if user did not set them manually
+					// default values used if user does not set them manually
 					packets: DEFAULT_PACKETS_AMOUNT,
 				};
 			} else {
@@ -2383,7 +2383,7 @@
 			});
 		},
 		applyOptions () {
-			// Clear the port input in the case the selected protocol does not support it
+			// Clear the port input when the selected protocol does not support it
 			if (this.get('disablePort')) {
 				this.set('notAppliedOpts.port', '');
 			}
@@ -2458,7 +2458,7 @@
 				});
 			});
 
-			// draw probes Clusers or clear the map from them
+			// draw probes Clusters or clear the map from them
 			this.observe('probesResponse', (probesResponse) => {
 				// when we run a new test probesResponse will be cleared ergo we should clear the map from the probesClusters
 				if (probesResponse === null) {
@@ -2788,7 +2788,7 @@
 						// should be after the mainOptions.type was set
 						this.set(`realTimeTestResResponse[${resNumber}]`, testResUpd);
 
-						// handle infinite test flow, once at least one probe is finished we shuld run measurement again
+						// handle infinite test flow, once at least one probe is finished we should run measurement again
 						if (this.get('shareResFlow') === false && isInfiniteMeas && testRes.results.some(r => r.result.status === 'finished')) {
 							let infiniteMeasIds = this.get('infiniteMeasIds');
 
