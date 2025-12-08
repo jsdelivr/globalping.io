@@ -1495,7 +1495,7 @@
 		},
 		{
 			cmd: '--restart=always \\',
-			comment: ' # Restart the container in case it crashes',
+			comment: ' # Restart the container when it crashes',
 		},
 		{
 			cmd: '--name globalping-probe globalping/globalping-probe',
@@ -1522,7 +1522,7 @@
 		},
 		{
 			cmd: '--restart=always \\',
-			comment: ' # Restart the container in case it crashes',
+			comment: ' # Restart the container when it crashes',
 		},
 		{
 			cmd: '--name globalping-probe globalping/globalping-probe',
@@ -2383,7 +2383,7 @@
 			});
 		},
 		applyOptions () {
-			// Clear the port input in the case the selected protocol does not support it
+			// Clear the port input when the selected protocol does not support it
 			if (this.get('disablePort')) {
 				this.set('notAppliedOpts.port', '');
 			}
