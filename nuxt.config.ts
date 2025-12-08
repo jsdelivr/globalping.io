@@ -33,6 +33,9 @@ export default defineNuxtConfig({
 			dashboardHost: serverConfig.dashboardHost,
 		},
 	},
+	dir: {
+		public: 'app/public/',
+	},
 	app: {
 		head: {
 			title: 'Globalping - Internet and web infrastructure monitoring and benchmarking',

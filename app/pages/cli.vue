@@ -11,10 +11,10 @@
 					All in your command line, simple to use and fully scriptable.
 				</p>
 				<a class="btn-secondary gap-2 px-4" href="https://github.com/jsdelivr/globalping-cli" target="_blank" rel="noreferrer">
-					<img class="size-5" src="~/assets/images/icons/github.small.svg" alt="GitHub"> GitHub
+					<img class="size-5" src="/nuxt_assets/icons/github.small.svg" alt="GitHub"> GitHub
 				</a>
 			</div>
-			<img class="pointer-events-none absolute inset-0 z-0 mx-auto h-full min-h-[656px] object-cover" src="~/assets/images/grid-2.svg" alt="">
+			<img class="pointer-events-none absolute inset-0 z-0 mx-auto h-full min-h-[656px] object-cover" src="/nuxt_assets/grid-2.svg" alt="">
 			<div class="absolute inset-x-0 bottom-0 h-[100px] w-full opacity-80 max-md:opacity-35">
 				<span class="absolute inset-x-0 bottom-0 mx-auto h-[120px] w-[600px] max-w-1/3 translate-x-1/2 translate-y-3/5 rounded-full bg-blue-500 blur-3xl max-md:translate-x-full"/>
 				<span class="bg-primary absolute inset-x-0 bottom-0 mx-auto h-[120px] w-[600px] max-w-1/3 translate-y-3/5 rounded-full blur-3xl"/>
@@ -79,7 +79,7 @@ Flags:
 Use "globalping [command] --help" for more information about a command.</pre>
 			</div>
 			<a class="btn-primary gap-2 px-4" href="https://github.com/jsdelivr/globalping-cli" target="_blank" rel="noreferrer">
-				<img class="size-5" src="~/assets/images/icons/github.small.svg" alt="GitHub">
+				<img class="size-5" src="/nuxt_assets/icons/github.small.svg" alt="GitHub">
 				Learn more on GitHub
 			</a>
 		</section>

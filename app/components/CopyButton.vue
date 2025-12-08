@@ -7,7 +7,7 @@
 			@click="copyCommand"
 			@mouseleave="hideCopiedTooltip"
 			@blur="hideCopiedTooltip">
-			<img class="mx-auto size-5" src="~/assets/images/icons/copy.svg" alt="">
+			<img class="mx-auto size-5" src="/nuxt_assets/icons/copy.svg" alt="">
 		</button>
 		<!-- This needs to match the v-tooltip styles. -->
 		<div v-if="copiedTooltip" role="tooltip" class="p-fadein absolute -top-9 left-1/2 -translate-x-1/2 px-0 py-1">
