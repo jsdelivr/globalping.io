@@ -2255,7 +2255,7 @@
 			// since packets field default value is present only for Ping and MTR type
 			if (type.toLowerCase() === 'ping' || type.toLowerCase() === 'mtr') {
 				reqParams.measurementOptions = {
-					// set default values in case if user did not set them manually
+					// default values used if user does not set them manually
 					packets: DEFAULT_PACKETS_AMOUNT,
 				};
 			} else {
