@@ -31,7 +31,7 @@ These pages use data from external APIs to display logos. If the required API ke
 the pages work, but the logos don't load. Set the following to work on those pages:
 
 1. `ipInfoToken` (`GLOBALPING_IP_INFO_TOKEN`) - [create an IPinfo account](https://ipinfo.io/signup) to get a token
-2. `logoDevPublicToken` (`GLOBALPING_LOGO_DEV_PUBLIC_TOKEN`) - get it for free [here](https://www.logo.dev/signup)
+2. `logoDevPublicToken` (`GLOBALPING_LOGO_DEV_PUBLIC_TOKEN`) - [create a logo.dev account](https://www.logo.dev/signup) to get a token
 
 ## Testing
 
