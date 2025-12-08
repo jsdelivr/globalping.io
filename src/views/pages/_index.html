@@ -2788,7 +2788,7 @@
 						// should be after the mainOptions.type was set
 						this.set(`realTimeTestResResponse[${resNumber}]`, testResUpd);
 
-						// handle infinite test flow, once at least one probe is finished we shuld run measurement again
+						// handle infinite test flow, once at least one probe is finished we should run measurement again
 						if (this.get('shareResFlow') === false && isInfiniteMeas && testRes.results.some(r => r.result.status === 'finished')) {
 							let infiniteMeasIds = this.get('infiniteMeasIds');
 
