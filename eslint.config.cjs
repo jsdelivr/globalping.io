@@ -36,7 +36,7 @@ module.exports = createConfigForNuxt().prepend(
 	},
 	// Nuxt rules
 	{
-		files: [ 'app/**' ],
+		files: [ 'app/**', '*.ts' ],
 		rules: {
 			'import/order': [ 'error', {
 				distinctGroup: false,

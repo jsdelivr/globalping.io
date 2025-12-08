@@ -57,14 +57,8 @@
 	}
 
 	onMounted(async () => {
-		// clear SSR'd components
-		headerInstance.value?.teardown?.();
-		footerInstance.value?.teardown?.();
-		footerHtml.value = '';
-		headerHtml.value = '';
-
-		footerInstance.value = new Footer({ target: footerEl.value });
-		headerInstance.value = new Header({ target: headerEl.value });
+		footerInstance.value = new Footer({ target: footerEl.value, enhance: true });
+		headerInstance.value = new Header({ target: headerEl.value, enhance: true });
 		headerInstance.value.set('@global.app.signIn', auth.signIn);
 		headerInstance.value.set('@global.app.signOut', auth.signOut);
 		headerInstance.value.set('additionalClasses', 'header-with-globalping-bg');
