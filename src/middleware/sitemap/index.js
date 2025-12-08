@@ -26,12 +26,12 @@ module.exports = async (ctx) => {
 	pages = [ ...pages, ...nuxtPages ];
 	let response = await probesPromise;
 	let probesStartIncl = 3;
-	let probesEndExcluded = Math.ceil(response.probes.length / 50000) + probesStartIncl;
+	let probesEndExclus = Math.ceil(response.probes.length / 50000) + probesStartIncl;
 	let page = Number(ctx.params.page);
 
 	if (ctx.params.page === 'index') {
-		ctx.body = siteMapIndexTemplate({ serverHost, maps: _.range(1, probesEndExcluded) });
-	} else if (page >= probesStartIncl && page < probesEndExcluded) {
+		ctx.body = siteMapIndexTemplate({ serverHost, maps: _.range(1, probesEndExclus) });
+	} else if (page >= probesStartIncl && page < probesEndExclus) {
 		ctx.body = siteMapTemplate({ probes: response.probes.slice((page - probesStartIncl) * 50000, (page - probesStartIncl + 1) * 50000) });
 	} else if (page === 2) {
 		ctx.body = siteMapTemplate({ networks: response.networks });
