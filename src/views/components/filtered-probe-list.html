@@ -47,20 +47,20 @@
 			</div>
 		</div>
 		<div class="gp-filtered-list_filters_quick">
-            <span class="gp-filtered-list_filters_quick_title">
-                <span>Quick Filters:</span>
-            </span>
+			<span class="gp-filtered-list_filters_quick_title">
+				<span>Quick Filters:</span>
+			</span>
 
 			<div class="gp-filtered-list_filters_quick_list">
 				{{#each filtersSet}}
 					<span class="gp-filtered-list_filters_quick_list_selected">
-                        {{this.name}}
-                        <button data-testid="quick-filter-{{this.name}}" on-click="@this.rmFilterRule(@key)"
-                            type="button"
-                            class="gp-filtered-list_filters_quick_list_selected_remove">
-                            <img width="16" height="16" src="{{@shared.assetsHost}}/img/tag-input-close-icon.svg">
-                        </button>
-                    </span>
+						{{this.name}}
+						<button data-testid="quick-filter-{{this.name}}" on-click="@this.rmFilterRule(@key)"
+							type="button"
+							class="gp-filtered-list_filters_quick_list_selected_remove">
+							<img width="16" height="16" src="{{@shared.assetsHost}}/img/tag-input-close-icon.svg">
+						</button>
+					</span>
 				{{/each}}
 
 				{{#each availableFilters}}
@@ -142,43 +142,43 @@
 									data-testid="probe-column-group">
 									{{#if continentGroup.title}}
 										<span class="gp-filtered-list_list_column_group_item cont-header" id="probe-group-{{continentGroup.title}}">
-                                            {{@this.getContinentName(continentGroup.title)}}
-                                        </span>
+											{{@this.getContinentName(continentGroup.title)}}
+										</span>
 									{{/if}}
 
 									{{#each continentGroup.items as item}}
 										<span class="gp-filtered-list_list_column_group_item">
-                                            {{#if item.showFlag}}
-                                                <span class="gp-filtered-list_list_column_group_item_img">
-                                                    <img width="17"
-                                                         height="12"
-                                                         src="https://cdn.jsdelivr.net/npm/country-flag-icons@1.5.5/3x2/{{item.location.split(', ')[0]}}.svg">
-                                                </span>
-                                            {{/if}}
+											{{#if item.showFlag}}
+												<span class="gp-filtered-list_list_column_group_item_img">
+													<img width="17"
+														height="12"
+														src="https://cdn.jsdelivr.net/npm/country-flag-icons@1.5.5/3x2/{{item.location.split(', ')[0]}}.svg">
+												</span>
+											{{/if}}
 
-                                            <span class="gp-filtered-list_list_column_group_item_location">
-                                                <a href="/?location={{encodeURIComponent(item.from)}}">{{item.name}}</a>
+											<span class="gp-filtered-list_list_column_group_item_location">
+												<a href="/?location={{encodeURIComponent(item.from)}}">{{item.name}}</a>
 
-                                                {{#if (groupBy !== 'city-network' && groupBy !== 'country-network') && item.probes.length !== 1}}
-                                                    <span>(x{{item.probes.length}})</span>
-                                                {{/if}}
-                                            </span>
+												{{#if (groupBy !== 'city-network' && groupBy !== 'country-network') && item.probes.length !== 1}}
+													<span>(x{{item.probes.length}})</span>
+												{{/if}}
+											</span>
 
-                                            {{#if item.networks && item.networks.length}}
-                                                <div class="gp-filtered-list_list_column_group_item_networks">
-                                                    {{#each item.networks}}
-                                                        <a href="/?location={{encodeURIComponent(`${item.from}%${this.name}`)}}">
-                                                            <span class="gp-filtered-list_list_column_group_item_network">
-                                                                {{this.name}}
-                                                                {{#if this.count !== 1}}
-                                                                    <span class="gp-filtered-list_list_column_group_item_network_count">(x{{this.count}})</span>
-                                                                {{/if}}
-                                                            </span>
-                                                        </a>
-                                                    {{/each}}
-                                                </div>
-                                            {{/if}}
-                                        </span>
+											{{#if item.networks && item.networks.length}}
+												<div class="gp-filtered-list_list_column_group_item_networks">
+													{{#each item.networks}}
+														<a href="/?location={{encodeURIComponent(`${item.from}%${this.name}`)}}">
+															<span class="gp-filtered-list_list_column_group_item_network">
+																{{this.name}}
+																{{#if this.count !== 1}}
+																	<span class="gp-filtered-list_list_column_group_item_network_count">(x{{this.count}})</span>
+																{{/if}}
+															</span>
+														</a>
+													{{/each}}
+												</div>
+											{{/if}}
+										</span>
 									{{/each}}
 								</div>
 							{{/each}}
