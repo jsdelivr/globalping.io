@@ -157,7 +157,7 @@
 											{{/if}}
 
 											<span class="gp-filtered-list_list_column_group_item_location">
-												<a href="/?location={{encodeURIComponent(item.from)}}">{{item.name}}</a>
+												<a href="/?location={{encodeURIComponent(item.from)}}" rel="nofollow">{{item.name}}</a>
 
 												{{#if (groupBy !== 'city-network' && groupBy !== 'country-network') && item.probes.length !== 1}}
 													<span>(x{{item.probes.length}})</span>
@@ -167,7 +167,7 @@
 											{{#if item.networks && item.networks.length}}
 												<div class="gp-filtered-list_list_column_group_item_networks">
 													{{#each item.networks}}
-														<a href="/?location={{encodeURIComponent(`${item.from}%${this.name}`)}}">
+														<a href="/?location={{encodeURIComponent(`${item.from}%${this.name}`)}}" rel="nofollow">
 															<span class="gp-filtered-list_list_column_group_item_network">
 																{{this.name}}
 																{{#if this.count !== 1}}
