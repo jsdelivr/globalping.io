@@ -499,7 +499,7 @@
 			return data.reduce((res, probe) => {
 				let { location } = probe;
 				let { latitude, longitude, ...locationInfo } = extractLocationInfo(location);
-				let networkNameAsKey = location.network.replace(/\./g, '').replace(/[\W]|_/g, ' ').replace(/\s\s+|_/g, ' ').trim().split(' ').join('-').toLowerCase();
+				let networkNameAsKey = _.networkNameToKey(location.network);
 				let coords = `${latitude}, ${longitude}`;
 				let locationKey = `${location.country}, ${location.city}`;
 

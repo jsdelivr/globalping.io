@@ -1,5 +1,6 @@
 const got = require('../../lib/got');
 const asnToDomain = require('../../lib/asn-to-domain');
+const { networkNameToKey } = require('../../assets/js/_');
 
 const GLOBALPING_API_HOST = 'https://api.globalping.io';
 const MEASUREMENT_TYPES = [ 'ping', 'traceroute', 'mtr', 'dns', 'http' ];
@@ -135,8 +136,6 @@ let networkData = Object.create(null);
 let lastNetworkDataRefresh = -1;
 const NETWORK_DATA_TTL = 1000 * 60 * 60;
 
-const networkNameAsKey = network => network.replace(/\./g, '').replace(/[\W]|_/g, ' ').replace(/\s\s+|_/g, ' ').trim().split(' ').join('-').toLowerCase();
-
 const fetchNetworkData = async () => {
 	let probesData;
 
@@ -153,7 +152,7 @@ const fetchNetworkData = async () => {
 	}
 
 	let aggregateNetworkData = probesData.reduce((res, { location }) => {
-		let networkKey = networkNameAsKey(location.network);
+		let networkKey = networkNameToKey(location.network);
 
 		if (!res[networkKey]) {
 			res[networkKey] = {

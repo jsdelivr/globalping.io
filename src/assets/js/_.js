@@ -673,4 +673,8 @@ module.exports = {
 		link.href = href;
 		document.head.appendChild(link);
 	},
+
+	networkNameToKey (network) {
+		return network.replace(/\./g, '').replace(/[\W]|_/g, ' ').replace(/\s\s+|_/g, ' ').trim().split(' ').join('-').toLowerCase();
+	},
 };
