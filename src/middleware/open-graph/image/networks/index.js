@@ -33,10 +33,15 @@ const fetchNetworkLogo = async (domain) => {
 		return null;
 	}
 
-	let logoUrl = `https://img.jsdelivr.com/img.logo.dev/${domain}?token=${logoDevPublicToken}`;
+	let logoUrl = `https://img.jsdelivr.com/img.logo.dev/${encodeURIComponent(domain)}`;
 
 	try {
-		let response = await got(logoUrl, { responseType: 'buffer' });
+		let response = await got(logoUrl, {
+			responseType: 'buffer',
+			searchParams: {
+				token: logoDevPublicToken,
+			},
+		});
 
 		let buffer = response.body;
 		let contentType = response.headers['content-type'] || 'image/png';
