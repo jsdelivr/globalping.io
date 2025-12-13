@@ -11,15 +11,15 @@
                     <tspan x="{{logo ? 204 : 88}}" y="{{logo ? 156 : 138}}">{{networkName}}</tspan>
                 </text>
                 {{#each subheaderFields}}
-                    <g transform="translate(0,{{logo ? 0 : -36}})">
-                        <rect x="{{ this.shift }}" y="204" width="{{ this.width }}" height="52" rx="15.5" stroke="#E7E7EE" fill="#fff"/>
+                    <g transform="translate(0,{{logo ? 0 : -32}})">
+                        <rect x="{{ this.shift }}" y="198" width="{{ this.width }}" height="52" rx="15.5" stroke="#E7E7EE" fill="#fff"/>
                         {{#if this.name === 'probes'}}
-                            <g transform="translate({{ this.shift + 16}},210)">
+                            <g transform="translate({{ this.shift + 16}},204)">
                                 <path d="M19.9998 23.3332C21.8408 23.3332 23.3332 21.8408 23.3332 19.9998C23.3332 18.1589 21.8408 16.6665 19.9998 16.6665C18.1589 16.6665 16.6665 18.1589 16.6665 19.9998C16.6665 21.8408 18.1589 23.3332 19.9998 23.3332Z" stroke="#17233A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                                 <path d="M27.0667 12.9335C27.9965 13.8622 28.734 14.9651 29.2373 16.1791C29.7405 17.393 29.9996 18.6943 29.9996 20.0085C29.9996 21.3226 29.7405 22.6239 29.2373 23.8379C28.734 25.0518 27.9965 26.1547 27.0667 27.0835M12.9334 27.0668C12.0036 26.1381 11.266 25.0352 10.7628 23.8212C10.2595 22.6072 10.0005 21.306 10.0005 19.9918C10.0005 18.6776 10.2595 17.3764 10.7628 16.1624C11.266 14.9484 12.0036 13.8455 12.9334 12.9168M31.7834 8.2168C34.9079 11.3423 36.6631 15.5807 36.6631 20.0001C36.6631 24.4195 34.9079 28.658 31.7834 31.7835M8.21669 31.7835C5.09217 28.658 3.33691 24.4195 3.33691 20.0001C3.33691 15.5807 5.09217 11.3423 8.21669 8.2168" stroke="#17233A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                             </g>
                         {{elseif this.name === 'cities'}}
-                            <g transform="translate({{this.shift + 16}},210)">
+                            <g transform="translate({{this.shift + 16}},204)">
                                 <path d="M24.7923 24.4102H12.3198V32.0002H24.7923V24.4102Z" stroke="#17233A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                                 <path d="M20.2923 32H7.81982V8H20.2923V24.455" stroke="#17233A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                                 <path d="M32.18 16.5127H24.7925V32.0002H32.18V16.5127Z" stroke="#17233A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -34,7 +34,7 @@
                                 <path d="M32 25H28V26H32V25Z" stroke="#17233A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                             </g>
                         {{else}}
-                            <g transform="translate({{this.shift + 16}},210)">
+                            <g transform="translate({{this.shift + 16}},204)">
                                 <path d="M20.2321 30.8827C26.2424 30.8827 31.1146 26.0104 31.1146 20.0002C31.1146 13.9899 26.2424 9.11768 20.2321 9.11768C14.2219 9.11768 9.34961 13.9899 9.34961 20.0002C9.34961 26.0104 14.2219 30.8827 20.2321 30.8827Z" stroke="#17233A" stroke-width="2" stroke-miterlimit="10"/>
                                 <path d="M20.2325 30.8827C22.8462 30.8827 24.965 26.0104 24.965 20.0002C24.965 13.9899 22.8462 9.11768 20.2325 9.11768C17.6188 9.11768 15.5 13.9899 15.5 20.0002C15.5 26.0104 17.6188 30.8827 20.2325 30.8827Z" stroke="#17233A" stroke-width="2" stroke-miterlimit="10"/>
                                 <path d="M10.0024 16.2798H30.1699" stroke="#17233A" stroke-width="2" stroke-miterlimit="10"/>
@@ -46,8 +46,8 @@
                                 <path d="M10.0023 17.3976C10.6194 17.3976 11.1198 16.8973 11.1198 16.2801C11.1198 15.6629 10.6194 15.1626 10.0023 15.1626C9.38509 15.1626 8.88477 15.6629 8.88477 16.2801C8.88477 16.8973 9.38509 17.3976 10.0023 17.3976Z" stroke="#17233A" stroke-width="2" stroke-miterlimit="10"/>
                             </g>
                         {{/if}}
-                        <text fill="#17233B" xml:space="preserve" style="white-space: pre" font-family="Lexend" font-size="32" font-weight="600" letter-spacing="0.2px"><tspan x="{{this.shift + 68}}" y="240">{{this.count}}</tspan></text>
-                        <text fill="#17233B" xml:space="preserve" style="white-space: pre" font-family="Lexend" font-size="32" font-weight="400" letter-spacing="0.2px"><tspan x="{{this.shift + 68 + this.countWidth + 12}}" y="240">{{this.title}}</tspan></text>
+                        <text fill="#17233B" xml:space="preserve" style="white-space: pre" font-family="Lexend" font-size="32" font-weight="600" letter-spacing="0.2px"><tspan x="{{this.shift + 68}}" y="234">{{this.count}}</tspan></text>
+                        <text fill="#17233B" xml:space="preserve" style="white-space: pre" font-family="Lexend" font-size="32" font-weight="400" letter-spacing="0.2px"><tspan x="{{this.shift + 68 + this.countWidth + 12}}" y="234">{{this.title}}</tspan></text>
                     </g>
                 {{/each}}
             </g>
