@@ -91,7 +91,7 @@ koaElasticUtils.addRoutes(router, [
 ], ogImage);
 
 koaElasticUtils.addRoutes(router, [
-	[ '/open-graph/image/networks/:id' ],
+	[ '/open-graph/image/networks/:id', '/open-graph/image/networks/:id' ],
 ], ogImage.networkSocialImage);
 
 /**
