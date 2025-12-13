@@ -36,7 +36,7 @@ const fetchNetworkLogo = async (domain) => {
 	let logoUrl = `https://img.jsdelivr.com/img.logo.dev/${encodeURIComponent(domain)}`;
 
 	try {
-		let response = await got(logoUrl, {
+		let response = await got.get(logoUrl, {
 			responseType: 'buffer',
 			searchParams: {
 				token: logoDevPublicToken,
