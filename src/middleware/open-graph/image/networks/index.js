@@ -1,6 +1,6 @@
 const fs = require('node:fs');
 const config = require('config');
-const got = require('got');
+const got = require('../../../../lib/got');
 const path = require('node:path');
 
 const continents = require('../../../../assets/json/continents.json');
