@@ -134,7 +134,10 @@ module.exports.getStatusCodes = (array) => {
 
 let networkData = Object.create(null);
 let lastNetworkDataRefresh = -1;
+
+let lastFetchSucceeded = false;
 const NETWORK_DATA_TTL = 1000 * 60 * 60;
+const SHORT_NETWORK_DATA_TTL = 1000 * 60;
 
 const fetchNetworkData = async () => {
 	let probesData;
@@ -147,6 +150,8 @@ const fetchNetworkData = async () => {
 	}
 
 	if (!Array.isArray(probesData)) {
+		lastFetchSucceeded = false;
+		networkData = Object.create(null);
 		lastNetworkDataRefresh = Date.now();
 		return;
 	}
@@ -195,6 +200,7 @@ const fetchNetworkData = async () => {
 	}, Object.create(null));
 
 	lastNetworkDataRefresh = Date.now();
+	lastFetchSucceeded = true;
 };
 
 let refreshPromise = null;
@@ -214,8 +220,9 @@ module.exports.getNetworkStats = async (networkKey) => {
 	}
 
 	let statsForNetwork = networkData[networkKey];
+	let ttl = lastFetchSucceeded ? NETWORK_DATA_TTL : SHORT_NETWORK_DATA_TTL;
 
-	if (Date.now() - lastNetworkDataRefresh > NETWORK_DATA_TTL) {
+	if (Date.now() - lastNetworkDataRefresh > ttl) {
 		refreshNetworkData(); // do not await, revalidate in the background
 	}
 
