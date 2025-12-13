@@ -49,14 +49,17 @@ const fetchNetworkLogo = async (domain) => {
 };
 
 const getNetworkLogo = async (networkStats) => {
+	let fetchedThisCall = false;
+
 	if (!networkStats.logoPromise) {
+		fetchedThisCall = true;
 		networkStats.logoPromise = fetchNetworkLogo(networkStats.domain);
 	}
 
 	let logo = await networkStats.logoPromise;
 
 	// revalidate
-	if (!logo) {
+	if (!logo && !fetchedThisCall) {
 		networkStats.logoPromise = fetchNetworkLogo(networkStats.domain);
 		logo = await networkStats.logoPromise;
 	}
