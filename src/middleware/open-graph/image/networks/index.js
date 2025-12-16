@@ -54,22 +54,13 @@ const fetchNetworkLogo = async (domain) => {
 };
 
 const getNetworkLogo = async (networkStats) => {
-	let fetchedThisCall = false;
+	let maybeLogo = await networkStats.logoPromise;
 
-	if (!networkStats.logoPromise) {
-		fetchedThisCall = true;
-		networkStats.logoPromise = fetchNetworkLogo(networkStats.domain);
+	if (maybeLogo) {
+		return maybeLogo;
 	}
 
-	let logo = await networkStats.logoPromise;
-
-	// revalidate
-	if (!logo && !fetchedThisCall) {
-		networkStats.logoPromise = fetchNetworkLogo(networkStats.domain);
-		logo = await networkStats.logoPromise;
-	}
-
-	return logo;
+	return networkStats.logoPromise = fetchNetworkLogo(networkStats.domain);
 };
 
 const getNetworkFieldParams = (fieldCount, fieldTitle, fieldTitlePlural, shift = 88) => {
