@@ -5,6 +5,7 @@ const globalpingSitemap = require('../middleware/sitemap');
 const ogImage = require('../middleware/open-graph/image');
 const ogMetadata = require('../middleware/open-graph');
 const asnDomains = require('../lib/asn-to-domain');
+const { getUsers, getNetworks } = require('../lib/probe-data');
 
 const router = new KoaRouter();
 
@@ -45,7 +46,7 @@ koaElasticUtils.addRoutes(router, [
 koaElasticUtils.addRoutes(router, [
 	[ 'users', '/users/:username' ],
 ], async (ctx) => {
-	let users = await globalpingSitemap.getUsers();
+	let users = await getUsers();
 	let username = users.find(user => user.toLowerCase() === ctx.params.username.toLowerCase());
 
 	if (!username) {
@@ -151,7 +152,7 @@ koaElasticUtils.addRoutes(router, [
 ], async (ctx) => {
 	let { name = '' } = ctx.params;
 
-	let networks = await globalpingSitemap.getNetworks();
+	let networks = await getNetworks();
 	let networkName = networks.find(network => network.toLowerCase() === name.toLowerCase());
 
 	if (!networkName) {
