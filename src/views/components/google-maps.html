@@ -487,7 +487,7 @@
 
 			if (shouldSnapToSelected) {
 				let position = {
-					lat: _.clamp(selectedLocation.coords[0].latitude, -15, 35),
+					lat: _.clamp(selectedLocation.coords[0].latitude, 15, 35),
 					lng: selectedLocation.coords[0].longitude,
 				};
 				map.setCenter(position);
