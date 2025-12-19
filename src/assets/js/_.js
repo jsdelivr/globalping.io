@@ -673,4 +673,8 @@ module.exports = {
 		link.href = href;
 		document.head.appendChild(link);
 	},
+
+	clamp (num, min, max) {
+		return Math.min(Math.max(num, min), max);
+	},
 };
