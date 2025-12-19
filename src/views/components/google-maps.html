@@ -479,8 +479,8 @@
 				let boundsHeightPx = Math.abs(neY - swY) * Math.pow(2, minZoom);
 				let mapHeightPx = mapDiv.offsetHeight;
 
-				// check overflow (with 10% safety margin)
-				if (boundsSpanLng > (visibleSpanLng * 0.9) || boundsHeightPx > (mapHeightPx * 0.9)) {
+				// check overflow
+				if (boundsSpanLng > visibleSpanLng || boundsHeightPx > mapHeightPx) {
 					shouldSnapToSelected = true;
 				}
 			}
