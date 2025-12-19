@@ -424,7 +424,7 @@
 		focusMapOnMarkers (markersData) {
 			let locationStrings = Object.keys(markersData);
 			let selectedLocation = this.get('selectedLocation');
-			let minZoom = this.get('mapMinZoom') ?? MAP_MIN_ZOOM;
+			let minZoom = this.get('mapMinZoom');
 
 			if (locationStrings.length === 0) {
 				return;
@@ -447,7 +447,6 @@
 			// https://wiki.openstreetmap.org/wiki/Slippy_map_tilenames
 			// https://en.wikipedia.org/wiki/Web_Mercator_projection
 			if (selectedLocation && mapDiv && mapDiv.offsetWidth > 0) {
-				let minZoom = this.get('mapMinZoom');
 				let ne = bounds.getNorthEast();
 				let sw = bounds.getSouthWest();
 
