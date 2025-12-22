@@ -27,11 +27,9 @@ Configuration for IntelliJ based IDEs is also available in this repository. If y
 
 ### Network (ISP) pages
 
-These pages use data from external APIs to display logos. If the required API keys are not set,
-the pages work, but the logos don't load. Set the following to work on those pages:
+These pages use data from an external API to display logos. If the required API key is not set, the pages will work, but the logos will not load.
 
-1. `ipInfoToken` (`GLOBALPING_IP_INFO_TOKEN`) - [create an IPinfo account](https://ipinfo.io/signup) to get a token
-2. `logoDevPublicToken` (`GLOBALPING_LOGO_DEV_PUBLIC_TOKEN`) - [create a logo.dev account](https://www.logo.dev/signup) to get a token
+To enable logos, set `logoDevPublicToken` (`GLOBALPING_LOGO_DEV_PUBLIC_TOKEN`). You can [create a logo.dev account](https://www.logo.dev/signup) to obtain a token.
 
 ## Testing
 
@@ -52,4 +50,4 @@ module.exports = {
 };
 ```
 
-Additionally, `ELASTIC_APM_SERVER_URL`, `ELASTIC_APM_SECRET_TOKEN`, `ELASTIC_SEARCH_URL` (including user + pass), `NODE_ENV=production`, `GLOBALPING_IP_INFO_TOKEN` and `GLOBALPING_LOGO_DEV_PUBLIC_TOKEN` should be set.
+Additionally, `ELASTIC_APM_SERVER_URL`, `ELASTIC_APM_SECRET_TOKEN`, `ELASTIC_SEARCH_URL` (including user + pass), `NODE_ENV=production`, and `GLOBALPING_LOGO_DEV_PUBLIC_TOKEN` should be set.
