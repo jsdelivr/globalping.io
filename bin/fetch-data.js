@@ -5,7 +5,6 @@ const zlib = require('zlib');
 const parse = require('csv-parse');
 const fs = require('fs');
 const path = require('path');
-const config = require('config');
 const { pipeline } = require('node:stream/promises');
 
 const ASN_COLUMN_NUM = 5;
@@ -52,14 +51,7 @@ async function fetchAndSaveAsnDomainMap (url) {
 }
 
 async function main () {
-	let IP_INFO_TOKEN = config.get('ipInfoToken');
-
-	if (!IP_INFO_TOKEN) {
-		console.error('IP_INFO_TOKEN environment variable is required');
-		return 0;
-	}
-
-	let url = `https://ipinfo.io/data/ipinfo_lite.csv.gz?token=${IP_INFO_TOKEN}`;
+	let url = `https://geodb.jsdelivr.com/download`;
 
 	try {
 		await fetchAndSaveAsnDomainMap(url);
