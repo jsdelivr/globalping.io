@@ -7,6 +7,8 @@ const path = require('path');
 const sharp = require('sharp');
 
 const { fetchGlobalpingStats, validateMeasurementData } = require('../utils');
+const createNetworkOgImage = require('./networks');
+const { getNetworkStatistics } = require('../../../lib/probe-data');
 
 const gpGenerators = {
 	dns: require('./measurements/dns'),
@@ -48,4 +50,25 @@ module.exports = async (ctx) => {
 
 		throw error;
 	}
+};
+
+const getStatsForNetwork = async (network) => {
+	let allNetworkStatistics = await getNetworkStatistics();
+	return allNetworkStatistics?.[network];
+};
+
+module.exports.networkSocialImage = async (ctx) => {
+	let networkStats = ctx.params.id && await getStatsForNetwork(ctx.params.id);
+
+	if (!networkStats) {
+		ctx.body = globalpingOG;
+		ctx.type = 'image/png';
+		ctx.maxAge = 60;
+		return;
+	}
+
+	let svg = await createNetworkOgImage(ctx, networkStats);
+	ctx.body = await render(svg);
+	ctx.type = 'image/png';
+	ctx.maxAge = 24 * 60 * 60;
 };

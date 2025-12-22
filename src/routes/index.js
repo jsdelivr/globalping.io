@@ -1,18 +1,11 @@
-const fs = require('node:fs');
 const KoaRouter = require('koa-router');
 const koaElasticUtils = require('elastic-apm-utils').koa;
 
 const globalpingSitemap = require('../middleware/sitemap');
 const ogImage = require('../middleware/open-graph/image');
 const ogMetadata = require('../middleware/open-graph');
-
-let asnDomains = null;
-
-try {
-	asnDomains = JSON.parse(fs.readFileSync(__dirname + '/../../data/asn-domain.json', 'utf8'));
-} catch {
-	console.error('ASN to domain name data not downloaded.');
-}
+const asnDomains = require('../lib/asn-to-domain');
+const { getUsers, getNetworks } = require('../lib/probe-data');
 
 const router = new KoaRouter();
 
@@ -53,7 +46,7 @@ koaElasticUtils.addRoutes(router, [
 koaElasticUtils.addRoutes(router, [
 	[ 'users', '/users/:username' ],
 ], async (ctx) => {
-	let users = await globalpingSitemap.getUsers();
+	let users = await getUsers();
 	let username = users.find(user => user.toLowerCase() === ctx.params.username.toLowerCase());
 
 	if (!username) {
@@ -97,6 +90,10 @@ koaElasticUtils.addRoutes(router, [
 koaElasticUtils.addRoutes(router, [
 	[ '/open-graph/image/measurement/:id', '/open-graph/image/measurement/:id' ],
 ], ogImage);
+
+koaElasticUtils.addRoutes(router, [
+	[ '/open-graph/image/networks/:id', '/open-graph/image/networks/:id' ],
+], ogImage.networkSocialImage);
 
 /**
  * Network tools pages.
@@ -155,7 +152,7 @@ koaElasticUtils.addRoutes(router, [
 ], async (ctx) => {
 	let { name = '' } = ctx.params;
 
-	let networks = await globalpingSitemap.getNetworks();
+	let networks = await getNetworks();
 	let networkName = networks.find(network => network.toLowerCase() === name.toLowerCase());
 
 	if (!networkName) {

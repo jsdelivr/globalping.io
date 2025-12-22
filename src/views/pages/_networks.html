@@ -6,7 +6,12 @@
 <link rel="ractive" href="../components/controlled-input.html" name="c-controlled-input">
 <link rel="ractive" href="../components/show-more-link-list.html" name="c-show-more-link-list">
 
-<r-page noYield="{{noYield}}" title="{{title}}" description="{{description}}">
+<r-page
+	noYield="{{noYield}}"
+	title="{{title}}"
+	description="{{description}}"
+	openGraphImage="{{@shared.serverHost}}/open-graph/image/networks/{{networkName}}"
+>
 	<c-notification></c-notification>
 
 	<c-gp-header additionalClasses="header-with-globalping-bg"></c-gp-header>
@@ -494,7 +499,7 @@
 			return data.reduce((res, probe) => {
 				let { location } = probe;
 				let { latitude, longitude, ...locationInfo } = extractLocationInfo(location);
-				let networkNameAsKey = location.network.replace(/\./g, '').replace(/[\W]|_/g, ' ').replace(/\s\s+|_/g, ' ').trim().split(' ').join('-').toLowerCase();
+				let networkNameAsKey = _.networkNameToKey(location.network);
 				let coords = `${latitude}, ${longitude}`;
 				let locationKey = `${location.country}, ${location.city}`;
 
