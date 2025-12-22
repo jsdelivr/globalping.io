@@ -677,4 +677,8 @@ module.exports = {
 	networkNameToKey (network) {
 		return network.replace(/\./g, '').replace(/[\W]|_/g, ' ').replace(/\s\s+|_/g, ' ').trim().split(' ').join('-').toLowerCase();
 	},
+
+	clamp (num, min, max) {
+		return Math.min(Math.max(num, min), max);
+	},
 };

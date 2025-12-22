@@ -27,6 +27,7 @@
 
 <script>
 	/* global markerClusterer */
+	const _ = require('../../assets/js/_');
 	const MAP_MIN_ZOOM = 2;
 	const MAP_MAX_ZOOM = 22;
 	const MAP_ZOOM_REG = 3.74;
@@ -422,30 +423,85 @@
 		},
 		focusMapOnMarkers (markersData) {
 			let locationStrings = Object.keys(markersData);
+			let selectedLocation = this.get('selectedLocation');
+			let minZoom = this.get('mapMinZoom');
 
 			if (locationStrings.length === 0) {
 				return;
 			}
 
-			let positions = locationStrings.map((str) => {
-				let [ lat, lng ] = str.split(', ');
-
-				return { lat: Number(lat), lng: Number(lng) };
-			});
-
+			// first, create the map bounds
 			let bounds = new google.maps.LatLngBounds();
 
-			positions.forEach(position => bounds.extend(position));
-
-			// temp limit for zooming
-			map.setOptions({ maxZoom: 6 });
-
-			map.fitBounds(bounds);
-
-			google.maps.event.addListenerOnce(map, 'idle', () => {
-				// restore zooming to initial
-				map.setOptions({ maxZoom: MAP_MAX_ZOOM });
+			locationStrings.forEach((str) => {
+				let [ lat, lng ] = str.split(', ');
+				bounds.extend({ lat: Number(lat), lng: Number(lng) });
 			});
+
+			let shouldSnapToSelected = false;
+			let mapDiv = map.getDiv();
+
+			// if there is a selected location, check whether we can fit all markers on the map
+			// if not, snap the map to the selected location with min zoom
+			// otherwise we cannot guarantee that the selected location will be visible
+			// https://wiki.openstreetmap.org/wiki/Slippy_map_tilenames
+			// https://en.wikipedia.org/wiki/Web_Mercator_projection
+			if (selectedLocation && mapDiv && mapDiv.offsetWidth > 0) {
+				let ne = bounds.getNorthEast();
+				let sw = bounds.getSouthWest();
+
+				// --- find lng span (in deg) ---
+				let boundsSpanLng = ne.lng() - sw.lng();
+
+				if (boundsSpanLng < 0) {
+					boundsSpanLng += 360;
+				}
+
+				// calculate the visible longitude span at MinZoom (Zoom 2)
+				// formula: (map width / tile size) * (360 degrees / 2^zoom)
+				let degreesPerTile = 360 / Math.pow(2, minZoom);
+				let visibleSpanLng = (mapDiv.offsetWidth / 256) * degreesPerTile;
+
+				// --- find lat span (in px -- cannot rely on degrees because of projection distortion) ---
+				let latToWorldY = (lat) => {
+					let sin = Math.sin(lat * Math.PI / 180);
+					// clip to prevent infinity at the poles
+					sin = Math.max(Math.min(sin, 0.9999), -0.9999);
+					let latPosRadians = 0.5 * Math.log((1 + sin) / (1 - sin)); // = log(tan(lat/2))
+					let scaler = 256 / (2 * Math.PI);
+					return 128 + 0.5 * latPosRadians * scaler;	// scale and center
+				};
+
+				let neY = latToWorldY(ne.lat());
+				let swY = latToWorldY(sw.lat());
+
+				// calculate height in pixels at the current minZoom
+				let boundsHeightPx = Math.abs(neY - swY) * Math.pow(2, minZoom);
+				let mapHeightPx = mapDiv.offsetHeight;
+
+				// check overflow
+				if (boundsSpanLng > visibleSpanLng || boundsHeightPx > mapHeightPx) {
+					shouldSnapToSelected = true;
+				}
+			}
+
+			if (shouldSnapToSelected) {
+				let position = {
+					lat: _.clamp(selectedLocation.coords[0].latitude, 15, 35),
+					lng: selectedLocation.coords[0].longitude,
+				};
+				map.setCenter(position);
+				map.setZoom(minZoom);
+			} else {
+				// temp limit for zooming
+				map.setOptions({ maxZoom: 6 });
+				map.fitBounds(bounds);
+
+				google.maps.event.addListenerOnce(map, 'idle', () => {
+					// restore zooming to initial
+					map.setOptions({ maxZoom: MAP_MAX_ZOOM });
+				});
+			}
 		},
 	};
 </script>
