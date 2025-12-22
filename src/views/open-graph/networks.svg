@@ -12,7 +12,7 @@
                 </text>
                 {{#each subheaderFields}}
                     <g transform="translate(0,{{logo ? 0 : -32}})">
-                        <rect x="{{ this.shift }}" y="198" width="{{ this.width }}" height="52" rx="15.5" stroke="#E7E7EE" stroke-width="2" fill="#fff"/>
+                        <rect x="{{ this.shift }}" y="198" width="{{ this.width }}" height="52" rx="15.5" stroke="#E7E7EE" fill="#fff"/>
                         {{#if this.name === 'probes'}}
                             <g transform="translate({{ this.shift + 16}},204)">
                                 <path d="M19.9998 23.3332C21.8408 23.3332 23.3332 21.8408 23.3332 19.9998C23.3332 18.1589 21.8408 16.6665 19.9998 16.6665C18.1589 16.6665 16.6665 18.1589 16.6665 19.9998C16.6665 21.8408 18.1589 23.3332 19.9998 23.3332Z" stroke="#17233A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -57,7 +57,7 @@
             <g>
                 {{#each continentsFirstRow}}
                     <g transform="translate({{this.shift}},0)">
-                        <rect x="0" y="451" width="{{ this.width }}" height="60" rx="15.5" stroke="#E7E7EE" stroke-width="2" fill="#fff"/>
+                        <rect x="0" y="451" width="{{ this.width }}" height="60" rx="15.5" stroke="#E7E7EE" fill="#fff"/>
                         <text fill="#17233B" xml:space="preserve" style="white-space: pre" font-family="Lexend" font-size="32" font-weight="600" letter-spacing="0.2"><tspan x="16" y="491">{{this.name}}</tspan></text>
                         <text fill="#9B9BA6" xml:space="preserve" style="white-space: pre" font-family="Lexend" font-size="32" font-weight="400" letter-spacing="-0.6"><tspan x="{{26 + this.textWidth}}" y="491">({{this.count}})</tspan></text>
                     </g>
@@ -66,7 +66,7 @@
             <g>
                 {{#each continentsSecondRow}}
                     <g transform="translate({{this.shift}},76)">
-                        <rect x="0" y="451" width="{{ this.width }}" height="60" rx="15.5" stroke="#E7E7EE" stroke-width="2" fill="#fff"/>
+                        <rect x="0" y="451" width="{{ this.width }}" height="60" rx="15.5" stroke="#E7E7EE" fill="#fff"/>
                         <text fill="#17233B" xml:space="preserve" style="white-space: pre" font-family="Lexend" font-size="32" font-weight="600" letter-spacing="0.2"><tspan x="16" y="491">{{this.name}}</tspan></text>
                         <text fill="#9B9BA6" xml:space="preserve" style="white-space: pre" font-family="Lexend" font-size="32" font-weight="400" letter-spacing="-0.6"><tspan x="{{26 + this.textWidth}}" y="491">({{this.count}})</tspan></text>
                     </g>
