@@ -50,4 +50,4 @@ module.exports = {
 };
 ```
 
-Additionally, `ELASTIC_APM_SERVER_URL`, `ELASTIC_APM_SECRET_TOKEN`, `ELASTIC_SEARCH_URL` (including user + pass), `NODE_ENV=production`, `GLOBALPING_IP_INFO_TOKEN` and `GLOBALPING_LOGO_DEV_PUBLIC_TOKEN` should be set.
+Additionally, `ELASTIC_APM_SERVER_URL`, `ELASTIC_APM_SECRET_TOKEN`, `ELASTIC_SEARCH_URL` (including user + pass), `NODE_ENV=production`, and `GLOBALPING_LOGO_DEV_PUBLIC_TOKEN` should be set.
