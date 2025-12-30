@@ -31,10 +31,19 @@
 
 		&_errorMsg {
 			position: absolute;
-			bottom: -16px;
+			top: calc(100% + 4px);
 			left: 0;
 			white-space: nowrap;
 			color: #e64f3d;
+
+			.c-controlled-input:not(.allow-error-overflow) & {
+				overflow: hidden;
+				white-space: normal;
+				display: -webkit-box;
+				-webkit-line-clamp: 2;
+				-webkit-box-orient: vertical;
+				padding-bottom: 1px;
+			}
 
 			&:first-letter {
 				text-transform: capitalize;
