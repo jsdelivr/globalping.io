@@ -11,47 +11,39 @@
 	margin: 0;
 	position: relative;
 
-	&_info {
+	&_wrapper {
+		position: relative;
+		flex-grow: 1;
+		width: 100%;
+	}
+
+	&_label, &_error {
+		font-weight: 400;
+		font-size: 12px;
+		line-height: 100%;
+		color: #17233a;
+	}
+
+	&_label {
 		display: flex;
+		align-items: center;
+		column-gap: 8px;
+		height: 14px;
+	}
+
+	&_error {
+		position: absolute;
+		top: calc(100% + 4px);
+		left: 0;
 		white-space: nowrap;
+		color: #e64f3d;
 
-		&_label, &_errorMsg {
-			font-weight: 400;
-			font-size: 12px;
-			line-height: 100%;
-			color: #17233a;
-		}
-
-		&_label {
-			display: flex;
-			align-items: center;
-			column-gap: 8px;
-			height: 14px;
-		}
-
-		&_errorMsg {
-			position: absolute;
-			top: calc(100% + 4px);
-			left: 0;
-			white-space: nowrap;
-			color: #e64f3d;
-
-			.c-controlled-input:not(.allow-error-overflow) & {
-				overflow: hidden;
-				white-space: normal;
-				display: -webkit-box;
-				-webkit-line-clamp: 2;
-				-webkit-box-orient: vertical;
-				padding-bottom: 1px;
-			}
-
-			&:first-letter {
-				text-transform: capitalize;
-			}
+		&:first-letter {
+			text-transform: capitalize;
 		}
 	}
 
-	> input, .aa-Input {
+	&_wrapper > input, .aa-Input {
 		border-radius: 8px;
 		height: 40px;
 		padding: 0 16px;
