@@ -1,17 +1,23 @@
 <div class="c-controlled-input {{classList}}">
-	<div class="c-controlled-input_info">
-		<span class="c-controlled-input_info_label">
-			{{labelText}}
-			{{#if @this.partials.labelIcon && !hideLabelIcon}}
-				{{>labelIcon}}
-			{{/if}}
-		</span>
+	<span class="c-controlled-input_label">
+		{{labelText}}
+		{{#if @this.partials.labelIcon && !hideLabelIcon}}
+			{{>labelIcon}}
+		{{/if}}
+	</span>
+
+
+	<div class="c-controlled-input_wrapper">
+		<!-- Use a server-rendered input and swap it for the real on init to avoid having visible empty space here during init. -->
+		<input
+				type="text"
+				value="{{value}}"
+				placeholder="{{placeholder}}"
+				class="{{#if swapInputs}}hidden{{/if}} c-controlled-input_input">
+
+		<div class="aa-gp-container {{#unless swapInputs}}hidden{{/unless}}"></div>
 
 		{{#if error}}
-			<span class="c-controlled-input_info_errorMsg">
-				{{error}}
-			</span>
-
 			<img class="c-controlled-input_err-icon"
 				width="20"
 				height="20"
@@ -19,14 +25,11 @@
 		{{/if}}
 	</div>
 
-	<!-- Use a server-rendered input and swap it for the real on init to avoid having visible empty space here during init. -->
-	<input
-		type="text"
-		value="{{value}}"
-		placeholder="{{placeholder}}"
-		class="{{#if swapInputs}}hidden{{/if}}">
-
-	<div class="aa-gp-container {{#unless swapInputs}}hidden{{/unless}}"></div>
+	{{#if error}}
+		<span class="c-controlled-input_error">
+				{{error}}
+		</span>
+	{{/if}}
 </div>
 
 <script>
