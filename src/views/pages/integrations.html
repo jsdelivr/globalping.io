@@ -25,6 +25,18 @@
 
 		<div class="p-globalping-integrations_header">
 			<h1 class="p-globalping-integrations_header_title">
+				Globalping as a Feature
+			</h1>
+
+			<h2 class="p-globalping-integrations_header_descr">
+				Many applications and services already integrate Globalping to enhance their functionality. Just bring your Globalping token.
+			</h2>
+		</div>
+
+		<c-tiles tilesData="{{featureTiles}}"></c-tiles>
+
+		<div class="p-globalping-integrations_header">
+			<h1 class="p-globalping-integrations_header_title">
 				Community Integrations
 			</h1>
 
@@ -220,6 +232,48 @@
 						imgH: 32,
 						imgClass: 'img-rounded img-with-border',
 						status: 'Coming soon',
+					},
+				],
+				featureTiles: [
+					{
+						header: 'Upptime',
+						descr: 'GitHub Actions based uptime monitoring with Globalping.',
+						href: 'https://blog.globalping.io/global-uptime-monitoring-upptime-globalping/',
+						docsLink: 'https://upptime.js.org/docs/configuration/#globalping',
+						baseImgSrc: '/img/integrations/feature',
+						imgName: 'upptime',
+						imgExt: '.svg',
+						imgW: 32,
+						imgH: 32,
+						imgClass: 'img-rounded img-with-border',
+						externalLink: true,
+					},
+					{
+						header: 'UptimeFlare',
+						descr: 'Uptime monitoring using Cloudflare and Globalping networks.',
+						href: 'https://blog.globalping.io/uptime-monitoring-with-uptimeflare-and-globalping/',
+						docsLink: 'https://github.com/lyc8503/UptimeFlare',
+						externalLink: true,
+					},
+					{
+						header: 'Doggo DNS',
+						descr: 'Run DNS queries locally or via Globalping.',
+						href: 'https://github.com/mr-karan/doggo',
+						docsLink: 'https://doggo.mrkaran.dev/docs/guide/reference/#globalping-api-options',
+						externalLink: true,
+					},
+					{
+						header: 'CraftCMS Cache Igniter',
+						descr: 'Warm CDN cache globally using Globalping.',
+						href: 'https://github.com/putyourlightson/craft-cache-igniter',
+						docsLink: 'https://putyourlightson.com/plugins/cache-igniter#globalping-warmer',
+						baseImgSrc: '/img/integrations/feature',
+						imgName: 'craftcms-cache-igniter',
+						imgExt: '.svg',
+						imgW: 28,
+						imgH: 28,
+						imgClass: 'img-rounded img-with-border',
+						externalLink: true,
 					},
 				],
 				communityTiles: [
