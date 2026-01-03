@@ -1,17 +1,28 @@
 <div class="c-controlled-input {{classList}}">
-	<div class="c-controlled-input_info">
-		<span class="c-controlled-input_info_label">
-			{{labelText}}
-			{{#if @this.partials.labelIcon && !hideLabelIcon}}
-				{{>labelIcon}}
+	<span class="c-controlled-input_label">
+		{{labelText}}
+		{{#if @this.partials.labelIcon && !hideLabelIcon}}
+			{{>labelIcon}}
+		{{/if}}
+	</span>
+
+	{{#if @this.partials.copyBtn}}
+		{{>copyBtn}}
+	{{/if}}
+
+	<div class="c-controlled-input_wrapper">
+		<input
+			{{#if id}}id="{{id}}"{{/if}}
+			value="{{value}}"
+			type="text"
+			placeholder="{{placeholder}}"
+			class="{{#if error}}has-error{{/if}}{{#if disabled}}is-disabled{{/if}} c-controlled-input_input"
+			{{#if locked}}
+			readonly="{{locked ? true : false}}"
 			{{/if}}
-		</span>
+			disabled="{{disabled}}">
 
 		{{#if error}}
-			<span class="c-controlled-input_info_errorMsg">
-				{{error}}
-			</span>
-
 			<img class="c-controlled-input_err-icon"
 				width="20"
 				height="20"
@@ -19,20 +30,11 @@
 		{{/if}}
 	</div>
 
-	{{#if @this.partials.copyBtn}}
-		{{>copyBtn}}
+	{{#if error}}
+		<span class="c-controlled-input_error">
+			{{error}}
+		</span>
 	{{/if}}
-
-	<input
-		{{#if id}}id="{{id}}"{{/if}}
-		value="{{value}}"
-		type="text"
-		placeholder="{{placeholder}}"
-		class="{{#if error}}has-error{{/if}}{{#if disabled}}is-disabled{{/if}}"
-		{{#if locked}}
-			readonly="{{locked ? true : false}}"
-		{{/if}}
-		disabled="{{disabled}}">
 </div>
 
 <script>
