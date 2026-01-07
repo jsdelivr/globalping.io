@@ -2229,7 +2229,18 @@
 				if (location && !measurement) {
 					// Wait for location-input's onrender to finish (setting swapInputs)
 					setTimeout(() => {
-						document.querySelector('.location-input-hp .aa-Input')?.select();
+						let input = document.querySelector('.location-input-hp .aa-Input');
+
+						if (input) {
+							input.select();
+
+							let y = input.getBoundingClientRect().top + window.scrollY;
+
+							window.scrollTo({
+								top: y - 225,
+								behavior: 'smooth',
+							});
+						}
 					}, 10);
 				}
 			}
