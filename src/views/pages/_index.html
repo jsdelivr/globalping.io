@@ -160,9 +160,10 @@
 							error="{{inputErrors.location}}"
 							placeholder="Enter location"
 							labelText="Location"
-							classList="gp_map-block_settings-wrapper_settings_location gp_input"
+							classList="gp_map-block_settings-wrapper_settings_location gp_input location-input-hp"
 							disabled="{{testInProgress}}"
-							ttPos="{{ttPositions.locationTtPos}}">
+							ttPos="{{ttPositions.locationTtPos}}"
+							locationAutofilled="{{locationAutofilled}}">
 							{{#partial labelIcon}}
 								<img as-tooltip="[ 'This magic field supports names of continents, regions, countries, US states, cities, networks, and our custom tags.', '', 'Use + to combine multiple filters.', 'Use , to select multiple locations.' ], ttPos, undefined, undefined, 'multiline'"
 									width="14"
@@ -1707,6 +1708,7 @@
 				sortBy: DEFAULT_SORT_BY,
 				sortOrder: DEFAULT_SORT_ORDER,
 				sortByOpts: SORT_BY_OPTS,
+				locationAutofilled: false,
 			};
 		},
 		computed: {
@@ -1821,6 +1823,11 @@
 
 				// get probes from sessionStorage or fetch them and handle
 				this.getProbesData();
+				let location = this.get('location');
+
+				if (location && !measurement) {
+					this.set('locationAutofilled', true);
+				}
 
 				this.observe('sortBy', (sortBy) => {
 					app.router.replaceQueryParam('by', sortBy === DEFAULT_SORT_BY ? null : sortBy, this);
@@ -2215,6 +2222,27 @@
 
 				targetInput.addEventListener('keypress', handleEnterBtn);
 				limitInput.addEventListener('keypress', handleEnterBtn);
+
+				let measurement = this.get('measurement');
+				let location = this.get('location');
+
+				if (location && !measurement) {
+					// Wait for location-input's onrender to finish (setting swapInputs)
+					setTimeout(() => {
+						let input = document.querySelector('.location-input-hp .aa-Input');
+
+						if (input) {
+							input.select();
+
+							let y = input.getBoundingClientRect().top + window.scrollY;
+
+							window.scrollTo({
+								top: y - 225,
+								behavior: 'smooth',
+							});
+						}
+					}, 10);
+				}
 			}
 		},
 		onunrender () {

@@ -37,7 +37,8 @@ test('User page', async ({ page }) => {
 	await page.keyboard.press('Enter');
 	await expect(sortBySelect).not.toContainText('Alphabetically');
 
-	await autocomplete.fill('Europe');
+	await autocomplete.clear();
+	await autocomplete.pressSequentially('Europe', { delay: 100 });
 	await autocomplete.press('Enter');
 	await expect(autocomplete).toHaveValue('Europe');
 
