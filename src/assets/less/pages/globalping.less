@@ -2017,7 +2017,25 @@
 		top: auto;
 		bottom: 100%;
 		margin-bottom: 10px;
-		width: 260px;
+		max-width: 300px;
+		border: none;
+		box-shadow: 0 7px 36px rgba(0, 0, 0, .05);
+		background: rgba(17, 26, 44, 1);
+		color: #fff;
+
+		.popover-title {
+			background: rgba(17, 26, 44, 1);
+			border-bottom-color: rgba(255, 255, 255, .15);
+		}
+
+		.arrow {
+			border-color: rgba(17, 26, 44, 1) transparent;
+			bottom: -10px;
+
+			&:after {
+				border-top-color: transparent;
+			}
+		}
 
 		.popover-title, .popover-content {
 			padding: 10px 16px;
