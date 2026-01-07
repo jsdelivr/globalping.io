@@ -434,13 +434,6 @@
 				// for testing
 				input.setAttribute('data-testid', 'autocomplete-input');
 
-				// Blur handling - hide autofill popover
-				let handleBlur = () => {
-					this.set('locationAutofilled', false);
-				};
-				input.addEventListener('blur', handleBlur);
-				this.on('unrender', () => input.removeEventListener('blur', handleBlur));
-
 				// Enter handling - run the measurement.
 				let handleEnter = (event) => {
 					if (event.key === 'Enter' && !isAsyncOpen) {

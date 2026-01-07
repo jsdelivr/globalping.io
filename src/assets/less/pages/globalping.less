@@ -2013,7 +2013,7 @@
 	}
 
 	.gp-autofill-popover {
-		display: block !important;
+		display: none;
 		top: auto;
 		bottom: 100%;
 		margin-bottom: 10px;
@@ -2022,6 +2022,10 @@
 		.popover-title, .popover-content {
 			padding: 10px 16px;
 		}
+	}
+
+	.location-input-hp:focus-within .gp-autofill-popover {
+		display: block;
 	}
 
 	.gp-autofill-popover .popover-title .fa-magic {
