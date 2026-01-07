@@ -15,6 +15,19 @@
 				placeholder="{{placeholder}}"
 				class="{{#if swapInputs}}hidden{{/if}} c-controlled-input_input">
 
+		{{#if locationAutofilled}}
+			<div class="popover top fade in gp-autofill-popover">
+				<h3 class="popover-title">
+					<i class="fa fa-magic" aria-hidden="true"></i> Location Autofilled
+				</h3>
+				<div class="popover-content">
+					We have automatically selected this location for you.<br><br>
+					Press <b>Enter</b> to run the test.
+				</div>
+				<div class="arrow"></div>
+			</div>
+		{{/if}}
+
 		<div class="aa-gp-container {{#unless swapInputs}}hidden{{/unless}}"></div>
 
 		{{#if error}}
@@ -160,6 +173,15 @@
 				let { setQuery, setActiveItemId, destroy } = autocomplete({
 					container: this.find('.aa-gp-container'),
 					onStateChange: ({ state }) => {
+						// hide autofill popover when user types
+						if (this.get('locationAutofilled')) {
+							let isQueryDifferent = state.query !== this.get('value');
+
+							if (isQueryDifferent) {
+								this.set('locationAutofilled', false);
+							}
+						}
+
 						if (!state.isOpen && prevStateIsOpen && this.get('exposeProbes') && normalizedProbes) {
 							setTimeout(() => {
 								filterProbesByCurrentParts(state.query);
@@ -228,6 +250,13 @@
 						return [
 							limit(sources),
 						];
+					},
+					shouldPanelOpen: ({ state }) => {
+						if (this.get('locationAutofilled')) {
+							return false;
+						}
+
+						return state.collections.some(c => c.items.length > 0);
 					},
 					getSources: ({ query }) => {
 						if (!indexForConditions) {
@@ -404,6 +433,13 @@
 
 				// for testing
 				input.setAttribute('data-testid', 'autocomplete-input');
+
+				// Blur handling - hide autofill popover
+				let handleBlur = () => {
+					this.set('locationAutofilled', false);
+				};
+				input.addEventListener('blur', handleBlur);
+				this.on('unrender', () => input.removeEventListener('blur', handleBlur));
 
 				// Enter handling - run the measurement.
 				let handleEnter = (event) => {
