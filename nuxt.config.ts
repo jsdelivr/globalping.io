@@ -113,27 +113,37 @@ export default defineNuxtConfig({
 	vite: {
 		plugins: [
 			tailwindcss(),
+			{
+				name: 'ractive-cdn-config',
+				config (_, { isSsrBuild }) {
+					if (!isSsrBuild) {
+						return {
+							build: {
+								rollupOptions: {
+									output: {
+										paths: {
+											ractive: 'https://cdn.jsdelivr.net/npm/ractive@1.4.4/runtime.min.mjs',
+										},
+									},
+								},
+							},
+						};
+					}
+				},
+			},
 		],
 		build: {
 			rollupOptions: {
 				external: [ 'ractive' ],
 			},
 		},
+		server: {
+			hmr: {
+				port: 24679,
+			},
+		},
 	},
 	hooks: {
-		'vite:extendConfig': (config, { isClient }) => {
-			if (isClient) {
-				config.build = config.build || {};
-				config.build.rollupOptions = config.build.rollupOptions || {};
-
-				config.build.rollupOptions.output = {
-					...config.build.rollupOptions.output || {},
-					paths: {
-						ractive: 'https://cdn.jsdelivr.net/npm/ractive@1.4.4/runtime.min.mjs',
-					},
-				};
-			}
-		},
 		'build:manifest': (manifest) => {
 			for (const file of Object.values(manifest)) {
 				if (file.resourceType === 'image') {

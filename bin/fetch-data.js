@@ -2,7 +2,7 @@
 
 const got = require('got');
 const zlib = require('zlib');
-const parse = require('csv-parse');
+const { parse } = require('csv-parse');
 const fs = require('fs');
 const path = require('path');
 const { pipeline } = require('node:stream/promises');

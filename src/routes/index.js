@@ -1,4 +1,4 @@
-const KoaRouter = require('koa-router');
+const KoaRouter = require('@koa/router');
 const koaElasticUtils = require('elastic-apm-utils').koa;
 
 const globalpingSitemap = require('../middleware/sitemap');
@@ -99,7 +99,7 @@ koaElasticUtils.addRoutes(router, [
  * Network tools pages.
  */
 koaElasticUtils.addRoutes(router, [
-	[ '/network-tools', '/network-tools/:params?' ],
+	[ '/network-tools', '/network-tools{/:params}' ],
 ], async (ctx) => {
 	let data;
 	let newPath;

@@ -6,7 +6,7 @@ require('./lib/startup');
 const _ = require('lodash');
 const config = require('config');
 const { resolve } = require('node:path');
-const signalExit = require('signal-exit');
+const { onExit } = require('signal-exit');
 const isSafePath = require('is-safe-path');
 const express = require('express');
 const zlib = require('zlib');
@@ -18,8 +18,8 @@ const koaLivereload = require('koa-livereload');
 const koaResponseTime = require('koa-response-time');
 const koaCompress = require('koa-compress');
 const koaLogger = require('koa-logger');
-const koaETag = require('koa-etag');
-const KoaRouter = require('koa-router');
+const koaETag = require('@koa/etag');
+const KoaRouter = require('@koa/router');
 const koaElasticUtils = require('elastic-apm-utils').koa;
 const assetsVersion = require('./lib/assets').version;
 const captureNodeResponse = require('./lib/nuxt/captureNodeResponse');
@@ -237,7 +237,7 @@ router.use(async (ctx, next) => {
  * Debug endpoints.
  */
 router.get('/debug/' + serverConfig.debugToken, debugHandler);
-router.get('/debug/status/:status/:maxAge?/:delay?', debugHandler.status);
+router.get('/debug/status/:status/{/:maxAge}{/:delay}', debugHandler.status);
 
 /**
  * Auth callback
@@ -294,7 +294,7 @@ router.use(globalpingRouter.routes(), globalpingRouter.allowedMethods());
  * All other pages.
  */
 koaElasticUtils.addRoutes(router, [
-	[ '/(.*)', '/(.*)' ],
+	[ '/{*path}', '/{*path}' ],
 ], async (ctx) => {
 	let path = ctx.path.startsWith('/_') ? '/_404' : ctx.path;
 	let root = '';
@@ -372,7 +372,7 @@ server.listen(process.env.PORT || serverConfig.port, function () {
 /**
  * Always log before exit.
  */
-signalExit((code, signal) => {
+onExit((code, signal) => {
 	log[code === 0 ? 'info' : 'fatal']('Web server stopped.', { code, signal });
 });
 
