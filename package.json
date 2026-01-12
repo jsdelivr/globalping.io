@@ -51,7 +51,7 @@
 		"rollup-plugin-ractive": "^2.2.0",
 		"sharp": "^0.34.5",
 		"signal-exit": "^4.1.0",
-		"srcset": "^5.0.2",
+		"srcset": "^5.0.3",
 		"tailwindcss": "^4.1.18",
 		"vue": "^3.5.26",
 		"vue-router": "^4.6.4"
