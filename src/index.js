@@ -294,7 +294,7 @@ router.use(globalpingRouter.routes(), globalpingRouter.allowedMethods());
  * All other pages.
  */
 koaElasticUtils.addRoutes(router, [
-	[ '/{*path}', '/{*path}' ],
+	[ '{/*path}', '{/*path}' ],
 ], async (ctx) => {
 	let path = ctx.path.startsWith('/_') ? '/_404' : ctx.path;
 	let root = '';
