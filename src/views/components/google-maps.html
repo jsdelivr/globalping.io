@@ -493,6 +493,7 @@
 				map.setCenter(position);
 				map.setZoom(minZoom);
 			} else {
+				map.setZoom(6);
 				// temp limit for zooming
 				map.setOptions({ maxZoom: 6 });
 				map.fitBounds(bounds);
