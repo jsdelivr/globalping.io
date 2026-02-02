@@ -493,9 +493,11 @@
 				map.setCenter(position);
 				map.setZoom(minZoom);
 			} else {
-				map.setZoom(6);
+				let TEMP_MAX = 6;
+
 				// temp limit for zooming
-				map.setOptions({ maxZoom: 6 });
+				map.setZoom(TEMP_MAX);
+				map.setOptions({ maxZoom: TEMP_MAX });
 				map.fitBounds(bounds);
 
 				google.maps.event.addListenerOnce(map, 'idle', () => {
