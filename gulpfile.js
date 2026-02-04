@@ -207,11 +207,11 @@ gulp.task('watch', () => {
 	gulp.watch([
 		`${srcDir}/**/*.html`,
 		`${srcAssetsDir}/**/*.(js|json)`,
-	], gulp.series('js'));
+	], gulp.parallel('js', 'nuxt:ractive:components'));
 
 	gulp.watch([
 		`${srcAssetsDir}/**/*.less`,
-	], gulp.series('less'));
+	], gulp.parallel('less', 'nuxt:less'));
 });
 
 gulp.task('default', gulp.series('clean', 'dev', gulp.parallel('serve', 'watch')));
