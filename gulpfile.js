@@ -7,7 +7,7 @@ const autoprefixer = require('gulp-autoprefixer');
 const minifyCss = require('gulp-clean-css');
 const plumber = require('gulp-plumber');
 const terser = require('gulp-terser');
-const del = require('del');
+const { deleteAsync } = require('del');
 
 const rollupStream = require('@rollup/stream');
 const rollupRactive = require('rollup-plugin-ractive');
@@ -84,14 +84,14 @@ const getRollupStreamRactiveComp = file => rollupStream({
 });
 
 gulp.task('clean', () => {
-	return del([ dstPublicDir ]);
+	return deleteAsync([ dstPublicDir ]);
 });
 
 gulp.task('copy', gulp.parallel(
-	() => gulp.src(`${srcAssetsDir}/**/*.!(js|less)`, { base: srcAssetsDir, since: gulp.lastRun('copy') })
+	() => gulp.src(`${srcAssetsDir}/**/*.!(js|less)`, { base: srcAssetsDir, since: gulp.lastRun('copy'), encoding: false })
 		.pipe(gulp.dest(dstAssetsDir))
 		.pipe(livereload(liveReloadOptions)),
-	() => gulp.src(`${srcPublicDir}/**/*`, { base: srcPublicDir, since: gulp.lastRun('copy') })
+	() => gulp.src(`${srcPublicDir}/**/*`, { base: srcPublicDir, since: gulp.lastRun('copy'), encoding: false })
 		.pipe(gulp.dest(dstPublicDir))
 		.pipe(livereload(liveReloadOptions)),
 ));
@@ -207,11 +207,11 @@ gulp.task('watch', () => {
 	gulp.watch([
 		`${srcDir}/**/*.html`,
 		`${srcAssetsDir}/**/*.(js|json)`,
-	], gulp.series('js'));
+	], gulp.parallel('js', 'nuxt:ractive:components'));
 
 	gulp.watch([
 		`${srcAssetsDir}/**/*.less`,
-	], gulp.series('less'));
+	], gulp.parallel('less', 'nuxt:less'));
 });
 
 gulp.task('default', gulp.series('clean', 'dev', gulp.parallel('serve', 'watch')));
