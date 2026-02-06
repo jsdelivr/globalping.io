@@ -304,6 +304,24 @@
 						flex-grow: 1;
 					}
 
+					&_network-logo {
+						display: flex;
+						align-items: center;
+						justify-content: center;
+						height: 22px;
+						width: 22px;
+						margin-right: 4px;
+						user-select: none;
+						font-size: 12px;
+						color: #454545;
+						flex-shrink: 0;
+
+						&:not(:has(img)) {
+							border-radius: 4px;
+							border: 1px #a9a9a9 solid;
+						}
+					}
+
 					&_count {
 						padding: 1px 4px;
 						border-radius: 8px;

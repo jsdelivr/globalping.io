@@ -154,6 +154,20 @@
 														height="12"
 														src="https://cdn.jsdelivr.net/npm/country-flag-icons@1.5.5/3x2/{{item.location.split(', ')[0]}}.svg">
 												</span>
+											{{elseif groupBy === 'network'}}
+												<span class="gp-filtered-list_list_column_group_item_network-logo" as-lazy-domain="item">
+													{{#if item.domain && @shared.logoDevPublicToken}}
+														<img width="20"
+															height="20"
+															src="https://img.jsdelivr.com/img.logo.dev/{{item.domain}}?token={{@shared.logoDevPublicToken}}&format=png"
+															loading="lazy"
+															on-error="@this.onLogoError(item)"
+															alt="{{this.name}} logo"
+														>
+													{{else}}
+														{{this.name[0]}}
+													{{/if}}
+												</span>
 											{{/if}}
 											<div>
 												<span class="gp-filtered-list_list_column_group_item_location">
@@ -191,6 +205,7 @@
 </div>
 
 <script>
+	const http = require('../../assets/js/utils/http');
 	const _ = require('../../assets/js/_');
 	const debounce = require('../../assets/js/utils/debounce');
 	const throttle = require('../../assets/js/utils/throttle');
@@ -212,6 +227,45 @@
 	}, {});
 
 	component.exports = {
+		decorators: {
+			'lazy-domain' (node, item) {
+				let keypath = this.getContext(node).resolve(); // needed to reach the actual item
+
+				if (item.domain || !item.asn || item._loadingDomain) {
+					return { teardown: () => {} };
+				}
+
+				let observer = new IntersectionObserver((entries) => {
+					entries.forEach((entry) => {
+						if (entry.isIntersecting) {
+							observer.disconnect();
+
+							this.set(keypath + '._loadingDomain', true);
+
+							http.getDomainFromASN(`AS${item.asn}`)
+								.then((res) => {
+									this.set(keypath + '._loadingDomain', false);
+
+									if (res && res.domain) {
+										this.set(keypath + '.domain', res.domain);
+									}
+								})
+								.catch(() => {
+									this.set(keypath + '._loadingDomain', false);
+								});
+						}
+					});
+				}, {
+					rootMargin: '0px 0px 600px 0px',
+				});
+
+				observer.observe(node);
+
+				return {
+					teardown: () => observer.disconnect(),
+				};
+			},
+		},
 		data () {
 			return {
 				_,
@@ -573,16 +627,19 @@
 						let probes = obj[continent][location];
 						probes.forEach((probe) => {
 							let network = probe.location.network;
+							let asn = probe.location.asn;
 							let key = network.toLowerCase();
 
 							if (!Object.hasOwn(allNetworks, key)) {
 								allNetworks[key] = {
 									name: network,
 									probes: [],
+									asn: null,
 								};
 							}
 
 							allNetworks[key].probes.push(probe);
+							allNetworks[key].asn ??= asn;
 						});
 					});
 				});
@@ -601,6 +658,8 @@
 					from: allNetworks[network].name,
 					location: allNetworks[network].name,
 					probes: allNetworks[network].probes,
+					asn: allNetworks[network].asn,
+					domain: null,
 					networks: [],
 					showFlag: false,
 				}));
@@ -871,6 +930,11 @@
 			if (continentElement) {
 				continentElement.scrollIntoView({ behavior: 'smooth' });
 			}
+		},
+		onLogoError (network) {
+			network.domain = null;
+			// trigger re-render
+			this.update('preparedProbesColumns');
 		},
 	};
 </script>
