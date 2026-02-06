@@ -147,7 +147,7 @@
 									{{/if}}
 
 									{{#each continentGroup.items as item}}
-										<span class="gp-filtered-list_list_column_group_item">
+										<div class="gp-filtered-list_list_column_group_item">
 											{{#if item.showFlag}}
 												<span class="gp-filtered-list_list_column_group_item_img">
 													<img width="17"
@@ -155,30 +155,30 @@
 														src="https://cdn.jsdelivr.net/npm/country-flag-icons@1.5.5/3x2/{{item.location.split(', ')[0]}}.svg">
 												</span>
 											{{/if}}
+											<div>
+												<span class="gp-filtered-list_list_column_group_item_location">
+													<a href="/?location={{encodeURIComponent(item.from)}}" rel="nofollow">{{item.name}}</a>
+												</span>
 
-											<span class="gp-filtered-list_list_column_group_item_location">
-												<a href="/?location={{encodeURIComponent(item.from)}}" rel="nofollow">{{item.name}}</a>
-
-												{{#if (groupBy !== 'city-network' && groupBy !== 'country-network') && item.probes.length !== 1}}
-													<span>(x{{item.probes.length}})</span>
+												{{#if item.networks && item.networks.length}}
+													<div class="gp-filtered-list_list_column_group_item_networks">
+														{{#each item.networks}}
+															<a href="/?location={{encodeURIComponent(`${item.from}%${this.name}`)}}" rel="nofollow">
+																<span class="gp-filtered-list_list_column_group_item_network">
+																	{{this.name}}
+																	{{#if this.count !== 1}}
+																		<span class="gp-filtered-list_list_column_group_item_network_count">(x{{this.count}})</span>
+																	{{/if}}
+																</span>
+															</a>
+														{{/each}}
+													</div>
 												{{/if}}
-											</span>
-
-											{{#if item.networks && item.networks.length}}
-												<div class="gp-filtered-list_list_column_group_item_networks">
-													{{#each item.networks}}
-														<a href="/?location={{encodeURIComponent(`${item.from}%${this.name}`)}}" rel="nofollow">
-															<span class="gp-filtered-list_list_column_group_item_network">
-																{{this.name}}
-																{{#if this.count !== 1}}
-																	<span class="gp-filtered-list_list_column_group_item_network_count">(x{{this.count}})</span>
-																{{/if}}
-															</span>
-														</a>
-													{{/each}}
-												</div>
+											</div>
+											{{#if groupBy !== 'city-network' && groupBy !== 'country-network'}}
+												<span class="gp-filtered-list_list_column_group_item_count">{{item.probes.length}}</span>
 											{{/if}}
-										</span>
+										</div>
 									{{/each}}
 								</div>
 							{{/each}}

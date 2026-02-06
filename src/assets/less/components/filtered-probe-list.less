@@ -283,21 +283,33 @@
 				padding: 8px 12px;
 				border: 1px solid #e7e7ee;
 				border-radius: 12px;
+				gap: 6px;
 
 				&.has-networks {
 					gap: 8px;
 				}
 
 				&_item {
-					display: grid;
+					display: flex;
 					align-items: start;
-					grid-template-columns: auto 1fr;
 					column-gap: 4px;
-					padding-right: 12px;
 					font-size: 14px;
 					font-weight: 400;
 					line-height: 20px;
 					color: #17233a;
+
+					& > div {
+						display: flex;
+						flex-direction: column;
+						flex-grow: 1;
+					}
+
+					&_count {
+						padding: 1px 4px;
+						border-radius: 8px;
+						border: #a9a9a9 solid 1px;
+						background: #fff;
+					}
 
 					a {
 						color: #17233a;
@@ -313,6 +325,7 @@
 
 					&_location {
 						word-break: break-word;
+						flex-shrink: 0;
 					}
 
 					&_networks {
