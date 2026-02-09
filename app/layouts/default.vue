@@ -21,6 +21,7 @@
 	const footerHtml = ref('');	// SSR
 
 	const route = useRoute();
+	const router = useRouter();
 
 	const {
 		serverHost,
@@ -63,11 +64,41 @@
 		headerInstance.value.set('@global.app.signOut', auth.signOut);
 		headerInstance.value.set('additionalClasses', 'header-with-globalping-bg');
 
+		if (headerEl.value) {
+			headerEl.value.addEventListener('click', handleRactiveNavigation);
+		}
+
 		setRactiveData();
 	});
 
 	onBeforeUnmount(() => {
 		headerInstance.value?.teardown?.();
 		footerInstance.value?.teardown?.();
+
+		if (headerEl.value) {
+			headerEl.value.removeEventListener('click', handleRactiveNavigation);
+		}
 	});
+
+	// let the Nuxt router handle inter-Nuxt-page navigation
+	// without this, the layout is forced to reload, causing flickering and other issues
+	const handleRactiveNavigation = (event: MouseEvent) => {
+		const target = event.target as HTMLElement;
+		const link = target.closest('a');
+
+		if (link
+			&& link.href
+			&& link.host === window.location.host
+			&& !event.ctrlKey && !event.metaKey && !event.shiftKey && !event.altKey
+		) {
+			const url = new URL(link.href);
+
+			const resolved = router.resolve(url.pathname);
+
+			if (resolved.name !== '404' && resolved.matched.length > 0) {
+				event.preventDefault();
+				router.push(url.pathname + url.search + url.hash);
+			}
+		}
+	};
 </script>
