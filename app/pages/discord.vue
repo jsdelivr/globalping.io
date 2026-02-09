@@ -21,7 +21,6 @@
 	import discordStep1 from '~/assets/images/discord/discord-screen-1.svg';
 	import discordStep2 from '~/assets/images/discord/discord-screen-2.svg';
 	import discordStep3 from '~/assets/images/discord/discord-screen-3.svg';
-	import usePageHead from '~/composables/usePageHead';
 
 	const DISCORD_SETUP_STEPS = [
 		{
@@ -41,6 +40,4 @@
 			image: discordStep3,
 		},
 	];
-
-	usePageHead({ title: 'Globalping Discord App' });
 </script>

@@ -21,7 +21,6 @@
 	import slackStep1 from '~/assets/images/slack/slack-screen-1.svg';
 	import slackStep2 from '~/assets/images/slack/slack-screen-2.svg';
 	import slackStep3 from '~/assets/images/slack/slack-screen-3.svg';
-	import usePageHead from '~/composables/usePageHead';
 
 	const SLACK_SETUP_STEPS = [
 		{
@@ -40,6 +39,4 @@
 			image: slackStep3,
 		},
 	];
-
-	usePageHead({ title: 'Globalping Slack App' });
 </script>

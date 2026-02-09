@@ -76,6 +76,7 @@
 
 <script setup lang="ts">
 	import { useActiveStep } from '~/composables/useActiveStep';
+	import usePageHead from '~/composables/usePageHead';
 
 	interface Step {
 		title: string;
@@ -84,12 +85,17 @@
 		class?: string;
 	}
 
-	defineProps<{
+	const props = defineProps<{
 		steps: Step[];
 		appName: string;
 	}>();
 
 	const { activeStep, stepRefs } = useActiveStep();
+
+	usePageHead({
+		title: `Globalping ${props.appName} App`,
+		description: `A must have ${props.appName} App for devops and support teams, startups and corporations, that allows anyone to run global network tests in any channel and discuss the results.`,
+	});
 </script>
 
 <style scoped>
