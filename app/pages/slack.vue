@@ -4,13 +4,13 @@
 		:steps="SLACK_SETUP_STEPS"
 	>
 		<template #actions>
-			<a class="flex items-stretch rounded-md transition-opacity hover:opacity-70" href="https://bots.globalping.io/slack/install" target="_blank" rel="noreferrer" aria-description="Add to slack">
+			<a class="flex items-stretch rounded-md transition-opacity hover:opacity-70" href="https://bots.globalping.io/slack/install" target="_blank" rel="noreferrer" aria-label="Add to slack">
 				<img class="h-10" src="~/assets/images/slack/slack-button.svg" alt="Slack">
 			</a>
 		</template>
 
 		<template #bottom-cta>
-			<a class="flex items-stretch rounded-md transition-opacity hover:opacity-70" href="https://bots.globalping.io/slack/install" target="_blank" rel="noreferrer" aria-description="Add to slack">
+			<a class="flex items-stretch rounded-md transition-opacity hover:opacity-70" href="https://bots.globalping.io/slack/install" target="_blank" rel="noreferrer" aria-label="Add to slack">
 				<img class="h-12" src="~/assets/images/slack/slack-button.svg" alt="Slack">
 			</a>
 		</template>

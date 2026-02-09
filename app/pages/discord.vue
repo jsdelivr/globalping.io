@@ -4,13 +4,13 @@
 		:steps="DISCORD_SETUP_STEPS"
 	>
 		<template #actions>
-			<a class="flex items-center rounded-md bg-[#5865F2] px-4 hover:bg-[#7289da]" href="https://bots.globalping.io/discord/install" target="_blank" rel="noreferrer" aria-description="Add to Discord">
+			<a class="flex items-center rounded-md bg-[#5865F2] px-4 hover:bg-[#7289da]" href="https://bots.globalping.io/discord/install" target="_blank" rel="noreferrer" aria-label="Add to Discord">
 				<img class="h-5" src="~/assets/images/discord/discord-logo.svg" alt="Discord">
 			</a>
 		</template>
 
 		<template #bottom-cta>
-			<a class="flex items-center rounded-lg bg-[#5865F2] px-4 py-3 hover:bg-[#7289da]" href="https://bots.globalping.io/discord/install" target="_blank" rel="noreferrer" aria-description="Add to Discord">
+			<a class="flex items-center rounded-lg bg-[#5865F2] px-4 py-3 hover:bg-[#7289da]" href="https://bots.globalping.io/discord/install" target="_blank" rel="noreferrer" aria-label="Add to Discord">
 				<img class="h-7 max-md:h-5" src="~/assets/images/discord/discord-logo.svg" alt="Discord">
 			</a>
 		</template>
