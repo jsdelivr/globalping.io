@@ -94,7 +94,7 @@
 
 	usePageHead({
 		title: `Globalping ${props.appName} App`,
-		description: `A must have ${props.appName} App for devops and support teams, startups and corporations, that allows anyone to run global network tests in any channel and discuss the results.`,
+		description: `A must-have ${props.appName} App for DevOps and support teams, startups and corporations, that allows anyone to run global network tests in any channel and discuss the results.`,
 	});
 </script>
 
