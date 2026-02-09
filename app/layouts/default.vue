@@ -64,9 +64,8 @@
 		headerInstance.value.set('@global.app.signOut', auth.signOut);
 		headerInstance.value.set('additionalClasses', 'header-with-globalping-bg');
 
-		if (headerEl.value) {
-			headerEl.value.addEventListener('click', handleRactiveNavigation);
-		}
+		headerEl.value?.addEventListener('click', handleRactiveNavigation);
+		footerEl.value?.addEventListener('click', handleRactiveNavigation);
 
 		setRactiveData();
 	});
@@ -75,30 +74,38 @@
 		headerInstance.value?.teardown?.();
 		footerInstance.value?.teardown?.();
 
-		if (headerEl.value) {
-			headerEl.value.removeEventListener('click', handleRactiveNavigation);
-		}
+		headerEl.value?.removeEventListener('click', handleRactiveNavigation);
+		footerEl.value?.removeEventListener('click', handleRactiveNavigation);
 	});
 
 	// let the Nuxt router handle inter-Nuxt-page navigation
 	// without this, the layout is forced to reload, causing flickering and other issues
 	const handleRactiveNavigation = (event: MouseEvent) => {
-		const target = event.target as HTMLElement;
-		const link = target.closest('a');
-
-		if (link
-			&& link.href
-			&& link.host === window.location.host
-			&& !event.ctrlKey && !event.metaKey && !event.shiftKey && !event.altKey
-		) {
-			const url = new URL(link.href);
-
-			const resolved = router.resolve(url.pathname);
-
-			if (resolved.name !== '404' && resolved.matched.length > 0) {
-				event.preventDefault();
-				router.push(url.pathname + url.search + url.hash);
-			}
+		// ignore non-primary clicks
+		if (event.button !== 0 || event.metaKey || event.altKey || event.ctrlKey || event.shiftKey) {
+			return;
 		}
+
+		if (!(event.target instanceof Element)) {
+			return;
+		}
+
+		const target = event.target as HTMLElement;
+		const link = target?.closest('a');
+
+		if (!link || !link.href || link.hasAttribute('download') || link.getAttribute('rel') === 'external') {
+			return;
+		}
+
+		const linkTarget = link.getAttribute('target');
+		const url = new URL(link.href);
+		const resolved = router.resolve(url.pathname);
+
+		if ((linkTarget && linkTarget !== '_self') || url.origin !== window.location.origin || resolved.matched.length === 0) {
+			return;
+		}
+
+		event.preventDefault();
+		router.push(url.pathname + url.search + url.hash);
 	};
 </script>
