@@ -138,7 +138,7 @@
 							{{/each}}
 						{{else}}
 							{{#each column as continentGroup}}
-								<div class="gp-filtered-list_list_column_group {{groupBy === 'city-network' || groupBy === 'country-network' ? 'has-networks' : ''}}"
+								<div class="gp-filtered-list_list_column_group {{groupBy === 'network' ? 'is-network' : ''}} {{groupBy === 'city-network' || groupBy === 'country-network' ? 'has-networks' : ''}}"
 									data-testid="probe-column-group">
 									{{#if continentGroup.title}}
 										<span class="gp-filtered-list_list_column_group_item cont-header" id="probe-group-{{continentGroup.title}}">
