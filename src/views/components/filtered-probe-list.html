@@ -155,11 +155,11 @@
 														src="https://cdn.jsdelivr.net/npm/country-flag-icons@1.5.5/3x2/{{item.location.split(', ')[0]}}.svg">
 												</span>
 											{{elseif groupBy === 'network'}}
-												<span class="gp-filtered-list_list_column_group_item_network-logo" as-lazy-domain="item">
-													{{#if item.domain && @shared.logoDevPublicToken}}
+												<span class="gp-filtered-list_list_column_group_item_network-logo">
+													{{#if @this.getDomainForNetwork(item.name) && @shared.logoDevPublicToken}}
 														<img width="20"
 															height="20"
-															src="https://img.jsdelivr.com/img.logo.dev/{{item.domain}}?token={{@shared.logoDevPublicToken}}&format=png"
+															src="https://img.jsdelivr.com/img.logo.dev/{{@this.getDomainForNetwork(item.name)}}?token={{@shared.logoDevPublicToken}}&format=png"
 															loading="lazy"
 															on-error="@this.onLogoError(item)"
 															alt="{{this.name}} logo"
@@ -170,23 +170,32 @@
 												</span>
 											{{/if}}
 											<div>
-												<span class="gp-filtered-list_list_column_group_item_location">
-													<a href="/?location={{encodeURIComponent(item.from)}}" rel="nofollow">{{item.name}}</a>
-												</span>
-
 												{{#if item.networks && item.networks.length}}
+													<span class="gp-filtered-list_list_column_group_item_location">
+														{{item.name}}
+													</span>
+
 													<div class="gp-filtered-list_list_column_group_item_networks">
 														{{#each item.networks}}
-															<a href="/?location={{encodeURIComponent(`${item.from}%${this.name}`)}}" rel="nofollow">
-																<span class="gp-filtered-list_list_column_group_item_network">
-																	{{this.name}}
-																	{{#if this.count !== 1}}
-																		<span class="gp-filtered-list_list_column_group_item_network_count">(x{{this.count}})</span>
-																	{{/if}}
-																</span>
-															</a>
+															<span class="gp-filtered-list_list_column_group_item_network"
+																tabindex="0"
+																role="button"
+																as-popover="@this.getPopoverContent(item.from, this.name)">
+																{{this.name}}
+																{{#if this.count !== 1}}
+																	<span class="gp-filtered-list_list_column_group_item_network_count">(x{{this.count}})</span>
+																{{/if}}
+															</span>
 														{{/each}}
 													</div>
+												{{else}}
+													<span class="gp-filtered-list_list_column_group_item_location">
+														<span tabindex="0"
+															role="button"
+															as-popover="@this.getPopoverContent(item.from)">
+															{{item.name}}
+														</span>
+													</span>
 												{{/if}}
 											</div>
 											{{#if groupBy !== 'city-network' && groupBy !== 'country-network'}}
@@ -205,7 +214,7 @@
 </div>
 
 <script>
-	const http = require('../../assets/js/utils/http');
+	const { getNetworkDomainMap } = require('../../assets/js/utils/http');
 	const _ = require('../../assets/js/_');
 	const debounce = require('../../assets/js/utils/debounce');
 	const throttle = require('../../assets/js/utils/throttle');
@@ -228,41 +237,31 @@
 
 	component.exports = {
 		decorators: {
-			'lazy-domain' (node, item) {
-				let keypath = this.getContext(node).resolve(); // needed to reach the actual item
-
-				if (item.domain || !item.asn || item._loadingDomain) {
+			popover (node, contentHtml) {
+				if (!contentHtml || typeof $(node).popover !== 'function') {
 					return { teardown: () => {} };
 				}
 
-				let observer = new IntersectionObserver((entries) => {
-					entries.forEach((entry) => {
-						if (entry.isIntersecting) {
-							observer.disconnect();
-
-							this.set(keypath + '._loadingDomain', true);
-
-							http.getDomainFromASN(`AS${item.asn}`)
-								.then((res) => {
-									this.set(keypath + '._loadingDomain', false);
-
-									if (res && res.domain) {
-										this.set(keypath + '.domain', res.domain);
-									}
-								})
-								.catch(() => {
-									this.set(keypath + '._loadingDomain', false);
-								});
-						}
-					});
-				}, {
-					rootMargin: '0px 0px 600px 0px',
+				$(node).popover({
+					container: 'body',
+					html: true,
+					content: contentHtml,
+					placement: 'auto',
+					trigger: 'focus',
+					template: `<div class="popover gp-filtered-list_popover" role="tooltip"><div class="arrow"></div><div class="popover-content"></div></div>`,
 				});
 
-				observer.observe(node);
-
 				return {
-					teardown: () => observer.disconnect(),
+					teardown: () => {
+						let $node = $(node);
+						let popoverId = $node.attr('aria-describedby');
+
+						if (popoverId) {
+							$('#' + popoverId).remove();
+						}
+
+						$node.removeData('bs.popover');
+					},
 				};
 			},
 		},
@@ -348,6 +347,7 @@
 						value: 'probe-count',
 					},
 				],
+				defaultSortOptions: {},
 				probeContinents: [],
 				filtersSet: null,
 				groupedProbes: null,
@@ -356,6 +356,8 @@
 				filteredMarkersData: null,
 				selectedContinent: null,
 				maxTagCount: 2,
+				networkDomainMap: Object.create(null),
+				justClickedLocationFocus: false,
 			};
 		},
 		computed: {
@@ -416,6 +418,10 @@
 		},
 		oninit () {
 			if (!Ractive.isServer) {
+				getNetworkDomainMap()
+					.then(networkDomainMap => this.set('networkDomainMap', networkDomainMap))
+					.catch(err => console.error(err));
+
 				// set initial screenWidth value
 				this.observe('screenWidth', (screenWidth) => {
 					if (!screenWidth) {
@@ -451,13 +457,41 @@
 				});
 
 				this.observe('locationProbes', (locationProbes) => {
+					this.set('filteredProbes', locationProbes);
 					let groupedProbes = this.groupProbes(locationProbes || []);
 
+					if (this.get('justClickedLocationFocus')) {
+						this.set('justClickedLocationFocus', false);
+						let groupCount = Object.keys(groupedProbes).length;
+
+						if (groupCount <= 1) {
+							let { cities, countries, networks } = this.getLocationCounts(locationProbes || []);
+
+							if (cities + countries + networks === 3) {
+								this.set('groupBy', 'disabled');
+								return;
+							}
+
+							if (cities + countries === 2) {
+								this.set('groupBy', 'network');
+								return;
+							}
+
+							if (cities > 1) {
+								this.set('groupBy', 'city');
+								return;
+							}
+						}
+					}
+
 					this.set('groupedProbes', groupedProbes);
-					this.set('filteredProbes', locationProbes);
 				});
 
-				this.observe('groupBy', () => {
+				this.observe('groupBy', (groupBy, oldGroupBy) => {
+					if (groupBy !== 'disabled' && oldGroupBy) {
+						this.set('sortOrder', this.get('defaultSortOptions')[groupBy]);
+					}
+
 					let locationProbes = this.get('locationProbes');
 					let groupedProbes = this.groupProbes(locationProbes || []);
 
@@ -483,7 +517,89 @@
 				let handleResize = debounce(throttle(() => this.calculateMaxTagCount(), 200));
 				listeners.addManagedListener(this, window, 'resize', handleResize);
 				listeners.screenWidthListener(this);
+
+				let handleFocusClick = (e) => {
+					let location = $(e.currentTarget).data('location');
+
+					if (location) {
+						this.set('justClickedLocationFocus', true);
+						this.set('location', location);
+						this.findComponent('c-location-input')?.fire('outsideLocationChange');
+					}
+				};
+
+				$('body').on('click', '.popover-focus-loc', handleFocusClick);
+
+				this.on('teardown', () => {
+					$('body').off('click', '.popover-focus-loc', handleFocusClick);
+				});
 			}
+		},
+		getPopoverContent (locationValue, locationName = '') {
+			let targetLoc = '';
+
+			if (locationName) {
+				targetLoc = `${locationName}+${locationValue}`;
+			} else {
+				let currentLoc = this.get('location').replace(/^world$/i, '');
+				let locationParts = locationValue.split(/[+%]/);
+
+				targetLoc = [
+					currentLoc,
+					...locationParts.map(p => currentLoc.includes(p) ? '' : p),
+				].filter(Boolean).join('+');
+			}
+
+			targetLoc = targetLoc.replaceAll('%', '+');
+
+			let btnFocus = `
+				<button type="button"
+					class="popover-focus-loc"
+					data-location="${targetLoc}">
+					<i class="fa fa-map-marker" aria-hidden="true" style="padding-right: 3px;"></i>
+					Focus this location
+				</button>`;
+
+			let btnMeasure = `
+				<a href="/?location=${encodeURIComponent(targetLoc.replaceAll('+', '%'))}">
+					<i class="fa fa-crosshairs" aria-hidden="true"></i>
+					Target in a measurement
+				</a>`;
+
+			let btnLookingGlass = '';
+
+			if (this.get('groupBy').includes('network')) {
+				let networkName = locationName || locationValue;
+				let networkKey = _.networkNameToKey(networkName);
+
+				btnLookingGlass = `
+				<a href="/networks/${networkKey}">
+					<i class="fa fa-search" aria-hidden="true"></i>
+					<span>
+						"<span class="gp-filtered-list_popover_network-name">${networkName}</span>" looking glass
+					</span>
+				</a>`;
+			}
+
+			return `<div class="gp-popover-menu">${btnFocus}${btnMeasure}${btnLookingGlass}</div>`;
+		},
+		getLocationCounts (probes) {
+			let maps = probes.reduce((res, probe) => {
+				res.countries.add(probe.location.country);
+				res.cities.add(probe.location.country + probe.location.city);
+				res.networks.add(probe.location.network);
+				return res;
+			}, {
+				countries: new Set(),
+				cities: new Set(),
+				networks: new Set(),
+			});
+
+			return {
+				countries: maps.countries.size,
+				cities: maps.cities.size,
+				networks: maps.networks.size,
+			};
 		},
 		groupProbes (probes) {
 			let groupBy = this.get('groupBy');
@@ -627,29 +743,29 @@
 						let probes = obj[continent][location];
 						probes.forEach((probe) => {
 							let network = probe.location.network;
-							let asn = probe.location.asn;
 							let key = network.toLowerCase();
 
 							if (!Object.hasOwn(allNetworks, key)) {
 								allNetworks[key] = {
 									name: network,
 									probes: [],
-									asn: null,
 								};
 							}
 
 							allNetworks[key].probes.push(probe);
-							allNetworks[key].asn ??= asn;
 						});
 					});
 				});
 
+				let alphComp = (a, b) => allNetworks[a].name.localeCompare(allNetworks[b].name);
+				let cntComp = (a, b) => allNetworks[b].probes.length - allNetworks[a].probes.length;
+
 				let sortedNetworks = Object.keys(allNetworks).sort((a, b) => {
 					if (sortOrder === 'alphabetically') {
-						return allNetworks[a].name.localeCompare(allNetworks[b].name);
+						return alphComp(a, b) || cntComp(a, b);
 					}
 
-					return allNetworks[b].probes.length - allNetworks[a].probes.length;
+					return cntComp(a, b) || alphComp(a, b);
 				});
 
 				return sortedNetworks.map(network => ({
@@ -658,8 +774,6 @@
 					from: allNetworks[network].name,
 					location: allNetworks[network].name,
 					probes: allNetworks[network].probes,
-					asn: allNetworks[network].asn,
-					domain: null,
 					networks: [],
 					showFlag: false,
 				}));
@@ -930,6 +1044,10 @@
 			if (continentElement) {
 				continentElement.scrollIntoView({ behavior: 'smooth' });
 			}
+		},
+		getDomainForNetwork (network) {
+			let key = _.networkNameToKey(network);
+			return this.get('networkDomainMap')[key];
 		},
 		onLogoError (network) {
 			network.domain = null;

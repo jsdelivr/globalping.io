@@ -5,7 +5,7 @@ const globalpingSitemap = require('../middleware/sitemap');
 const ogImage = require('../middleware/open-graph/image');
 const ogMetadata = require('../middleware/open-graph');
 const asnDomains = require('../lib/asn-to-domain');
-const { getUsers, getNetworks } = require('../lib/probe-data');
+const { getUsers, getNetworks, getNetworkToDomainMap } = require('../lib/probe-data');
 
 const router = new KoaRouter();
 
@@ -176,6 +176,20 @@ koaElasticUtils.addRoutes(router, [
 		ctx.status = 301;
 		return ctx.redirect('/');
 	}
+});
+
+/**
+ * Return network to domain map
+ */
+koaElasticUtils.addRoutes(router, [
+	[ '/network-to-domain' ],
+], async (ctx) => {
+	if (!asnDomains) {
+		ctx.status = 503;
+		return;
+	}
+
+	ctx.body = await getNetworkToDomainMap();
 });
 
 /**

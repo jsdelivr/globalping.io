@@ -9,6 +9,52 @@
 	-webkit-font-smoothing: antialiased;
 	color: #17233a;
 
+	&_popover {
+		box-shadow: 0 4px 12px rgba(0, 0, 0, .1);
+
+		&_network-name {
+			max-width: 24ch;
+			overflow: hidden;
+			white-space: nowrap;
+			text-overflow: ellipsis;
+		}
+
+		& > .popover-content {
+			padding: 6px;
+
+			& > .gp-popover-menu {
+				display: flex;
+				flex-direction: column;
+				row-gap: 4px;
+
+				& > * {
+					display: flex;
+					gap: 4px;
+					align-items: center;
+					padding: 5px 9px 5px 6px;
+					border-radius: 4px;
+					transition: background-color .1s ease-in-out;
+					background: #fff;
+					color: #17233a;
+					border: none;
+
+					& > i {
+						width: 16px;
+					}
+
+					& > span {
+						display: inline-flex;
+					}
+
+					&:hover {
+						background-color: #efefef;
+						text-decoration: none;
+					}
+				}
+			}
+		}
+	}
+
 	&_result-count {
 		width: 100%;
 		max-width: 1224px;
@@ -350,14 +396,6 @@
 					&_location {
 						word-break: break-word;
 						flex-shrink: 0;
-					}
-
-					&_networks {
-						grid-column: 2;
-						display: flex;
-						flex-wrap: wrap;
-						row-gap: 4px;
-						column-gap: 8px;
 					}
 
 					&_network {
