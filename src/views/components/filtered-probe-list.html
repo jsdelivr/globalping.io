@@ -231,6 +231,11 @@
 		return acc;
 	}, {});
 
+	const COUNTRY_CODE_MAP = COUNTRIES.reduce((acc, country) => {
+		acc[country.name] = country.code;
+		return acc;
+	}, {});
+
 	component.exports = {
 		decorators: {
 			popover (node, contentHtml) {
@@ -542,7 +547,19 @@
 
 				targetLoc = [
 					currentLoc,
-					...locationParts.map(p => currentLoc.includes(p) ? '' : p),
+					...locationParts.map((part) => {
+						let countryCode = COUNTRIES_MAP[part];
+						let countryName = COUNTRY_CODE_MAP[part];
+
+						if (currentLoc.includes(part)
+							|| (countryCode && currentLoc.includes(countryCode))
+							|| (countryName && currentLoc.includes(countryName))
+						) {
+							return '';
+						}
+
+						return part;
+					}),
 				].filter(Boolean).join('+');
 			}
 
