@@ -480,9 +480,11 @@
 				});
 
 				this.observe('groupBy', (groupBy, oldGroupBy) => {
-					if (groupBy !== 'disabled' && oldGroupBy && this.get('sortOrder') !== this.get('defaultSortOptions')[groupBy]) {
-						this.set('skipNextSplit', true); // update will be handler by the groupedProbes observer
-						this.set('sortOrder', this.get('defaultSortOptions')[groupBy]);
+					let defaultSort = this.get('defaultSortOptions')[groupBy];
+
+					if (groupBy !== 'disabled' && oldGroupBy && defaultSort && this.get('sortOrder') !== defaultSort) {
+						this.set('skipNextSplit', true);
+						this.set('sortOrder', defaultSort);
 					}
 
 					let locationProbes = this.get('locationProbes');
