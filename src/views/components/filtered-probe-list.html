@@ -360,6 +360,7 @@
 				networkDomainMap: Object.create(null),
 				justClickedLocationFocus: false,
 				skipNextSplit: false,
+				hasManualSortBy: false,
 			};
 		},
 		computed: {
@@ -483,10 +484,26 @@
 					this.set('groupedProbes', groupedProbes);
 				});
 
-				this.observe('groupBy', (groupBy, oldGroupBy) => {
+				this.observe('sortOrder', (sortOrder) => {
+					let groupBy = this.get('groupBy');
+
+					if (groupBy === 'disabled') {
+						return;
+					}
+
 					let defaultSort = this.get('defaultSortOptions')[groupBy];
 
-					if (groupBy !== 'disabled' && oldGroupBy && defaultSort && this.get('sortOrder') !== defaultSort) {
+					if (sortOrder === defaultSort) {
+						this.set('hasManualSortBy', false);
+					} else {
+						this.set('hasManualSortBy', true);
+					}
+				});
+
+				this.observe('groupBy', (groupBy) => {
+					let defaultSort = this.get('defaultSortOptions')[groupBy];
+
+					if (groupBy !== 'disabled' && defaultSort && this.get('sortOrder') !== defaultSort && !this.get('hasManualSortBy')) {
 						this.set('skipNextSplit', true);
 						this.set('sortOrder', defaultSort);
 					}
