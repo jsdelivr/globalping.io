@@ -546,7 +546,14 @@
 				].filter(Boolean).join('+');
 			}
 
-			targetLoc = targetLoc.replaceAll('%', '+');
+			targetLoc = targetLoc.replace(/[%&<>"']/g, ch => ({
+				'%': '+',
+				'&': '&amp;',
+				'<': '&lt;',
+				'>': '&gt;',
+				'"': '&quot;',
+				'\'': '&#39;',
+			}[ch]));
 
 			let btnFocus = `
 				<button type="button"
