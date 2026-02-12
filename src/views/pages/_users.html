@@ -155,6 +155,10 @@
 					return this.get('groupBy') === GROUP_DEFAULT ? '' : this.get('groupBy');
 				},
 				set (group) {
+					if (Object.hasOwn(DEFAULT_SORT_OPTIONS, group)) {
+						this.set('sortOrder', DEFAULT_SORT_OPTIONS[group]);
+					}
+
 					this.set('groupBy', group);
 				},
 			},

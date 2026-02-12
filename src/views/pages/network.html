@@ -111,6 +111,10 @@
 				},
 				set (group) {
 					this.set('groupBy', group);
+
+					if (Object.hasOwn(DEFAULT_SORT_OPTIONS, group)) {
+						this.set('sortOrder', DEFAULT_SORT_OPTIONS[group]);
+					}
 				},
 			},
 			sort: {

@@ -149,11 +149,10 @@
 									{{#each continentGroup.items as item}}
 										<div class="gp-filtered-list_list_column_group_item">
 											{{#if item.showFlag}}
-												<span class="gp-filtered-list_list_column_group_item_img">
-													<img width="17"
-														height="12"
-														src="https://cdn.jsdelivr.net/npm/country-flag-icons@1.5.5/3x2/{{item.location.split(', ')[0]}}.svg">
-												</span>
+												<img width="17"
+													height="20"
+													class="gp-filtered-list_list_column_group_item_img"
+													src="https://cdn.jsdelivr.net/npm/country-flag-icons@1.5.5/3x2/{{item.location.split(', ')[0]}}.svg">
 											{{elseif groupBy === 'network'}}
 												<span class="gp-filtered-list_list_column_group_item_network-logo">
 													{{#if @this.getDomainForNetwork(item.name) && @shared.logoDevPublicToken}}
@@ -169,35 +168,32 @@
 													{{/if}}
 												</span>
 											{{/if}}
-											<div>
 												{{#if item.networks && item.networks.length}}
-													<span class="gp-filtered-list_list_column_group_item_location">
+													<div>
 														{{item.name}}
-													</span>
 
-													<div class="gp-filtered-list_list_column_group_item_networks">
-														{{#each item.networks}}
-															<span class="gp-filtered-list_list_column_group_item_network"
-																tabindex="0"
-																role="button"
-																as-popover="@this.getPopoverContent(item.from, this.name)">
-																{{this.name}}
-																{{#if this.count !== 1}}
-																	<span class="gp-filtered-list_list_column_group_item_network_count">(x{{this.count}})</span>
-																{{/if}}
-															</span>
-														{{/each}}
+														<div class="gp-filtered-list_list_column_group_item_networks">
+															{{#each item.networks}}
+																<span class="gp-filtered-list_list_column_group_item_network"
+																	tabindex="0"
+																	role="button"
+																	as-popover="@this.getPopoverContent(item.from, this.name)">
+																	{{this.name}}
+																	{{#if this.count !== 1}}
+																		(x{{this.count}})
+																	{{/if}}
+																</span>
+															{{/each}}
+														</div>
 													</div>
 												{{else}}
-													<span class="gp-filtered-list_list_column_group_item_location">
-														<span tabindex="0"
-															role="button"
-															as-popover="@this.getPopoverContent(item.from)">
-															{{item.name}}
-														</span>
+													<span tabindex="0"
+														role="button"
+														class="gp-filtered-list_list_column_group_item_location"
+														as-popover="@this.getPopoverContent(item.from)">
+														{{item.name}}
 													</span>
 												{{/if}}
-											</div>
 											{{#if groupBy !== 'city-network' && groupBy !== 'country-network'}}
 												<span class="gp-filtered-list_list_column_group_item_count">{{item.probes.length}}</span>
 											{{/if}}
@@ -358,6 +354,7 @@
 				maxTagCount: 2,
 				networkDomainMap: Object.create(null),
 				justClickedLocationFocus: false,
+				skipNextSplit: false,
 			};
 		},
 		computed: {
@@ -429,9 +426,6 @@
 						return;
 					}
 
-					let preparedProbesColumns = this.splitDataIntoColumns();
-					this.set('preparedProbesColumns', preparedProbesColumns);
-
 					// handle tooltips positions depending on the screen size
 					let ttPositions = {};
 
@@ -458,37 +452,35 @@
 
 				this.observe('locationProbes', (locationProbes) => {
 					this.set('filteredProbes', locationProbes);
-					let groupedProbes = this.groupProbes(locationProbes || []);
 
 					if (this.get('justClickedLocationFocus')) {
 						this.set('justClickedLocationFocus', false);
-						let groupCount = Object.keys(groupedProbes).length;
 
-						if (groupCount <= 1) {
-							let { cities, countries, networks } = this.getLocationCounts(locationProbes || []);
+						let { cities, countries, networks } = this.getLocationCounts(locationProbes || []);
 
-							if (cities + countries + networks === 3) {
-								this.set('groupBy', 'disabled');
-								return;
-							}
+						if (cities + countries + networks === 3) {
+							this.set('groupBy', 'disabled');
+							return;
+						}
 
-							if (cities + countries === 2) {
-								this.set('groupBy', 'network');
-								return;
-							}
+						if (cities + countries === 2) {
+							this.set('groupBy', 'network');
+							return;
+						}
 
-							if (cities > 1) {
-								this.set('groupBy', 'city');
-								return;
-							}
+						if (cities > 1) {
+							this.set('groupBy', 'city');
+							return;
 						}
 					}
 
+					let groupedProbes = this.groupProbes(locationProbes || []);
 					this.set('groupedProbes', groupedProbes);
 				});
 
 				this.observe('groupBy', (groupBy, oldGroupBy) => {
-					if (groupBy !== 'disabled' && oldGroupBy) {
+					if (groupBy !== 'disabled' && oldGroupBy && this.get('sortOrder') !== this.get('defaultSortOptions')[groupBy]) {
+						this.set('skipNextSplit', true); // update will be handler by the groupedProbes observer
 						this.set('sortOrder', this.get('defaultSortOptions')[groupBy]);
 					}
 
@@ -496,9 +488,6 @@
 					let groupedProbes = this.groupProbes(locationProbes || []);
 
 					this.set('groupedProbes', groupedProbes);
-
-					let preparedProbesColumns = this.splitDataIntoColumns();
-					this.set('preparedProbesColumns', preparedProbesColumns);
 				});
 
 				this.observe('groupedProbes', () => {
@@ -506,7 +495,12 @@
 					this.recalculateProbeContinents();
 				});
 
-				this.observe('sortOrder groupedProbes', () => {
+				this.observe('groupedProbes sortOrder screenWidth', () => {
+					if (this.get('skipNextSplit')) {
+						this.set('skipNextSplit', false);
+						return;
+					}
+
 					let preparedProbesColumns = this.splitDataIntoColumns();
 					this.set('preparedProbesColumns', preparedProbesColumns);
 				});
