@@ -160,7 +160,6 @@
 															height="20"
 															src="https://img.jsdelivr.com/img.logo.dev/{{@this.getDomainForNetwork(item.name)}}?token={{@shared.logoDevPublicToken}}&format=png"
 															loading="lazy"
-															on-error="@this.onLogoError(item)"
 															alt="{{this.name}} logo"
 														>
 													{{else}}
@@ -1045,9 +1044,6 @@
 		getDomainForNetwork (network) {
 			let key = _.networkNameToKey(network);
 			return this.get('networkDomainMap')[key];
-		},
-		onLogoError (network) {
-			network.domain = null;
 		},
 	};
 </script>
