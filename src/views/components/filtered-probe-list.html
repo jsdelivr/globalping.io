@@ -560,17 +560,17 @@
 				targetLoc = `${locationName}+${locationValue}`;
 			} else {
 				let currentLoc = this.get('location').replace(/^world$/i, '');
-				let locationParts = locationValue.split(/[+%]/);
+				let currLocationParts = currentLoc.split(/[+%]/);
 
 				targetLoc = [
-					currentLoc,
-					...locationParts.map((part) => {
+					locationValue,
+					...currLocationParts.map((part) => {
 						let countryCode = COUNTRIES_MAP[part];
 						let countryName = COUNTRY_CODE_MAP[part];
 
-						if (currentLoc.includes(part)
-							|| (countryCode && currentLoc.includes(countryCode))
-							|| (countryName && currentLoc.includes(countryName))
+						if (locationValue.includes(part)
+							|| (countryCode && locationValue.includes(countryCode))
+							|| (countryName && locationValue.includes(countryName))
 						) {
 							return '';
 						}
