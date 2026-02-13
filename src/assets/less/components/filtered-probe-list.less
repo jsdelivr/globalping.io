@@ -283,6 +283,7 @@
 
 	&_list {
 		display: flex;
+		flex-direction: column;
 		max-width: 1224px;
 		width: 100%;
 		gap: 10px;
@@ -299,59 +300,60 @@
 			}
 		}
 
-		&_column {
+		&_block {
 			display: flex;
 			flex-direction: column;
 			gap: 24px;
 			width: 100%;
 
 			&.disabled-group-by {
+				display: grid;
 				gap: 8px;
+				grid-template-columns: repeat(2, 1fr);
 
-				@media (min-width: @screen-md-min) {
-					width: calc(100% / 2);
+				@media (max-width: @screen-md-min) {
+					grid-template-columns: repeat(1, 1fr);
 				}
 			}
 
 			&:not(.disabled-group-by) {
-				@media (min-width: 576px) {
-					width: calc(100% / 2);
-				}
-
-				@media (min-width: @screen-md-min) {
-					width: calc(100% / 3);
-				}
+				width: 100%;
 			}
 
 			&_group {
-				display: flex;
-				flex-direction: column;
-				padding: 8px 12px;
-				border: 1px solid #e7e7ee;
+				display: grid;
+				grid-template-columns: repeat(3, 1fr);
+				padding: 14px;
 				border-radius: 12px;
-				gap: 4px;
+				width: 100%;
+				column-gap: 32px;
+				row-gap: 8px;
+				border: 1px solid #e7e7ee;
 
-				&.is-network {
-					gap: 6px;
+				@media (max-width: @screen-md-min) {
+					grid-template-columns: repeat(2, 1fr);
 				}
 
-				&.has-networks {
-					gap: 8px;
+				@media (max-width: @screen-sm-min) {
+					grid-template-columns: repeat(1, 1fr);
 				}
 
 				&_item {
 					display: flex;
 					align-items: start;
+					justify-content: space-between;
 					column-gap: 8px;
 					font-size: 14px;
 					font-weight: 400;
 					line-height: 20px;
+					width: 100%;
 					color: #17233a;
 
 					& > div {
 						display: flex;
 						flex-direction: column;
 						flex-grow: 1;
+						padding-right: 8px;
 					}
 
 					&_network-logo {
@@ -397,10 +399,14 @@
 					}
 
 					&.cont-header {
-						font-size: 16px;
+						font-size: 24px;
 						font-weight: 600;
 						line-height: 24px;
-						margin-bottom: 8px;
+						margin-bottom: 12px;
+						margin-top: 8px;
+						grid-column: 1 / -1;
+						justify-content: flex-start;
+						gap: 12px;
 
 						&:not(:first-child) {
 							margin-top: 10px;
@@ -415,6 +421,9 @@
 		}
 
 		&.disabled-group-by {
+			flex-direction: row;
+			padding: 0;
+			border: none;
 			gap: 16px;
 		}
 	}

@@ -76,7 +76,7 @@
 		</div>
 	</div>
 
-	{{#if preparedProbesColumns && preparedProbesColumns.length > 0}}
+	{{#if preparedProbeBlocks && preparedProbeBlocks.length > 0}}
 		<p class="gp-filtered-list_result-count">
 			Showing <b>{{totalResults}} unique {{_.pluralize('result', totalResults)}}</b>{{#if groupBy === 'network'}}.{{/if}}
 
@@ -119,7 +119,7 @@
 				<button type="button" on-click="refresh()">Try again</button>
 			</div>
 		{{else}}
-			{{#if preparedProbesColumns && preparedProbesColumns.length === 0}}
+			{{#if preparedProbeBlocks && preparedProbeBlocks.length === 0}}
 				<div class="gp-filtered-list_list_no-result">
 					{{#if rawProbes && rawProbes.length}}
 					No results found. Try adjusting your filters.
@@ -128,33 +128,51 @@
 					{{/if}}
 				</div>
 			{{else}}
-				{{#each preparedProbesColumns as column}}
-					<div class="gp-filtered-list_list_column {{groupBy === 'disabled' ? 'disabled-group-by' : ''}}">
+				{{#each preparedProbeBlocks as block}}
+					<div class="gp-filtered-list_list_block {{groupBy === 'disabled' ? 'disabled-group-by' : ''}}">
 						{{#if groupBy === 'disabled'}}
-							{{#each column as continentGroup}}
-								{{#each continentGroup.items as item}}
-									<c-probe-single-card location="{{item.location}}" tags="{{item.tags}}" maxTagCount="{{maxTagCount}}"></c-probe-single-card>
-								{{/each}}
+							{{#each block.items as item}}
+								<c-probe-single-card location="{{item.location}}" tags="{{item.tags}}" maxTagCount="{{maxTagCount}}"></c-probe-single-card>
 							{{/each}}
 						{{else}}
-							{{#each column as continentGroup}}
-								<div class="gp-filtered-list_list_column_group {{groupBy === 'network' ? 'is-network' : ''}} {{groupBy === 'city-network' || groupBy === 'country-network' ? 'has-networks' : ''}}"
-									data-testid="probe-column-group">
-									{{#if continentGroup.title}}
-										<span class="gp-filtered-list_list_column_group_item cont-header" id="probe-group-{{continentGroup.title}}">
-											{{@this.getContinentName(continentGroup.title)}}
-										</span>
-									{{/if}}
+							<div class="gp-filtered-list_list_block_group" data-testid="probe-block-group">
+								{{#if block.title}}
+									<span class="gp-filtered-list_list_block_group_item cont-header" id="probe-group-{{block.title}}">
+										<img width="24" height="24" src="{{@shared.assetsHost}}/img/network/continent-{{block.title.toLowerCase()}}.svg">
+										{{@this.getContinentName(block.title)}}
+									</span>
+								{{/if}}
+								{{#each block.items as item}}
+									{{#if item.networks && item.networks.length}}
+										{{#each item.networks}}
+											<div class="gp-filtered-list_list_block_group_item">
+												<img width="17"
+													height="20"
+													class="gp-filtered-list_list_block_group_item_img"
+													src="https://cdn.jsdelivr.net/npm/country-flag-icons@1.5.5/3x2/{{item.location.split(', ')[0]}}.svg">
+												<div tabindex="0"
+													role="button"
+													as-popover="@this.getPopoverContent(item.from, this.name)">
+													{{item.name}}
 
-									{{#each continentGroup.items as item}}
-										<div class="gp-filtered-list_list_column_group_item">
+													<div>
+														<span class="gp-filtered-list_list_block_group_item_network">
+															{{this.name}}
+														</span>
+													</div>
+												</div>
+												<span class="gp-filtered-list_list_block_group_item_count">{{this.count}}</span>
+											</div>
+										{{/each}}
+									{{else}}
+										<div class="gp-filtered-list_list_block_group_item">
 											{{#if item.showFlag}}
 												<img width="17"
 													height="20"
-													class="gp-filtered-list_list_column_group_item_img"
+													class="gp-filtered-list_list_block_group_item_img"
 													src="https://cdn.jsdelivr.net/npm/country-flag-icons@1.5.5/3x2/{{item.location.split(', ')[0]}}.svg">
 											{{elseif groupBy === 'network'}}
-												<span class="gp-filtered-list_list_column_group_item_network-logo">
+												<span class="gp-filtered-list_list_block_group_item_network-logo">
 													{{#if @this.getDomainForNetwork(item.name)}}
 														<img width="20"
 															height="20"
@@ -167,40 +185,18 @@
 													{{/if}}
 												</span>
 											{{/if}}
-												{{#if item.networks && item.networks.length}}
-													<div>
-														{{item.name}}
-
-														<div class="gp-filtered-list_list_column_group_item_networks">
-															{{#each item.networks}}
-																<span class="gp-filtered-list_list_column_group_item_network"
-																	tabindex="0"
-																	role="button"
-																	as-popover="@this.getPopoverContent(item.from, this.name)">
-																	{{this.name}}
-																	{{#if this.count !== 1}}
-																		(x{{this.count}})
-																	{{/if}}
-																</span>
-															{{/each}}
-														</div>
-													</div>
-												{{else}}
-													<span class="gp-filtered-list_list_column_group_item_location">
-														<span tabindex="0"
-															role="button"
-															as-popover="@this.getPopoverContent(item.from)">
-															{{item.name}}
-														</span>
-													</span>
-												{{/if}}
-											{{#if groupBy !== 'city-network' && groupBy !== 'country-network'}}
-												<span class="gp-filtered-list_list_column_group_item_count">{{item.probes.length}}</span>
-											{{/if}}
+											<span class="gp-filtered-list_list_block_group_item_location">
+												<span tabindex="0"
+													role="button"
+													as-popover="@this.getPopoverContent(item.from)">
+													{{item.name}}
+												</span>
+											</span>
+											<span class="gp-filtered-list_list_block_group_item_count">{{item.probes.length}}</span>
 										</div>
-									{{/each}}
-								</div>
-							{{/each}}
+									{{/if}}
+								{{/each}}
+							</div>
 						{{/if}}
 					</div>
 				{{/each}}
@@ -353,7 +349,7 @@
 				filtersSet: null,
 				groupedProbes: null,
 				locationProbes: null,
-				preparedProbesColumns: null,
+				preparedProbeBlocks: null,
 				filteredMarkersData: null,
 				selectedContinent: null,
 				maxTagCount: 2,
@@ -525,8 +521,8 @@
 						return;
 					}
 
-					let preparedProbesColumns = this.splitDataIntoColumns();
-					this.set('preparedProbesColumns', preparedProbesColumns);
+					let preparedProbeBlocks = this.splitDataIntoBlocks();
+					this.set('preparedProbeBlocks', preparedProbeBlocks);
 				});
 			}
 		},
@@ -940,8 +936,7 @@
 
 			return sortedArray;
 		},
-		splitDataIntoColumns () {
-			let minItemsPerColumn = this.get('groupBy') === 'disabled' ? 1 : 10;
+		splitDataIntoBlocks () {
 			let groupedProbes = this.get('groupedProbes');
 
 			if (!groupedProbes) {
@@ -949,70 +944,17 @@
 			}
 
 			let data = this.sortAndGroup(groupedProbes);
-
-			let screenWidth = this.get('screenWidth');
-			let columnsCnt = this.getLayoutColumnsAmount(screenWidth);
-
 			let groupBy = this.get('groupBy');
-			let totalItems = data.length + (groupBy.includes('-network') ? data.reduce((sum, item) => sum + Math.ceil(item.networks.length * .75), 0) : 0);
-			let itemsPerColumn = Math.max(minItemsPerColumn, Math.ceil(totalItems / columnsCnt));
-			let columnMax = Math.max(minItemsPerColumn, itemsPerColumn);
-			let columnNumber = 0;
 
 			if (groupBy === 'network' || groupBy === 'disabled') {
-				return data.reduce((res, item) => {
-					if (!res[columnNumber]) {
-						res[columnNumber] = [{
-							title: null,
-							items: [],
-						}];
-					}
-
-					let currentColumn = res[columnNumber];
-					let currentColumnItems = currentColumn[0].items.length;
-
-					if (currentColumnItems >= columnMax) {
-						columnNumber++;
-
-						res[columnNumber] = [{
-							title: null,
-							items: [],
-						}];
-
-						currentColumn = res[columnNumber];
-					}
-
-					currentColumn[0].items.push(item);
-					return res;
-				}, []);
+				return [{
+					title: null,
+					items: data,
+				}];
 			}
 
-			let currentColumnItems = 0;
 			return data.reduce((res, item) => {
-				if (!res[columnNumber]) {
-					res[columnNumber] = [];
-				}
-
-				let currentColumn = res[columnNumber];
-				let itemsHeight = 1 + (groupBy.includes('-network') ? Math.ceil(item.networks.length * .75) : 0);
-
-				if (
-					columnNumber < columnsCnt - 1
-					&& (currentColumnItems >= columnMax
-						|| (currentColumnItems > 0 && currentColumnItems + (itemsHeight * .5) > columnMax)
-					)
-				) {
-					columnNumber++;
-
-					if (!res[columnNumber]) {
-						res[columnNumber] = [];
-					}
-
-					currentColumn = res[columnNumber];
-					currentColumnItems = 0;
-				}
-
-				let continentGroup = currentColumn.find(group => group.title === item.continent);
+				let continentGroup = res.find(group => group.title === item.continent);
 
 				if (!continentGroup) {
 					continentGroup = {
@@ -1020,29 +962,12 @@
 						items: [],
 					};
 
-					currentColumn.push(continentGroup);
+					res.push(continentGroup);
 				}
 
 				continentGroup.items.push(item);
-				currentColumnItems += groupBy.includes('-network') ? 1 + Math.ceil(item.networks.length * .75) : 1;
-
 				return res;
 			}, []);
-		},
-		getLayoutColumnsAmount (screenWidth) {
-			let columnsAmount = 1;
-
-			if (this.get('groupBy') === 'disabled') {
-				if (screenWidth >= 992) {
-					columnsAmount = 2;
-				}
-			} else if (screenWidth >= 576 && screenWidth < 992) {
-				columnsAmount = 2;
-			} else if (screenWidth >= 992) {
-				columnsAmount = 3;
-			}
-
-			return columnsAmount;
 		},
 		recalculateProbeContinents () {
 			let groupBy = this.get('groupBy');
