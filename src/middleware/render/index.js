@@ -28,7 +28,6 @@ module.exports = (options) => {
 			component.set('@shared.assetsHost', options.assetsHost);
 			component.set('@shared.apiDocsHost', options.apiDocsHost);
 			component.set('@shared.assetsVersion', options.assetsVersion);
-			component.set('@shared.logoDevPublicToken', options.logoDevPublicToken);
 			component.set('@shared.actualPath', ctx.path);
 			component.set('@shared.options', ctx.options);
 			component.set('@shared.router', ctx.router);

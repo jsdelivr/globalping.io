@@ -29,10 +29,10 @@
 			<div class="p-globalping-networks_network_head">
 				<span>Network</span>
 
-				{{#if networkDomainName && @shared.logoDevPublicToken}}
+				{{#if networkDomainName}}
 					<img width="32"
 						height="32"
-						src="https://img.jsdelivr.com/img.logo.dev/{{networkDomainName}}?token={{@shared.logoDevPublicToken}}&format=png"
+						src="https://img.jsdelivr.com/img.logo.dev/{{networkDomainName}}?format=png"
 						loading="lazy"
 						alt="{{networkFullName}} logo"
 						as-tooltip="networkFullName"
@@ -216,10 +216,10 @@
 				<div class="p-globalping-networks_explore_body">
 					{{#each otherNetworks}}
 						<a href="/networks/{{this.name}}" class="p-globalping-networks_explore_network" data-testid="other-network">
-							{{#if this.networkDomainName && @shared.logoDevPublicToken}}
+							{{#if this.networkDomainName}}
 								<img width="24"
 									height="24"
-									src="https://img.jsdelivr.com/img.logo.dev/{{this.networkDomainName}}?token={{@shared.logoDevPublicToken}}&format=png"
+									src="https://img.jsdelivr.com/img.logo.dev/{{this.networkDomainName}}?format=png"
 									loading="lazy"
 									on-error="@this.onLogoError(this)"
 									alt="{{this.fullName}} logo">

@@ -155,10 +155,10 @@
 													src="https://cdn.jsdelivr.net/npm/country-flag-icons@1.5.5/3x2/{{item.location.split(', ')[0]}}.svg">
 											{{elseif groupBy === 'network'}}
 												<span class="gp-filtered-list_list_column_group_item_network-logo">
-													{{#if @this.getDomainForNetwork(item.name) && @shared.logoDevPublicToken}}
+													{{#if @this.getDomainForNetwork(item.name)}}
 														<img width="20"
 															height="20"
-															src="https://img.jsdelivr.com/img.logo.dev/{{@this.getDomainForNetwork(item.name)}}?token={{@shared.logoDevPublicToken}}&format=png"
+															src="https://img.jsdelivr.com/img.logo.dev/{{@this.getDomainForNetwork(item.name)}}?format=png"
 															loading="lazy"
 															alt="{{item.name}} logo"
 														>
