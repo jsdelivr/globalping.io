@@ -92,8 +92,4 @@
 	.max-w-section {
 		max-width: min(90vw, 1064px);
 	}
-
-	section > p {
-		line-height: 2rem;
-	}
 </style>
