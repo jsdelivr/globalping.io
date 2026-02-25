@@ -29,32 +29,25 @@
 			</div>
 		</section>
 
-		<section class="max-w-section flex w-full flex-col gap-16 px-6 max-md:gap-8 max-md:px-2">
+		<section class="max-w-section flex w-full flex-col gap-16 px-6 max-md:gap-8 max-md:px-1">
 			<div class="flex flex-col gap-4">
 				<h1>Globalping Integration for {{ appName }} Quick Start</h1>
 				<h4 class="text-xl">Simple to use, free and open source.</h4>
 			</div>
 
-			<div class="flex flex-col gap-24 max-md:gap-10">
+			<div class="flex flex-col gap-24 max-md:gap-14">
 				<div
 					v-for="(item, index) in steps"
 					:key="item.title"
-					ref="stepRefs"
-					:data-index="index"
 					class="flex items-center justify-between gap-6 transition-all duration-500 ease-out max-md:flex-col"
-					:class="[
-						index % 2 ? 'md:flex-row-reverse' : '',
-						activeStep === index
-							? 'scale-100 opacity-100 blur-none'
-							: 'scale-95 opacity-50 blur-[2px]'
-					]"
+					:class="index % 2 ? 'md:flex-row-reverse' : ''"
 				>
 					<div class="flex gap-4">
 						<div class="bg-primary relative flex size-10 shrink-0 items-center justify-center rounded-md text-xl font-bold text-white">
 							{{ index + 1 }}
 						</div>
 						<div class="flex flex-col gap-2 leading-8 md:max-w-80">
-							<h3>{{ item.title }}</h3>
+							<h3 class="max-md:text-2xl max-md:leading-8">{{ item.title }}</h3>
 							<p>{{ item.description }}</p>
 						</div>
 					</div>
@@ -75,7 +68,6 @@
 </template>
 
 <script setup lang="ts">
-	import { useActiveStep } from '~/composables/useActiveStep';
 	import usePageHead from '~/composables/usePageHead';
 
 	interface Step {
@@ -89,8 +81,6 @@
 		steps: Step[];
 		appName: string;
 	}>();
-
-	const { activeStep, stepRefs } = useActiveStep();
 
 	usePageHead({
 		title: `Globalping ${props.appName} App`,
