@@ -31,7 +31,7 @@
 
 		<section class="max-w-section flex w-full flex-col gap-16 px-6 max-md:gap-8 max-md:px-1">
 			<div class="flex flex-col gap-4">
-				<h1>Globalping Integration for {{ appName }} Quick Start</h1>
+				<h2 class="text-h1">Globalping Integration for {{ appName }} Quick Start</h2>
 				<h4 class="text-xl">Simple to use, free and open source.</h4>
 			</div>
 
