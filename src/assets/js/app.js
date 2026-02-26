@@ -4,8 +4,6 @@ const http = require('./utils/http');
 
 const _ = require('./_');
 const cGlobalping = require('../../views/pages/_index.html');
-const cGlobalpingSlack = require('../../views/pages/slack.html');
-const cGlobalpingDiscord = require('../../views/pages/discord.html');
 const cGlobalpingNetworkTools = require('../../views/pages/network-tools.html');
 const cGlobalpingIntegrations = require('../../views/pages/integrations.html');
 const cGlobalpingAbout = require('../../views/pages/about-us.html');
@@ -35,8 +33,6 @@ const initApp = () => {
 	});
 
 	app.router.addRoute('/', cGlobalping, { qs: [ 'location', 'measurement', 'display', 'map', 'by', 'order' ] });
-	app.router.addRoute('/slack', cGlobalpingSlack);
-	app.router.addRoute('/discord', cGlobalpingDiscord);
 	app.router.addRoute('/network-tools/:params?', cGlobalpingNetworkTools);
 	app.router.addRoute('/integrations', cGlobalpingIntegrations);
 	app.router.addRoute('/about-us', cGlobalpingAbout);
