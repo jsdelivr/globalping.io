@@ -51,7 +51,7 @@ async function fetchAndSaveAsnDomainMap (url) {
 }
 
 async function main () {
-	let url = `https://geodb.jsdelivr.com/download`;
+	let url = `https://download.jsdelivr.com/IPINFO_LITE.csv.gz`;
 
 	try {
 		await fetchAndSaveAsnDomainMap(url);
