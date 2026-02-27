@@ -18,7 +18,7 @@
 
 			<img
 				class="pointer-events-none absolute inset-0 z-0 mx-auto h-full min-h-164 object-cover"
-				src="~/assets/images/grid-2.svg"
+				src="~/assets/images/backgrounds/grid.svg"
 				alt=""
 			>
 			<div class="absolute inset-x-0 bottom-0 h-25 w-full opacity-40 max-md:opacity-25">

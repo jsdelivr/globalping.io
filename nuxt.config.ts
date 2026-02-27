@@ -101,7 +101,7 @@ export default defineNuxtConfig({
 		importPT: { as: 'Aura', from: '~/presets/aura' },
 		components: {
 			prefix: 'pv',
-			include: [], // <- add primevue components to be bundled here (the same applies below)
+			include: [ 'Paginator' ], // <- add primevue components to be bundled here (the same applies below)
 		},
 		directives: {
 			include: [ 'Tooltip' ],

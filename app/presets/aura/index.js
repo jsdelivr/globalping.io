@@ -53,7 +53,7 @@ import global from './global';
 // import orderlist from './orderlist';
 // import organizationchart from './organizationchart';
 // import overlaybadge from './overlaybadge';
-// import paginator from './paginator';
+import paginator from './paginator';
 // import panel from './panel';
 // import panelmenu from './panelmenu';
 // import password from './password';
@@ -147,7 +147,7 @@ export default {
 	// speeddial,
 
 	// data
-	// paginator,
+	paginator,
 	// datatable,
 	// tree,
 	// dataview,
