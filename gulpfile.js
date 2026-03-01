@@ -89,11 +89,9 @@ gulp.task('clean', () => {
 
 gulp.task('copy', gulp.parallel(
 	() => gulp.src(`${srcAssetsDir}/**/*.!(js|less)`, { base: srcAssetsDir, since: gulp.lastRun('copy'), encoding: false })
-		.pipe(gulp.dest(dstAssetsDir))
-		.pipe(livereload(liveReloadOptions)),
+		.pipe(gulp.dest(dstAssetsDir)),
 	() => gulp.src(`${srcPublicDir}/**/*`, { base: srcPublicDir, since: gulp.lastRun('copy'), encoding: false })
-		.pipe(gulp.dest(dstPublicDir))
-		.pipe(livereload(liveReloadOptions)),
+		.pipe(gulp.dest(dstPublicDir)),
 ));
 
 gulp.task('less', () => {
@@ -141,16 +139,14 @@ gulp.task('js', gulp.parallel(
 		.pipe(buffer())
 		.pipe(sourcemaps.init({ loadMaps: true }))
 		.pipe(sourcemaps.write('.'))
-		.pipe(gulp.dest(`${dstAssetsDir}/js`))
-		.pipe(livereload(liveReloadOptions)),
+		.pipe(gulp.dest(`${dstAssetsDir}/js`)),
 	() => getRollupStream('app-docs.js')
 		.pipe(plumber())
 		.pipe(source(`app-docs.js`, srcAssetsDir))
 		.pipe(buffer())
 		.pipe(sourcemaps.init({ loadMaps: true }))
 		.pipe(sourcemaps.write('.'))
-		.pipe(gulp.dest(`${dstAssetsDir}/js`))
-		.pipe(livereload(liveReloadOptions)),
+		.pipe(gulp.dest(`${dstAssetsDir}/js`)),
 ));
 
 gulp.task('js:prod', gulp.parallel(
@@ -174,18 +170,15 @@ gulp.task('nuxt:ractive:components', gulp.parallel(
 	() => getRollupStreamRactiveComp('/components/header.html')
 		.pipe(source('header.js'))
 		.pipe(buffer())
-		.pipe(gulp.dest(`${dstAppDir}/ractive`))
-		.pipe(livereload(liveReloadOptions)),
+		.pipe(gulp.dest(`${dstAppDir}/ractive`)),
 	() => getRollupStreamRactiveComp('/components/footer.html')
 		.pipe(source('footer.js'))
 		.pipe(buffer())
-		.pipe(gulp.dest(`${dstAppDir}/ractive`))
-		.pipe(livereload(liveReloadOptions)),
+		.pipe(gulp.dest(`${dstAppDir}/ractive`)),
 	() => getRollupStreamRactiveComp('/pages/_404.html')
 		.pipe(source('404.js'))
 		.pipe(buffer())
-		.pipe(gulp.dest(`${dstAppDir}/ractive`))
-		.pipe(livereload(liveReloadOptions)),
+		.pipe(gulp.dest(`${dstAppDir}/ractive`)),
 ));
 
 gulp.task('build', gulp.series('clean', 'copy', 'less:prod', 'js:prod', 'nuxt:less', 'nuxt:ractive:components'));
@@ -196,22 +189,27 @@ gulp.task('serve', () => {
 	require('./src');
 });
 
+const triggerLivereload = (done) => {
+	livereload.reload();
+	done();
+};
+
 gulp.task('watch', () => {
 	livereload.listen(liveReloadOptions);
 
 	gulp.watch([
 		`${srcAssetsDir}/**/*.!(html|js|less)`,
 		`${srcPublicDir}/**/*`,
-	], gulp.series('copy'));
+	], gulp.series('copy', triggerLivereload));
 
 	gulp.watch([
 		`${srcDir}/**/*.html`,
 		`${srcAssetsDir}/**/*.(js|json)`,
-	], gulp.parallel('js', 'nuxt:ractive:components'));
+	], gulp.series(gulp.parallel('js', 'nuxt:ractive:components'), triggerLivereload));
 
 	gulp.watch([
 		`${srcAssetsDir}/**/*.less`,
-	], gulp.parallel('less', 'nuxt:less'));
+	], gulp.series(gulp.parallel('less', 'nuxt:less'), triggerLivereload));
 });
 
 gulp.task('default', gulp.series('clean', 'dev', gulp.parallel('serve', 'watch')));
