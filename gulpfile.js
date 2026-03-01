@@ -101,8 +101,7 @@ gulp.task('less', () => {
 		.pipe(less({ relativeUrls: true, strictMath: true }))
 		.pipe(rename('app.css'))
 		.pipe(sourcemaps.write('.'))
-		.pipe(gulp.dest(`${dstAssetsDir}/css`))
-		.pipe(livereload(liveReloadOptions));
+		.pipe(gulp.dest(`${dstAssetsDir}/css`));
 });
 
 gulp.task('nuxt:less', () => {
@@ -117,8 +116,7 @@ gulp.task('nuxt:less', () => {
 		]))
 		.pipe(rename('legacy.css'))
 		.pipe(sourcemaps.write('.'))
-		.pipe(gulp.dest(`${dstAppDir}/assets/css`))
-		.pipe(livereload(liveReloadOptions));
+		.pipe(gulp.dest(`${dstAppDir}/assets/css`));
 });
 
 gulp.task('less:prod', () => {
