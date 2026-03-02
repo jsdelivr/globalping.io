@@ -78,10 +78,6 @@
 	const { page, first, template, pageLinkSize } = usePagination({ itemsPerPage: ITEMS_PER_PAGE });
 	const { userCount, userList, countriesCovered, probesHosted } = useUserLeaderboard({ page, itemsPerPage: ITEMS_PER_PAGE });
 
-	watch(userCount, () => {
-		console.log('userCount', userCount.value);
-	}, { immediate: true });
-
 	usePageHead({ title: 'Globalping User Leaderboard' });
 </script>
 
