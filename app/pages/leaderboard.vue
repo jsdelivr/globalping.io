@@ -8,7 +8,7 @@
 			>
 			<div class="max-w-section flex w-full flex-col gap-4 text-left">
 				<h1>
-					Leaderboards
+					Leaderboard
 				</h1>
 				<p class="pb-8 max-md:pb-4">
 					The networks & providers powering the world’s largest open measurement platform.
@@ -47,10 +47,10 @@
 			</h2>
 			<div class="border-surface-300 w-full overflow-hidden rounded-lg md:border">
 				<div class="overflow-x-auto max-md:hidden">
-					<LeaderboardsUserTable :user-list="userList"/>
+					<LeaderboardUserTable :user-list="userList"/>
 				</div>
 				<div class="mb-4 md:hidden">
-					<LeaderboardsUserList :user-list="userList"/>
+					<LeaderboardUserList :user-list="userList"/>
 				</div>
 				<ClientOnly>
 					<pvPaginator
