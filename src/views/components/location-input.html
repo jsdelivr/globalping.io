@@ -431,9 +431,6 @@
 
 				let input = this.el.querySelector('.aa-Input');
 
-				// for testing
-				input.setAttribute('data-testid', 'autocomplete-input');
-
 				// Enter handling - run the measurement.
 				let handleEnter = (event) => {
 					if (event.key === 'Enter' && !isAsyncOpen) {
@@ -672,6 +669,11 @@
 				this.observe('rawProbes', (probes) => {
 					createNormalizedProbeList(probes);
 					filterProbesByCurrentParts(this.get('value') || '');
+
+					// for testing
+					if (probes.length) {
+						input.setAttribute('data-testid', 'autocomplete-input');
+					}
 				});
 
 				this.on('outsideLocationChange', () => {
