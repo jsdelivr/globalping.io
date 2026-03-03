@@ -1,13 +1,13 @@
 <template>
-	<table class="w-full min-w-150 border-b text-left text-sm" :class="userList.length > 0 ? 'border-b-[#e7e7ee]' : ''">
-		<thead class="border-b border-[#e7e7ee] bg-[#e7e7ee]">
+	<table class="w-full min-w-150 border-b text-left text-sm" :class="userList.length > 0 ? 'border-b-surface-300' : ''">
+		<thead class="bg-surface-200 border-b-surface-300 border-b">
 			<tr>
-				<th class="w-16 px-6 py-3 font-medium">#</th>
+				<th class="w-16 px-6 py-3 font-medium">Rank</th>
 				<th class="px-4 py-3 font-medium">Contributor</th>
 				<th
 					v-for="col in columns"
 					:key="col.key"
-					class="w-[15%] cursor-pointer border-[#e7e7ee] px-4 py-3 text-right font-medium transition-colors select-none hover:text-gray-900"
+					class="border-surface-300 w-[15%] cursor-pointer px-4 py-3 text-right font-medium transition-colors select-none hover:text-gray-900"
 				>
 					{{ col.label }}
 				</th>
@@ -16,7 +16,7 @@
 
 		<ClientOnly fallback-tag="tbody">
 			<template #fallback>
-				<tbody class="divide-y divide-[#e7e7ee]">
+				<tbody class="divide-surface-300 divide-y">
 					<tr>
 						<td colspan="6" class="py-12 text-center">
 							<div class="flex justify-center">
@@ -27,7 +27,7 @@
 				</tbody>
 			</template>
 
-			<tbody class="divide-y divide-[#e7e7ee]">
+			<tbody class="divide-surface-300 divide-y">
 				<tr v-if="userList.length === 0">
 					<td colspan="6" class="py-12 text-center">
 						<div class="flex justify-center">

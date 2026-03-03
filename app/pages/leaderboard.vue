@@ -1,12 +1,12 @@
 <template>
-	<main class="bg-bluegray-75 relative -mb-4 flex w-full flex-col items-center gap-8 pb-20 max-md:-mb-10 max-md:gap-8 max-md:pb-14">
+	<main class="relative mb-16 flex w-full flex-col items-center gap-8 max-md:mb-4 max-md:gap-8">
 		<section class="relative flex w-full flex-col items-center overflow-hidden py-16 max-md:py-8">
 			<img
-				class="pointer-events-none absolute inset-0 h-full w-full object-cover object-center"
+				class="pointer-events-none absolute inset-0 -z-10 h-full w-full object-cover object-center opacity-50 max-md:opacity-75"
 				src="~/assets/images/backgrounds/lines.webp"
 				alt=""
 			>
-			<div class="max-w-section z-10 flex w-full flex-col gap-4 text-left">
+			<div class="max-w-section flex w-full flex-col gap-4 text-left">
 				<h1>
 					Leaderboard
 				</h1>
@@ -45,7 +45,7 @@
 			<h2 class="mb-6">
 				Most hosted probes
 			</h2>
-			<div class="border-surface-300 w-full overflow-hidden rounded-lg md:border md:bg-white">
+			<div class="border-surface-300 w-full overflow-hidden rounded-lg md:border">
 				<div class="overflow-x-auto max-md:hidden">
 					<LeaderboardUserTable :user-list="userList"/>
 				</div>
