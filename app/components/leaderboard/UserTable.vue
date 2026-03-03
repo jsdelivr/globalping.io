@@ -2,7 +2,7 @@
 	<table class="w-full min-w-150 border-b text-left text-sm" :class="userList.length > 0 ? 'border-b-surface-300' : ''">
 		<thead class="bg-surface-200 border-b-surface-300 border-b">
 			<tr>
-				<th class="w-16 px-6 py-3 font-medium">Rank</th>
+				<th class="w-16 px-6 py-3 font-medium">#</th>
 				<th class="px-4 py-3 font-medium">Contributor</th>
 				<th
 					v-for="col in columns"
