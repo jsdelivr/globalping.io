@@ -7,7 +7,7 @@
 				<th
 					v-for="col in columns"
 					:key="col.key"
-					class="border-surface-300 w-[15%] cursor-pointer px-4 py-3 text-right font-medium transition-colors select-none hover:text-gray-900"
+					class="border-surface-300 w-[15%] px-4 py-3 text-right font-medium select-none"
 				>
 					{{ col.label }}
 				</th>
