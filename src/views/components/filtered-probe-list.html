@@ -129,13 +129,13 @@
 				</div>
 			{{else}}
 				{{#each preparedProbeBlocks as block}}
-					<div class="gp-filtered-list_list_block {{groupBy === 'disabled' ? 'disabled-group-by' : ''}}">
+					<div class="gp-filtered-list_list_block group-by-{{groupBy}}">
 						{{#if groupBy === 'disabled'}}
 							{{#each block.items as item}}
 								<c-probe-single-card location="{{item.location}}" tags="{{item.tags}}" maxTagCount="{{maxTagCount}}"></c-probe-single-card>
 							{{/each}}
 						{{else}}
-							<div class="gp-filtered-list_list_block_group" data-testid="probe-block-group">
+							<div class="gp-filtered-list_list_block_group group-by-{{groupBy}}" data-testid="probe-block-group">
 								{{#if block.title}}
 									<span class="gp-filtered-list_list_block_group_item cont-header" id="probe-group-{{block.title}}">
 										<img width="24" height="24" src="{{@shared.assetsHost}}/img/network/continent-{{block.title.toLowerCase()}}.svg">
