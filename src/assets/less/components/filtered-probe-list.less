@@ -174,10 +174,6 @@
 				row-gap: 24px;
 			}
 
-			&_row {
-				display: flex;
-			}
-
 			&_title {
 				display: flex;
 				column-gap: 8px;
@@ -334,9 +330,22 @@
 					grid-template-columns: repeat(3, 1fr);
 				}
 
+				&.group-by-country-network, &.group-by-city-network {
+					column-count: 4;
+					display: block;
+
+					> * {
+						margin-bottom: 8px;
+					}
+				}
+
 				@media (max-width: @screen-md-max) {
 					&, &.group-by-network {
 						grid-template-columns: repeat(3, 1fr);
+					}
+
+					&.group-by-country-network, &.group-by-city-network {
+						column-count: 3;
 					}
 				}
 
@@ -344,29 +353,45 @@
 					&, &.group-by-network {
 						grid-template-columns: repeat(2, 1fr);
 					}
+
+					&.group-by-country-network, &.group-by-city-network {
+						column-count: 2;
+					}
 				}
 
 				@media (max-width: @screen-xs-max) {
 					&, &.group-by-network {
 						grid-template-columns: repeat(1, 1fr);
 					}
+
+					&.group-by-country-network, &.group-by-city-network {
+						column-count: 1;
+					}
 				}
 
 				&_item {
 					display: flex;
-					background: #f3f5f6;
-					border: 1px solid #e7e7ee;
-					border-radius: 6px;
 					padding: 4px 12px;
 					align-items: start;
 					justify-content: space-between;
 					overflow: hidden;
-					column-gap: 8px;
-					font-size: 14px;
-					font-weight: 400;
-					line-height: 20px;
 					width: 100%;
 					color: #17233a;
+
+					&:not(.cont-header) {
+						background: #f8fafb;
+						border: 1px solid #f3f5f6;
+						border-radius: 6px;
+						column-gap: 8px;
+						font-size: 14px;
+						font-weight: 400;
+						line-height: 20px;
+						transition: background-color 100ms ease-in-out;
+
+						&:hover {
+							background: #eff1f3;
+						}
+					}
 
 					& > div {
 						display: flex;
@@ -379,39 +404,28 @@
 
 					&_count {
 						font-size: 12px;
-						line-height: 18px;
+						line-height: 20px;
 						padding: 0 6px;
-						border-radius: 8px;
-						border: #a9a9a9 solid 1px;
+						border-radius: 6px;
 						background: #fff;
-					}
-
-					a {
-						color: #17233a;
+						margin-right: -6px;
+						border: 1px solid #e7e7ee;
 					}
 
 					&_location {
 						flex-grow: 1;
 					}
 
-					&_network {
-						background-color: #f3f5f6;
-						border-radius: 6px;
-						padding: 0 6px;
-						font-size: 12px;
-					}
-
 					&.cont-header {
 						font-size: 24px;
 						font-weight: 600;
 						line-height: 24px;
-						margin-bottom: 12px;
+						margin-bottom: 14px;
 						margin-top: 8px;
+						column-span: all;
 						grid-column: 1 / -1;
 						justify-content: flex-start;
 						gap: 12px;
-						background: transparent;
-						border: none;
 
 						&:not(:first-child) {
 							margin-top: 10px;
@@ -424,76 +438,44 @@
 				}
 
 				&_networks-item {
-					grid-column: 1 / -1;
-					display: flex;
-					flex-direction: column;
-					gap: 8px;
-					overflow: hidden;
-					padding-bottom: 4px;
-
-					&_title {
-						display: flex;
-						gap: 6px;
-						overflow: hidden;
-
-						> .gp-filtered-list_network-logo {
-							width: 16px;
-							height: 16px;
-							font-size: 10px;
-						}
-					}
+					break-inside: auto;
 
 					&_network {
-						min-width: 0;
-						overflow-wrap: anywhere;
-					}
+						background-color: #f3f5f6;
+						padding: 0 6px;
+						border-radius: 6px;
+						transition: background-color 100ms ease-in-out;
 
-					&_network-logo {
-						line-height: 16px;
+						&:hover {
+							background-color: #eaecef;
+						}
 					}
 
 					&_country {
-						display: flex;
-						align-items: center;
-						gap: 6px;
+						display: block;
 						font-weight: 700;
+						padding-bottom: 6px;
+						break-after: avoid-column;
+
+						> img {
+							margin-right: 4px;
+							margin-top: -2px;
+						}
 					}
 
 					&_networks {
-						display: grid;
-						padding-left: 32px;
-						grid-template-columns: repeat(3, 1fr);
-						column-gap: 32px;
-						row-gap: 12px;
-						margin-bottom: 8px;
-
-						@media (max-width: @screen-md-max) {
-							grid-template-columns: repeat(2, 1fr);
-						}
-
-						@media (max-width: @screen-sm-max) {
-							grid-template-columns: repeat(1, 1fr);
-						}
-
-						& > div {
-							display: flex;
-							align-items: start;
-							column-gap: 8px;
-						}
-					}
-
-					&_count {
-						margin-left: auto;
-						margin-top: 1px;
 						font-size: 12px;
-						line-height: 16px;
-						padding: 0 6px;
-						border-radius: 8px;
-						border: #a9a9a9 solid 1px;
-						background: #fff;
+						break-inside: avoid;
 
-						@media (max-width: @screen-sm-max) {
-							margin-left: 0;
+						&:has(> span:nth-child(11)) {
+							break-inside: auto;
+						}
+
+						> span {
+							display: inline-block;
+							margin-right: 4px;
+							margin-bottom: 2px;
+							break-inside: avoid;
 						}
 					}
 				}
