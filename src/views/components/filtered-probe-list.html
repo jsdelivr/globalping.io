@@ -253,11 +253,16 @@
 						let $node = $(node);
 						let popoverId = $node.attr('aria-describedby');
 
+						if (typeof $node.popover === 'function') {
+							$node.popover('destroy');
+						}
+
 						if (popoverId) {
 							$('#' + popoverId).remove();
 						}
 
 						$node.removeData('bs.popover');
+						$node.removeAttr('aria-describedby');
 					},
 				};
 			},
