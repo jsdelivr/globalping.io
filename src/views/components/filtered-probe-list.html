@@ -144,26 +144,41 @@
 								{{/if}}
 								{{#each block.items as item}}
 									{{#if item.networks && item.networks.length}}
-										{{#each item.networks}}
-											<div class="gp-filtered-list_list_block_group_item">
+										<div class="gp-filtered-list_list_block_group_networks-item">
+											<span class="gp-filtered-list_list_block_group_networks-item_country">
 												<img width="17"
 													height="20"
 													class="gp-filtered-list_list_block_group_item_img"
 													src="https://cdn.jsdelivr.net/npm/country-flag-icons@1.5.5/3x2/{{item.location.split(', ')[0]}}.svg">
-												<div tabindex="0"
-													role="button"
-													as-popover="@this.getPopoverContent(item.from, this.name)">
-													{{item.name}}
-
-													<div>
-														<span class="gp-filtered-list_list_block_group_item_network">
+												{{item.name}}
+											</span>
+											<div class="gp-filtered-list_list_block_group_networks-item_networks">
+												{{#each item.networks}}
+												<div>
+													<span class="gp-filtered-list_list_block_group_networks-item_title">
+														<span class="gp-filtered-list_list_block_group_networks-item_network-logo">
+															{{#if @this.getDomainForNetwork(this.name)}}
+																<img width="16"
+																	height="16"
+																	src="https://img.jsdelivr.com/img.logo.dev/{{@this.getDomainForNetwork(this.name)}}?format=png"
+																	loading="lazy"
+																	alt="{{this.name}} logo"
+																>
+															{{else}}
+																{{item.name[0]}}
+															{{/if}}
+														</span>
+														<span class="gp-filtered-list_list_block_group_networks-item_network" tabindex="0"
+															role="button"
+															as-popover="@this.getPopoverContent(item.from, this.name)">
 															{{this.name}}
 														</span>
-													</div>
+													</span>
+													<span class="gp-filtered-list_list_block_group_networks-item_count">{{this.count}}</span>
 												</div>
-												<span class="gp-filtered-list_list_block_group_item_count">{{this.count}}</span>
+												{{/each}}
 											</div>
-										{{/each}}
+										</div>
 									{{else}}
 										<div class="gp-filtered-list_list_block_group_item">
 											{{#if item.showFlag}}
