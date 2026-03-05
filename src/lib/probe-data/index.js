@@ -179,5 +179,5 @@ module.exports.getNetworkToDomainMap = async ttl => getParsedProbeData(ttl).then
 		}
 
 		return acc;
-	}, {});
+	}, Object.create(null));
 });
