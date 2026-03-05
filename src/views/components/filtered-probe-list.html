@@ -156,7 +156,7 @@
 												{{#each item.networks}}
 												<div>
 													<span class="gp-filtered-list_list_block_group_networks-item_title">
-														<span class="gp-filtered-list_list_block_group_networks-item_network-logo">
+														<span class="gp-filtered-list_network-logo">
 															{{#if @this.getDomainForNetwork(this.name)}}
 																<img width="16"
 																	height="16"
@@ -165,7 +165,7 @@
 																	alt="{{this.name}} logo"
 																>
 															{{else}}
-																{{item.name[0]}}
+																{{this.name[0]}}
 															{{/if}}
 														</span>
 														<span class="gp-filtered-list_list_block_group_networks-item_network" tabindex="0"
@@ -187,7 +187,7 @@
 													class="gp-filtered-list_list_block_group_item_img"
 													src="https://cdn.jsdelivr.net/npm/country-flag-icons@1.5.5/3x2/{{item.location.split(', ')[0]}}.svg">
 											{{elseif groupBy === 'network'}}
-												<span class="gp-filtered-list_list_block_group_item_network-logo">
+												<span class="gp-filtered-list_network-logo">
 													{{#if @this.getDomainForNetwork(item.name)}}
 														<img width="20"
 															height="20"
