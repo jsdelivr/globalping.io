@@ -251,6 +251,13 @@
 				});
 
 				return {
+					update (newContentHtml) {
+						let popover = $(node).data('bs.popover');
+
+						if (popover && popover.options) {
+							popover.options.content = newContentHtml;
+						}
+					},
 					teardown: () => {
 						let $node = $(node);
 						let popoverId = $node.attr('aria-describedby');
