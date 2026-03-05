@@ -326,7 +326,7 @@
 				padding: 14px;
 				border-radius: 12px;
 				width: 100%;
-				column-gap: 32px;
+				column-gap: 12px;
 				row-gap: 8px;
 				border: 1px solid #e7e7ee;
 
@@ -354,6 +354,10 @@
 
 				&_item {
 					display: flex;
+					background: #f3f5f6;
+					border: 1px solid #e7e7ee;
+					border-radius: 6px;
+					padding: 4px 12px;
 					align-items: start;
 					justify-content: space-between;
 					overflow: hidden;
@@ -375,7 +379,7 @@
 
 					&_count {
 						font-size: 12px;
-						line-height: 16px;
+						line-height: 18px;
 						padding: 0 6px;
 						border-radius: 8px;
 						border: #a9a9a9 solid 1px;
@@ -406,6 +410,8 @@
 						grid-column: 1 / -1;
 						justify-content: flex-start;
 						gap: 12px;
+						background: transparent;
+						border: none;
 
 						&:not(:first-child) {
 							margin-top: 10px;
