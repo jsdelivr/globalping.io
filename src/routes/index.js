@@ -184,12 +184,15 @@ koaElasticUtils.addRoutes(router, [
 koaElasticUtils.addRoutes(router, [
 	[ '/network-to-domain' ],
 ], async (ctx) => {
-	if (!asnDomains) {
+	let networkToDomainMap = await getNetworkToDomainMap();
+
+	if (!networkToDomainMap || !Object.keys(networkToDomainMap).length) {
 		ctx.status = 503;
 		return;
 	}
 
-	ctx.body = await getNetworkToDomainMap();
+	ctx.body = networkToDomainMap;
+	ctx.maxAge = 5 * 60;
 });
 
 /**
