@@ -158,7 +158,7 @@
 														role="button"
 														as-popover="@this.getPopoverContent(item.from, this.name)">
 														<span class="gp-filtered-list_list_block_group_networks-item_network">
-															{{this.name}} (x{{this.count}})
+															{{name}}{{#if count > 1}} (x{{this.count}}){{/if}}
 														</span>
 													</span>
 												{{/each}}
