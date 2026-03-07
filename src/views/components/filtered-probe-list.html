@@ -382,6 +382,9 @@
 				justClickedLocationFocus: false,
 				skipNextSplit: false,
 				hasManualSortBy: false,
+				preFocusGroupBy: null,
+				autoGroupedByFocus: false,
+				isProgrammaticGroupByChange: false,
 			};
 		},
 		computed: {
@@ -487,21 +490,38 @@
 					if (this.get('justClickedLocationFocus')) {
 						this.set('justClickedLocationFocus', false);
 
+						if (!this.get('autoGroupedByFocus')) {
+							this.set('preFocusGroupBy', this.get('groupBy'));
+						}
+
 						let { cities, countries, networks } = this.getLocationCounts(locationProbes || []);
+						let newGroupBy = null;
 
 						if (cities + countries + networks === 3) {
-							this.set('groupBy', 'disabled');
-							return;
+							newGroupBy = 'disabled';
+						} else if (cities + countries === 2) {
+							newGroupBy = 'network';
+						} else if (cities > 1) {
+							newGroupBy = 'city';
 						}
 
-						if (cities + countries === 2) {
-							this.set('groupBy', 'network');
-							return;
+						if (newGroupBy && newGroupBy !== this.get('groupBy')) {
+							this.set('isProgrammaticGroupByChange', true);
+							this.set('groupBy', newGroupBy);
+							this.set('autoGroupedByFocus', true);
 						}
+					} else {
+						// restore previous groupBy value if the current groupBy value was set via "focus this location"
+						if (this.get('autoGroupedByFocus')) {
+							let previousGroupBy = this.get('preFocusGroupBy');
 
-						if (cities > 1) {
-							this.set('groupBy', 'city');
-							return;
+							if (previousGroupBy && previousGroupBy !== this.get('groupBy')) {
+								this.set('isProgrammaticGroupByChange', true);
+								this.set('groupBy', previousGroupBy);
+							}
+
+							this.set('autoGroupedByFocus', false);
+							this.set('preFocusGroupBy', null);
 						}
 					}
 
@@ -526,6 +546,13 @@
 				});
 
 				this.observe('groupBy', (groupBy) => {
+					if (!this.get('isProgrammaticGroupByChange')) {
+						this.set('autoGroupedByFocus', false);
+						this.set('preFocusGroupBy', null);
+					}
+
+					this.set('isProgrammaticGroupByChange', false);
+
 					let defaultSort = this.get('defaultSortOptions')[groupBy];
 
 					if (groupBy !== 'disabled' && defaultSort && this.get('sortOrder') !== defaultSort && !this.get('hasManualSortBy')) {
