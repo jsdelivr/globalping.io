@@ -655,6 +655,13 @@
 				</c-gp-credits-message>
 			{{/if}}
 
+			{{#if mobileShareResHeaderData}}
+				<p class="gp_map-block_test-details">
+					<i class="fa fa-info-circle" aria-hidden="true"></i>
+					Showing <strong>{{mobileShareResHeaderData.type}}</strong> test results for <strong>{{mobileShareResHeaderData.target}}</strong> from {{mobileShareResHeaderData.date}}.
+				</p>
+			{{/if}}
+
 			<div class="gp_map-block_map-wrapper {{#unless transitionMap}}transition-none{{/unless}} {{#unless showMap}}gp_map-block_map-wrapper_hidden{{/unless}}">
 				<div id="gp-map" class="gp_map-block_map-wrapper_map"></div>
 
@@ -1691,6 +1698,7 @@
 				modifiedMeasOptsCnt: 0,
 				appliedMeasOpts: {},
 				shareResHeaderData: null,
+				mobileShareResHeaderData: null,
 				runTestBtnText: 'Run Test',
 				testReqParams: null,
 				probesResponse: null,
@@ -2321,6 +2329,7 @@
 			this.set('testReqParams', null);
 			this.set('shareResFlow', false);
 			this.set('shareResHeaderData', null);
+			this.set('mobileShareResHeaderData', null);
 			this.set('realTimeTestResResponse', null);
 			this.set('activeTargetIdx', 0);
 			this.set('measurementsMetadata', null);
@@ -2738,6 +2747,12 @@
 								this.set('mainOptions.type', this.translateTestTypeName(testRes.type));
 								this.set('mainOptions.limit', testRes.limit || DEFAULT_LIMIT);
 
+								this.set('mobileShareResHeaderData', {
+									date: _.formatDateTime(new Date(testRes.createdAt)),
+									target: updTargetsArr.join(', '),
+									type: this.translateTestTypeName(testRes.type),
+								});
+
 								// handle map max timing for HTTP measurement
 								if (testRes.type.toLowerCase() === 'http') {
 									this.set('probesMaxTiming', 1000);
@@ -3086,10 +3101,17 @@
 		},
 		scrollMapIntoView () {
 			let mapBlockEl = this.find('.gp_map-block');
+			let mobileDetails = this.find('.gp_map-block_test-details');
 
-			mapBlockEl.scrollIntoView({
-				behavior: 'smooth',
-			});
+			if (mobileDetails?.checkVisibility()) {
+				mobileDetails.scrollIntoView({
+					behavior: 'smooth',
+				});
+			} else {
+				mapBlockEl.scrollIntoView({
+					behavior: 'smooth',
+				});
+			}
 		},
 		updateMapMarkerWithIW (marker, markerData, currentMarkerIdx) {
 			let updSvg = this.createMapMarkerSvg(markerData);
