@@ -146,7 +146,7 @@
 							<div class="gp-filtered-list_list_block_group group-by-{{groupBy}}" data-testid="probe-block-group">
 								{{#if block.title}}
 									<span class="gp-filtered-list_list_block_group_item cont-header" id="probe-group-{{block.title}}">
-										<img width="24" height="24" src="{{@shared.assetsHost}}/img/network/continent-{{block.title.toLowerCase()}}.svg">
+										<img width="24" height="24" src="{{@shared.assetsHost}}/img/network/continent-{{block.title.toLowerCase()}}.svg" alt="" aria-hidden="true">
 										{{@this.getContinentName(block.title)}}
 									</span>
 								{{/if}}
@@ -157,6 +157,8 @@
 												<img loading="lazy"
 													width="17"
 													height="20"
+													alt=""
+													aria-hidden="true"
 													src="https://cdn.jsdelivr.net/npm/country-flag-icons@1.5.5/3x2/{{item.location.split(', ')[0]}}.svg">
 												{{item.name}}
 											</span>
@@ -181,6 +183,8 @@
 												<img loading="lazy"
 													width="17"
 													height="20"
+													alt=""
+													aria-hidden="true"
 													src="https://cdn.jsdelivr.net/npm/country-flag-icons@1.5.5/3x2/{{item.location.split(', ')[0]}}.svg">
 											{{elseif groupBy === 'network'}}
 												<span class="gp-filtered-list_network-logo">
@@ -189,7 +193,8 @@
 															height="20"
 															src="https://img.jsdelivr.com/img.logo.dev/{{@this.getDomainForNetwork(item.name)}}?format=png"
 															loading="lazy"
-															alt="{{item.name}} logo"
+															alt=""
+															aria-hidden="true"
 														>
 													{{else}}
 														{{item.name[0]}}
