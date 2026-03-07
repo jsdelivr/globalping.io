@@ -78,17 +78,25 @@
 
 	{{#if preparedProbeBlocks && preparedProbeBlocks.length > 0}}
 		<p class="gp-filtered-list_result-count">
-			Showing <b>{{totalResults}} unique {{_.pluralize('result', totalResults)}}</b>{{#if groupBy === 'network'}}.{{/if}}
+			<span>
+				Showing <b>{{totalResults}} unique {{_.pluralize('result', totalResults)}}</b>{{#if groupBy === 'network'}}.{{/if}}
 
-			{{#if groupBy === 'country'}}
-				from <b>{{probeLocationCounts.continent}} {{_.pluralize('continent', probeLocationCounts.continent)}}</b>.
-			{{elseif groupBy === 'city' || groupBy === 'country-network'}}
-				from <b>{{probeLocationCounts.country}} {{_.pluralize('country', 'countries', probeLocationCounts.country)}}</b>
-				and <b>{{probeLocationCounts.continent}} {{_.pluralize('continent', probeLocationCounts.continent)}}</b>.
-			{{elseif groupBy === 'city-network' || groupBy === 'disabled'}}
-				from <b>{{probeLocationCounts.city}} {{_.pluralize('city', 'cities', probeLocationCounts.city)}}</b>,
-				<b>{{probeLocationCounts.country}} {{_.pluralize('country', 'countries', probeLocationCounts.country)}}</b>,
-				and <b>{{probeLocationCounts.continent}} {{_.pluralize('continent', probeLocationCounts.continent)}}</b>.
+				{{#if groupBy === 'country'}}
+					from <b>{{probeLocationCounts.continent}} {{_.pluralize('continent', probeLocationCounts.continent)}}</b>.
+				{{elseif groupBy === 'city' || groupBy === 'country-network'}}
+					from <b>{{probeLocationCounts.country}} {{_.pluralize('country', 'countries', probeLocationCounts.country)}}</b>
+					and <b>{{probeLocationCounts.continent}} {{_.pluralize('continent', probeLocationCounts.continent)}}</b>.
+				{{elseif groupBy === 'city-network' || groupBy === 'disabled'}}
+					from <b>{{probeLocationCounts.city}} {{_.pluralize('city', 'cities', probeLocationCounts.city)}}</b>,
+					<b>{{probeLocationCounts.country}} {{_.pluralize('country', 'countries', probeLocationCounts.country)}}</b>,
+					and <b>{{probeLocationCounts.continent}} {{_.pluralize('continent', probeLocationCounts.continent)}}</b>.
+				{{/if}}
+			</span>
+
+			{{#if hasCustomLocationApplied}}
+				<button on-click="@this.resetFilters()" tabindex="0">
+					Show all
+				</button>
 			{{/if}}
 		</p>
 	{{/if}}
@@ -424,6 +432,10 @@
 					uniqueKeys.add(keyParts.map(part => probe.location[part]).join());
 					return uniqueKeys;
 				}, new Set()).size;
+			},
+			hasCustomLocationApplied () {
+				let location = this.get('location');
+				return location && location.toLowerCase() !== 'world';
 			},
 		},
 		oninit () {
@@ -1021,6 +1033,10 @@
 		getDomainForNetwork (network) {
 			let key = _.networkNameToKey(network);
 			return this.get('networkDomainMap')[key];
+		},
+		resetFilters () {
+			this.set('location', 'World');
+			this.findComponent('c-location-input')?.fire('outsideLocationChange');
 		},
 	};
 </script>

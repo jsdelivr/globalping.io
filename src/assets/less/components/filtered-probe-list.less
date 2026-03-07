@@ -56,12 +56,32 @@
 	}
 
 	&_result-count {
+		display: inline-flex;
+		flex-direction: column;
+		align-items: start;
+		gap: 8px;
 		width: 100%;
 		max-width: 1224px;
 		padding: 12px 24px;
 		margin: 0;
 		background: #f3f5f6;
 		border-radius: 8px;
+
+		@media (min-width: @screen-sm-min) {
+			flex-flow: row wrap;
+			align-items: center;
+		}
+
+		> button {
+			background: none;
+			border: none;
+			text-decoration: underline;
+			padding: 0;
+
+			@media (min-width: @screen-sm-min) {
+				margin-left: auto;
+			}
+		}
 	}
 
 	&_filters {
