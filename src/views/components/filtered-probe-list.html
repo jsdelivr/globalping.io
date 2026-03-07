@@ -166,9 +166,10 @@
 												{{#each item.networks}}
 													<span tabindex="0"
 														role="button"
-														class="gp-filtered-list_list_block_group_networks-item_network"
 														as-popover="@this.getPopoverContent(item.from, this.name)">
-														{{name}}{{#if count > 1}} (x{{this.count}}){{/if}}
+														<span class="gp-filtered-list_list_block_group_networks-item_network">
+															{{name}}{{#if count > 1}} (x{{this.count}}){{/if}}
+														</span>
 													</span>
 												{{/each}}
 											</div>
