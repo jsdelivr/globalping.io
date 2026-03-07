@@ -3101,10 +3101,10 @@
 		},
 		scrollMapIntoView () {
 			let mapBlockEl = this.find('.gp_map-block');
-			let mobileDetails = this.find('.gp_map-block_test-details');
+			let mobileTestDetails = this.find('.gp_map-block_test-details');
 
-			if (mobileDetails?.checkVisibility()) {
-				mobileDetails.scrollIntoView({
+			if (mobileTestDetails?.checkVisibility()) {
+				mobileTestDetails.scrollIntoView({
 					behavior: 'smooth',
 				});
 			} else {
