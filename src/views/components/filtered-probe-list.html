@@ -611,13 +611,13 @@
 			if (locationName) {
 				targetLoc = `${locationName}+${locationValue}`;
 			} else {
-				let locations = this.get('location').replace(/^world$/i, '').split(',').filter(Boolean);
+				let locations = this.get('location').replace(/^world$/i, '').split(',').map(location => location.trim()).filter(Boolean);
 
 				if (!locations.length) {
 					targetLoc = locationValue;
 				} else {
 					targetLoc = locations.reduce((shortestLoc, location) => {
-						let filteredParts = location.split(/[+%]/).filter((part) => {
+						let filteredParts = location.split(/[+%]/).map(part => part.trim()).filter((part) => {
 							let countryCode = COUNTRIES_MAP[part];
 							let countryName = COUNTRY_CODE_MAP[part];
 
