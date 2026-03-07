@@ -611,25 +611,30 @@
 			if (locationName) {
 				targetLoc = `${locationName}+${locationValue}`;
 			} else {
-				let currentLoc = this.get('location').replace(/^world$/i, '');
-				let currLocationParts = currentLoc.split(/[+%]/);
+				let locations = this.get('location').replace(/^world$/i, '').split(',').filter(Boolean);
 
-				targetLoc = [
-					locationValue,
-					...currLocationParts.map((part) => {
-						let countryCode = COUNTRIES_MAP[part];
-						let countryName = COUNTRY_CODE_MAP[part];
+				if (!locations.length) {
+					targetLoc = locationValue;
+				} else {
+					targetLoc = locations.reduce((shortestLoc, location) => {
+						let filteredParts = location.split(/[+%]/).filter((part) => {
+							let countryCode = COUNTRIES_MAP[part];
+							let countryName = COUNTRY_CODE_MAP[part];
 
-						if (locationValue.includes(part)
+							let isRedundant = locationValue.includes(part)
 							|| (countryCode && locationValue.includes(countryCode))
-							|| (countryName && locationValue.includes(countryName))
-						) {
-							return '';
-						}
+							|| (countryName && locationValue.includes(countryName));
 
-						return part;
-					}),
-				].filter(Boolean).join('+');
+							return !isRedundant;
+						});
+
+						let candidateLoc = [ locationValue, ...filteredParts ].join('+');
+
+						return !shortestLoc || candidateLoc.length < shortestLoc.length
+							? candidateLoc
+							: shortestLoc;
+					}, '');
+				}
 			}
 
 			targetLoc = targetLoc.replace(/[%&<>"']/g, ch => ({
