@@ -1,13 +1,10 @@
 const fs = require('node:fs');
-const config = require('config');
 const got = require('../../../../lib/got');
 const path = require('node:path');
 
 const continents = require('../../../../assets/json/continents.json');
 const { pluralize } = require('../../../../assets/js/_');
 const { fontsProcessor, truncateString } = require('../utils');
-
-const logoDevPublicToken = config.get('logoDevPublicToken');
 
 let globeBase64 = null;
 
@@ -29,7 +26,7 @@ const getGlobeImage = () => {
 };
 
 const fetchNetworkLogo = async (domain) => {
-	if (!domain || !logoDevPublicToken) {
+	if (!domain) {
 		return null;
 	}
 
@@ -38,9 +35,6 @@ const fetchNetworkLogo = async (domain) => {
 	try {
 		let response = await got.get(logoUrl, {
 			responseType: 'buffer',
-			searchParams: {
-				token: logoDevPublicToken,
-			},
 		});
 
 		let buffer = response.body;

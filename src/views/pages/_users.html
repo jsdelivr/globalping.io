@@ -60,15 +60,16 @@
 
 		<div class="p-users_filtered-list">
 			<c-filtered-probe-list
-					rawProbes="{{userProbes}}"
-					filteredProbes="{{filteredProbes}}"
-					location="{{location}}"
-					locationCompletedValue="{{locationCompletedValue}}"
-					groupBy="{{groupBy}}"
-					sortOrder="{{sortOrder}}"
-					refresh="{{@this.getProbesData}}"
-					probesLoading="{{probesLoading}}"
-					probesError="{{probesError}}"
+				rawProbes="{{userProbes}}"
+				filteredProbes="{{filteredProbes}}"
+				location="{{location}}"
+				locationCompletedValue="{{locationCompletedValue}}"
+				groupBy="{{groupBy}}"
+				sortOrder="{{sortOrder}}"
+				refresh="{{@this.getProbesData}}"
+				probesLoading="{{probesLoading}}"
+				probesError="{{probesError}}"
+				defaultSortOptions="{{defaultSortOptions}}"
 			/>
 		</div>
 	</div>
@@ -83,7 +84,15 @@
 	const dataCache = require('../../assets/js/utils/data-cache');
 
 	const GROUP_DEFAULT = 'disabled';
-	const SORT_DEFAULT = 'alphabetically';
+
+	const DEFAULT_SORT_OPTIONS = {
+		'country': 'alphabetically',
+		'city': 'alphabetically',
+		'network': 'probe-count',
+		'country-network': 'alphabetically',
+		'city-network': 'alphabetically',
+		'disabled': 'alphabetically',
+	};
 
 	component.exports = {
 		data () {
@@ -98,7 +107,8 @@
 				location: 'World',
 				locationCompletedValue: '',
 				groupBy: GROUP_DEFAULT,
-				sortOrder: SORT_DEFAULT,
+				sortOrder: DEFAULT_SORT_OPTIONS[GROUP_DEFAULT],
+				defaultSortOptions: DEFAULT_SORT_OPTIONS,
 				userStats: {
 					asn: {
 						name: [ 'ASN' ],
@@ -145,12 +155,16 @@
 					return this.get('groupBy') === GROUP_DEFAULT ? '' : this.get('groupBy');
 				},
 				set (group) {
+					if (Object.hasOwn(DEFAULT_SORT_OPTIONS, group)) {
+						this.set('sortOrder', DEFAULT_SORT_OPTIONS[group]);
+					}
+
 					this.set('groupBy', group);
 				},
 			},
 			sort: {
 				get () {
-					return this.get('sortOrder') === SORT_DEFAULT || this.get('groupBy') === 'disabled' ? '' : this.get('sortOrder');
+					return this.get('sortOrder') === DEFAULT_SORT_OPTIONS[this.get('groupBy')] || this.get('groupBy') === 'disabled' ? '' : this.get('sortOrder');
 				},
 				set (sort) {
 					this.set('sortOrder', sort);

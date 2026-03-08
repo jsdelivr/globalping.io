@@ -166,7 +166,6 @@ app.use(render({
 			: serverConfig.assetsHost
 		: `/assets/${assetsVersion}`,
 	apiDocsHost: serverConfig.apiDocsHost,
-	logoDevPublicToken: config.get('logoDevPublicToken'),
 	assetsVersion,
 }, app));
 
