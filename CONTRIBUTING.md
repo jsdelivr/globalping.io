@@ -25,12 +25,6 @@ npm start
 
 Configuration for IntelliJ based IDEs is also available in this repository. If you use one, it is a good idea to add https://github.com/MartinKolarik/idea-config as a [read-only settings repository](https://www.jetbrains.com/help/idea/sharing-your-ide-settings.html#share-more-settings-through-read-only-repo). It contains code style and inspection profiles used by this project.
 
-### Network (ISP) pages
-
-These pages use data from an external API to display logos. If the required API key is not set, the pages will work, but the logos will not load.
-
-To enable logos, set `logoDevPublicToken` (`GLOBALPING_LOGO_DEV_PUBLIC_TOKEN`). You can [create a logo.dev account](https://www.logo.dev/signup) to obtain a token.
-
 ## Testing
 
 -   JS, HTML, and JSON code style: `npm run lint:js`

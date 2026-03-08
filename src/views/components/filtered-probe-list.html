@@ -76,19 +76,27 @@
 		</div>
 	</div>
 
-	{{#if preparedProbesColumns && preparedProbesColumns.length > 0}}
+	{{#if preparedProbeBlocks && preparedProbeBlocks.length > 0}}
 		<p class="gp-filtered-list_result-count">
-			Showing <b>{{totalResults}} unique {{_.pluralize('result', totalResults)}}</b>{{#if groupBy === 'network'}}.{{/if}}
+			<span>
+				Showing <b>{{totalResults}} unique {{_.pluralize('result', totalResults)}}</b>{{#if groupBy === 'network'}}.{{/if}}
 
-			{{#if groupBy === 'country'}}
-				from <b>{{probeLocationCounts.continent}} {{_.pluralize('continent', probeLocationCounts.continent)}}</b>.
-			{{elseif groupBy === 'city' || groupBy === 'country-network'}}
-				from <b>{{probeLocationCounts.country}} {{_.pluralize('country', 'countries', probeLocationCounts.country)}}</b>
-				and <b>{{probeLocationCounts.continent}} {{_.pluralize('continent', probeLocationCounts.continent)}}</b>.
-			{{elseif groupBy === 'city-network' || groupBy === 'disabled'}}
-				from <b>{{probeLocationCounts.city}} {{_.pluralize('city', 'cities', probeLocationCounts.city)}}</b>,
-				<b>{{probeLocationCounts.country}} {{_.pluralize('country', 'countries', probeLocationCounts.country)}}</b>,
-				and <b>{{probeLocationCounts.continent}} {{_.pluralize('continent', probeLocationCounts.continent)}}</b>.
+				{{#if groupBy === 'country'}}
+					from <b>{{probeLocationCounts.continent}} {{_.pluralize('continent', probeLocationCounts.continent)}}</b>.
+				{{elseif groupBy === 'city' || groupBy === 'country-network'}}
+					from <b>{{probeLocationCounts.country}} {{_.pluralize('country', 'countries', probeLocationCounts.country)}}</b>
+					and <b>{{probeLocationCounts.continent}} {{_.pluralize('continent', probeLocationCounts.continent)}}</b>.
+				{{elseif groupBy === 'city-network' || groupBy === 'disabled'}}
+					from <b>{{probeLocationCounts.city}} {{_.pluralize('city', 'cities', probeLocationCounts.city)}}</b>,
+					<b>{{probeLocationCounts.country}} {{_.pluralize('country', 'countries', probeLocationCounts.country)}}</b>,
+					and <b>{{probeLocationCounts.continent}} {{_.pluralize('continent', probeLocationCounts.continent)}}</b>.
+				{{/if}}
+			</span>
+
+			{{#if hasCustomLocationApplied}}
+				<button on-click="@this.resetFilters()" tabindex="0">
+					Show all
+				</button>
 			{{/if}}
 		</p>
 	{{/if}}
@@ -98,11 +106,11 @@
 			<div class="gp-filtered-list_jump_field">
 				<label>Jump to</label>
 				<c-select
-						options="{{probeContinents}}"
-						selected="{{selectedContinent}}"
-						placeholder="Choose continent"
-						onSelect="{{@this.scrollToContinent}}"
-						name="jump-to-select"
+					options="{{probeContinents}}"
+					selected="{{selectedContinent}}"
+					placeholder="Choose continent"
+					onSelect="{{@this.scrollToContinent}}"
+					name="jump-to-select"
 				/>
 			</div>
 		</div>
@@ -119,7 +127,7 @@
 				<button type="button" on-click="refresh()">Try again</button>
 			</div>
 		{{else}}
-			{{#if preparedProbesColumns && preparedProbesColumns.length === 0}}
+			{{#if preparedProbeBlocks && preparedProbeBlocks.length === 0}}
 				<div class="gp-filtered-list_list_no-result">
 					{{#if rawProbes && rawProbes.length}}
 					No results found. Try adjusting your filters.
@@ -128,60 +136,80 @@
 					{{/if}}
 				</div>
 			{{else}}
-				{{#each preparedProbesColumns as column}}
-					<div class="gp-filtered-list_list_column {{groupBy === 'disabled' ? 'disabled-group-by' : ''}}">
+				{{#each preparedProbeBlocks as block}}
+					<div class="gp-filtered-list_list_block group-by-{{groupBy}}">
 						{{#if groupBy === 'disabled'}}
-							{{#each column as continentGroup}}
-								{{#each continentGroup.items as item}}
-									<c-probe-single-card location="{{item.location}}" tags="{{item.tags}}" maxTagCount="{{maxTagCount}}"></c-probe-single-card>
-								{{/each}}
+							{{#each block.items as item}}
+								<c-probe-single-card location="{{item.location}}" tags="{{item.tags}}" maxTagCount="{{maxTagCount}}"></c-probe-single-card>
 							{{/each}}
 						{{else}}
-							{{#each column as continentGroup}}
-								<div class="gp-filtered-list_list_column_group {{groupBy === 'city-network' || groupBy === 'country-network' ? 'has-networks' : ''}}"
-									data-testid="probe-column-group">
-									{{#if continentGroup.title}}
-										<span class="gp-filtered-list_list_column_group_item cont-header" id="probe-group-{{continentGroup.title}}">
-											{{@this.getContinentName(continentGroup.title)}}
-										</span>
-									{{/if}}
-
-									{{#each continentGroup.items as item}}
-										<span class="gp-filtered-list_list_column_group_item">
+							<div class="gp-filtered-list_list_block_group group-by-{{groupBy}}" data-testid="probe-block-group">
+								{{#if block.title}}
+									<span class="gp-filtered-list_list_block_group_item cont-header" id="probe-group-{{block.title}}">
+										<img width="24" height="24" src="{{@shared.assetsHost}}/img/network/continent-{{block.title.toLowerCase()}}.svg" alt="" aria-hidden="true">
+										{{@this.getContinentName(block.title)}}
+									</span>
+								{{/if}}
+								{{#each block.items as item}}
+									{{#if item.networks && item.networks.length}}
+										<div class="gp-filtered-list_list_block_group_networks-item">
+											<span class="gp-filtered-list_list_block_group_networks-item_country">
+												<img loading="lazy"
+													width="17"
+													height="20"
+													alt=""
+													aria-hidden="true"
+													src="https://cdn.jsdelivr.net/npm/country-flag-icons@1.5.5/3x2/{{item.location.split(', ')[0]}}.svg">
+												{{item.name}}
+											</span>
+											<div class="gp-filtered-list_list_block_group_networks-item_networks">
+												{{#each item.networks}}
+													<span tabindex="0"
+														role="button"
+														as-popover="@this.getPopoverContent(item.from, this.name)">
+														<span class="gp-filtered-list_list_block_group_networks-item_network">
+															{{name}}{{#if count > 1}} (x{{this.count}}){{/if}}
+														</span>
+													</span>
+												{{/each}}
+											</div>
+										</div>
+									{{else}}
+										<div class="gp-filtered-list_list_block_group_item"
+											tabindex="0"
+											role="button"
+											as-popover="@this.getPopoverContent(item.from)"
+										>
 											{{#if item.showFlag}}
-												<span class="gp-filtered-list_list_column_group_item_img">
-													<img width="17"
-														height="12"
-														src="https://cdn.jsdelivr.net/npm/country-flag-icons@1.5.5/3x2/{{item.location.split(', ')[0]}}.svg">
+												<img loading="lazy"
+													width="17"
+													height="20"
+													alt=""
+													aria-hidden="true"
+													src="https://cdn.jsdelivr.net/npm/country-flag-icons@1.5.5/3x2/{{item.location.split(', ')[0]}}.svg">
+											{{elseif groupBy === 'network'}}
+												<span class="gp-filtered-list_network-logo">
+													{{#if @this.getDomainForNetwork(item.name)}}
+														<img width="20"
+															height="20"
+															src="https://img.jsdelivr.com/img.logo.dev/{{@this.getDomainForNetwork(item.name)}}?format=png"
+															loading="lazy"
+															alt=""
+															aria-hidden="true"
+														>
+													{{else}}
+														{{item.name[0]}}
+													{{/if}}
 												</span>
 											{{/if}}
-
-											<span class="gp-filtered-list_list_column_group_item_location">
-												<a href="/?location={{encodeURIComponent(item.from)}}" rel="nofollow">{{item.name}}</a>
-
-												{{#if (groupBy !== 'city-network' && groupBy !== 'country-network') && item.probes.length !== 1}}
-													<span>(x{{item.probes.length}})</span>
-												{{/if}}
+											<span class="gp-filtered-list_list_block_group_item_location">
+												{{item.name}}
 											</span>
-
-											{{#if item.networks && item.networks.length}}
-												<div class="gp-filtered-list_list_column_group_item_networks">
-													{{#each item.networks}}
-														<a href="/?location={{encodeURIComponent(`${item.from}%${this.name}`)}}" rel="nofollow">
-															<span class="gp-filtered-list_list_column_group_item_network">
-																{{this.name}}
-																{{#if this.count !== 1}}
-																	<span class="gp-filtered-list_list_column_group_item_network_count">(x{{this.count}})</span>
-																{{/if}}
-															</span>
-														</a>
-													{{/each}}
-												</div>
-											{{/if}}
-										</span>
-									{{/each}}
-								</div>
-							{{/each}}
+											<span class="gp-filtered-list_list_block_group_item_count">{{item.probes.length}}</span>
+										</div>
+									{{/if}}
+								{{/each}}
+							</div>
 						{{/if}}
 					</div>
 				{{/each}}
@@ -191,6 +219,7 @@
 </div>
 
 <script>
+	const { getNetworkDomainMap } = require('../../assets/js/utils/http');
 	const _ = require('../../assets/js/_');
 	const debounce = require('../../assets/js/utils/debounce');
 	const throttle = require('../../assets/js/utils/throttle');
@@ -211,7 +240,53 @@
 		return acc;
 	}, {});
 
+	const COUNTRY_CODE_MAP = COUNTRIES.reduce((acc, country) => {
+		acc[country.name] = country.code;
+		return acc;
+	}, {});
+
 	component.exports = {
+		decorators: {
+			popover (node, contentHtml) {
+				if (!contentHtml || typeof $(node).popover !== 'function') {
+					return { teardown: () => {} };
+				}
+
+				$(node).popover({
+					container: 'body',
+					html: true,
+					content: contentHtml,
+					placement: 'auto',
+					trigger: 'focus',
+					template: `<div class="popover gp-filtered-list_popover" role="tooltip"><div class="arrow"></div><div class="popover-content"></div></div>`,
+				});
+
+				return {
+					update (newContentHtml) {
+						let popover = $(node).data('bs.popover');
+
+						if (popover && popover.options) {
+							popover.options.content = newContentHtml;
+						}
+					},
+					teardown: () => {
+						let $node = $(node);
+						let popoverId = $node.attr('aria-describedby');
+
+						if (typeof $node.popover === 'function') {
+							$node.popover('destroy');
+						}
+
+						if (popoverId) {
+							$('#' + popoverId).remove();
+						}
+
+						$node.removeData('bs.popover');
+						$node.removeAttr('aria-describedby');
+					},
+				};
+			},
+		},
 		data () {
 			return {
 				_,
@@ -294,14 +369,22 @@
 						value: 'probe-count',
 					},
 				],
+				defaultSortOptions: {},
 				probeContinents: [],
 				filtersSet: null,
 				groupedProbes: null,
 				locationProbes: null,
-				preparedProbesColumns: null,
+				preparedProbeBlocks: null,
 				filteredMarkersData: null,
 				selectedContinent: null,
 				maxTagCount: 2,
+				networkDomainMap: Object.create(null),
+				justClickedLocationFocus: false,
+				skipNextSplit: false,
+				hasManualSortBy: false,
+				preFocusGroupBy: null,
+				autoGroupedByFocus: false,
+				isProgrammaticGroupByChange: false,
 			};
 		},
 		computed: {
@@ -359,18 +442,23 @@
 					return uniqueKeys;
 				}, new Set()).size;
 			},
+			hasCustomLocationApplied () {
+				let location = this.get('location');
+				return location && location.toLowerCase() !== 'world';
+			},
 		},
 		oninit () {
 			if (!Ractive.isServer) {
+				getNetworkDomainMap()
+					.then(networkDomainMap => this.set('networkDomainMap', networkDomainMap))
+					.catch(err => console.error(err));
+
 				// set initial screenWidth value
 				this.observe('screenWidth', (screenWidth) => {
 					if (!screenWidth) {
 						this.set('screenWidth', window.innerWidth);
 						return;
 					}
-
-					let preparedProbesColumns = this.splitDataIntoColumns();
-					this.set('preparedProbesColumns', preparedProbesColumns);
 
 					// handle tooltips positions depending on the screen size
 					let ttPositions = {};
@@ -397,20 +485,85 @@
 				});
 
 				this.observe('locationProbes', (locationProbes) => {
-					let groupedProbes = this.groupProbes(locationProbes || []);
-
-					this.set('groupedProbes', groupedProbes);
 					this.set('filteredProbes', locationProbes);
+
+					if (this.get('justClickedLocationFocus')) {
+						this.set('justClickedLocationFocus', false);
+
+						if (!this.get('autoGroupedByFocus')) {
+							this.set('preFocusGroupBy', this.get('groupBy'));
+						}
+
+						let { cities, countries, networks } = this.getLocationCounts(locationProbes || []);
+						let newGroupBy = null;
+
+						if (cities + countries + networks === 3) {
+							newGroupBy = 'disabled';
+						} else if (cities + countries === 2) {
+							newGroupBy = 'network';
+						} else if (cities > 1) {
+							newGroupBy = 'city';
+						}
+
+						if (newGroupBy && newGroupBy !== this.get('groupBy')) {
+							this.set('isProgrammaticGroupByChange', true);
+							this.set('groupBy', newGroupBy);
+							this.set('autoGroupedByFocus', true);
+						}
+					} else {
+						// restore previous groupBy value if the current groupBy value was set via "focus this location"
+						if (this.get('autoGroupedByFocus')) {
+							let previousGroupBy = this.get('preFocusGroupBy');
+
+							if (previousGroupBy && previousGroupBy !== this.get('groupBy')) {
+								this.set('isProgrammaticGroupByChange', true);
+								this.set('groupBy', previousGroupBy);
+							}
+
+							this.set('autoGroupedByFocus', false);
+							this.set('preFocusGroupBy', null);
+						}
+					}
+
+					let groupedProbes = this.groupProbes(locationProbes || []);
+					this.set('groupedProbes', groupedProbes);
 				});
 
-				this.observe('groupBy', () => {
+				this.observe('sortOrder', (sortOrder) => {
+					let groupBy = this.get('groupBy');
+
+					if (groupBy === 'disabled') {
+						return;
+					}
+
+					let defaultSort = this.get('defaultSortOptions')[groupBy];
+
+					if (sortOrder === defaultSort) {
+						this.set('hasManualSortBy', false);
+					} else {
+						this.set('hasManualSortBy', true);
+					}
+				});
+
+				this.observe('groupBy', (groupBy) => {
+					if (!this.get('isProgrammaticGroupByChange')) {
+						this.set('autoGroupedByFocus', false);
+						this.set('preFocusGroupBy', null);
+					}
+
+					this.set('isProgrammaticGroupByChange', false);
+
+					let defaultSort = this.get('defaultSortOptions')[groupBy];
+
+					if (groupBy !== 'disabled' && defaultSort && this.get('sortOrder') !== defaultSort && !this.get('hasManualSortBy')) {
+						this.set('skipNextSplit', true);
+						this.set('sortOrder', defaultSort);
+					}
+
 					let locationProbes = this.get('locationProbes');
 					let groupedProbes = this.groupProbes(locationProbes || []);
 
 					this.set('groupedProbes', groupedProbes);
-
-					let preparedProbesColumns = this.splitDataIntoColumns();
-					this.set('preparedProbesColumns', preparedProbesColumns);
 				});
 
 				this.observe('groupedProbes', () => {
@@ -418,9 +571,14 @@
 					this.recalculateProbeContinents();
 				});
 
-				this.observe('sortOrder groupedProbes', () => {
-					let preparedProbesColumns = this.splitDataIntoColumns();
-					this.set('preparedProbesColumns', preparedProbesColumns);
+				this.observe('groupedProbes sortOrder screenWidth', () => {
+					if (this.get('skipNextSplit')) {
+						this.set('skipNextSplit', false);
+						return;
+					}
+
+					let preparedProbeBlocks = this.splitDataIntoBlocks();
+					this.set('preparedProbeBlocks', preparedProbeBlocks);
 				});
 			}
 		},
@@ -429,7 +587,113 @@
 				let handleResize = debounce(throttle(() => this.calculateMaxTagCount(), 200));
 				listeners.addManagedListener(this, window, 'resize', handleResize);
 				listeners.screenWidthListener(this);
+
+				let handleFocusClick = (e) => {
+					let location = $(e.currentTarget).data('location');
+
+					if (location) {
+						this.set('justClickedLocationFocus', true);
+						this.set('location', location);
+						this.findComponent('c-location-input')?.fire('outsideLocationChange');
+					}
+				};
+
+				$('body').on('click', '.popover-focus-loc', handleFocusClick);
+
+				this.on('teardown', () => {
+					$('body').off('click', '.popover-focus-loc', handleFocusClick);
+				});
 			}
+		},
+		getPopoverContent (locationValue, locationName = '') {
+			let targetLoc = '';
+
+			if (locationName) {
+				targetLoc = `${locationName}+${locationValue}`;
+			} else {
+				let locations = this.get('location').replace(/^world$/i, '').split(',').map(location => location.trim()).filter(Boolean);
+
+				if (!locations.length) {
+					targetLoc = locationValue;
+				} else {
+					targetLoc = locations.reduce((shortestLoc, location) => {
+						let filteredParts = location.split(/[+%]/).map(part => part.trim()).filter((part) => {
+							let countryCode = COUNTRIES_MAP[part];
+							let countryName = COUNTRY_CODE_MAP[part];
+
+							let isRedundant = locationValue.includes(part)
+							|| (countryCode && locationValue.includes(countryCode))
+							|| (countryName && locationValue.includes(countryName));
+
+							return !isRedundant;
+						});
+
+						let candidateLoc = [ locationValue, ...filteredParts ].join('+');
+
+						return !shortestLoc || candidateLoc.length < shortestLoc.length
+							? candidateLoc
+							: shortestLoc;
+					}, '');
+				}
+			}
+
+			targetLoc = targetLoc.replace(/[%&<>"']/g, ch => ({
+				'%': '+',
+				'&': '&amp;',
+				'<': '&lt;',
+				'>': '&gt;',
+				'"': '&quot;',
+				'\'': '&#39;',
+			}[ch]));
+
+			let btnFocus = `
+				<button type="button"
+					class="popover-focus-loc"
+					data-location="${targetLoc}">
+					<i class="fa fa-map-marker" aria-hidden="true" style="padding-right: 3px;"></i>
+					Focus this location
+				</button>`;
+
+			let btnMeasure = `
+				<a href="/?location=${encodeURIComponent(targetLoc.replaceAll('+', '%'))}">
+					<i class="fa fa-crosshairs" aria-hidden="true"></i>
+					Target in a measurement
+				</a>`;
+
+			let btnLookingGlass = '';
+
+			if (this.get('groupBy').includes('network')) {
+				let networkName = locationName || locationValue;
+				let networkKey = _.networkNameToKey(networkName);
+
+				btnLookingGlass = `
+				<a href="/networks/${networkKey}">
+					<i class="fa fa-search" aria-hidden="true"></i>
+					<span>
+						<span class="gp-filtered-list_popover_network-name">${networkName}</span>&nbsp;looking glass
+					</span>
+				</a>`;
+			}
+
+			return `<div class="gp-popover-menu">${btnFocus}${btnMeasure}${btnLookingGlass}</div>`;
+		},
+		getLocationCounts (probes) {
+			let maps = probes.reduce((res, probe) => {
+				res.countries.add(probe.location.country);
+				res.cities.add(probe.location.country + probe.location.city);
+				res.networks.add(probe.location.network);
+				return res;
+			}, {
+				countries: new Set(),
+				cities: new Set(),
+				networks: new Set(),
+			});
+
+			return {
+				countries: maps.countries.size,
+				cities: maps.cities.size,
+				networks: maps.networks.size,
+			};
 		},
 		groupProbes (probes) {
 			let groupBy = this.get('groupBy');
@@ -587,12 +851,15 @@
 					});
 				});
 
+				let alphComp = (a, b) => allNetworks[a].name.localeCompare(allNetworks[b].name);
+				let cntComp = (a, b) => allNetworks[b].probes.length - allNetworks[a].probes.length;
+
 				let sortedNetworks = Object.keys(allNetworks).sort((a, b) => {
 					if (sortOrder === 'alphabetically') {
-						return allNetworks[a].name.localeCompare(allNetworks[b].name);
+						return alphComp(a, b) || cntComp(a, b);
 					}
 
-					return allNetworks[b].probes.length - allNetworks[a].probes.length;
+					return cntComp(a, b) || alphComp(a, b);
 				});
 
 				return sortedNetworks.map(network => ({
@@ -730,8 +997,7 @@
 
 			return sortedArray;
 		},
-		splitDataIntoColumns () {
-			let minItemsPerColumn = this.get('groupBy') === 'disabled' ? 1 : 10;
+		splitDataIntoBlocks () {
 			let groupedProbes = this.get('groupedProbes');
 
 			if (!groupedProbes) {
@@ -739,70 +1005,17 @@
 			}
 
 			let data = this.sortAndGroup(groupedProbes);
-
-			let screenWidth = this.get('screenWidth');
-			let columnsCnt = this.getLayoutColumnsAmount(screenWidth);
-
 			let groupBy = this.get('groupBy');
-			let totalItems = data.length + (groupBy.includes('-network') ? data.reduce((sum, item) => sum + Math.ceil(item.networks.length * .75), 0) : 0);
-			let itemsPerColumn = Math.max(minItemsPerColumn, Math.ceil(totalItems / columnsCnt));
-			let columnMax = Math.max(minItemsPerColumn, itemsPerColumn);
-			let columnNumber = 0;
 
 			if (groupBy === 'network' || groupBy === 'disabled') {
-				return data.reduce((res, item) => {
-					if (!res[columnNumber]) {
-						res[columnNumber] = [{
-							title: null,
-							items: [],
-						}];
-					}
-
-					let currentColumn = res[columnNumber];
-					let currentColumnItems = currentColumn[0].items.length;
-
-					if (currentColumnItems >= columnMax) {
-						columnNumber++;
-
-						res[columnNumber] = [{
-							title: null,
-							items: [],
-						}];
-
-						currentColumn = res[columnNumber];
-					}
-
-					currentColumn[0].items.push(item);
-					return res;
-				}, []);
+				return [{
+					title: null,
+					items: data,
+				}];
 			}
 
-			let currentColumnItems = 0;
 			return data.reduce((res, item) => {
-				if (!res[columnNumber]) {
-					res[columnNumber] = [];
-				}
-
-				let currentColumn = res[columnNumber];
-				let itemsHeight = 1 + (groupBy.includes('-network') ? Math.ceil(item.networks.length * .75) : 0);
-
-				if (
-					columnNumber < columnsCnt - 1
-					&& (currentColumnItems >= columnMax
-						|| (currentColumnItems > 0 && currentColumnItems + (itemsHeight * .5) > columnMax)
-					)
-				) {
-					columnNumber++;
-
-					if (!res[columnNumber]) {
-						res[columnNumber] = [];
-					}
-
-					currentColumn = res[columnNumber];
-					currentColumnItems = 0;
-				}
-
-				let continentGroup = currentColumn.find(group => group.title === item.continent);
+				let continentGroup = res.find(group => group.title === item.continent);
 
 				if (!continentGroup) {
 					continentGroup = {
@@ -810,29 +1023,12 @@
 						items: [],
 					};
 
-					currentColumn.push(continentGroup);
+					res.push(continentGroup);
 				}
 
 				continentGroup.items.push(item);
-				currentColumnItems += groupBy.includes('-network') ? 1 + Math.ceil(item.networks.length * .75) : 1;
-
 				return res;
 			}, []);
-		},
-		getLayoutColumnsAmount (screenWidth) {
-			let columnsAmount = 1;
-
-			if (this.get('groupBy') === 'disabled') {
-				if (screenWidth >= 992) {
-					columnsAmount = 2;
-				}
-			} else if (screenWidth >= 576 && screenWidth < 992) {
-				columnsAmount = 2;
-			} else if (screenWidth >= 992) {
-				columnsAmount = 3;
-			}
-
-			return columnsAmount;
 		},
 		recalculateProbeContinents () {
 			let groupBy = this.get('groupBy');
@@ -871,6 +1067,14 @@
 			if (continentElement) {
 				continentElement.scrollIntoView({ behavior: 'smooth' });
 			}
+		},
+		getDomainForNetwork (network) {
+			let key = _.networkNameToKey(network);
+			return this.get('networkDomainMap')[key];
+		},
+		resetFilters () {
+			this.set('location', 'World');
+			this.findComponent('c-location-input')?.fire('outsideLocationChange');
 		},
 	};
 </script>

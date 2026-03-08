@@ -45,6 +45,7 @@
 				refresh="{{@this.getProbesData}}"
 				probesLoading="{{probesLoading}}"
 				probesError="{{probesError}}"
+				defaultSortOptions="{{defaultSortOptions}}"
 			/>
 		</div>
 	</div>
@@ -58,8 +59,16 @@
 	const dataCache = require('../../assets/js/utils/data-cache');
 	const http = require('../../assets/js/utils/http');
 
-	const GROUP_DEFAULT = 'city-network';
-	const SORT_DEFAULT = 'alphabetically';
+	const GROUP_DEFAULT = 'city';
+
+	const DEFAULT_SORT_OPTIONS = {
+		'country': 'alphabetically',
+		'city': 'alphabetically',
+		'network': 'probe-count',
+		'country-network': 'alphabetically',
+		'city-network': 'alphabetically',
+		'disabled': 'alphabetically',
+	};
 
 	component.exports = {
 		data () {
@@ -70,7 +79,8 @@
 				location: 'World',
 				locationCompletedValue: '',
 				groupBy: GROUP_DEFAULT,
-				sortOrder: SORT_DEFAULT,
+				sortOrder: DEFAULT_SORT_OPTIONS[GROUP_DEFAULT],
+				defaultSortOptions: DEFAULT_SORT_OPTIONS,
 				probesResponse: null,
 				probesLoading: false,
 				probesError: null,
@@ -101,11 +111,15 @@
 				},
 				set (group) {
 					this.set('groupBy', group);
+
+					if (Object.hasOwn(DEFAULT_SORT_OPTIONS, group)) {
+						this.set('sortOrder', DEFAULT_SORT_OPTIONS[group]);
+					}
 				},
 			},
 			sort: {
 				get () {
-					return this.get('sortOrder') === SORT_DEFAULT || this.get('groupBy') === 'disabled' ? '' : this.get('sortOrder');
+					return this.get('sortOrder') === DEFAULT_SORT_OPTIONS[this.get('groupBy')] || this.get('groupBy') === 'disabled' ? '' : this.get('sortOrder');
 				},
 				set (sort) {
 					this.set('sortOrder', sort);
