@@ -585,7 +585,7 @@
 					let groupedProbes = this.groupProbes(locationProbes || []);
 
 					this.set('groupedProbes', groupedProbes);
-				});
+				}, { init: false });
 
 				this.observe('sortOrder', (sortOrder) => {
 					let groupBy = this.get('groupBy');
