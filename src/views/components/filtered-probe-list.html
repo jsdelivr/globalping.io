@@ -493,6 +493,11 @@
 				this.observe('locationProbes', (locationProbes) => {
 					this.set('filteredProbes', locationProbes);
 
+					// we need to set sort, filter, and group query params simultaneously
+					let payload = {};
+					let doAtomicUpdate = false;
+					let nextGroupBy = this.get('groupBy');
+
 					if (this.get('justClickedLocationFocus')) {
 						this.set('justClickedLocationFocus', false);
 
@@ -513,8 +518,15 @@
 
 						if (newGroupBy && newGroupBy !== this.get('groupBy')) {
 							this.set('isProgrammaticGroupByChange', true);
-							this.set('groupBy', newGroupBy);
-							this.set('autoGroupedByFocus', true);
+							nextGroupBy = newGroupBy;
+
+							payload = {
+								groupBy: newGroupBy,
+								locationCompletedValue: this.get('location'),
+								autoGroupedByFocus: true,
+							};
+
+							doAtomicUpdate = true;
 						}
 					} else {
 						// restore previous groupBy value if the current groupBy value was set via "focus this location"
@@ -523,7 +535,14 @@
 
 							if (previousGroupBy && previousGroupBy !== this.get('groupBy')) {
 								this.set('isProgrammaticGroupByChange', true);
-								this.set('groupBy', previousGroupBy);
+								nextGroupBy = previousGroupBy;
+
+								payload = {
+									groupBy: previousGroupBy,
+									locationCompletedValue: this.get('location'),
+								};
+
+								doAtomicUpdate = true;
 							}
 
 							this.set('autoGroupedByFocus', false);
@@ -531,7 +550,40 @@
 						}
 					}
 
+					if (doAtomicUpdate) {
+						let defaultSort = this.get('defaultSortOptions')[nextGroupBy];
+
+						if (nextGroupBy !== 'disabled' && defaultSort && this.get('sortOrder') !== defaultSort && !this.get('hasManualSortBy')) {
+							payload.skipNextSplit = true;
+							payload.sortOrder = defaultSort;
+						}
+
+						this.set(payload);
+					}
+
 					let groupedProbes = this.groupProbes(locationProbes || []);
+					this.set('groupedProbes', groupedProbes);
+				});
+
+				this.observe('groupBy', (groupBy) => {
+					if (this.get('isProgrammaticGroupByChange')) {
+						this.set('isProgrammaticGroupByChange', false);
+						return;
+					}
+
+					this.set('autoGroupedByFocus', false);
+					this.set('preFocusGroupBy', null);
+
+					let defaultSort = this.get('defaultSortOptions')[groupBy];
+
+					if (groupBy !== 'disabled' && defaultSort && this.get('sortOrder') !== defaultSort && !this.get('hasManualSortBy')) {
+						this.set('skipNextSplit', true);
+						this.set('sortOrder', defaultSort);
+					}
+
+					let locationProbes = this.get('locationProbes');
+					let groupedProbes = this.groupProbes(locationProbes || []);
+
 					this.set('groupedProbes', groupedProbes);
 				});
 
@@ -549,27 +601,6 @@
 					} else {
 						this.set('hasManualSortBy', true);
 					}
-				});
-
-				this.observe('groupBy', (groupBy) => {
-					if (!this.get('isProgrammaticGroupByChange')) {
-						this.set('autoGroupedByFocus', false);
-						this.set('preFocusGroupBy', null);
-					}
-
-					this.set('isProgrammaticGroupByChange', false);
-
-					let defaultSort = this.get('defaultSortOptions')[groupBy];
-
-					if (groupBy !== 'disabled' && defaultSort && this.get('sortOrder') !== defaultSort && !this.get('hasManualSortBy')) {
-						this.set('skipNextSplit', true);
-						this.set('sortOrder', defaultSort);
-					}
-
-					let locationProbes = this.get('locationProbes');
-					let groupedProbes = this.groupProbes(locationProbes || []);
-
-					this.set('groupedProbes', groupedProbes);
 				});
 
 				this.observe('groupedProbes', () => {
