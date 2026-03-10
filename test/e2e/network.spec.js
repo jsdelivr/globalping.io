@@ -14,10 +14,10 @@ test('Network page', async ({ page }) => {
 	await expect(autocomplete).toHaveValue('World');
 
 	let probeCards = await page.locator('.probe-single-card');
-	let probeColumnGroups = await page.getByTestId('probe-column-group');
+	let probeBlockGroups = await page.getByTestId('probe-block-group');
 
 	await expect(probeCards).toHaveCount(0);
-	await expect(probeColumnGroups).not.toHaveCount(0);
+	await expect(probeBlockGroups).not.toHaveCount(0);
 
 	let quickFilterEurope = await page.getByTestId('quick-filter-Europe');
 	await expect(quickFilterEurope).toBeVisible();
@@ -39,20 +39,18 @@ test('Network page', async ({ page }) => {
 
 	let groupBySelect = await page.getByTestId('group-by-select');
 	await expect(groupBySelect).toBeVisible();
-	await expect(groupBySelect).toContainText('City + Network');
+	await expect(groupBySelect).toContainText('City');
 	let groupByOptions = await page.getByTestId('group-by-select-options');
 	await expect(groupByOptions).not.toBeVisible();
 	await groupBySelect.click();
 	await expect(groupByOptions).toBeVisible();
 	await page.keyboard.press('ArrowUp');
-	await page.keyboard.press('ArrowUp');
-	await page.keyboard.press('ArrowUp');
 	await page.keyboard.press('Enter');
 
-	await expect(groupBySelect).toContainText('City');
+	await expect(groupBySelect).toContainText('Country');
 	await expect(groupBySelect).not.toContainText('Network');
 	await expect(groupByOptions).not.toBeVisible();
-	await expect(page).toHaveURL('network?filter=Europe%25datacenter-network&group=city');
+	await expect(page).toHaveURL('network?filter=Europe%25datacenter-network&group=country');
 
 	let sortBySelect = await page.getByTestId('sort-by-select');
 	await expect(sortBySelect).toBeVisible();
@@ -61,7 +59,7 @@ test('Network page', async ({ page }) => {
 	await page.keyboard.press('ArrowDown');
 	await page.keyboard.press('Enter');
 	await expect(sortBySelect).toContainText('Probe count');
-	await expect(page).toHaveURL('network?filter=Europe%25datacenter-network&group=city&sort=probe-count');
+	await expect(page).toHaveURL('network?filter=Europe%25datacenter-network&group=country&sort=probe-count');
 
 	await groupBySelect.click();
 	let disabledOpt = page.getByTestId('select-option-disabled');
@@ -71,10 +69,10 @@ test('Network page', async ({ page }) => {
 	await expect(page).toHaveURL('network?filter=Europe%25datacenter-network&group=disabled');
 
 	probeCards = await page.locator('.probe-single-card');
-	probeColumnGroups = await page.getByTestId('probe-column-group');
+	probeBlockGroups = await page.getByTestId('probe-block-group');
 
 	await expect(probeCards).not.toHaveCount(0);
-	await expect(probeColumnGroups).toHaveCount(0);
+	await expect(probeBlockGroups).toHaveCount(0);
 
 	await page.goto('/network?group=country&filter=South%20America&sort=probe-count');
 	await expect(groupBySelect).toContainText('Country');

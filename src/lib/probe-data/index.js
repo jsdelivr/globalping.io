@@ -169,3 +169,15 @@ module.exports.getNetworkStatistics = async ttl => getParsedProbeData(ttl).then(
 module.exports.getNetworks = async ttl => getParsedProbeData(ttl).then(data => data.networks);
 module.exports.getUsers = async ttl => getParsedProbeData(ttl).then(data => data.users);
 module.exports.getDynamicSiteUrls = async ttl => getParsedProbeData(ttl).then(data => data.urls);
+
+module.exports.getNetworkToDomainMap = async ttl => getParsedProbeData(ttl).then((data) => {
+	let stats = data.networkStatistics || {};
+
+	return Object.entries(stats).reduce((acc, [ key, val ]) => {
+		if (val.domain) {
+			acc[key] = val.domain;
+		}
+
+		return acc;
+	}, Object.create(null));
+});
