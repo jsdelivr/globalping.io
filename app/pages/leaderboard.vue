@@ -1,56 +1,61 @@
 <template>
-	<main class="relative mb-16 flex w-full flex-col items-center gap-8 max-md:mb-4 max-md:gap-8">
-		<section class="relative flex w-full flex-col items-center overflow-hidden py-16 max-md:py-8">
-			<img
-				class="pointer-events-none absolute inset-0 -z-10 h-full w-full object-cover object-center opacity-50 max-md:opacity-75"
-				src="~/assets/images/backgrounds/lines.webp"
-				alt=""
-			>
-			<div class="max-w-section flex w-full flex-col gap-4 text-left">
+	<main class="bg-surface-50 relative -mb-4 flex w-full flex-col items-center gap-6 overflow-hidden max-md:gap-4 md:pb-16">
+		<section class="relative flex w-full flex-col items-center py-16 max-md:py-8">
+			<div class="max-w-section z-10 flex w-full max-w-[90vw] flex-col gap-4 text-left">
 				<h1>
 					Leaderboard
 				</h1>
-				<p class="pb-8 max-md:pb-4">
+				<p class="mb-12 max-md:mb-4">
 					The networks & providers powering the world’s largest open measurement platform.
 				</p>
-				<div class="flex gap-10 max-md:items-stretch max-md:justify-between max-md:gap-4">
-					<div class="flex flex-col justify-between max-md:flex-1">
-						<h4 class="pb-4 font-normal">Total registered contributors</h4>
-						<span class="text-3xl max-md:text-xl">
+				<div class="flex gap-20 max-md:items-stretch max-md:justify-between max-md:gap-4">
+					<div class="flex flex-col gap-1 max-md:flex-1">
+						<span class="text-[40px] max-md:text-2xl md:leading-11">
 							<b class="min-w-[3ch]">
-								<AnimatedNumber :number="userCount"/>
+								<AnimatedNumber :number="userCount" underline/>
 							</b>
 						</span>
+						<h4 class="font-normal max-md:text-sm">Total registered contributors</h4>
 					</div>
-					<div class="flex flex-col justify-between max-md:flex-1">
-						<h4 class="pb-4 font-normal">Probes hosted</h4>
-						<p class="text-3xl max-md:text-xl">
+					<div class="flex flex-col gap-1 max-md:flex-1">
+						<p class="text-[40px] max-md:text-2xl  md:leading-11">
 							<b class="min-w-[4ch]">
-								<AnimatedNumber :number="probesHosted"/>
+								<AnimatedNumber :number="probesHosted" underline/>
 							</b>
 						</p>
+						<h4 class="font-normal max-md:text-sm">Probes hosted</h4>
 					</div>
-					<div class="flex flex-col justify-between max-md:flex-1">
-						<h4 class="pb-4 font-normal">Countries covered</h4>
-						<p class="text-3xl max-md:text-xl">
+					<div class="flex flex-col gap-1 max-md:flex-1">
+						<p class="text-[40px] max-md:text-2xl  md:leading-11">
 							<b class="min-w-[3ch]">
-								<AnimatedNumber :number="countriesCovered"/>
+								<AnimatedNumber :number="countriesCovered" underline/>
 							</b>
 						</p>
+						<h4 class="font-normal max-md:text-sm">Countries covered</h4>
 					</div>
 				</div>
 			</div>
+			<img
+				class="pointer-events-none absolute inset-0 mx-auto h-full min-h-86 w-full max-w-400 object-cover object-center opacity-70 max-md:opacity-75"
+				src="~/assets/images/backgrounds/arrows.svg"
+				alt=""
+			>
+			<div class="absolute inset-x-0 -bottom-24 h-25 w-full opacity-30 max-md:-bottom-10">
+				<span class="bg-primary absolute inset-x-0 bottom-0 mx-auto h-30 w-150 max-w-1/3 translate-x-1/3 translate-y-3/5 rounded-full blur-3xl max-md:translate-x-full"/>
+				<span class="absolute inset-x-0 bottom-0 mx-auto h-30 w-150 max-w-1/3 translate-y-3/5 rounded-full bg-blue-400 blur-3xl"/>
+				<span class="bg-primary absolute inset-x-0 bottom-0 mx-auto h-30 w-150 max-w-1/3 -translate-x-1/3 translate-y-3/5 rounded-full blur-3xl max-md:-translate-x-full"/>
+			</div>
 		</section>
-		<section class="max-w-section w-full">
-			<h2 class="mb-6">
+		<section class="max-w-section z-10 w-full bg-white px-8 pt-4 pb-8 shadow-xl max-md:p-4 max-md:pt-8 md:rounded-xl md:border">
+			<h3 class="mb-4">
 				Most hosted probes
-			</h2>
-			<div class="border-surface-300 w-full overflow-hidden rounded-lg md:border">
+			</h3>
+			<div class="border-surface-300 shadow-surface-100 w-full rounded-lg md:overflow-hidden md:border md:shadow-md">
 				<div class="overflow-x-auto max-md:hidden">
-					<LeaderboardUserTable :user-list="userList"/>
+					<LeaderboardUserTable :user-list="userList" :loading="loading"/>
 				</div>
 				<div class="mb-4 md:hidden">
-					<LeaderboardUserList :user-list="userList"/>
+					<LeaderboardUserList :user-list="userList" :loading="loading"/>
 				</div>
 				<ClientOnly>
 					<pvPaginator
@@ -76,14 +81,16 @@
 	const ITEMS_PER_PAGE = 100;
 
 	const { page, first, template, pageLinkSize } = usePagination({ itemsPerPage: ITEMS_PER_PAGE });
-	const { userCount, userList, countriesCovered, probesHosted } = useUserLeaderboard({ page, itemsPerPage: ITEMS_PER_PAGE });
+	const { userCount, userList, countriesCovered, probesHosted, loading } = useUserLeaderboard({ page, itemsPerPage: ITEMS_PER_PAGE });
 
 	usePageHead({ title: 'Globalping User Leaderboard' });
 </script>
 
 <style scoped>
-	.max-w-section {
-		max-width: min(90vw, 1016px);
+	@media (min-width: 768px) {
+		.max-w-section {
+			max-width: min(90vw, 1016px);
+		}
 	}
 
 	:deep(.metallic-gradient) {

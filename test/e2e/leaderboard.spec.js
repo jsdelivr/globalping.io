@@ -8,7 +8,7 @@ test('Leaderboard page', async ({ page }) => {
 	await expect(page.getByRole('heading', { name: 'Leaderboard' })).toBeVisible();
 	await expect(page.getByRole('heading', { name: 'Most hosted probes' })).toBeVisible();
 
-	let tableRows = page.locator('tbody tr');
+	let tableRows = page.locator('tbody tr:not(.loading-skeleton)');
 	await expect(tableRows).not.toHaveCount(1);
 
 	let firstCellLocator = page.locator('tbody tr').first().locator('td').first();
@@ -16,6 +16,8 @@ test('Leaderboard page', async ({ page }) => {
 
 	let paginatedResponse = await page.goto('/leaderboard?page=2');
 	expect(paginatedResponse.ok()).toBeTruthy();
+
+	await expect(tableRows.first()).toBeVisible();
 
 	let newFirstItemText = await firstCellLocator.innerText();
 	expect(newFirstItemText).not.toEqual(initialFirstItemText);

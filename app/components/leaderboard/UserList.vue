@@ -1,21 +1,19 @@
 <template>
-	<div class="flex w-full flex-col gap-3">
+	<div class="flex w-full flex-col gap-4">
 		<ClientOnly>
 			<template #fallback>
-				<div class="flex justify-center py-12">
-					<Spinner size="w-8 h-8"/>
-				</div>
+				<LeaderboardUserListItemSkeleton v-for="i in 10" :key="`skeleton-${i}`"/>
 			</template>
 
-			<div v-if="userList.length === 0" class="flex justify-center py-12">
-				<Spinner size="w-8 h-8"/>
-			</div>
+			<template v-if="loading">
+				<LeaderboardUserListItemSkeleton v-for="i in 10" :key="`skeleton-${i}`"/>
+			</template>
 
 			<div
 				v-for="user in userList"
 				v-else
 				:key="user.username"
-				class="bg-surface-50 border-surface-200 w-full rounded-lg border p-4"
+				class="bg-surface-50 border-surface-200 w-full rounded-lg border p-4 shadow-lg"
 			>
 				<div class="mb-4 flex items-center justify-between">
 					<div class="flex items-center gap-3">
@@ -72,7 +70,7 @@
 <script setup lang="ts">
 	import type { UserList } from '~/composables/useUserLeaderboard';
 
-	defineProps<{ userList: UserList }>();
+	defineProps<{ userList: UserList; loading: boolean }>();
 
 	const formatNumber = (num: number) => new Intl.NumberFormat('en-US', { notation: 'compact', compactDisplay: 'short' }).format(num);
 </script>

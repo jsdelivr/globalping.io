@@ -23,7 +23,7 @@ export type UserList = {
 }[];
 
 export default ({ page, itemsPerPage }: PageOptions) => {
-	const { data: probes } = useProbes();
+	const { data: probes, pending: loading } = useProbes();
 
 	const fullUserList = computed(() => {
 		if (!probes.value) {
@@ -95,5 +95,6 @@ export default ({ page, itemsPerPage }: PageOptions) => {
 		userList,
 		probesHosted: computed(() => probes.value?.length || 0),
 		countriesCovered,
+		loading,
 	};
 };

@@ -17,22 +17,18 @@
 		<ClientOnly fallback-tag="tbody">
 			<template #fallback>
 				<tbody class="divide-surface-300 divide-y">
-					<tr>
-						<td colspan="6" class="py-12 text-center">
-							<div class="flex justify-center">
-								<Spinner size="w-8 h-8"/>
-							</div>
-						</td>
-					</tr>
+					<LeaderboardUserTableRowSkeleton v-for="i in 10" :key="`skeleton-${i}`"/>
 				</tbody>
 			</template>
 
-			<tbody class="divide-surface-300 divide-y">
+			<tbody v-if="loading" class="divide-surface-300 divide-y">
+				<LeaderboardUserTableRowSkeleton v-for="i in 10" :key="`skeleton-${i}`"/>
+			</tbody>
+
+			<tbody v-else class="divide-surface-300 divide-y">
 				<tr v-if="userList.length === 0">
-					<td colspan="6" class="py-12 text-center">
-						<div class="flex justify-center">
-							<Spinner size="w-8 h-8"/>
-						</div>
+					<td colspan="6" class="text-surface-500 py-12 text-center">
+						No users found.
 					</td>
 				</tr>
 
@@ -68,10 +64,10 @@
 							{{ user.username }}
 						</a>
 					</td>
-					<td class="px-4 py-2">{{ formatNumber(user.cities) }}</td>
-					<td class="px-4 py-2">{{ formatNumber(user.countries) }}</td>
-					<td class="px-4 py-2">{{ formatNumber(user.asns) }}</td>
-					<td class="px-4 py-2">{{ formatNumber(user.totalProbes) }}</td>
+					<td class="px-4 py-2 tabular-nums">{{ formatNumber(user.cities) }}</td>
+					<td class="px-4 py-2 tabular-nums">{{ formatNumber(user.countries) }}</td>
+					<td class="px-4 py-2 tabular-nums">{{ formatNumber(user.asns) }}</td>
+					<td class="px-4 py-2 tabular-nums">{{ formatNumber(user.totalProbes) }}</td>
 				</tr>
 			</tbody>
 		</ClientOnly>
@@ -81,7 +77,7 @@
 <script setup lang="ts">
 	import type { UserList } from '~/composables/useUserLeaderboard';
 
-	defineProps<{ userList: UserList }>();
+	defineProps<{ userList: UserList; loading: boolean }>();
 
 	const columns = [
 		{ key: 'cities', label: 'Cities' },

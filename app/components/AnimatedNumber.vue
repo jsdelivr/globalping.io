@@ -1,15 +1,28 @@
 <template>
-	<span>{{displayedNumber}}</span>
+	<span ref="wrapperRef" class="relative z-0 inline-flex text-start">
+		<span class="pointer-events-none invisible" aria-hidden="true">{{ number }}</span>
+		<span class="absolute inset-0">{{ displayedNumber }}</span>
+		<span
+			v-if="underline"
+			class="bg-primary absolute bottom-0.5 -left-1 -z-10 h-2 transition-all duration-500"
+			:style="{ width: `${underlineWidth > 0 ? underlineWidth + 8 : 0}px` }"
+		/>
+	</span>
 </template>
 
 <script setup lang="ts">
 	const props = defineProps({
 		number: { type: Number, required: true },
 		duration: { type: Number, default: 1500 },
+		underline: { type: Boolean, default: false },
 	});
 
 	const displayedNumber = ref(0);
 	const animationReqId = ref();
+
+	const wrapperRef = ref<HTMLElement | null>(null);
+	const underlineWidth = ref(0);
+	let resizeObserver: ResizeObserver | null = null;
 
 	const easeInOutFn = (val: number) => {
 		const sqr = Math.pow(val, 2);
@@ -38,5 +51,20 @@
 		animateChange(displayedNumber.value, Date.now());
 	}, { immediate: true });
 
-	onUnmounted(() => window.cancelAnimationFrame(animationReqId.value));
+	onMounted(() => {
+		if (wrapperRef.value) {
+			resizeObserver = new ResizeObserver((entries) => {
+				for (const entry of entries) {
+					underlineWidth.value = (entry.target as HTMLElement).offsetWidth;
+				}
+			});
+
+			resizeObserver.observe(wrapperRef.value);
+		}
+	});
+
+	onUnmounted(() => {
+		window?.cancelAnimationFrame(animationReqId.value);
+		resizeObserver?.disconnect();
+	});
 </script>
