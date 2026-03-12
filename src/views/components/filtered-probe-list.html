@@ -143,7 +143,6 @@
 								<c-probe-single-card
 									location="{{item.location}}"
 									tags="{{item.tags}}"
-									maxTagCount="{{maxTagCount}}"
 									networkDomain="{{@this.getDomainForNetwork(item.location.network)}}">
 								</c-probe-single-card>
 							{{/each}}
@@ -232,8 +231,6 @@
 <script>
 	const { getNetworkDomainMap } = require('../../assets/js/utils/http');
 	const _ = require('../../assets/js/_');
-	const debounce = require('../../assets/js/utils/debounce');
-	const throttle = require('../../assets/js/utils/throttle');
 	const listeners = require('../../assets/js/utils/listeners');
 
 	const CONTINENTS = require('../../assets/json/continents.json');
@@ -388,7 +385,6 @@
 				preparedProbeBlocks: null,
 				filteredMarkersData: null,
 				selectedContinent: null,
-				maxTagCount: 2,
 				networkDomainMap: Object.create(null),
 				justClickedLocationFocus: false,
 				skipNextSplit: false,
@@ -609,7 +605,6 @@
 				});
 
 				this.observe('groupedProbes', () => {
-					this.calculateMaxTagCount();
 					this.recalculateProbeContinents();
 				});
 
@@ -626,8 +621,6 @@
 		},
 		onrender () {
 			if (!Ractive.isServer) {
-				let handleResize = debounce(throttle(() => this.calculateMaxTagCount(), 200));
-				listeners.addManagedListener(this, window, 'resize', handleResize);
 				listeners.screenWidthListener(this);
 
 				let handleFocusClick = (e) => {
@@ -1092,16 +1085,6 @@
 						.some(c => c.value === selectedContinent) ? selectedContinent : null,
 				);
 			}
-		},
-		calculateMaxTagCount () {
-			if (this.get('groupBy') !== 'disabled') {
-				return;
-			}
-
-			let tagContainer = $('.probe-single-card_tag').get(0);
-			let tagContainerWidth = tagContainer ? tagContainer.offsetWidth : 0;
-			let maxTagCount = Math.max(2, Math.floor(tagContainerWidth / 100));
-			this.set('maxTagCount', maxTagCount);
 		},
 		scrollToContinent (continent) {
 			let continentElement = document.getElementById(`probe-group-${continent}`);
