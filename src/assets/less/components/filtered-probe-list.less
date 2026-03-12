@@ -325,11 +325,7 @@
 			&.group-by-disabled {
 				display: grid;
 				gap: 8px;
-				grid-template-columns: repeat(2, 1fr);
-
-				@media (max-width: @screen-sm-max) {
-					grid-template-columns: repeat(1, 1fr);
-				}
+				grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
 			}
 
 			&:not(.group-by-disabled) {

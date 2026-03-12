@@ -1,59 +1,45 @@
 <div class="probe-single-card">
-	<div class="probe-single-card_details">
-		<div class="probe-single-card_details_icon">
-			<img width="24"
-				height="24"
-				src="{{@shared.assetsHost}}/img/globalping-probe.svg"
-				alt="Probe icon">
+	<div class="probe-single-card_header">
+		<img class="probe-single-card_flag"
+			loading="lazy"
+			width="24"
+			height="16"
+			src="https://cdn.jsdelivr.net/npm/country-flag-icons@1.5.5/3x2/{{location.country}}.svg"
+			alt=""
+			aria-hidden="true">
+		<div class="probe-single-card_location">
+			<span class="probe-single-card_city">{{location.city}}</span>
+			<span class="probe-single-card_country">{{location.country}}</span>
 		</div>
-		<div class="probe-single-card_details_info">
-			<div class="probe-single-card_details_info_city">
-				<img width="16.8"
-					height="12"
-					src="https://cdn.jsdelivr.net/npm/country-flag-icons@1.5.5/3x2/{{location.country}}.svg"
-					alt="{{location.country}}">
-				<span class="probe-single-card_details_info_city_name">
-					{{location.city}}, {{location.country}}
-				</span>
-			</div>
-			<span class="probe-single-card_details_info_location">
-				{{location.network}}
-			</span>
-		</div>
-	</div>
-	<div class="probe-single-card_tag">
-		{{#each tags: index}}
-			{{#if index < maxTagCount-1 || (index === maxTagCount-1 && tags.length <= maxTagCount)}}
-				<span class="probe-single-card_tag_item" as-tooltip="this">
-					{{this}}
-				</span>
+		<div class="probe-single-card_network">
+			{{#if networkDomain}}
+			<img width="14"
+				height="14"
+				src="https://img.jsdelivr.com/img.logo.dev/{{networkDomain}}?format=png"
+				loading="lazy"
+				alt=""
+				aria-hidden="true"
+			>
 			{{/if}}
-		{{/each}}
-		{{#if tags.length > maxTagCount}}
-			<span class="probe-single-card_tag_pair">
-				<span class="probe-single-card_tag_item" as-tooltip="this">
-					{{tags[maxTagCount-1]}}
-				</span>
-				<span class="probe-single-card_tag_item" as-tooltip="tags.slice(maxTagCount).join(', ')">
-					+{{tags.length - maxTagCount}}
-				</span>
-			</span>
-		{{/if}}
+			<span class="probe-single-card_network_name">{{location.network}}</span>
+		</div>
 	</div>
+
+	{{#if tags && tags.length > 0}}
+		<div class="probe-single-card_tags">
+			{{#each tags}}
+				<span class="probe-single-card_tag">{{this}}</span>
+			{{/each}}
+		</div>
+	{{/if}}
 </div>
 
 <script>
-	const tooltip = require('../../assets/js/decorators/tooltip');
-
 	component.exports = {
-		decorators: {
-			tooltip,
-		},
 		data () {
 			return {
 				location: {},
 				tags: [],
-				maxTagCount: 3,
 			};
 		},
 	};

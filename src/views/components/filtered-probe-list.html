@@ -140,7 +140,12 @@
 					<div class="gp-filtered-list_list_block group-by-{{groupBy}}">
 						{{#if groupBy === 'disabled'}}
 							{{#each block.items as item}}
-								<c-probe-single-card location="{{item.location}}" tags="{{item.tags}}" maxTagCount="{{maxTagCount}}"></c-probe-single-card>
+								<c-probe-single-card
+									location="{{item.location}}"
+									tags="{{item.tags}}"
+									maxTagCount="{{maxTagCount}}"
+									networkDomain="{{@this.getDomainForNetwork(item.location.network)}}">
+								</c-probe-single-card>
 							{{/each}}
 						{{else}}
 							<div class="gp-filtered-list_list_block_group group-by-{{groupBy}}" data-testid="probe-block-group">
@@ -217,7 +222,7 @@
 		{{/if}}
 	</div>
 
-	{{#if groupBy === 'network'}}
+	{{#if groupBy === 'network' || groupBy === 'disabled'}}
 		<div class="gp-filtered-list_logos-by">
 			<a href="https://logo.dev" target="_blank" rel="noreferrer">Network logos provided by Logo.dev</a>
 		</div>
