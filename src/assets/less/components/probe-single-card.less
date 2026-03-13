@@ -4,14 +4,9 @@
 	border: 1px solid #e7e7ee;
 	border-radius: 8px;
 	padding: 12px;
-	transition: box-shadow .2s ease, border-color .2s ease;
 	height: 100%;
-	break-inside: avoid;
-
-	&:hover {
-		border-color: #00b88c;
-		box-shadow: 0 4px 12px rgba(0, 0, 0, .06);
-	}
+	box-shadow: 1px 1px 2px rgba(0, 0, 0, .02);
+	color: #17233a;
 
 	&_header {
 		display: flex;
@@ -28,25 +23,11 @@
 	}
 
 	&_location {
-		display: flex;
-		flex-direction: column;
 		line-height: 1.1;
 		min-width: 0;
-	}
-
-	&_city {
-		font-size: 13px;
+		font-size: 15px;
 		font-weight: 600;
-		color: #17233a;
-		white-space: nowrap;
-		overflow: hidden;
-		text-overflow: ellipsis;
-	}
-
-	&_country {
-		font-size: 11px;
-		color: #79849a;
-		margin-top: 3px;
+		max-width: 100%;
 		white-space: nowrap;
 		overflow: hidden;
 		text-overflow: ellipsis;
@@ -57,11 +38,29 @@
 		align-items: center;
 		gap: 8px;
 		padding: 4px 8px;
-		background: #f8fafb;
+		background: #f9fafb;
 		border-radius: 6px;
-		border: 1px solid #f3f5f6;
+		border: 1px solid #e7e7ee;
 		max-width: 60%;
 		margin-left: auto;
+		transition: background .2s;
+		color: #17233a;
+
+		&:hover {
+			background: #f3f5f6;
+			text-decoration: none;
+			color: #17233a;
+
+			> span {
+				text-decoration: underline;
+			}
+		}
+
+		&:focus {
+			color: #17233a;
+			outline: none;
+			box-shadow: 0 2px 2px rgba(0, 0, 0, .04), 0 0 0 1px #fff, 0 0 0 4px rgba(23, 212, 167, .48);
+		}
 
 		img {
 			flex-shrink: 0;
@@ -69,7 +68,6 @@
 
 		&_name {
 			font-size: 11px;
-			color: #454545;
 			font-weight: 500;
 			white-space: nowrap;
 			overflow: hidden;
@@ -79,10 +77,8 @@
 
 	&_tags {
 		display: flex;
-		flex-wrap: wrap;
 		gap: 6px;
-		border-top: 1px solid #f3f5f6;
-		padding-top: 10px;
+		padding-top: 6px;
 		margin-top: auto;
 	}
 
@@ -92,11 +88,8 @@
 		padding: 3px 6px;
 		font-size: 10px;
 		font-weight: 500;
-		color: #79849a;
 		letter-spacing: .2px;
-		max-width: 100%;
-		overflow: hidden;
-		text-overflow: ellipsis;
 		white-space: nowrap;
+		box-shadow: 1px 1px 2px rgba(0, 0, 0, .02);
 	}
 }

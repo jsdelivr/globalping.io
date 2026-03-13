@@ -8,39 +8,105 @@
 			alt=""
 			aria-hidden="true">
 		<div class="probe-single-card_location">
-			<span class="probe-single-card_city">{{location.city}}</span>
-			<span class="probe-single-card_country">{{location.country}}</span>
+			{{ location.city }}, {{ location.country }}
 		</div>
-		<div class="probe-single-card_network">
+		<a class="probe-single-card_network" href="/networks/{{networkKey}}">
 			{{#if networkDomain}}
-			<img width="14"
-				height="14"
-				src="https://img.jsdelivr.com/img.logo.dev/{{networkDomain}}?format=png"
-				loading="lazy"
-				alt=""
-				aria-hidden="true"
-			>
+				<img width="14"
+					height="14"
+					src="https://img.jsdelivr.com/img.logo.dev/{{networkDomain}}?format=png"
+					loading="lazy"
+					alt=""
+					aria-hidden="true"
+					>
 			{{/if}}
-			<span class="probe-single-card_network_name">{{location.network}}</span>
-		</div>
+			<span class="probe-single-card_network_name">{{ location.network }}</span>
+		</a>
 	</div>
 
 	{{#if tags && tags.length > 0}}
 		<div class="probe-single-card_tags">
-			{{#each tags}}
-				<span class="probe-single-card_tag">{{this}}</span>
-			{{/each}}
+			{{#each visibleTags }}
+				<span class="probe-single-card_tag">{{this }}</span>
+			{{/each }}
+
+			{{#if hiddenTags.length > 0}}
+				<span class="probe-single-card_tag probe-single-card_tag--more" as-tooltip="hiddenTags">
+					+{{ hiddenTags.length}}
+				</span>
+			{{/if}}
 		</div>
 	{{/if}}
 </div>
 
 <script>
+	const _ = require('../../assets/js/_');
+	const tooltip = require('../../assets/js/decorators/tooltip');
+	const listeners = require('../../assets/js/utils/listeners');
+
+	const CHAR_WIDTH = 5.8;
+	const PADDING = 2 * 6;
+	const GAP = 6;
+	const PLUS_TAG_WIDTH = PADDING + 2 * CHAR_WIDTH;
+
 	component.exports = {
+		decorators: {
+			tooltip,
+		},
 		data () {
 			return {
 				location: {},
 				tags: [],
+				visibleTags: [],
+				hiddenTags: [],
+				networkKey: '',
+				screenWidth: 0,
 			};
 		},
-	};
+		oninit () {
+			this.observe('location', (location) => {
+				let network = location && location.network ? location.network : '';
+				this.set('networkKey', network ? _.networkNameToKey(network) : '');
+			}, { init: true });
+
+			this.observe('tags screenWidth', () => {
+				if (this.find('.probe-single-card')) {
+					this.calculateTags();
+				}
+			}, { init: false });
+		},
+		onrender () {
+			if (!Ractive.isServer) {
+				listeners.screenWidthListener(this);
+				this.calculateTags();
+			}
+		},
+		calculateTags () {
+			let card = this.find('.probe-single-card');
+
+			if (!card) { return; }
+
+			let tags = this.get('tags') || [];
+			let visibleTags = [];
+			let hiddenTags = [];
+
+			let remainingWidth = card.clientWidth - 24;
+
+			tags.forEach((tag, index) => {
+				let tagSize = tag.length * CHAR_WIDTH + PADDING + GAP;
+
+				if (tagSize + (index < tags.length - 1 ? PLUS_TAG_WIDTH : 0) <= remainingWidth) {
+					remainingWidth -= tagSize;
+					visibleTags.push(tag);
+				} else {
+					hiddenTags.push(tag);
+				}
+			});
+
+			this.set({
+				visibleTags,
+				hiddenTags,
+			});
+		},
+};
 </script>
