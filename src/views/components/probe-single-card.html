@@ -94,8 +94,9 @@
 
 			tags.forEach((tag, index) => {
 				let tagSize = tag.length * CHAR_WIDTH + PADDING + GAP;
+				let countPlusTag = index < tags.length - 1 || hiddenTags.length > 0;
 
-				if (tagSize + (index < tags.length - 1 ? PLUS_TAG_WIDTH : 0) <= remainingWidth) {
+				if (tagSize + (countPlusTag ? PLUS_TAG_WIDTH : 0) <= remainingWidth) {
 					remainingWidth -= tagSize;
 					visibleTags.push(tag);
 				} else {
