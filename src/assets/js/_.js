@@ -528,8 +528,8 @@ module.exports = {
 	},
 
 	pluralize (singular, countOrPlural, countOrUndefined) {
-		let count = countOrUndefined ?? countOrPlural;
-		let plural = countOrUndefined ? countOrPlural : singular + 's';
+		let count = typeof countOrPlural === 'string' ? countOrUndefined : countOrPlural;
+		let plural = typeof countOrPlural === 'string' ? countOrPlural : singular + 's';
 
 		return count === 1 ? singular : plural;
 	},
