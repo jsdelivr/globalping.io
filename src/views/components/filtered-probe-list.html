@@ -143,11 +143,11 @@
 								<c-probe-single-card
 									location="{{item.location}}"
 									tags="{{item.tags}}"
-									networkDomain="{{@this.getDomainForNetwork(item.location.network)}}"
-									render="{{!loadingProbeCards || index < defaultCardRenderLimit}}">
+									render="{{!loadingProbeCards || index < defaultCardRenderLimit}}"
+									screenWidth="{{screenWidth}}">
 								</c-probe-single-card>
 							{{/each}}
-							{{#if visibleProbeCards.length < block.items.length}}
+							{{#if visibleProbeCards.length < block.items.length || loadingProbeCards}}
 								<button type="button" on-click="@this.showAllProbeCards()" {{#if loadingProbeCards}}disabled{{/if}}>
 									{{#if loadingProbeCards}}
 										<i class="fa fa-circle-o-notch fa-spin" aria-hidden="true"></i>
@@ -406,6 +406,7 @@
 				defaultCardRenderLimit: DEFAULT_CARD_RENDER_LIMIT,
 				probeCardTimeout: null,
 				loadingProbeCards: false,
+				screenWidth: 0,
 			};
 		},
 		computed: {

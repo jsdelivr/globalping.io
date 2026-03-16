@@ -1,4 +1,4 @@
-<div class="probe-single-card {{#if !render}}probe-single-card--hidden{{/if}}">
+<div class="probe-single-card probe-single-card--{{#if !render}}hidden{{else}}visible{{/if}}">
 	<div class="probe-single-card_header">
 		<img class="probe-single-card_flag"
 			loading="lazy"
@@ -42,7 +42,6 @@
 <script>
 	const _ = require('../../assets/js/_');
 	const tooltip = require('../../assets/js/decorators/tooltip');
-	const listeners = require('../../assets/js/utils/listeners');
 
 	const CHAR_WIDTH = 5.8;
 	const PADDING = 2 * 6;
@@ -60,9 +59,7 @@
 				tags: [],
 				visibleTags: [],
 				hiddenTags: [],
-				networkKey: '',
 				screenWidth: 0,
-				networkDomain: undefined,
 			};
 		},
 		oninit () {
@@ -77,22 +74,14 @@
 		},
 		onrender () {
 			if (!Ractive.isServer) {
-				listeners.screenWidthListener(this);
 				this.calculateTags();
 			}
 		},
 		calculateTags () {
-			let card = this.find('.probe-single-card');
+			let card = document.getElementsByClassName('probe-single-card--visible')[0];
 
 			if (!card) {
 				return;
-			}
-
-			let render = this.get('render');
-
-			if (!render) {
-				card.style.setProperty('display', 'flex', 'important');
-				card.style.setProperty('visibility', 'hidden', 'important');
 			}
 
 			let tags = this.get('tags') || [];
@@ -100,11 +89,6 @@
 			let hiddenTags = [];
 
 			let remainingWidth = card.clientWidth - 24;
-
-			if (!render) {
-				card.style.removeProperty('display');
-				card.style.removeProperty('visibility');
-			}
 
 			tags.forEach((tag, index) => {
 				let tagSize = tag.length * CHAR_WIDTH + PADDING + GAP;
