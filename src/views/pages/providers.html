@@ -1,0 +1,525 @@
+<link rel="ractive" href="../r-page.html" name="r-page">
+<link rel="ractive" href="../components/header.html" name="c-gp-header">
+<link rel="ractive" href="../components/google-maps.html" name="c-google-maps">
+<link rel="ractive" href="../components/footer.html" name="c-gp-footer">
+<link rel="ractive" href="../components/notification.html" name="c-notification">
+<link rel="ractive" href="../components/probe-filters.html" name="c-probe-filters">
+
+<r-page noYield="{{noYield}}" title="{{title}}" description="{{description}}">
+	<c-notification />
+	<c-gp-header additionalClasses="header-with-globalping-bg" />
+
+	<main class="p-providers">
+		<section class="p-providers_hero">
+			<h1>
+				Providers
+			</h1>
+			<p>
+				Globalping is powered by <strong><span class="p-providers_count" style="min-width: {{providerCountLength+1}}ch">{{Math.floor(providerCount)}}+</span> network providers</strong> across {{continentCount}} continents.
+				<br>
+				Browse and search providers to explore network coverage and probe distribution.
+			</p>
+			<img alt="" aria-hidden="true" src="{{@shared.assetsHost}}/img/arrows.svg">
+			<div class="p-providers_hero_glow">
+				<span class="p-providers_hero_glow_blob p-providers_hero_glow_blob--right"></span>
+				<span class="p-providers_hero_glow_blob p-providers_hero_glow_blob--center"></span>
+				<span class="p-providers_hero_glow_blob p-providers_hero_glow_blob--left"></span>
+			</div>
+		</section>
+
+		<section class="p-providers_content">
+			<c-probe-filters
+				showGroupBy="{{false}}"
+				rawProbes="{{rawProbes}}"
+				location="{{location}}"
+				locationError="{{locationError}}"
+				locationProbes="{{locationProbes}}"
+				locationCompletedValue="{{locationCompletedValue}}"
+				ttPositions="{{ttPositions}}"
+				sortOptions="{{sortOptions}}"
+				sortOrder="{{sortOrder}}"
+				geographical="{{true}}"
+			/>
+
+			{{#if probesLoading}}
+				<div class="p-providers_info">
+					<i class="fa fa-circle-o-notch fa-spin fa-fw" aria-hidden="true"></i>
+					<p style="margin: 0;">Loading providers' data...</p>
+				</div>
+			{{/if}}
+
+			{{#if probesError}}
+				<div class="p-providers_error p-providers_info">
+					<i class="fa fa-exclamation-triangle" aria-hidden="true"></i>
+					<p style="margin: 0;">An unexpected error occurred, please try again later.</p>
+				</div>
+			{{/if}}
+
+			{{#if !localProviders.length && !probesLoading}}
+				<div class="p-providers_info">
+					<i class="fa fa-search" aria-hidden="true"></i>
+					<p style="margin: 0;">
+						{{#if ~/filter}}
+							No providers found, please try adjusting the applied filters.
+						{{else}}
+							No providers found, please try again later.
+						{{/if}}
+					</p>
+				</div>
+			{{/if}}
+
+			{{#if topProviders.length}}
+				<div class="p-providers_largest">
+					<h2>
+						Largest providers
+					</h2>
+					<div>
+						{{#each topProviders as provider}}
+							<div class="p-providers_provider">
+								<h3>
+									<span
+										tabindex="0"
+										role="button"
+										as-popover="@this.getPopoverContent(this.name)"
+									>
+										<span class="p-providers_provider_logo p-providers_logo">
+											{{#if @this.getDomainForNetwork(this.key)}}
+												<img width="36"
+													height="36"
+													src="https://img.jsdelivr.com/img.logo.dev/{{@this.getDomainForNetwork(this.key)}}?format=png"
+													loading="lazy"
+													alt=""
+													aria-hidden="true"
+												>
+											{{else}}
+												{{this.name[0]}}
+											{{/if}}
+										</span>
+										{{this.name}}
+									</span>
+								</h3>
+								<h4>
+									{{this.probes.toLocaleString('en-US')}} {{ ~/_.pluralize('probe', this.probes) }} {{~/topProviderLocation}}
+								</h4>
+								<div>
+									{{#each this[~/topProvidersDisplayedField]}}
+									<div class="p-providers_provider_item {{#if this.name === 'Other'}}p-providers_provider_item--other{{/if}}">
+										{{#if this.name === 'Other'}}
+											<span class="p-providers_provider_item_name">
+												{{this.name}}
+											</span>
+										{{else}}
+											<span
+												tabindex="0"
+												role="button"
+												as-popover="@this.getPopoverContent(provider.name, this.name, true)"
+												class="p-providers_provider_item_name"
+											>
+												{{@this.getFieldName(this.name)}}
+											</span>
+										{{/if}}
+										<span class="p-providers_provider_item_count">{{this.count}}</span>
+									</div>
+									{{/each}}
+								</div>
+							</div>
+						{{/each}}
+					</div>
+				</div>
+			{{/if}}
+
+			{{#if localProviders.length}}
+				<div class="p-providers_local">
+					<h2>
+						Local providers
+					</h2>
+					<div class="p-providers_local_groups">
+						{{#each localProviders as providerGroup}}
+							<div class="p-providers_local_group p-providers_{{this.isCountry ? 'country' : 'continent'}}">
+								<h3>
+									{{#if this.isCountry}}
+										<img loading="lazy"
+											width="24"
+											height="16"
+											alt=""
+											aria-hidden="true"
+											src="https://cdn.jsdelivr.net/npm/country-flag-icons@1.5.5/3x2/{{this.code}}.svg">
+									{{else}}
+										<img width="36" height="36" src="{{@shared.assetsHost}}/img/network/continent-{{this.code.toLowerCase()}}.svg" alt="" aria-hidden="true">
+									{{/if}}
+									{{this.name}}
+								</h3>
+								<div class="p-providers_local_group_networks">
+									{{#each this.networks}}
+										<div class="p-providers_local_group_network"
+											tabindex="0"
+											role="button"
+											as-popover="@this.getPopoverContent(this.name, providerGroup.name)"
+										>
+											<span class="p-providers_local_group_network_logo p-providers_logo">
+												{{#if @this.getDomainForNetwork(this.key)}}
+													<img width="20"
+														height="20"
+														src="https://img.jsdelivr.com/img.logo.dev/{{@this.getDomainForNetwork(this.key)}}?format=png"
+														loading="lazy"
+														alt=""
+														aria-hidden="true"
+													>
+												{{else}}
+													{{this.name[0]}}
+												{{/if}}
+											</span>
+											<span class="p-providers_local_group_network_name">{{this.name}}</span>
+											<span class="p-providers_local_group_network_count">{{this.count}}</span>
+										</div>
+									{{/each}}
+								</div>
+							</div>
+						{{/each}}
+					</div>
+				</div>
+			{{/if}}
+		</section>
+	</main>
+
+	<c-gp-footer />
+</r-page>
+
+<script>
+	const { getNetworkDomainMap } = require('../../assets/js/utils/http');
+	const popover = require('../../assets/js/decorators/popover');
+	const _ = require('../../assets/js/_');
+	const http = require('../../assets/js/utils/http');
+	const dataCache = require('../../assets/js/utils/data-cache');
+
+	const DEFAULT_SORT_ORDER = 'probe-count';
+
+	const CONTINENTS = require('../../assets/json/continents.json');
+	const COUNTRIES = require('../../assets/json/countries.json');
+
+	const CONTINENT_MAP = CONTINENTS.reduce((acc, continent) => {
+		acc[continent.code] = continent.name;
+		return acc;
+	}, {});
+
+	const COUNTRIES_MAP = COUNTRIES.reduce((acc, country) => {
+		acc[country.code] = country.name;
+		return acc;
+	}, {});
+
+	const COUNTRY_CODE_MAP = COUNTRIES.reduce((acc, country) => {
+		acc[country.name] = country.code;
+		return acc;
+	}, {});
+
+	component.exports = {
+		decorators: {
+			popover,
+		},
+		data () {
+			return {
+				_,
+				title: 'Probes Overview - Globalping',
+				description: 'Overview of Globalping probes.',
+				probesLoading: true,
+				probesError: null,
+				rawProbes: null,
+				locationProbes: null,
+				probesByCoords: null,
+				location: 'World',
+				locationCompletedValue: '',
+				locationError: '',
+				ttPositions: {},
+				providerCount: 0,
+				providerCountLength: 0,
+				continentCount: 0,
+				topProviders: [],
+				topProvidersDisplayedField: 'continents',
+				topProviderLocation: 'worldwide',
+				localProviders: [],
+				sortOrder: DEFAULT_SORT_ORDER,
+				networkDomainMap: Object.create(null),
+				sortOptions: [
+					{ name: 'Alphabetically', value: 'alphabetically' },
+					{ name: 'Probe count', value: 'probe-count' },
+				],
+			};
+		},
+		computed: {
+			filter: {
+				get () {
+					let location = this.get('locationCompletedValue') || '';
+
+					if (location.toLowerCase() === 'world') { return ''; }
+
+					return location.replace(/\+/g, '%');
+				},
+				set (location) {
+					this.set('location', location.replace(/%/g, '+'));
+					this.set('locationCompletedValue', location.replace(/%/g, '+'));
+				},
+			},
+			sort: {
+				get () {
+					return this.get('sortOrder') === DEFAULT_SORT_ORDER ? null : this.get('sortOrder');
+				},
+				set (sort) {
+					this.set('sortOrder', sort);
+				},
+			},
+		},
+		oninit () {
+			if (!Ractive.isServer) {
+				getNetworkDomainMap()
+					.then(networkDomainMap => this.set('networkDomainMap', networkDomainMap))
+					.catch(err => console.error(err));
+
+				this.getProbeData();
+
+				this.observe('locationProbes', (probes) => {
+					if (probes === null) {
+						return;
+					}
+
+					this.setTopProviders(probes);
+					this.setLocalProviders(probes);
+				});
+
+				this.observe('sortOrder', () => {
+					let probes = this.get('locationProbes');
+
+					if (probes === null) {
+						return;
+					}
+
+					this.setLocalProviders(probes);
+				});
+			}
+		},
+		handleProbesResponse (response) {
+			this.set('rawProbes', response);
+
+			let counts = response.reduce((acc, probe) => {
+				acc.providers.add(probe.location.network);
+				acc.continents.add(probe.location.continent);
+				return acc;
+			}, {
+				providers: new Set(),
+				continents: new Set(),
+			});
+
+			let providerCount = Math.floor(counts.providers.size / 100) * 100;
+
+			this.set('providerCountLength', Math.floor(Math.log10(providerCount)) + 1);
+			this.animate('providerCount', providerCount, { duration: 2000 });
+			this.set('continentCount', counts.continents.size);
+		},
+		getProbeData () {
+			this.set('probesLoading', true);
+			this.set('probesError', null);
+
+			dataCache.getCache('probesResponse', 60 * 1000, http.fetchGlobalpingProbes)
+				.then(value => this.handleProbesResponse(value))
+				.catch(error => this.set('probesError', error))
+				.finally(() => this.set('probesLoading', false));
+		},
+		setTopProviders (probes) {
+			let counts = probes.reduce((acc, probe) => {
+				let networkKey = _.networkNameToKey(probe.location.network);
+
+				if (!acc[networkKey]) {
+					acc[networkKey] = {
+						name: probe.location.network,
+						probes: 0,
+						countries: {},
+						continents: {},
+						cities: {},
+						key: networkKey,
+					};
+				}
+
+				acc[networkKey].probes++;
+				acc[networkKey].countries[probe.location.country] = (acc[networkKey].countries[probe.location.country] || 0) + 1;
+				acc[networkKey].continents[probe.location.continent] = (acc[networkKey].continents[probe.location.continent] || 0) + 1;
+				acc[networkKey].cities[probe.location.city] = (acc[networkKey].cities[probe.location.city] || 0) + 1;
+				return acc;
+			}, Object.create(null));
+
+			let toSortedArray = (obj) => {
+				let sorted = Object.entries(obj)
+					.map(([ name, count ]) => ({ name, count }))
+					.sort((a, b) => b.count - a.count);
+
+				if (sorted.length > 6) {
+					let topItems = sorted.slice(0, 5);
+					let otherCount = sorted.slice(5).reduce((sum, item) => sum + item.count, 0);
+
+					topItems.push({ name: 'Other', count: otherCount });
+
+					return topItems;
+				}
+
+				return sorted;
+			};
+
+			let topProviders = Object.values(counts)
+				.sort((lhs, rhs) => rhs.probes - lhs.probes)
+				.slice(0, 6)
+				.map((provider) => {
+					provider.countries = toSortedArray(provider.countries);
+					provider.continents = toSortedArray(provider.continents);
+					provider.cities = toSortedArray(provider.cities);
+					return provider;
+				});
+
+			let topProvidersDisplayedField = this.getTopProvidersDisplayedField(topProviders);
+
+			let topProviderLocation = this.get('location') && this.get('location').toLowerCase() !== 'world' ? `in ${this.get('location')}` : 'worldwide';
+
+			this.set({
+				topProviders,
+				topProvidersDisplayedField,
+				topProviderLocation,
+			});
+		},
+		setLocalProviders (probes) {
+			let continentCount = new Set(probes.map(probe => probe.location.continent)).size;
+			let groupByCountry = continentCount === 1;
+
+			let groups = probes.reduce((acc, probe) => {
+				let groupCode = groupByCountry ? probe.location.country : probe.location.continent;
+				let networkName = probe.location.network;
+				let networkKey = _.networkNameToKey(networkName);
+
+				if (!acc[groupCode]) {
+					acc[groupCode] = {
+						code: groupCode,
+						name: groupByCountry ? COUNTRIES_MAP[groupCode] || groupCode : CONTINENT_MAP[groupCode] || groupCode,
+						isCountry: groupByCountry,
+						totalProbes: 0,
+						networks: Object.create(null),
+					};
+				}
+
+				if (!acc[groupCode].networks[networkKey]) {
+					acc[groupCode].networks[networkKey] = {
+						count: 0,
+						name: networkName,
+					};
+				}
+
+				acc[groupCode].totalProbes++;
+				acc[groupCode].networks[networkKey].count++;
+
+				return acc;
+			}, Object.create(null));
+
+			let sortOrder = this.get('sortOrder');
+
+			let localProviders = Object.values(groups).map((group) => {
+				let networksArray = Object.entries(group.networks)
+					.map(([ key, { name, count }]) => ({ name, count, key }));
+
+				if (sortOrder === 'alphabetically') {
+					group.networks = networksArray.sort((a, b) => a.name.localeCompare(b.name) || b.count - a.count);
+				} else {
+					group.networks = networksArray.sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
+				}
+
+				return group;
+			}).sort((a, b) => {
+				if (sortOrder === 'alphabetically') {
+					return a.name.localeCompare(b.name);
+				}
+
+				return b.totalProbes - a.totalProbes;
+			});
+
+			this.set('localProviders', localProviders);
+		},
+		getTopProvidersDisplayedField (topProviders) {
+			for (let field of [ 'continents', 'countries' ]) {
+				if (topProviders.some(provider => provider[field].length > 1)) {
+					return field;
+				}
+			}
+
+			return 'cities';
+		},
+		getDomainForNetwork (key) {
+			return this.get('networkDomainMap')[key];
+		},
+		getFieldName (code) {
+			let topProvidersDisplayedField = this.get('topProvidersDisplayedField');
+
+			switch (topProvidersDisplayedField) {
+				case 'continents':
+					return CONTINENT_MAP[code] || code;
+				case 'countries':
+					return COUNTRIES_MAP[code] || code;
+				default:
+					return code;
+			}
+		},
+		getPopoverContent (network, continent, targetOnly = false) {
+			let targetLoc = '';
+			continent = CONTINENT_MAP[continent] || continent;
+			let locationValue = `${continent ? continent + '+' : ''}${network}`;
+
+			let locations = this.get('location').replace(/^world$/i, '').split(',').map(location => location.trim()).filter(Boolean);
+
+			if (!locations.length) {
+				targetLoc = locationValue;
+			} else {
+				targetLoc = locations.reduce((shortestLoc, location) => {
+					let filteredParts = location.split(/[+%]/).map(part => part.trim()).filter((part) => {
+						let countryCode = COUNTRIES_MAP[part];
+						let countryName = COUNTRY_CODE_MAP[part];
+
+						let isRedundant = locationValue.includes(part)
+							|| (countryCode && locationValue.includes(countryCode))
+							|| (countryName && locationValue.includes(countryName));
+
+						return !isRedundant;
+					});
+
+					let candidateLoc = [ locationValue, ...filteredParts ].join('+');
+
+					return !shortestLoc || candidateLoc.length < shortestLoc.length
+						? candidateLoc
+						: shortestLoc;
+				}, '');
+			}
+
+			targetLoc = targetLoc.replace(/[%&<>"']/g, ch => ({
+				'&': '&amp;',
+				'<': '&lt;',
+				'>': '&gt;',
+				'"': '&quot;',
+				'\'': '&#39;',
+			}[ch]));
+
+			let btnMeasure = `
+				<a href="/?location=${encodeURIComponent(targetLoc.replaceAll('+', '%'))}">
+					<i class="fa fa-crosshairs" aria-hidden="true"></i>
+					Target in a measurement
+				</a>`;
+
+			let btnLookingGlass = '';
+
+			let networkKey = _.networkNameToKey(network);
+
+			btnLookingGlass = targetOnly
+				? ''
+				: `
+					<a href="/networks/${networkKey}">
+						<i class="fa fa-search" aria-hidden="true"></i>
+						<span>
+							<span class="gp-filtered-list_popover_network-name">${network}</span>&nbsp;looking glass
+						</span>
+					</a>`;
+
+			return `<div class="gp-popover-menu">${btnMeasure}${btnLookingGlass}</div>`;
+		},
+};
+</script>

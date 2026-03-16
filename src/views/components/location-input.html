@@ -72,6 +72,7 @@
 				exposeProbes: false,
 				results: [],
 				completedValue: '',
+				geographical: false,
 			};
 		},
 		oninit () {
@@ -240,7 +241,12 @@
 								</section>
 
 								<div class="aa-gp-no-results">
-									Our magic search supports names of continents, regions, countries, US states, cities, networks, and custom tags.<br/><br/>
+									{{#if this.geographical}}
+										Our magic search supports names of continents, regions, countries, US states, and cities.
+									{{else}}
+										Our magic search supports names of continents, regions, countries, US states, cities, networks, and custom tags.
+									{{/if}}
+									<br/><br/>
 									Use <code>+</code> to combine multiple filters, and <code>,</code> to select multiple locations.
 								</div>
 							</div>
@@ -262,6 +268,8 @@
 						if (!indexForConditions) {
 							return;
 						}
+
+						let geographical = this.get('geographical');
 
 						// The input allows several queries separated by a comma.
 						// Each query may have multiple parts separated by a plus sign.
@@ -367,7 +375,7 @@
 						};
 
 						return [
-							initSource('tags', {
+							!geographical && initSource('tags', {
 								templates: {
 									item ({ item, html }) {
 										return columns(html, item.value, `${item.count}`);
@@ -409,23 +417,24 @@
 									},
 								},
 							}),
-							initSource('networks', {
+							!geographical && initSource('networks', {
 								templates: {
 									item ({ item, html }) {
 										return columns(html, `${item.value}`, `${item.count}`);
 									},
 								},
 							}),
-						].map((source) => {
-							return filterSourceResults(source);
-						}).sort((a, b) => {
+						].filter(Boolean)
+							.map((source) => {
+								return filterSourceResults(source);
+							}).sort((a, b) => {
 							// For sections with the same rank, order by the number of probes in the first location.
-							if (a.rank === b.rank) {
-								return (b.getItems()[0]?.count || 0) - (a.getItems()[0]?.count || 0);
-							}
+								if (a.rank === b.rank) {
+									return (b.getItems()[0]?.count || 0) - (a.getItems()[0]?.count || 0);
+								}
 
-							return a.rank - b.rank;
-						});
+								return a.rank - b.rank;
+							});
 					},
 				});
 
@@ -519,6 +528,7 @@
 
 				let createNormalizedProbeList = (probes) => {
 					normalizedProbes = probes.map((probe) => {
+						let geographical = this.get('geographical');
 						let countryName = countriesByCode[probe.location.country]?.name || probe.location.country;
 						let continentName = continentsByCode[probe.location.continent]?.name || probe.location.continent;
 
@@ -528,8 +538,10 @@
 							state: probe.location.state ? `US-${probe.location.state}` : '',
 							country: `${countryName}\n${probe.location.country}`,
 							continent: `${continentName}\n${probe.location.continent}`,
-							network: probe.location.network.trim(),
-							tags: probe.tags.filter(tag => !tag.startsWith('u-')),
+							...!geographical && {
+								network: probe.location.network.trim(),
+								tags: probe.tags.filter(tag => !tag.startsWith('u-')),
+							},
 						};
 
 						if (probe.location.country === 'GB') {
@@ -592,18 +604,22 @@
 				};
 
 				let createIndexFor = (filteredProbes, conditions) => {
+					let geographical = this.get('geographical');
 					let index = {};
 					index.global = [
 						'World',
 					];
 
-					index.tags = filteredProbes.map(probe => probe.tags).flat();
 					index.cities = filteredProbes.map(probe => probe.city);
 					index.countries = filteredProbes.map(probe => probe.country);
 					index.continents = filteredProbes.map(probe => probe.continent);
 					index.regions = filteredProbes.map(probe => probe.region);
 					index.states = filteredProbes.map(probe => probe.state).filter(v => v);
-					index.networks = filteredProbes.map(probe => probe.network).filter(network => network && !network.includes(','));
+
+					if (!geographical) {
+						index.tags = filteredProbes.map(probe => probe.tags).flat();
+						index.networks = filteredProbes.map(probe => probe.network).filter(network => network && !network.includes(','));
+					}
 
 					Object.keys(index).forEach((key) => {
 						index[key] = uniqCountSortNormalize(index[key], key === 'networks');
@@ -660,8 +676,10 @@
 					index.count = filteredProbes.length;
 					index.countCap = conditions.length ? index.count - 1 : index.count;
 
-					index.tags.unshift(...index.global);
-					index.tags[0].count = filteredProbes.length;
+					if (!geographical) {
+						index.tags.unshift(...index.global);
+						index.tags[0].count = filteredProbes.length;
+					}
 
 					indexForConditions[conditions.join('+')] = index;
 				};

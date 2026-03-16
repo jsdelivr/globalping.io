@@ -1,80 +1,20 @@
 <link rel="ractive" href="./select.html" name="c-select">
-<link rel="ractive" href="./location-input.html" name="c-location-input">
 <link rel="ractive" href="./probe-single-card.html" name="c-probe-single-card">
+<link rel="ractive" href="./probe-filters.html" name="c-probe-filters">
 
 <div class="gp-filtered-list">
-	<div class="gp-filtered-list_filters">
-		<div class="gp-filtered-list_filters_row">
-			<div class="gp-filtered-list_filters_field gp-filtered-list_filters_field--location">
-				<c-location-input
-					rawProbes="{{rawProbes}}"
-					value="{{location}}"
-					error="{{locationError}}"
-					placeholder="Enter location"
-					labelText="Location"
-					classList="gp_map-block_settings-wrapper_settings_location gp_input"
-					ttPos="{{ttPositions.locationTtPos}}"
-					exposeProbes="{{true}}"
-					results="{{locationProbes}}"
-					completedValue="{{locationCompletedValue}}">
-					{{#partial labelIcon}}
-						<img as-tooltip="[ 'This magic field supports names of continents, regions, countries, US states, cities, networks, and our custom tags.', '', 'Use + to combine multiple filters.', 'Use , to select multiple locations.' ], ttPos, undefined, undefined, 'multiline'"
-							width="14"
-							height="14"
-							src="{{@shared.assetsHost}}/img/help-icon.svg"
-						>
-					{{/partial}}
-				</c-location-input>
-			</div>
-
-			<div class="gp-filtered-list_filters_field gp-filtered-list_filters_field--group-by">
-				<label>Group by</label>
-				<c-select
-					options="{{groupingOptions}}"
-					selected="{{groupBy}}"
-					name="group-by-select"
-				/>
-			</div>
-
-			<div class="gp-filtered-list_filters_field gp-filtered-list_filters_field--sort-by">
-				<label>Sort by</label>
-				<c-select
-					options="{{sortOptions}}"
-					disabled="{{groupBy === 'disabled'}}"
-					selected="{{sortOrder}}"
-					name="sort-by-select"
-				/>
-			</div>
-		</div>
-		<div class="gp-filtered-list_filters_quick">
-			<span class="gp-filtered-list_filters_quick_title">
-				<span>Quick Filters:</span>
-			</span>
-
-			<div class="gp-filtered-list_filters_quick_list">
-				{{#each filtersSet}}
-					<span class="gp-filtered-list_filters_quick_list_selected">
-						{{this.name}}
-						<button data-testid="quick-filter-{{this.name}}" on-click="@this.rmFilterRule(@key)"
-							type="button"
-							class="gp-filtered-list_filters_quick_list_selected_remove">
-							<img width="16" height="16" src="{{@shared.assetsHost}}/img/tag-input-close-icon.svg">
-						</button>
-					</span>
-				{{/each}}
-
-				{{#each availableFilters}}
-					{{#unless this.selected}}
-						<button data-testid="quick-filter-{{this.name}}" on-click="@this.setFilterRule(@key)"
-							type="button"
-							class="gp-filtered-list_filters_quick_list_item">
-							{{this.name}}
-						</button>
-					{{/unless}}
-				{{/each}}
-			</div>
-		</div>
-	</div>
+	<c-probe-filters
+		rawProbes="{{rawProbes}}"
+		location="{{location}}"
+		locationError="{{locationError}}"
+		locationProbes="{{locationProbes}}"
+		locationCompletedValue="{{locationCompletedValue}}"
+		ttPositions="{{ttPositions}}"
+		groupingOptions="{{groupingOptions}}"
+		groupBy="{{groupBy}}"
+		sortOptions="{{sortOptions}}"
+		sortOrder="{{sortOrder}}"
+	/>
 
 	{{#if preparedProbeBlocks && preparedProbeBlocks.length > 0}}
 		<p class="gp-filtered-list_result-count">
@@ -227,14 +167,13 @@
 <script>
 	const { getNetworkDomainMap } = require('../../assets/js/utils/http');
 	const _ = require('../../assets/js/_');
+	const popover = require('../../assets/js/decorators/popover');
 	const debounce = require('../../assets/js/utils/debounce');
 	const throttle = require('../../assets/js/utils/throttle');
 	const listeners = require('../../assets/js/utils/listeners');
 
 	const CONTINENTS = require('../../assets/json/continents.json');
 	const COUNTRIES = require('../../assets/json/countries.json');
-	const FILTER_TYPE_BY_CONTINENT = 'byContinent';
-	const FILTER_TYPE_BY_NETWORK = 'byNetwork';
 
 	const CONTINENT_MAP = CONTINENTS.reduce((acc, continent) => {
 		acc[continent.code] = continent.name;
@@ -253,92 +192,12 @@
 
 	component.exports = {
 		decorators: {
-			popover (node, contentHtml) {
-				if (!contentHtml || typeof $(node).popover !== 'function') {
-					return { teardown: () => {} };
-				}
-
-				$(node).popover({
-					container: 'body',
-					html: true,
-					content: contentHtml,
-					placement: 'auto',
-					trigger: 'focus',
-					template: `<div class="popover gp-filtered-list_popover" role="tooltip"><div class="arrow"></div><div class="popover-content"></div></div>`,
-				});
-
-				return {
-					update (newContentHtml) {
-						let popover = $(node).data('bs.popover');
-
-						if (popover && popover.options) {
-							popover.options.content = newContentHtml;
-						}
-					},
-					teardown: () => {
-						let $node = $(node);
-						let popoverId = $node.attr('aria-describedby');
-
-						if (typeof $node.popover === 'function') {
-							$node.popover('destroy');
-						}
-
-						if (popoverId) {
-							$('#' + popoverId).remove();
-						}
-
-						$node.removeData('bs.popover');
-						$node.removeAttr('aria-describedby');
-					},
-				};
-			},
+			popover,
 		},
 		data () {
 			return {
 				_,
 				locationError: '',
-				availableFilters: [
-					{
-						name: 'Europe',
-						value: 'Europe',
-						type: FILTER_TYPE_BY_CONTINENT,
-					},
-					{
-						name: 'North America',
-						value: 'North America',
-						type: FILTER_TYPE_BY_CONTINENT,
-					},
-					{
-						name: 'South America',
-						value: 'South America',
-						type: FILTER_TYPE_BY_CONTINENT,
-					},
-					{
-						name: 'Africa',
-						value: 'Africa',
-						type: FILTER_TYPE_BY_CONTINENT,
-					},
-					{
-						name: 'Asia',
-						value: 'Asia',
-						type: FILTER_TYPE_BY_CONTINENT,
-					},
-					{
-						name: 'Oceania',
-						value: 'Oceania',
-						type: FILTER_TYPE_BY_CONTINENT,
-					},
-					{
-						name: 'eyeball network',
-						value: 'eyeball-network',
-						type: FILTER_TYPE_BY_NETWORK,
-					},
-					{
-						name: 'datacenter',
-						value: 'datacenter-network',
-						type: FILTER_TYPE_BY_NETWORK,
-					},
-				],
 				groupingOptions: [
 					{
 						name: 'Country',
@@ -377,7 +236,6 @@
 				],
 				defaultSortOptions: {},
 				probeContinents: [],
-				filtersSet: null,
 				groupedProbes: null,
 				locationProbes: null,
 				preparedProbeBlocks: null,
@@ -433,7 +291,6 @@
 					return probes.length;
 				}
 
-				// do not recalculate the total if we already have it in probeLocationCounts
 				if (!groupBy.includes('-')) {
 					return this.get('probeLocationCounts')[groupBy];
 				}
@@ -459,14 +316,12 @@
 					.then(networkDomainMap => this.set('networkDomainMap', networkDomainMap))
 					.catch(err => console.error(err));
 
-				// set initial screenWidth value
 				this.observe('screenWidth', (screenWidth) => {
 					if (!screenWidth) {
 						this.set('screenWidth', window.innerWidth);
 						return;
 					}
 
-					// handle tooltips positions depending on the screen size
 					let ttPositions = {};
 
 					if (screenWidth >= 1272) {
@@ -486,14 +341,9 @@
 					this.set('ttPositions', ttPositions);
 				});
 
-				this.observe('location', () => {
-					this.updateFiltersSet();
-				});
-
 				this.observe('locationProbes', (locationProbes) => {
 					this.set('filteredProbes', locationProbes);
 
-					// we need to set sort, filter, and group query params simultaneously
 					let payload = {};
 					let doAtomicUpdate = false;
 					let nextGroupBy = this.get('groupBy');
@@ -529,7 +379,6 @@
 							doAtomicUpdate = true;
 						}
 					} else {
-						// restore previous groupBy value if the current groupBy value was set via "focus this location"
 						if (this.get('autoGroupedByFocus')) {
 							let previousGroupBy = this.get('preFocusGroupBy');
 
@@ -659,8 +508,8 @@
 							let countryName = COUNTRY_CODE_MAP[part];
 
 							let isRedundant = locationValue.includes(part)
-							|| (countryCode && locationValue.includes(countryCode))
-							|| (countryName && locationValue.includes(countryName));
+								|| (countryCode && locationValue.includes(countryCode))
+								|| (countryName && locationValue.includes(countryName));
 
 							return !isRedundant;
 						});
@@ -734,12 +583,10 @@
 		},
 		groupProbes (probes) {
 			let groupBy = this.get('groupBy');
-			// group probes by Continents and Coordinates
 			let groups = probes.reduce((res, probe) => {
 				let location = `${probe.location.country}, ${probe.location.city}`;
 
 				let groupKey = groupBy === 'disabled' ? 'disabled' : probe.location.continent;
-
 
 				if (groupBy === 'disabled') {
 					if (!Object.hasOwn(res, groupKey)) {
@@ -774,88 +621,6 @@
 		},
 		getCountryName (code) {
 			return COUNTRIES_MAP[code] || code;
-		},
-		updateFiltersSet () {
-			let location = this.get('location');
-			let availableFilters = this.get('availableFilters');
-			availableFilters.forEach(f => f.selected = false);
-
-			if (!location) {
-				this.set('filtersSet', []);
-				this.set('availableFilters', availableFilters);
-				return;
-			}
-
-			let parts = location.split(/[+,]/).map(p => p.trim().toLowerCase());
-			let filtersSet = [];
-
-			availableFilters.forEach((f, i) => {
-				let part = parts.find((part) => {
-					return f.name.toLowerCase() === part || f.value.toLowerCase() === part;
-				});
-
-				if (part) {
-					f.selected = true;
-					f.avFiltersIdx = i;
-					filtersSet.push(f);
-				}
-			});
-
-			this.set('filtersSet', filtersSet);
-			this.set('availableFilters', availableFilters);
-		},
-		setFilterRule (idx) {
-			let availableFilters = this.get('availableFilters');
-			let selectedFilter = availableFilters[idx];
-			let location = this.get('location');
-
-			if (!location) {
-				this.set('location', selectedFilter.value);
-			} else {
-				let parts = location.split(',').map(query => query.split('+').map(p => p.trim().toLowerCase())).flat();
-				let hasContinent = false;
-				let hasNetwork = false;
-
-				for (let f of availableFilters) {
-					let matchingPart = parts.find(part => part === f.name.toLowerCase() || part === f.value.toLowerCase());
-
-					if (matchingPart) {
-						if (f.type === FILTER_TYPE_BY_CONTINENT) {
-							hasContinent = true;
-						} else if (f.type === FILTER_TYPE_BY_NETWORK) {
-							hasNetwork = true;
-						}
-					}
-				}
-
-				if (selectedFilter.type === FILTER_TYPE_BY_NETWORK && hasContinent && !hasNetwork) {
-					this.set('location', `${location}+${selectedFilter.value}`);
-				} else if (selectedFilter.type === FILTER_TYPE_BY_CONTINENT && hasNetwork && !hasContinent) {
-					this.set('location', `${location}+${selectedFilter.value}`);
-				} else {
-					this.set('location', selectedFilter.value);
-				}
-			}
-
-			this.findComponent('c-location-input')?.fire('outsideLocationChange');
-		},
-		rmFilterRule (idx) {
-			let filter = this.get('filtersSet')[idx];
-			let selectedFilter = this.get('availableFilters').find(f => f.value === filter.value);
-			let location = this.get('location');
-
-			if (location.includes(selectedFilter.value)) {
-				let parts = location.split(',');
-				let updatedParts = parts.map((part) => {
-					let segments = part.split('+').map(s => s.trim());
-					let filteredSegments = segments.filter(s => s.toLowerCase() !== filter.value.toLowerCase());
-					return filteredSegments.join('+');
-				}).filter(part => part.trim() !== '');
-
-				this.set('location', updatedParts.join(',') || 'World');
-			}
-
-			this.findComponent('c-location-input')?.fire('outsideLocationChange');
 		},
 		sortAndGroup (obj) {
 			let groupBy = this.get('groupBy');
@@ -910,7 +675,7 @@
 				}));
 			}
 
-			let networkNameMap = {}; // make sure all networks have the same letter case across cities/countries
+			let networkNameMap = {};
 
 			let sortedArray = Object
 				.keys(obj)
@@ -972,7 +737,6 @@
 						let networks = [];
 
 						if (groupBy === 'country-network' || groupBy === 'city-network') {
-							// Count probes per network
 							let networkCounts = probes.reduce((acc, probe) => {
 								let network = probe.location.network;
 								let key = network.toLowerCase();
