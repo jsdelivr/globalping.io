@@ -139,19 +139,16 @@
 				{{#each preparedProbeBlocks as block}}
 					<div class="gp-filtered-list_list_block group-by-{{groupBy}}">
 						{{#if groupBy === 'disabled'}}
-							{{#each block.items.slice(0, maxProbesDisplayed) as item}}
+							{{#each block.items.slice(0, maxProbeCardsDisplayed) as item}}
 								<c-probe-single-card
 									location="{{item.location}}"
 									tags="{{item.tags}}"
 									networkDomain="{{@this.getDomainForNetwork(item.location.network)}}">
 								</c-probe-single-card>
 							{{/each}}
-							{{#if maxProbesDisplayed < block.items.length}}
-								<button type="button" on-click="@this.increaseMaxProbeLimit()" {{#if ungroupedProbesLoading}}disabled{{/if}}>
-									{{#if ungroupedProbesLoading}}
-										<i class="fa fa-circle-o-notch fa-spin" aria-hidden="true"></i>
-									{{/if}}
-									Load more
+							{{#if maxProbeCardsDisplayed < block.items.length && maxProbeCardsDisplayed === defaultCardRenderLimit}}
+								<button type="button" on-click="@this.showAllProbeCards()">
+									Show all
 								</button>
 							{{/if}}
 						{{else}}
@@ -246,7 +243,6 @@
 	const FILTER_TYPE_BY_CONTINENT = 'byContinent';
 	const FILTER_TYPE_BY_NETWORK = 'byNetwork';
 	const DEFAULT_CARD_RENDER_LIMIT = 99;
-	const LOAD_MORE_INCREMENT = 999;
 
 	const CONTINENT_MAP = CONTINENTS.reduce((acc, continent) => {
 		acc[continent.code] = continent.name;
@@ -402,9 +398,8 @@
 				preFocusGroupBy: null,
 				autoGroupedByFocus: false,
 				isProgrammaticGroupByChange: false,
-				maxProbesDisplayed: DEFAULT_CARD_RENDER_LIMIT,
-				ungroupedProbesLoading: false,
-				loadMoreTimeout: null,
+				maxProbeCardsDisplayed: DEFAULT_CARD_RENDER_LIMIT,
+				defaultCardRenderLimit: DEFAULT_CARD_RENDER_LIMIT,
 			};
 		},
 		computed: {
@@ -622,9 +617,7 @@
 				});
 
 				this.observe('groupBy location', () => {
-					this.set('maxProbesDisplayed', DEFAULT_CARD_RENDER_LIMIT);
-					this.set('ungroupedProbesLoading', false);
-					clearTimeout(this.get('loadMoreTimeout'));
+					this.set('maxProbeCardsDisplayed', DEFAULT_CARD_RENDER_LIMIT);
 				});
 
 				this.observe('groupedProbes sortOrder screenWidth', () => {
@@ -656,7 +649,6 @@
 
 				this.on('teardown', () => {
 					$('body').off('click', '.popover-focus-loc', handleFocusClick);
-					clearTimeout(this.get('loadMoreTimeout'));
 				});
 			}
 		},
@@ -1121,16 +1113,23 @@
 			this.set('location', 'World');
 			this.findComponent('c-location-input')?.fire('outsideLocationChange');
 		},
-		increaseMaxProbeLimit () {
-			clearTimeout(this.get('loadMoreTimeout'));
-			this.set('ungroupedProbesLoading', true);
+		showAllProbeCards () {
+			let totalProbes = this.get('locationProbes').length;
+			let originalLocation = this.get('location');
 
-			let loadMoreTimeout = setTimeout(() => {
-				this.set('maxProbesDisplayed', this.get('maxProbesDisplayed') + LOAD_MORE_INCREMENT);
-				this.set('ungroupedProbesLoading', false);
-			}, 250);
+			let increaseDisplayedProbeCount = () => {
+				if (this.get('maxProbeCardsDisplayed') >= totalProbes
+				|| this.get('groupBy') !== 'disabled'
+				|| this.get('location') !== originalLocation) {
+					return;
+				}
 
-			this.set('loadMoreTimeout', loadMoreTimeout);
+				this.set('maxProbeCardsDisplayed', this.get('maxProbeCardsDisplayed') + 100);
+
+				requestAnimationFrame(increaseDisplayedProbeCount);
+			};
+
+			increaseDisplayedProbeCount();
 		},
 };
 </script>
