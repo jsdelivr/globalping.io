@@ -94,7 +94,7 @@
 			</span>
 
 			{{#if hasCustomLocationApplied}}
-				<button on-click="@this.resetFilters()" tabindex="0">
+				<button type="button" on-click="@this.resetFilters()" tabindex="0">
 					Show all
 				</button>
 			{{/if}}
@@ -147,7 +147,7 @@
 								</c-probe-single-card>
 							{{/each}}
 							{{#if maxProbesDisplayed < block.items.length}}
-								<button on-click="@this.increaseMaxProbeLimit()" {{#if ungroupedProbesLoading}}disabled{{/if}}>
+								<button type="button" on-click="@this.increaseMaxProbeLimit()" {{#if ungroupedProbesLoading}}disabled{{/if}}>
 									{{#if ungroupedProbesLoading}}
 										<i class="fa fa-circle-o-notch fa-spin" aria-hidden="true"></i>
 									{{/if}}
