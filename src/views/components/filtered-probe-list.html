@@ -400,6 +400,7 @@
 				isProgrammaticGroupByChange: false,
 				maxProbeCardsDisplayed: DEFAULT_CARD_RENDER_LIMIT,
 				defaultCardRenderLimit: DEFAULT_CARD_RENDER_LIMIT,
+				probeCardTimeout: null,
 			};
 		},
 		computed: {
@@ -617,6 +618,7 @@
 				});
 
 				this.observe('groupBy location', () => {
+					clearTimeout(this.probeCardTimeout);
 					this.set('maxProbeCardsDisplayed', DEFAULT_CARD_RENDER_LIMIT);
 				});
 
@@ -649,6 +651,7 @@
 
 				this.on('teardown', () => {
 					$('body').off('click', '.popover-focus-loc', handleFocusClick);
+					clearTimeout(this.probeCardTimeout);
 				});
 			}
 		},
@@ -1124,9 +1127,13 @@
 					return;
 				}
 
+				clearTimeout(this.probeCardTimeout);
+
 				this.set('maxProbeCardsDisplayed', this.get('maxProbeCardsDisplayed') + 100);
 
-				requestAnimationFrame(increaseDisplayedProbeCount);
+				this.probeCardTimeout = setTimeout(() => {
+					requestAnimationFrame(increaseDisplayedProbeCount);
+				}, 10);
 			};
 
 			increaseDisplayedProbeCount();
