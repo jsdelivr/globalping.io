@@ -139,13 +139,21 @@
 				{{#each preparedProbeBlocks as block}}
 					<div class="gp-filtered-list_list_block group-by-{{groupBy}}">
 						{{#if groupBy === 'disabled'}}
-							{{#each block.items as item}}
+							{{#each block.items.slice(0, maxProbesDisplayed) as item}}
 								<c-probe-single-card
 									location="{{item.location}}"
 									tags="{{item.tags}}"
 									networkDomain="{{@this.getDomainForNetwork(item.location.network)}}">
 								</c-probe-single-card>
 							{{/each}}
+							{{#if maxProbesDisplayed < block.items.length}}
+								<button on-click="@this.increaseMaxProbeLimit()" {{#if ungroupedProbesLoading}}disabled{{/if}}>
+									{{#if ungroupedProbesLoading}}
+										<i class="fa fa-circle-o-notch fa-spin" aria-hidden="true"></i>
+									{{/if}}
+									Load more
+								</button>
+							{{/if}}
 						{{else}}
 							<div class="gp-filtered-list_list_block_group group-by-{{groupBy}}" data-testid="probe-block-group">
 								{{#if block.title}}
@@ -237,6 +245,7 @@
 	const COUNTRIES = require('../../assets/json/countries.json');
 	const FILTER_TYPE_BY_CONTINENT = 'byContinent';
 	const FILTER_TYPE_BY_NETWORK = 'byNetwork';
+	const DEFAULT_RENDER_LIMIT = 99;
 
 	const CONTINENT_MAP = CONTINENTS.reduce((acc, continent) => {
 		acc[continent.code] = continent.name;
@@ -392,6 +401,9 @@
 				preFocusGroupBy: null,
 				autoGroupedByFocus: false,
 				isProgrammaticGroupByChange: false,
+				maxProbesDisplayed: DEFAULT_RENDER_LIMIT,
+				ungroupedProbesLoading: false,
+				loadMoreTimeout: null,
 			};
 		},
 		computed: {
@@ -608,6 +620,11 @@
 					this.recalculateProbeContinents();
 				});
 
+				this.observe('groupBy location', () => {
+					this.set('maxProbesDisplayed', DEFAULT_RENDER_LIMIT);
+					clearTimeout(this.get('loadMoreTimeout'));
+				});
+
 				this.observe('groupedProbes sortOrder screenWidth', () => {
 					if (this.get('skipNextSplit')) {
 						this.set('skipNextSplit', false);
@@ -637,6 +654,7 @@
 
 				this.on('teardown', () => {
 					$('body').off('click', '.popover-focus-loc', handleFocusClick);
+					clearTimeout(this.get('loadMoreTimeout'));
 				});
 			}
 		},
@@ -1101,5 +1119,16 @@
 			this.set('location', 'World');
 			this.findComponent('c-location-input')?.fire('outsideLocationChange');
 		},
-	};
+		increaseMaxProbeLimit () {
+			clearTimeout(this.get('loadMoreTimeout'));
+			this.set('ungroupedProbesLoading', true);
+
+			let loadMoreTimeout = setTimeout(() => {
+				this.set('maxProbesDisplayed', this.get('maxProbesDisplayed') + 999);
+				this.set('ungroupedProbesLoading', false);
+			}, 250);
+
+			this.set('loadMoreTimeout', loadMoreTimeout);
+		},
+};
 </script>
