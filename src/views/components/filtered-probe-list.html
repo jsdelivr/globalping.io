@@ -623,6 +623,7 @@
 
 				this.observe('groupBy location', () => {
 					this.set('maxProbesDisplayed', DEFAULT_CARD_RENDER_LIMIT);
+					this.set('ungroupedProbesLoading', false);
 					clearTimeout(this.get('loadMoreTimeout'));
 				});
 
