@@ -1,4 +1,4 @@
-<div class="probe-single-card">
+<div class="probe-single-card {{#if !render}}probe-single-card--hidden{{/if}}">
 	<div class="probe-single-card_header">
 		<img class="probe-single-card_flag"
 			loading="lazy"
@@ -55,6 +55,7 @@
 		},
 		data () {
 			return {
+				render: true,
 				location: {},
 				tags: [],
 				visibleTags: [],
@@ -70,10 +71,8 @@
 				this.set('networkKey', network ? _.networkNameToKey(network) : '');
 			}, { init: true });
 
-			this.observe('tags screenWidth', () => {
-				if (this.find('.probe-single-card')) {
-					this.calculateTags();
-				}
+			this.observe('screenWidth', () => {
+				this.calculateTags();
 			}, { init: false });
 		},
 		onrender () {
@@ -85,13 +84,27 @@
 		calculateTags () {
 			let card = this.find('.probe-single-card');
 
-			if (!card) { return; }
+			if (!card) {
+				return;
+			}
+
+			let render = this.get('render');
+
+			if (!render) {
+				card.style.setProperty('display', 'flex', 'important');
+				card.style.setProperty('visibility', 'hidden', 'important');
+			}
 
 			let tags = this.get('tags') || [];
 			let visibleTags = [];
 			let hiddenTags = [];
 
 			let remainingWidth = card.clientWidth - 24;
+
+			if (!render) {
+				card.style.removeProperty('display');
+				card.style.removeProperty('visibility');
+			}
 
 			tags.forEach((tag, index) => {
 				let tagSize = tag.length * CHAR_WIDTH + PADDING + GAP;

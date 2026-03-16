@@ -139,15 +139,19 @@
 				{{#each preparedProbeBlocks as block}}
 					<div class="gp-filtered-list_list_block group-by-{{groupBy}}">
 						{{#if groupBy === 'disabled'}}
-							{{#each block.items.slice(0, maxProbeCardsDisplayed) as item}}
+							{{#each visibleProbeCards as item : index}}
 								<c-probe-single-card
 									location="{{item.location}}"
 									tags="{{item.tags}}"
-									networkDomain="{{@this.getDomainForNetwork(item.location.network)}}">
+									networkDomain="{{@this.getDomainForNetwork(item.location.network)}}"
+									render="{{!loadingProbeCards || index < defaultCardRenderLimit}}">
 								</c-probe-single-card>
 							{{/each}}
-							{{#if maxProbeCardsDisplayed < block.items.length && maxProbeCardsDisplayed === defaultCardRenderLimit}}
-								<button type="button" on-click="@this.showAllProbeCards()">
+							{{#if visibleProbeCards.length < block.items.length}}
+								<button type="button" on-click="@this.showAllProbeCards()" {{#if loadingProbeCards}}disabled{{/if}}>
+									{{#if loadingProbeCards}}
+										<i class="fa fa-circle-o-notch fa-spin" aria-hidden="true"></i>
+									{{/if}}
 									Show all
 								</button>
 							{{/if}}
@@ -398,9 +402,10 @@
 				preFocusGroupBy: null,
 				autoGroupedByFocus: false,
 				isProgrammaticGroupByChange: false,
-				maxProbeCardsDisplayed: DEFAULT_CARD_RENDER_LIMIT,
+				visibleProbeCards: [],
 				defaultCardRenderLimit: DEFAULT_CARD_RENDER_LIMIT,
 				probeCardTimeout: null,
+				loadingProbeCards: false,
 			};
 		},
 		computed: {
@@ -619,7 +624,7 @@
 
 				this.observe('groupBy location', () => {
 					clearTimeout(this.probeCardTimeout);
-					this.set('maxProbeCardsDisplayed', DEFAULT_CARD_RENDER_LIMIT);
+					this.set('loadingProbeCards', false);
 				});
 
 				this.observe('groupedProbes sortOrder screenWidth', () => {
@@ -630,6 +635,10 @@
 
 					let preparedProbeBlocks = this.splitDataIntoBlocks();
 					this.set('preparedProbeBlocks', preparedProbeBlocks);
+
+					if (this.get('groupBy') === 'disabled' && preparedProbeBlocks.length > 0) {
+						this.set('visibleProbeCards', preparedProbeBlocks[0].items.slice(0, this.get('defaultCardRenderLimit')));
+					}
 				});
 			}
 		},
@@ -1117,19 +1126,33 @@
 			this.findComponent('c-location-input')?.fire('outsideLocationChange');
 		},
 		showAllProbeCards () {
-			let totalProbes = this.get('locationProbes').length;
+			let blocks = this.get('preparedProbeBlocks');
+
+			if (!blocks?.length) {
+				return;
+			}
+
+			let allItems = blocks[0].items;
+			let totalProbes = allItems.length;
 			let originalLocation = this.get('location');
 
+			this.set('loadingProbeCards', true);
+
 			let increaseDisplayedProbeCount = () => {
-				if (this.get('maxProbeCardsDisplayed') >= totalProbes
-				|| this.get('groupBy') !== 'disabled'
-				|| this.get('location') !== originalLocation) {
+				let currentVisibleCount = this.get('visibleProbeCards').length;
+
+				if (currentVisibleCount >= totalProbes
+					|| this.get('groupBy') !== 'disabled'
+					|| this.get('location') !== originalLocation) {
+					this.set('loadingProbeCards', false);
 					return;
 				}
 
 				clearTimeout(this.probeCardTimeout);
 
-				this.set('maxProbeCardsDisplayed', this.get('maxProbeCardsDisplayed') + 100);
+				let nextProbeSet = allItems.slice(currentVisibleCount, currentVisibleCount + 100);
+
+				this.push('visibleProbeCards', ...nextProbeSet);
 
 				this.probeCardTimeout = setTimeout(() => {
 					requestAnimationFrame(increaseDisplayedProbeCount);
