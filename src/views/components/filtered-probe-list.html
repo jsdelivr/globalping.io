@@ -245,7 +245,8 @@
 	const COUNTRIES = require('../../assets/json/countries.json');
 	const FILTER_TYPE_BY_CONTINENT = 'byContinent';
 	const FILTER_TYPE_BY_NETWORK = 'byNetwork';
-	const DEFAULT_RENDER_LIMIT = 99;
+	const DEFAULT_CARD_RENDER_LIMIT = 99;
+	const LOAD_MORE_INCREMENT = 999;
 
 	const CONTINENT_MAP = CONTINENTS.reduce((acc, continent) => {
 		acc[continent.code] = continent.name;
@@ -401,7 +402,7 @@
 				preFocusGroupBy: null,
 				autoGroupedByFocus: false,
 				isProgrammaticGroupByChange: false,
-				maxProbesDisplayed: DEFAULT_RENDER_LIMIT,
+				maxProbesDisplayed: DEFAULT_CARD_RENDER_LIMIT,
 				ungroupedProbesLoading: false,
 				loadMoreTimeout: null,
 			};
@@ -621,7 +622,7 @@
 				});
 
 				this.observe('groupBy location', () => {
-					this.set('maxProbesDisplayed', DEFAULT_RENDER_LIMIT);
+					this.set('maxProbesDisplayed', DEFAULT_CARD_RENDER_LIMIT);
 					clearTimeout(this.get('loadMoreTimeout'));
 				});
 
@@ -1124,7 +1125,7 @@
 			this.set('ungroupedProbesLoading', true);
 
 			let loadMoreTimeout = setTimeout(() => {
-				this.set('maxProbesDisplayed', this.get('maxProbesDisplayed') + 999);
+				this.set('maxProbesDisplayed', this.get('maxProbesDisplayed') + LOAD_MORE_INCREMENT);
 				this.set('ungroupedProbesLoading', false);
 			}, 250);
 
