@@ -5,8 +5,8 @@
 	border-radius: 8px;
 	padding: 12px;
 	height: 100%;
-	box-shadow: 1px 1px 2px rgba(0, 0, 0, .02);
 	color: #17233a;
+	background: linear-gradient(135deg, #fff 0%, #fafbfc 100%);
 
 	&--hidden {
 		display: none;
@@ -15,8 +15,8 @@
 	&_header {
 		display: flex;
 		align-items: center;
-		gap: 8px;
-		padding-bottom: 8px;
+		gap: 12px;
+		padding-bottom: 6px;
 	}
 
 	&_flag {
@@ -26,52 +26,31 @@
 		object-fit: cover;
 	}
 
-	&_location {
-		line-height: 1.1;
-		min-width: 0;
-		font-size: 15px;
-		font-weight: 600;
-		max-width: 100%;
-		white-space: nowrap;
-		overflow: hidden;
-		text-overflow: ellipsis;
-	}
-
-	&_network {
+	&_title {
 		display: flex;
-		align-items: center;
-		gap: 8px;
-		padding: 4px 8px;
-		background: #f9fafb;
-		border-radius: 6px;
-		border: 1px solid #e7e7ee;
-		max-width: 60%;
-		margin-left: auto;
-		transition: background .2s;
-		color: #17233a;
+		flex-direction: column;
+		min-width: 0;
 
-		&:hover {
-			background: #f3f5f6;
-			text-decoration: none;
-			color: #17233a;
-		}
-
-		&:focus {
-			color: #17233a;
-			outline: none;
-			box-shadow: 0 2px 2px rgba(0, 0, 0, .04), 0 0 0 1px #fff, 0 0 0 4px rgba(23, 212, 167, .48);
-		}
-
-		img {
-			flex-shrink: 0;
-		}
-
-		&_name {
-			font-size: 11px;
-			font-weight: 500;
+		& > span {
+			max-width: 100%;
 			white-space: nowrap;
 			overflow: hidden;
 			text-overflow: ellipsis;
+			width: fit-content;
+		}
+
+		&_location {
+			font-size: 14px;
+			font-weight: 600;
+		}
+
+		&_network {
+			font-size: 12px;
+			color: #303f52;
+
+			&:hover {
+				text-decoration: underline;
+			}
 		}
 	}
 

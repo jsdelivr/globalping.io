@@ -10,6 +10,18 @@ const PROBE_NO_TIMING_VALUE = 'time out';
 const PROBE_STATUS_FAILED = 'failed';
 const PROBE_STATUS_OFFLINE = 'offline';
 
+const COUNTRIES = require('../json/countries.json');
+
+const COUNTRIES_MAP = COUNTRIES.reduce((acc, country) => {
+	acc[country.code] = country.name;
+	return acc;
+}, {});
+
+const COUNTRY_CODE_MAP = COUNTRIES.reduce((acc, country) => {
+	acc[country.name] = country.code;
+	return acc;
+}, {});
+
 module.exports = {
 	screenType,
 	isTabletScreen () {
@@ -680,5 +692,46 @@ module.exports = {
 
 	clamp (num, min, max) {
 		return Math.min(Math.max(num, min), max);
+	},
+
+	createLocationString (newLocation, locationFilter) {
+		let targetLoc;
+		let locations = locationFilter.replace(/^world$/i, '').split(',').map(location => location.trim()).filter(Boolean);
+
+		if (!locations.length) {
+			targetLoc = newLocation;
+		} else {
+			targetLoc = locations.reduce((shortestLoc, location) => {
+				let filteredParts = location.split(/[+%]/).map(part => part.trim()).filter((part) => {
+					let countryCode = COUNTRIES_MAP[part];
+					let countryName = COUNTRY_CODE_MAP[part];
+
+					let isRedundant = newLocation.includes(part)
+						|| (countryCode && newLocation.includes(countryCode))
+						|| (countryName && newLocation.includes(countryName));
+
+					return !isRedundant;
+				});
+
+				let candidateLoc = [ newLocation, ...filteredParts ].join('+');
+
+				return !shortestLoc || candidateLoc.length < shortestLoc.length
+					? candidateLoc
+					: shortestLoc;
+			}, '');
+		}
+
+		return targetLoc;
+	},
+
+	escapeLocationString (location) {
+		return location.replace(/[%&<>"']/g, ch => ({
+			'%': '+',
+			'&': '&amp;',
+			'<': '&lt;',
+			'>': '&gt;',
+			'"': '&quot;',
+			'\'': '&#39;',
+		}[ch]));
 	},
 };

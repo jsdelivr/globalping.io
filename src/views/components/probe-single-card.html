@@ -2,26 +2,21 @@
 	<div class="probe-single-card_header">
 		<img class="probe-single-card_flag"
 			loading="lazy"
-			width="24"
-			height="16"
+			width="27"
+			height="18"
 			src="https://cdn.jsdelivr.net/npm/country-flag-icons@1.5.5/3x2/{{location.country}}.svg"
 			alt=""
 			aria-hidden="true">
-		<div class="probe-single-card_location">
-			{{ location.city }}, {{ location.country }}
+		<div class="probe-single-card_title">
+			<span class="probe-single-card_title_location">{{ location.city }}, {{ location.country }}</span>
+			<span class="probe-single-card_title_network"
+				tabindex="0"
+				role="button"
+				as-popover="@this.getPopoverContent(location.network)"
+			>
+				{{ location.network }}
+			</span>
 		</div>
-		<a class="probe-single-card_network" href="/networks/{{networkKey}}">
-			{{#if networkDomain}}
-				<img width="14"
-					height="14"
-					src="https://img.jsdelivr.com/img.logo.dev/{{networkDomain}}?format=png"
-					loading="lazy"
-					alt=""
-					aria-hidden="true"
-					>
-			{{/if}}
-			<span class="probe-single-card_network_name">{{ location.network }}</span>
-		</a>
 	</div>
 
 	{{#if tags && tags.length > 0}}
@@ -42,6 +37,7 @@
 <script>
 	const _ = require('../../assets/js/_');
 	const tooltip = require('../../assets/js/decorators/tooltip');
+	const popover = require('../../assets/js/decorators/popover');
 
 	const CHAR_WIDTH = 5.8;
 	const PADDING = 2 * 6;
@@ -50,6 +46,7 @@
 
 	component.exports = {
 		decorators: {
+			popover,
 			tooltip,
 		},
 		data () {
@@ -60,6 +57,7 @@
 				visibleTags: [],
 				hiddenTags: [],
 				screenWidth: 0,
+				locationFilter: '',
 			};
 		},
 		oninit () {
@@ -106,6 +104,36 @@
 				visibleTags,
 				hiddenTags,
 			});
+		},
+		getPopoverContent (locationValue) {
+			let targetLoc = _.escapeLocationString(_.createLocationString(locationValue, this.get('locationFilter')));
+
+			// a parent component MUST handle the click of this button
+			let btnFocus = `
+				<button type="button"
+					class="popover-focus-loc"
+					data-location="${targetLoc}">
+					<i class="fa fa-map-marker" aria-hidden="true" style="padding-right: 3px;"></i>
+					Focus this location
+				</button>`;
+
+			let btnMeasure = `
+				<a href="/?location=${encodeURIComponent(targetLoc.replaceAll('+', '%'))}">
+					<i class="fa fa-crosshairs" aria-hidden="true"></i>
+					Target in a measurement
+				</a>`;
+
+			let networkKey = _.networkNameToKey(locationValue);
+
+			let btnLookingGlass = `
+			<a href="/networks/${networkKey}">
+				<i class="fa fa-search" aria-hidden="true"></i>
+				<span>
+					<span>${locationValue}</span>&nbsp;looking glass
+				</span>
+			</a>`;
+
+			return `<div class="gp-popover-menu">${btnFocus}${btnMeasure}${btnLookingGlass}</div>`;
 		},
 };
 </script>
