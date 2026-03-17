@@ -47,6 +47,12 @@
 		&_network {
 			font-size: 12px;
 			color: #303f52;
+			border-radius: 2px;
+
+			&:focus-visible {
+				outline: none;
+				box-shadow: 0 2px 2px rgba(0, 0, 0, .04), 0 0 0 1px #fff, 0 0 0 4px rgba(23, 212, 167, .48);
+			}
 
 			&:hover {
 				text-decoration: underline;
