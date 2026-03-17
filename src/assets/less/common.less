@@ -1215,3 +1215,47 @@ body.noscroll {
 	-ms-user-select: none;
 	user-select: none;
 }
+
+.gp-popover {
+	box-shadow: 0 4px 12px rgba(0, 0, 0, .1);
+
+	& > .popover-content {
+		padding: 6px;
+
+		& > .gp-popover-menu {
+			display: flex;
+			flex-direction: column;
+			row-gap: 4px;
+
+			& > * {
+				display: flex;
+				gap: 4px;
+				align-items: center;
+				padding: 5px 9px 5px 6px;
+				border-radius: 4px;
+				transition: background-color .1s ease-in-out;
+				background: #fff;
+				color: #17233a;
+				border: none;
+
+				& > i {
+					width: 16px;
+				}
+
+				& > span {
+					display: inline-flex;
+				}
+
+				&:focus-visible {
+					outline: none;
+					background-color: #efefef;
+				}
+
+				&:hover {
+					background-color: #efefef;
+					text-decoration: none;
+				}
+			}
+		}
+	}
+}
