@@ -27,6 +27,7 @@ let popoverDecorator = (node, contentHtml) => {
 	};
 
 	let shownHandler = () => {
+		$(document).on('click.gpPopover', documentClickHandler);
 		let popoverId = $node.attr('aria-describedby');
 
 		if (!popoverId) {
@@ -52,6 +53,7 @@ let popoverDecorator = (node, contentHtml) => {
 	};
 
 	let hiddenHandler = () => {
+		$(document).off('click.gpPopover', documentClickHandler);
 		let popoverId = $node.attr('aria-describedby');
 
 		if (popoverId) {
@@ -76,7 +78,6 @@ let popoverDecorator = (node, contentHtml) => {
 	$node.on('keydown', keydownHandler);
 	$node.on('shown.bs.popover', shownHandler);
 	$node.on('hidden.bs.popover', hiddenHandler);
-	$(document).on('click', documentClickHandler);
 
 	return {
 		update (newContentHtml) {
@@ -93,7 +94,7 @@ let popoverDecorator = (node, contentHtml) => {
 			$node.off('keydown', keydownHandler);
 			$node.off('shown.bs.popover', shownHandler);
 			$node.off('hidden.bs.popover', hiddenHandler);
-			$(document).off('click', documentClickHandler);
+			$(document).off('click.gpPopover', documentClickHandler);
 
 			if (typeof $node.popover === 'function') {
 				$node.popover('destroy');
