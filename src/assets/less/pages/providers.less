@@ -207,15 +207,16 @@
 		}
 
 		h3 {
-			&:hover {
-				text-decoration: underline;
-			}
-
 			> span {
 				display: flex;
 				align-items: center;
 				gap: 12px;
 				width: fit-content;
+
+				&:hover, &:focus-visible {
+					outline: none;
+					text-decoration: underline;
+				}
 			}
 		}
 
@@ -276,7 +277,8 @@
 				overflow: hidden;
 				min-width: 0;
 
-				&:hover {
+				&:hover, &:focus-visible {
+					outline: none;
 					text-decoration: underline;
 				}
 			}
@@ -361,6 +363,11 @@
 
 				&:hover {
 					background: #eff1f3;
+				}
+
+				&:focus-visible {
+					outline: none;
+					box-shadow: 0 2px 2px rgba(0, 0, 0, .04), 0 0 0 1px #fff, 0 0 0 3px #17d4a7;
 				}
 
 				&_logo {
