@@ -57,7 +57,7 @@
 				display: flex;
 				flex-direction: column;
 				row-gap: 8px;
-				margin-top: 48px;
+				margin-top: 16px;
 
 				@media (min-width: @screen-sm-min) {
 					flex-direction: row;
@@ -82,6 +82,7 @@
 
 					&.registered {
 						background: #e8fff9;
+						border-color: #17d4a7;
 
 						.gp-credits_info_user-benefits_block_title {
 							color: #17d4a7;
@@ -133,6 +134,23 @@
 							text-align: left;
 						}
 					}
+				}
+			}
+
+			&_extra-tests {
+				margin-top: 24px;
+				background: #fbfbfb;
+				border-radius: 8px;
+				border: 1px solid #e7e7ee;
+				padding: 24px;
+				font-size: 16px;
+				line-height: 32px;
+				display: flex;
+				align-items: center;
+				gap: 24px;
+
+				&_text {
+					max-width: 500px;
 				}
 			}
 
