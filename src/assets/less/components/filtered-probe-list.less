@@ -390,6 +390,11 @@
 						line-height: 20px;
 						transition: background-color 100ms ease-in-out;
 
+						&:focus-visible {
+							outline: none;
+							box-shadow: 0 2px 2px rgba(0, 0, 0, .04), 0 0 0 1px #fff, 0 0 0 4px rgba(23, 212, 167, .48);
+						}
+
 						&:hover {
 							background: #eff1f3;
 						}
@@ -478,6 +483,12 @@
 							margin-right: 6px;
 							margin-bottom: 6px;
 							break-inside: avoid;
+							border-radius: 4px;
+
+							&:focus-visible {
+								outline: none;
+								box-shadow: 0 2px 2px rgba(0, 0, 0, .04), 0 0 0 1px #fff, 0 0 0 4px rgba(23, 212, 167, .48);
+							}
 						}
 					}
 				}
