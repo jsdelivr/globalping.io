@@ -106,13 +106,13 @@
 			});
 		},
 		getPopoverContent (locationValue) {
-			let targetLoc = _.escapeLocationString(_.createLocationString(locationValue, this.get('locationFilter')));
+			let targetLoc = _.createLocationString(locationValue, this.get('locationFilter'));
 
 			// a parent component MUST handle the click of this button
 			let btnFocus = `
 				<button type="button"
 					class="popover-focus-loc"
-					data-location="${targetLoc}">
+					data-location="${_.escapeLocationString(targetLoc)}">
 					<i class="fa fa-map-marker" aria-hidden="true" style="padding-right: 3px;"></i>
 					Focus this location
 				</button>`;
@@ -129,7 +129,7 @@
 			<a href="/networks/${networkKey}">
 				<i class="fa fa-search" aria-hidden="true"></i>
 				<span>
-					<span>${locationValue}</span>&nbsp;looking glass
+					<span>${_.escapeLocationString(locationValue)}</span>&nbsp;looking glass
 				</span>
 			</a>`;
 
