@@ -34,7 +34,7 @@
 			</span>
 
 			{{#if hasCustomLocationApplied}}
-				<button on-click="@this.resetFilters()" tabindex="0">
+				<button type="button" on-click="@this.resetFilters()" tabindex="0">
 					Show all
 				</button>
 			{{/if}}
@@ -79,9 +79,23 @@
 				{{#each preparedProbeBlocks as block}}
 					<div class="gp-filtered-list_list_block group-by-{{groupBy}}">
 						{{#if groupBy === 'disabled'}}
-							{{#each block.items as item}}
-								<c-probe-single-card location="{{item.location}}" tags="{{item.tags}}" maxTagCount="{{maxTagCount}}"></c-probe-single-card>
+							{{#each visibleProbeCards as item : index}}
+								<c-probe-single-card
+									location="{{item.location}}"
+									tags="{{item.tags}}"
+									render="{{!loadingProbeCards || index < defaultCardRenderLimit}}"
+									screenWidth="{{screenWidth}}"
+									locationFilter="{{~/location}}">
+								</c-probe-single-card>
 							{{/each}}
+							{{#if visibleProbeCards.length < block.items.length || loadingProbeCards}}
+								<button type="button" on-click="@this.showAllProbeCards()" {{#if loadingProbeCards}}disabled{{/if}}>
+									{{#if loadingProbeCards}}
+										<i class="fa fa-circle-o-notch fa-spin" aria-hidden="true"></i>
+									{{/if}}
+									Show all
+								</button>
+							{{/if}}
 						{{else}}
 							<div class="gp-filtered-list_list_block_group group-by-{{groupBy}}" data-testid="probe-block-group">
 								{{#if block.title}}
@@ -166,14 +180,13 @@
 
 <script>
 	const { getNetworkDomainMap } = require('../../assets/js/utils/http');
-	const _ = require('../../assets/js/_');
 	const popover = require('../../assets/js/decorators/popover');
-	const debounce = require('../../assets/js/utils/debounce');
-	const throttle = require('../../assets/js/utils/throttle');
+	const _ = require('../../assets/js/_');
 	const listeners = require('../../assets/js/utils/listeners');
 
 	const CONTINENTS = require('../../assets/json/continents.json');
 	const COUNTRIES = require('../../assets/json/countries.json');
+	const DEFAULT_CARD_RENDER_LIMIT = 99;
 
 	const CONTINENT_MAP = CONTINENTS.reduce((acc, continent) => {
 		acc[continent.code] = continent.name;
@@ -182,11 +195,6 @@
 
 	const COUNTRIES_MAP = COUNTRIES.reduce((acc, country) => {
 		acc[country.code] = country.name;
-		return acc;
-	}, {});
-
-	const COUNTRY_CODE_MAP = COUNTRIES.reduce((acc, country) => {
-		acc[country.name] = country.code;
 		return acc;
 	}, {});
 
@@ -241,7 +249,6 @@
 				preparedProbeBlocks: null,
 				filteredMarkersData: null,
 				selectedContinent: null,
-				maxTagCount: 2,
 				networkDomainMap: Object.create(null),
 				justClickedLocationFocus: false,
 				skipNextSplit: false,
@@ -249,6 +256,11 @@
 				preFocusGroupBy: null,
 				autoGroupedByFocus: false,
 				isProgrammaticGroupByChange: false,
+				visibleProbeCards: [],
+				defaultCardRenderLimit: DEFAULT_CARD_RENDER_LIMIT,
+				probeCardTimeout: null,
+				loadingProbeCards: false,
+				screenWidth: 0,
 			};
 		},
 		computed: {
@@ -291,6 +303,7 @@
 					return probes.length;
 				}
 
+				// do not recalculate the total if we already have it in probeLocationCounts
 				if (!groupBy.includes('-')) {
 					return this.get('probeLocationCounts')[groupBy];
 				}
@@ -316,12 +329,14 @@
 					.then(networkDomainMap => this.set('networkDomainMap', networkDomainMap))
 					.catch(err => console.error(err));
 
+				// set initial screenWidth value
 				this.observe('screenWidth', (screenWidth) => {
 					if (!screenWidth) {
 						this.set('screenWidth', window.innerWidth);
 						return;
 					}
 
+					// handle tooltips positions depending on the screen size
 					let ttPositions = {};
 
 					if (screenWidth >= 1272) {
@@ -344,6 +359,7 @@
 				this.observe('locationProbes', (locationProbes) => {
 					this.set('filteredProbes', locationProbes);
 
+					// we need to set sort, filter, and group query params simultaneously
 					let payload = {};
 					let doAtomicUpdate = false;
 					let nextGroupBy = this.get('groupBy');
@@ -379,6 +395,7 @@
 							doAtomicUpdate = true;
 						}
 					} else {
+						// restore previous groupBy value if the current groupBy value was set via "focus this location"
 						if (this.get('autoGroupedByFocus')) {
 							let previousGroupBy = this.get('preFocusGroupBy');
 
@@ -453,8 +470,12 @@
 				});
 
 				this.observe('groupedProbes', () => {
-					this.calculateMaxTagCount();
 					this.recalculateProbeContinents();
+				});
+
+				this.observe('groupBy location', () => {
+					clearTimeout(this.probeCardTimeout);
+					this.set('loadingProbeCards', false);
 				});
 
 				this.observe('groupedProbes sortOrder screenWidth', () => {
@@ -465,13 +486,15 @@
 
 					let preparedProbeBlocks = this.splitDataIntoBlocks();
 					this.set('preparedProbeBlocks', preparedProbeBlocks);
+
+					if (this.get('groupBy') === 'disabled' && preparedProbeBlocks.length > 0) {
+						this.set('visibleProbeCards', preparedProbeBlocks[0].items.slice(0, this.get('defaultCardRenderLimit')));
+					}
 				});
 			}
 		},
 		onrender () {
 			if (!Ractive.isServer) {
-				let handleResize = debounce(throttle(() => this.calculateMaxTagCount(), 200));
-				listeners.addManagedListener(this, window, 'resize', handleResize);
 				listeners.screenWidthListener(this);
 
 				let handleFocusClick = (e) => {
@@ -488,56 +511,34 @@
 
 				this.on('teardown', () => {
 					$('body').off('click', '.popover-focus-loc', handleFocusClick);
+					clearTimeout(this.probeCardTimeout);
 				});
 			}
 		},
 		getPopoverContent (locationValue, locationName = '') {
+			let groupBy = this.get('groupBy');
 			let targetLoc = '';
 
 			if (locationName) {
 				targetLoc = `${locationName}+${locationValue}`;
 			} else {
-				let locations = this.get('location').replace(/^world$/i, '').split(',').map(location => location.trim()).filter(Boolean);
-
-				if (!locations.length) {
-					targetLoc = locationValue;
-				} else {
-					targetLoc = locations.reduce((shortestLoc, location) => {
-						let filteredParts = location.split(/[+%]/).map(part => part.trim()).filter((part) => {
-							let countryCode = COUNTRIES_MAP[part];
-							let countryName = COUNTRY_CODE_MAP[part];
-
-							let isRedundant = locationValue.includes(part)
-								|| (countryCode && locationValue.includes(countryCode))
-								|| (countryName && locationValue.includes(countryName));
-
-							return !isRedundant;
-						});
-
-						let candidateLoc = [ locationValue, ...filteredParts ].join('+');
-
-						return !shortestLoc || candidateLoc.length < shortestLoc.length
-							? candidateLoc
-							: shortestLoc;
-					}, '');
-				}
+				targetLoc = _.createLocationString(locationValue, this.get('location'));
 			}
 
-			targetLoc = targetLoc.replace(/[%&<>"']/g, ch => ({
-				'%': '+',
-				'&': '&amp;',
-				'<': '&lt;',
-				'>': '&gt;',
-				'"': '&quot;',
-				'\'': '&#39;',
-			}[ch]));
+			let focusTargetText = 'location';
+
+			if (groupBy === 'network') {
+				focusTargetText = 'network';
+			} else if (groupBy.includes('network')) {
+				focusTargetText = 'location + network';
+			}
 
 			let btnFocus = `
 				<button type="button"
 					class="popover-focus-loc"
-					data-location="${targetLoc}">
+					data-location="${_.escapeLocationString(targetLoc)}">
 					<i class="fa fa-map-marker" aria-hidden="true" style="padding-right: 3px;"></i>
-					Focus this location
+					Focus this ${focusTargetText}
 				</button>`;
 
 			let btnMeasure = `
@@ -556,7 +557,7 @@
 				<a href="/networks/${networkKey}">
 					<i class="fa fa-search" aria-hidden="true"></i>
 					<span>
-						<span class="gp-filtered-list_popover_network-name">${networkName}</span>&nbsp;looking glass
+						<span class="gp-filtered-list_popover_network-name">${_.escapeLocationString(networkName)}</span>&nbsp;looking glass
 					</span>
 				</a>`;
 			}
@@ -583,6 +584,7 @@
 		},
 		groupProbes (probes) {
 			let groupBy = this.get('groupBy');
+			// group probes by Continents and Coordinates
 			let groups = probes.reduce((res, probe) => {
 				let location = `${probe.location.country}, ${probe.location.city}`;
 
@@ -675,7 +677,7 @@
 				}));
 			}
 
-			let networkNameMap = {};
+			let networkNameMap = {}; // make sure all networks have the same letter case across cities/countries
 
 			let sortedArray = Object
 				.keys(obj)
@@ -737,6 +739,7 @@
 						let networks = [];
 
 						if (groupBy === 'country-network' || groupBy === 'city-network') {
+							// Count probes per network
 							let networkCounts = probes.reduce((acc, probe) => {
 								let network = probe.location.network;
 								let key = network.toLowerCase();
@@ -852,16 +855,6 @@
 				);
 			}
 		},
-		calculateMaxTagCount () {
-			if (this.get('groupBy') !== 'disabled') {
-				return;
-			}
-
-			let tagContainer = $('.probe-single-card_tag').get(0);
-			let tagContainerWidth = tagContainer ? tagContainer.offsetWidth : 0;
-			let maxTagCount = Math.max(2, Math.floor(tagContainerWidth / 100));
-			this.set('maxTagCount', maxTagCount);
-		},
 		scrollToContinent (continent) {
 			let continentElement = document.getElementById(`probe-group-${continent}`);
 
@@ -877,5 +870,41 @@
 			this.set('location', 'World');
 			this.findComponent('c-location-input')?.fire('outsideLocationChange');
 		},
-	};
+		showAllProbeCards () {
+			let blocks = this.get('preparedProbeBlocks');
+
+			if (!blocks?.length) {
+				return;
+			}
+
+			let allItems = blocks[0].items;
+			let totalProbes = allItems.length;
+			let originalLocation = this.get('location');
+
+			this.set('loadingProbeCards', true);
+
+			let increaseDisplayedProbeCount = () => {
+				let currentVisibleCount = this.get('visibleProbeCards').length;
+
+				if (currentVisibleCount >= totalProbes
+					|| this.get('groupBy') !== 'disabled'
+					|| this.get('location') !== originalLocation) {
+					this.set('loadingProbeCards', false);
+					return;
+				}
+
+				clearTimeout(this.probeCardTimeout);
+
+				let nextProbeSet = allItems.slice(currentVisibleCount, currentVisibleCount + 100);
+
+				this.push('visibleProbeCards', ...nextProbeSet);
+
+				this.probeCardTimeout = setTimeout(() => {
+					requestAnimationFrame(increaseDisplayedProbeCount);
+				}, 10);
+			};
+
+			increaseDisplayedProbeCount();
+		},
+};
 </script>

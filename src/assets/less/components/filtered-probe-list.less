@@ -9,11 +9,13 @@
 	-webkit-font-smoothing: antialiased;
 	color: #17233a;
 
-	.gp-popover_network-name {
-		max-width: 24ch;
-		overflow: hidden;
-		white-space: nowrap;
-		text-overflow: ellipsis;
+	&_popover {
+		&_network-name {
+			max-width: 24ch;
+			overflow: hidden;
+			white-space: nowrap;
+			text-overflow: ellipsis;
+		}
 	}
 
 	&_result-count {
@@ -38,6 +40,12 @@
 			border: none;
 			text-decoration: underline;
 			padding: 0;
+			border-radius: 4px;
+
+			&:focus {
+				outline: none;
+				box-shadow: 0 2px 2px rgba(0, 0, 0, .04), 0 0 0 1px #fff, 0 0 0 4px rgba(23, 212, 167, .48);
+			}
 
 			@media (min-width: @screen-sm-min) {
 				margin-left: auto;
@@ -105,10 +113,31 @@
 			&.group-by-disabled {
 				display: grid;
 				gap: 8px;
-				grid-template-columns: repeat(2, 1fr);
+				grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
 
-				@media (max-width: @screen-sm-max) {
-					grid-template-columns: repeat(1, 1fr);
+				& > button {
+					grid-column: 1 / -1;
+					max-width: 150px;
+					margin: 10px auto;
+					background: none;
+					border-radius: 8px;
+					border: 1px solid #e7e7ee;
+					padding: 6px 16px;
+					transition: background-color 100ms ease-in-out;
+
+					&:hover {
+						background: #f3f5f6;
+					}
+
+					&:disabled {
+						opacity: .5;
+						background: #f3f5f6;
+					}
+
+					& > i {
+						margin-right: 6px;
+						opacity: .5;
+					}
 				}
 			}
 
@@ -188,6 +217,11 @@
 						line-height: 20px;
 						transition: background-color 100ms ease-in-out;
 
+						&:focus-visible {
+							outline: none;
+							box-shadow: 0 2px 2px rgba(0, 0, 0, .04), 0 0 0 1px #fff, 0 0 0 4px rgba(23, 212, 167, .48);
+						}
+
 						&:hover {
 							background: #eff1f3;
 						}
@@ -222,7 +256,6 @@
 						line-height: 24px;
 						margin-bottom: 14px;
 						margin-top: 8px;
-						column-span: all;
 						grid-column: 1 / -1;
 						justify-content: flex-start;
 						gap: 12px;
@@ -276,6 +309,12 @@
 							margin-right: 6px;
 							margin-bottom: 6px;
 							break-inside: avoid;
+							border-radius: 4px;
+
+							&:focus-visible {
+								outline: none;
+								box-shadow: 0 2px 2px rgba(0, 0, 0, .04), 0 0 0 1px #fff, 0 0 0 4px rgba(23, 212, 167, .48);
+							}
 						}
 					}
 				}

@@ -37,7 +37,7 @@
 		}
 	}
 
-	&.header-with-globalping-bg, &.header-with-gp-translucent-bg {
+	&.header-with-globalping-bg {
 		--link-highlight-color: @gp-green;
 
 		.navbar {
@@ -60,18 +60,6 @@
 
 		.dropdown-menu {
 			width: auto;
-		}
-	}
-
-	&.header-with-gp-translucent-bg {
-		.navbar {
-			@media (max-width: (@screen-sm-min - 1)) {
-				position: relative;
-				background-image: url("../../img/header-grid.svg");
-				background-blend-mode: overlay;
-				background-size: cover;
-				background-position: 0 0;
-			}
 		}
 	}
 
