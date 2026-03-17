@@ -1,60 +1,139 @@
-<div class="probe-single-card">
-	<div class="probe-single-card_details">
-		<div class="probe-single-card_details_icon">
-			<img width="24"
-				height="24"
-				src="{{@shared.assetsHost}}/img/globalping-probe.svg"
-				alt="Probe icon">
-		</div>
-		<div class="probe-single-card_details_info">
-			<div class="probe-single-card_details_info_city">
-				<img width="16.8"
-					height="12"
-					src="https://cdn.jsdelivr.net/npm/country-flag-icons@1.5.5/3x2/{{location.country}}.svg"
-					alt="{{location.country}}">
-				<span class="probe-single-card_details_info_city_name">
-					{{location.city}}, {{location.country}}
-				</span>
-			</div>
-			<span class="probe-single-card_details_info_location">
-				{{location.network}}
+<div class="probe-single-card probe-single-card--{{#if !render}}hidden{{else}}visible{{/if}}">
+	<div class="probe-single-card_header">
+		<img class="probe-single-card_flag"
+			loading="lazy"
+			width="27"
+			height="18"
+			src="https://cdn.jsdelivr.net/npm/country-flag-icons@1.5.5/3x2/{{location.country}}.svg"
+			alt=""
+			aria-hidden="true">
+		<div class="probe-single-card_title">
+			<span class="probe-single-card_title_location">{{ location.city }}, {{ location.country }}</span>
+			<span class="probe-single-card_title_network"
+				tabindex="0"
+				role="button"
+				as-popover="@this.getPopoverContent(location.network)"
+			>
+				{{ location.network }}
 			</span>
 		</div>
 	</div>
-	<div class="probe-single-card_tag">
-		{{#each tags: index}}
-			{{#if index < maxTagCount-1 || (index === maxTagCount-1 && tags.length <= maxTagCount)}}
-				<span class="probe-single-card_tag_item" as-tooltip="this">
-					{{this}}
+
+	{{#if tags && tags.length > 0}}
+		<div class="probe-single-card_tags">
+			{{#each visibleTags}}
+				<span class="probe-single-card_tag">{{this}}</span>
+			{{/each}}
+
+			{{#if hiddenTags.length > 0}}
+				<span class="probe-single-card_tag probe-single-card_tag--more" as-tooltip="hiddenTags">
+					+{{ hiddenTags.length}}
 				</span>
 			{{/if}}
-		{{/each}}
-		{{#if tags.length > maxTagCount}}
-			<span class="probe-single-card_tag_pair">
-				<span class="probe-single-card_tag_item" as-tooltip="this">
-					{{tags[maxTagCount-1]}}
-				</span>
-				<span class="probe-single-card_tag_item" as-tooltip="tags.slice(maxTagCount).join(', ')">
-					+{{tags.length - maxTagCount}}
-				</span>
-			</span>
-		{{/if}}
-	</div>
+		</div>
+	{{/if}}
 </div>
 
 <script>
+	const _ = require('../../assets/js/_');
 	const tooltip = require('../../assets/js/decorators/tooltip');
+	const popover = require('../../assets/js/decorators/popover');
+
+	const CHAR_WIDTH = 5.8;
+	const PADDING = 2 * 6;
+	const GAP = 6;
+	const PLUS_TAG_WIDTH = PADDING + 2 * CHAR_WIDTH;
 
 	component.exports = {
 		decorators: {
+			popover,
 			tooltip,
 		},
 		data () {
 			return {
+				render: true,
 				location: {},
 				tags: [],
-				maxTagCount: 3,
+				visibleTags: [],
+				hiddenTags: [],
+				screenWidth: 0,
+				locationFilter: '',
 			};
 		},
-	};
+		oninit () {
+			this.observe('location', (location) => {
+				let network = location && location.network ? location.network : '';
+				this.set('networkKey', network ? _.networkNameToKey(network) : '');
+			}, { init: true });
+
+			this.observe('screenWidth', () => {
+				this.calculateTags();
+			}, { init: false });
+		},
+		onrender () {
+			if (!Ractive.isServer) {
+				this.calculateTags();
+			}
+		},
+		calculateTags () {
+			let card = document.getElementsByClassName('probe-single-card--visible')[0];
+
+			if (!card) {
+				return;
+			}
+
+			let tags = this.get('tags') || [];
+			let visibleTags = [];
+			let hiddenTags = [];
+
+			let remainingWidth = card.clientWidth - 24;
+
+			tags.forEach((tag, index) => {
+				let tagSize = tag.length * CHAR_WIDTH + PADDING + GAP;
+				let countPlusTag = index < tags.length - 1 || hiddenTags.length > 0;
+
+				if (tagSize + (countPlusTag ? PLUS_TAG_WIDTH : 0) <= remainingWidth) {
+					remainingWidth -= tagSize;
+					visibleTags.push(tag);
+				} else {
+					hiddenTags.push(tag);
+				}
+			});
+
+			this.set({
+				visibleTags,
+				hiddenTags,
+			});
+		},
+		getPopoverContent (locationValue) {
+			let targetLoc = _.createLocationString(locationValue, this.get('locationFilter'));
+
+			// a parent component MUST handle the click of this button
+			let btnFocus = `
+				<button type="button"
+					class="popover-focus-loc"
+					data-location="${_.escapeLocationString(targetLoc)}">
+					<i class="fa fa-map-marker" aria-hidden="true" style="padding-right: 3px;"></i>
+					Focus this network
+				</button>`;
+
+			let btnMeasure = `
+				<a href="/?location=${encodeURIComponent(targetLoc.replaceAll('+', '%'))}">
+					<i class="fa fa-crosshairs" aria-hidden="true"></i>
+					Target in a measurement
+				</a>`;
+
+			let networkKey = _.networkNameToKey(locationValue);
+
+			let btnLookingGlass = `
+			<a href="/networks/${networkKey}">
+				<i class="fa fa-search" aria-hidden="true"></i>
+				<span>
+					<span class="probe-single-card_popover_network-name">${_.escapeLocationString(locationValue)}</span>&nbsp;looking glass
+				</span>
+			</a>`;
+
+			return `<div class="gp-popover-menu">${btnFocus}${btnMeasure}${btnLookingGlass}</div>`;
+		},
+};
 </script>
