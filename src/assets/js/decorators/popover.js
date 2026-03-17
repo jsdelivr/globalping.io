@@ -81,6 +81,7 @@ let popoverDecorator = (node, contentHtml) => {
 
 	return {
 		update (newContentHtml) {
+			$node.popover('hide');
 			let popover = $(node).data('bs.popover');
 
 			if (popover && popover.options) {
