@@ -114,7 +114,7 @@
 					class="popover-focus-loc"
 					data-location="${_.escapeLocationString(targetLoc)}">
 					<i class="fa fa-map-marker" aria-hidden="true" style="padding-right: 3px;"></i>
-					Focus this location
+					Focus this network
 				</button>`;
 
 			let btnMeasure = `
@@ -129,7 +129,7 @@
 			<a href="/networks/${networkKey}">
 				<i class="fa fa-search" aria-hidden="true"></i>
 				<span>
-					<span>${_.escapeLocationString(locationValue)}</span>&nbsp;looking glass
+					<span class="probe-single-card_popover_network-name">${_.escapeLocationString(locationValue)}</span>&nbsp;looking glass
 				</span>
 			</a>`;
 
