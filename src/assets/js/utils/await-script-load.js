@@ -22,7 +22,7 @@ const awaitScriptLoad = (initApp) => {
 	Promise.all([
 		import('ractive'),
 		// eslint-disable-next-line n/no-missing-import
-		import('https://cdn.jsdelivr.net/npm/ractive-route@0.3.12/ractive-route.min.mjs'),
+		import('https://cdn.jsdelivr.net/npm/ractive-route@0.3.13/ractive-route.min.mjs'),
 	]).then(([{ default: Ractive }, { Router }]) => {
 		Ractive.Router = Router;
 		global.Ractive = Ractive;
