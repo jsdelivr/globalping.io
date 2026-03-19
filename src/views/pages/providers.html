@@ -367,7 +367,7 @@
 
 			let topProviders = Object.values(counts)
 				.sort((lhs, rhs) => rhs.probes - lhs.probes)
-				.slice(0, 6)
+				.slice(0, 15)
 				.map((provider) => {
 					provider.countries = toSortedArray(provider.countries);
 					provider.continents = toSortedArray(provider.continents);
