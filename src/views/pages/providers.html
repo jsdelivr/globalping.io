@@ -432,10 +432,10 @@
 				return group;
 			}).sort((a, b) => {
 				if (sortOrder === 'alphabetically') {
-					return a.name.localeCompare(b.name);
+					return a.name.localeCompare(b.name) || b.totalProbes - a.totalProbes;
 				}
 
-				return b.totalProbes - a.totalProbes;
+				return b.totalProbes - a.totalProbes || a.name.localeCompare(b.name);
 			});
 
 			this.set('allProviders', allProviders);
