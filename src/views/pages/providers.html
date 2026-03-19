@@ -55,7 +55,7 @@
 				</div>
 			{{/if}}
 
-			{{#if !localProviders.length && !probesLoading}}
+			{{#if !allProviders.length && !probesLoading}}
 				<div class="p-providers_info">
 					<i class="fa fa-search" aria-hidden="true"></i>
 					<p style="margin: 0;">
@@ -128,14 +128,14 @@
 				</div>
 			{{/if}}
 
-			{{#if localProviders.length}}
-				<div class="p-providers_local">
+			{{#if allProviders.length}}
+				<div class="p-providers_all">
 					<h2>
-						Local providers
+						All providers
 					</h2>
-					<div class="p-providers_local_groups">
-						{{#each localProviders as providerGroup}}
-							<div class="p-providers_local_group p-providers_{{this.isCountry ? 'country' : 'continent'}}">
+					<div class="p-providers_all_groups">
+						{{#each allProviders as providerGroup}}
+							<div class="p-providers_all_group p-providers_{{this.isCountry ? 'country' : 'continent'}}">
 								<h3>
 									{{#if this.isCountry}}
 										<img loading="lazy"
@@ -149,14 +149,14 @@
 									{{/if}}
 									{{this.name}}
 								</h3>
-								<div class="p-providers_local_group_networks">
+								<div class="p-providers_all_group_networks">
 									{{#each this.networks}}
-										<div class="p-providers_local_group_network"
+										<div class="p-providers_all_group_network"
 											tabindex="0"
 											role="button"
 											as-popover="@this.getPopoverContent(this.name, providerGroup.name)"
 										>
-											<span class="p-providers_local_group_network_logo p-providers_logo">
+											<span class="p-providers_all_group_network_logo p-providers_logo">
 												{{#if @this.getDomainForNetwork(this.key)}}
 													<img width="20"
 														height="20"
@@ -169,8 +169,8 @@
 													{{this.name[0]}}
 												{{/if}}
 											</span>
-											<span class="p-providers_local_group_network_name">{{this.name}}</span>
-											<span class="p-providers_local_group_network_count">{{this.count}}</span>
+											<span class="p-providers_all_group_network_name">{{this.name}}</span>
+											<span class="p-providers_all_group_network_count">{{this.count}}</span>
 										</div>
 									{{/each}}
 								</div>
@@ -239,7 +239,7 @@
 				topProviders: [],
 				topProvidersDisplayedField: 'continents',
 				topProviderLocation: 'worldwide',
-				localProviders: [],
+				allProviders: [],
 				sortOrder: DEFAULT_SORT_ORDER,
 				networkDomainMap: Object.create(null),
 				sortOptions: [
@@ -285,7 +285,7 @@
 					}
 
 					this.setTopProviders(probes);
-					this.setLocalProviders(probes);
+					this.setAllProviders(probes);
 				});
 
 				this.observe('sortOrder', () => {
@@ -295,7 +295,7 @@
 						return;
 					}
 
-					this.setLocalProviders(probes);
+					this.setAllProviders(probes);
 				});
 			}
 		},
@@ -385,7 +385,7 @@
 				topProviderLocation,
 			});
 		},
-		setLocalProviders (probes) {
+		setAllProviders (probes) {
 			let continentCount = new Set(probes.map(probe => probe.location.continent)).size;
 			let groupByCountry = continentCount === 1;
 
@@ -419,7 +419,7 @@
 
 			let sortOrder = this.get('sortOrder');
 
-			let localProviders = Object.values(groups).map((group) => {
+			let allProviders = Object.values(groups).map((group) => {
 				let networksArray = Object.entries(group.networks)
 					.map(([ key, { name, count }]) => ({ name, count, key }));
 
@@ -438,7 +438,7 @@
 				return b.totalProbes - a.totalProbes;
 			});
 
-			this.set('localProviders', localProviders);
+			this.set('allProviders', allProviders);
 		},
 		getTopProvidersDisplayedField (topProviders) {
 			for (let field of [ 'continents', 'countries' ]) {

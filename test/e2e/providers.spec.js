@@ -7,10 +7,10 @@ test('Providers page', async ({ page }) => {
 
 	let providersHeader = page.getByRole('heading', { name: 'Providers', exact: true });
 	let largestProvidersHeader = page.getByRole('heading', { name: 'Largest providers', exact: true });
-	let localProvidersHeader = page.getByRole('heading', { name: 'Local providers', exact: true });
+	let allProvidersHeader = page.getByRole('heading', { name: 'All providers', exact: true });
 	await expect(providersHeader).toBeVisible();
 	await expect(largestProvidersHeader).toBeVisible();
-	await expect(localProvidersHeader).toBeVisible();
+	await expect(allProvidersHeader).toBeVisible();
 
 	// test probe filter interactions
 	let autocomplete = await page.getByTestId('autocomplete-input');
