@@ -210,11 +210,6 @@
 		return acc;
 	}, {});
 
-	const COUNTRY_CODE_MAP = COUNTRIES.reduce((acc, country) => {
-		acc[country.name] = country.code;
-		return acc;
-	}, {});
-
 	component.exports = {
 		decorators: {
 			popover,
@@ -465,42 +460,9 @@
 			}
 		},
 		getPopoverContent (network, continent, targetOnly = false) {
-			let targetLoc = '';
 			continent = CONTINENT_MAP[continent] || continent;
 			let locationValue = `${continent ? continent + '+' : ''}${network}`;
-
-			let locations = this.get('location').replace(/^world$/i, '').split(',').map(location => location.trim()).filter(Boolean);
-
-			if (!locations.length) {
-				targetLoc = locationValue;
-			} else {
-				targetLoc = locations.reduce((shortestLoc, location) => {
-					let filteredParts = location.split(/[+%]/).map(part => part.trim()).filter((part) => {
-						let countryCode = COUNTRIES_MAP[part];
-						let countryName = COUNTRY_CODE_MAP[part];
-
-						let isRedundant = locationValue.includes(part)
-							|| (countryCode && locationValue.includes(countryCode))
-							|| (countryName && locationValue.includes(countryName));
-
-						return !isRedundant;
-					});
-
-					let candidateLoc = [ locationValue, ...filteredParts ].join('+');
-
-					return !shortestLoc || candidateLoc.length < shortestLoc.length
-						? candidateLoc
-						: shortestLoc;
-				}, '');
-			}
-
-			targetLoc = targetLoc.replace(/[%&<>"']/g, ch => ({
-				'&': '&amp;',
-				'<': '&lt;',
-				'>': '&gt;',
-				'"': '&quot;',
-				'\'': '&#39;',
-			}[ch]));
+			let targetLoc = _.createLocationString(locationValue, this.get('location'));
 
 			let btnMeasure = `
 				<a href="/?location=${encodeURIComponent(targetLoc.replaceAll('+', '%'))}">
@@ -518,7 +480,7 @@
 					<a href="/networks/${networkKey}">
 						<i class="fa fa-search" aria-hidden="true"></i>
 						<span>
-							<span class="gp-filtered-list_popover_network-name">${network}</span>&nbsp;looking glass
+							<span class="p-providers_popover_network-name">${_.escapeLocationString(network)}</span>&nbsp;looking glass
 						</span>
 					</a>`;
 
