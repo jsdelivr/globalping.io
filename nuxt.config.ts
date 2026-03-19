@@ -96,7 +96,7 @@ export default defineNuxtConfig({
 						'sameAs': [
 							'https://x.com/jsdelivr',
 							'https://www.linkedin.com/company/globalping/',
-							'https://github.com/jsdelivr/',
+							'https://github.com/jsdelivr/globalping',
 						],
 					}),
 				},
