@@ -17,7 +17,9 @@
 				completedValue="{{locationCompletedValue}}"
 				geographical="{{geographical}}">
 				{{#partial labelIcon}}
-				<img as-tooltip="[ 'This magic field supports names of continents, regions, countries, US states, cities, networks, and our custom tags.', '', 'Use + to combine multiple filters.', 'Use , to select multiple locations.' ], ttPos, undefined, undefined, 'multiline'"
+				<img
+					as-tooltip="['This magic field supports names of continents, regions, countries, US states, ' + (geographical ? 'and cities.' : 'cities, networks, and our custom tags.'),
+					'', 'Use + to combine multiple filters.', 'Use , to select multiple locations.' ], ttPos, undefined, undefined, 'multiline'"
 					width="14"
 					height="14"
 					src="{{@shared.assetsHost}}/img/help-icon.svg"
