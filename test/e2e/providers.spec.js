@@ -13,11 +13,11 @@ test('Providers page', async ({ page }) => {
 	await expect(allProvidersHeader).toBeVisible();
 
 	// test probe filter interactions
-	let autocomplete = await page.getByTestId('autocomplete-input');
+	let autocomplete = page.getByTestId('autocomplete-input');
 	await expect(autocomplete).toBeVisible();
 	await expect(autocomplete).toHaveValue('World');
 
-	let quickFilterEurope = await page.getByTestId('quick-filter-Europe');
+	let quickFilterEurope = page.getByTestId('quick-filter-Europe');
 	await expect(quickFilterEurope).toBeVisible();
 	await quickFilterEurope.click();
 	await expect(autocomplete).toHaveValue('Europe');
@@ -27,7 +27,7 @@ test('Providers page', async ({ page }) => {
 	await page.keyboard.press('Enter');
 	await expect(autocomplete).toHaveValue(/.*Europe.*/);
 
-	let sortBySelect = await page.getByTestId('sort-by-select');
+	let sortBySelect = page.getByTestId('sort-by-select');
 	await expect(sortBySelect).toBeVisible();
 	await expect(sortBySelect).toContainText('Probe count');
 	await sortBySelect.click();
@@ -39,6 +39,5 @@ test('Providers page', async ({ page }) => {
 	let hetznerProvider = page.getByRole('heading', { name: 'Hetzner' });
 	await expect(hetznerProvider).toBeVisible();
 
-	let westernEuropeCount = await page.getByText('probes in Western Europe').count();
-	expect(westernEuropeCount).toBeGreaterThan(0);
+	await expect(page.getByText('probes in Western Europe').first()).toBeVisible();
 });
