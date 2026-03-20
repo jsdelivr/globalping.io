@@ -2895,9 +2895,9 @@
 				return res;
 			}, { citiesList: [], countriesList: [], totalCities: 0, totalCountries: 0 });
 
-			this.animate('totalProbes', response.length, { duration: 2000 });
-			this.animate('totalCities', totalCities, { duration: 2000 });
-			this.animate('totalCountries', totalCountries, { duration: 2000 });
+			this.animate('totalProbes', response.length, { duration: 1500 });
+			this.animate('totalCities', totalCities, { duration: 1500 });
+			this.animate('totalCountries', totalCountries, { duration: 1500 });
 			this.set('probesResponse', this.groupProbes(response));
 		},
 		translateTestTypeName (name) {

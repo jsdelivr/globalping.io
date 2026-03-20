@@ -309,7 +309,7 @@
 			let providerCount = Math.floor(counts.providers.size / 100) * 100;
 
 			this.set('providerCountLength', Math.floor(Math.log10(providerCount)) + 1);
-			this.animate('providerCount', providerCount, { duration: 2000 });
+			this.animate('providerCount', providerCount, { duration: 1500 });
 			this.set('continentCount', counts.continents.size);
 		},
 		getProbeData () {
