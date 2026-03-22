@@ -9,11 +9,51 @@
 	z-index: 1;
 	width: 100%;
 
-	&_popover_network-name {
-		max-width: 24ch;
-		overflow: hidden;
-		white-space: nowrap;
-		text-overflow: ellipsis;
+	&_popover {
+		&_network-name {
+			max-width: 24ch;
+			overflow: hidden;
+			white-space: nowrap;
+			text-overflow: ellipsis;
+		}
+
+		&_list {
+			display: flex;
+			flex-direction: column;
+			align-items: stretch !important;
+			cursor: default;
+			background-color: #f9fafb !important;
+			gap: 8px;
+			padding: 6px 8px !important;
+		}
+
+		&_item {
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			font-size: 13px;
+			gap: 16px;
+			min-height: 24px;
+
+			&_name {
+				white-space: nowrap;
+				overflow: hidden;
+				text-overflow: ellipsis;
+			}
+
+			&_count {
+				font-weight: 600;
+				font-size: 12px;
+				background: #fff;
+				padding: 2px 6px;
+				border-radius: 4px;
+				border: 1px solid #e7e7ee;
+			}
+
+			&--other {
+				opacity: .5;
+			}
+		}
 	}
 
 	h2 {

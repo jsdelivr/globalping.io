@@ -31,6 +31,7 @@
 		<section class="p-providers_content">
 			<c-probe-filters
 				showGroupBy="{{false}}"
+				showSortOrder="{{false}}"
 				rawProbes="{{rawProbes}}"
 				location="{{location}}"
 				locationError="{{locationError}}"
@@ -511,7 +512,34 @@
 						</span>
 					</a>`;
 
-			return `<div class="gp-popover-menu">${btnMeasure}${btnLookingGlass}</div>`;
+			let breakdownHtml = '';
+			let stats = this.get('networkStats')[networkKey];
+
+			if (stats && !targetOnly) {
+				let breakdownKey = this.get('allLocationsPopoverListKey');
+				let breakdownEntries = stats[breakdownKey];
+
+				if (breakdownKey === 'cities' && stats.citiesByCountry && stats.citiesByCountry[groupCode]) {
+					breakdownEntries = stats.citiesByCountry[groupCode];
+				}
+
+				if (breakdownEntries) {
+					let listItems = breakdownEntries.map(item => `
+						<div class="p-providers_popover_item ${item.name === 'Other' ? 'p-providers_popover_item--other' : ''}">
+							<span class="p-providers_popover_item_name">${(breakdownKey === 'countries' && COUNTRIES_MAP[item.name]) || item.name}</span>
+							${breakdownKey === 'countries' || item.name === 'Other' ? `<span class="p-providers_popover_item_count">${item.count}</span>` : ''}
+						</div>
+					`).join('');
+
+					breakdownHtml = `
+						<div class="p-providers_popover_list">
+							${listItems}
+						</div>
+					`;
+				}
+			}
+
+			return `<div class="gp-popover-menu">${breakdownHtml}${btnMeasure}${btnLookingGlass}</div>`;
 		},
 };
 </script>
