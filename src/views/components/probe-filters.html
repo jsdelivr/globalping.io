@@ -39,15 +39,17 @@
 			</div>
 		{{/if}}
 
-		<div class="gp-probe-filters_field gp-probe-filters_field--sort-by">
-			<label>Sort by</label>
-			<c-select
-				options="{{sortOptions}}"
-				disabled="{{showGroupBy && groupBy === 'disabled'}}"
-				selected="{{sortOrder}}"
-				name="sort-by-select"
-			/>
-		</div>
+		{{#if showSortOrder}}
+			<div class="gp-probe-filters_field gp-probe-filters_field--sort-by">
+				<label>Sort by</label>
+				<c-select
+					options="{{sortOptions}}"
+					disabled="{{showGroupBy && groupBy === 'disabled'}}"
+					selected="{{sortOrder}}"
+					name="sort-by-select"
+				/>
+			</div>
+		{{/if}}
 	</div>
 	<div class="gp-probe-filters_quick">
 		<span class="gp-probe-filters_quick_title">
@@ -87,7 +89,8 @@
 		data () {
 			return {
 				geographical: false,
-				showGroupBy: true, // Defaults to true to support existing implementations
+				showGroupBy: true,
+				showSortOrder: true,
 				availableFilters: [
 					{
 						name: 'Europe',
