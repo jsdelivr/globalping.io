@@ -4,6 +4,7 @@
 <link rel="ractive" href="../components/footer.html" name="c-gp-footer">
 <link rel="ractive" href="../components/notification.html" name="c-notification">
 <link rel="ractive" href="../components/probe-filters.html" name="c-probe-filters">
+<link rel="ractive" href="../components/probe-loading-state.html" name="c-probe-loading-state">
 
 <r-page noYield="{{noYield}}" title="{{title}}" description="{{description}}">
 	<c-notification />
@@ -41,32 +42,15 @@
 				geographical="{{true}}"
 			/>
 
-			{{#if probesLoading}}
-				<div class="p-providers_info">
-					<i class="fa fa-circle-o-notch fa-spin fa-fw" aria-hidden="true"></i>
-					<p style="margin: 0;">Loading providers' data...</p>
-				</div>
-			{{/if}}
-
-			{{#if probesError}}
-				<div class="p-providers_error p-providers_info">
-					<i class="fa fa-exclamation-triangle" aria-hidden="true"></i>
-					<p style="margin: 0;">An unexpected error occurred, please try again later.</p>
-				</div>
-			{{/if}}
-
-			{{#if !allProviders.length && !probesLoading}}
-				<div class="p-providers_info">
-					<i class="fa fa-search" aria-hidden="true"></i>
-					<p style="margin: 0;">
-						{{#if ~/filter}}
-							No providers found, please try adjusting the applied filters.
-						{{else}}
-							No providers found, please try again later.
-						{{/if}}
-					</p>
-				</div>
-			{{/if}}
+			<c-probe-loading-state
+				loading="{{probesLoading}}"
+				error="{{probesError}}"
+				hasData="{{allProviders.length}}"
+				filter="{{filter}}"
+				loadingText="Loading network providers..."
+				noDataFilterText="No providers found, please try adjusting the applied filters."
+				noDataText="No providers found, please try again later."
+			/>
 
 			{{#if topProviders.length}}
 				<div class="p-providers_largest">

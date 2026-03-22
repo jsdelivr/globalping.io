@@ -1,0 +1,45 @@
+<div class="c-probe-loading-state">
+	{{#if loading}}
+		<div>
+			<i class="fa fa-circle-o-notch fa-spin fa-fw" aria-hidden="true"></i>
+			<p>{{loadingText}}</p>
+		</div>
+	{{/if}}
+
+	{{#if error}}
+		<div class="has-error">
+			<i class="fa fa-exclamation-triangle" aria-hidden="true"></i>
+			<p>{{errorText}}</p>
+		</div>
+	{{/if}}
+
+	{{#if !hasData && !loading}}
+		<div>
+			<i class="fa fa-search" aria-hidden="true"></i>
+			<p>
+				{{#if filter}}
+					{{noDataFilterText}}
+				{{else}}
+					{{noDataText}}
+				{{/if}}
+			</p>
+		</div>
+	{{/if}}
+</div>
+
+<script>
+	component.exports = {
+		data () {
+			return {
+				loading: false,
+				error: false,
+				hasData: true,
+				filter: null,
+				errorText: 'An unexpected error occurred, please try again later.',
+				loadingText: 'Loading data...',
+				noDataFilterText: 'No results found, please try adjusting the applied filters.',
+				noDataText: 'No results found, please try again later.',
+			};
+		},
+	};
+</script>

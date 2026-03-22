@@ -1,6 +1,7 @@
 <link rel="ractive" href="./select.html" name="c-select">
 <link rel="ractive" href="./probe-single-card.html" name="c-probe-single-card">
 <link rel="ractive" href="./probe-filters.html" name="c-probe-filters">
+<link rel="ractive" href="./probe-loading-state.html" name="c-probe-loading-state">
 
 <div class="gp-filtered-list">
 	<c-probe-filters
@@ -57,117 +58,104 @@
 	{{/if}}
 
 	<div class="gp-filtered-list_list {{groupBy === 'disabled' ? 'disabled-group-by' : ''}}">
-		{{#if probesLoading}}
-			<div class="gp-filtered-list_list_loading">
-				Loading...
-			</div>
-		{{elseif probesError}}
-			<div class="gp-filtered-list_list_error">
-				Failed to load probes. Please try again later.
-				<button type="button" on-click="refresh()">Try again</button>
-			</div>
-		{{else}}
-			{{#if preparedProbeBlocks && preparedProbeBlocks.length === 0}}
-				<div class="gp-filtered-list_list_no-result">
-					{{#if rawProbes && rawProbes.length}}
-					No results found. Try adjusting your filters.
+		<c-probe-loading-state
+			loading="{{probesLoading}}"
+			error="{{probesError}}"
+			hasData="{{locationProbes.length}}"
+			filter="{{filter}}"
+		/>
+		{{#if preparedProbeBlocks.length}}
+			{{#each preparedProbeBlocks as block}}
+				<div class="gp-filtered-list_list_block group-by-{{groupBy}}">
+					{{#if groupBy === 'disabled'}}
+						{{#each visibleProbeCards as item : index}}
+							<c-probe-single-card
+								location="{{item.location}}"
+								tags="{{item.tags}}"
+								render="{{!loadingProbeCards || index < defaultCardRenderLimit}}"
+								screenWidth="{{screenWidth}}"
+								locationFilter="{{~/location}}">
+							</c-probe-single-card>
+						{{/each}}
+						{{#if visibleProbeCards.length < block.items.length || loadingProbeCards}}
+							<button type="button" on-click="@this.showAllProbeCards()" {{#if loadingProbeCards}}disabled{{/if}}>
+								{{#if loadingProbeCards}}
+									<i class="fa fa-circle-o-notch fa-spin" aria-hidden="true"></i>
+								{{/if}}
+								Show all
+							</button>
+						{{/if}}
 					{{else}}
-					No probes found.
+						<div class="gp-filtered-list_list_block_group group-by-{{groupBy}}" data-testid="probe-block-group">
+							{{#if block.title}}
+								<span class="gp-filtered-list_list_block_group_item cont-header" id="probe-group-{{block.title}}">
+									<img width="24" height="24" src="{{@shared.assetsHost}}/img/network/continent-{{block.title.toLowerCase()}}.svg" alt="" aria-hidden="true">
+									{{@this.getContinentName(block.title)}}
+								</span>
+							{{/if}}
+							{{#each block.items as item}}
+								{{#if item.networks && item.networks.length}}
+									<div class="gp-filtered-list_list_block_group_networks-item">
+										<span class="gp-filtered-list_list_block_group_networks-item_country">
+											<img loading="lazy"
+												width="17"
+												height="20"
+												alt=""
+												aria-hidden="true"
+												src="https://cdn.jsdelivr.net/npm/country-flag-icons@1.5.5/3x2/{{item.location.split(', ')[0]}}.svg">
+											{{item.name}}
+										</span>
+										<div class="gp-filtered-list_list_block_group_networks-item_networks">
+											{{#each item.networks}}
+												<span tabindex="0"
+													role="button"
+													as-popover="@this.getPopoverContent(item.from, this.name)">
+													<span class="gp-filtered-list_list_block_group_networks-item_network">
+														{{name}}{{#if count > 1}} (x{{this.count}}){{/if}}
+													</span>
+												</span>
+											{{/each}}
+										</div>
+									</div>
+								{{else}}
+									<div class="gp-filtered-list_list_block_group_item"
+										tabindex="0"
+										role="button"
+										as-popover="@this.getPopoverContent(item.from)"
+									>
+										{{#if item.showFlag}}
+											<img loading="lazy"
+												width="17"
+												height="20"
+												alt=""
+												aria-hidden="true"
+												src="https://cdn.jsdelivr.net/npm/country-flag-icons@1.5.5/3x2/{{item.location.split(', ')[0]}}.svg">
+										{{elseif groupBy === 'network'}}
+											<span class="gp-filtered-list_network-logo">
+												{{#if @this.getDomainForNetwork(item.name)}}
+													<img width="20"
+														height="20"
+														src="https://img.jsdelivr.com/img.logo.dev/{{@this.getDomainForNetwork(item.name)}}?format=png"
+														loading="lazy"
+														alt=""
+														aria-hidden="true"
+													>
+												{{else}}
+													{{item.name[0]}}
+												{{/if}}
+											</span>
+										{{/if}}
+										<span class="gp-filtered-list_list_block_group_item_location">
+											{{item.name}}
+										</span>
+										<span class="gp-filtered-list_list_block_group_item_count">{{item.probes.length}}</span>
+									</div>
+								{{/if}}
+							{{/each}}
+						</div>
 					{{/if}}
 				</div>
-			{{else}}
-				{{#each preparedProbeBlocks as block}}
-					<div class="gp-filtered-list_list_block group-by-{{groupBy}}">
-						{{#if groupBy === 'disabled'}}
-							{{#each visibleProbeCards as item : index}}
-								<c-probe-single-card
-									location="{{item.location}}"
-									tags="{{item.tags}}"
-									render="{{!loadingProbeCards || index < defaultCardRenderLimit}}"
-									screenWidth="{{screenWidth}}"
-									locationFilter="{{~/location}}">
-								</c-probe-single-card>
-							{{/each}}
-							{{#if visibleProbeCards.length < block.items.length || loadingProbeCards}}
-								<button type="button" on-click="@this.showAllProbeCards()" {{#if loadingProbeCards}}disabled{{/if}}>
-									{{#if loadingProbeCards}}
-										<i class="fa fa-circle-o-notch fa-spin" aria-hidden="true"></i>
-									{{/if}}
-									Show all
-								</button>
-							{{/if}}
-						{{else}}
-							<div class="gp-filtered-list_list_block_group group-by-{{groupBy}}" data-testid="probe-block-group">
-								{{#if block.title}}
-									<span class="gp-filtered-list_list_block_group_item cont-header" id="probe-group-{{block.title}}">
-										<img width="24" height="24" src="{{@shared.assetsHost}}/img/network/continent-{{block.title.toLowerCase()}}.svg" alt="" aria-hidden="true">
-										{{@this.getContinentName(block.title)}}
-									</span>
-								{{/if}}
-								{{#each block.items as item}}
-									{{#if item.networks && item.networks.length}}
-										<div class="gp-filtered-list_list_block_group_networks-item">
-											<span class="gp-filtered-list_list_block_group_networks-item_country">
-												<img loading="lazy"
-													width="17"
-													height="20"
-													alt=""
-													aria-hidden="true"
-													src="https://cdn.jsdelivr.net/npm/country-flag-icons@1.5.5/3x2/{{item.location.split(', ')[0]}}.svg">
-												{{item.name}}
-											</span>
-											<div class="gp-filtered-list_list_block_group_networks-item_networks">
-												{{#each item.networks}}
-													<span tabindex="0"
-														role="button"
-														as-popover="@this.getPopoverContent(item.from, this.name)">
-														<span class="gp-filtered-list_list_block_group_networks-item_network">
-															{{name}}{{#if count > 1}} (x{{this.count}}){{/if}}
-														</span>
-													</span>
-												{{/each}}
-											</div>
-										</div>
-									{{else}}
-										<div class="gp-filtered-list_list_block_group_item"
-											tabindex="0"
-											role="button"
-											as-popover="@this.getPopoverContent(item.from)"
-										>
-											{{#if item.showFlag}}
-												<img loading="lazy"
-													width="17"
-													height="20"
-													alt=""
-													aria-hidden="true"
-													src="https://cdn.jsdelivr.net/npm/country-flag-icons@1.5.5/3x2/{{item.location.split(', ')[0]}}.svg">
-											{{elseif groupBy === 'network'}}
-												<span class="gp-filtered-list_network-logo">
-													{{#if @this.getDomainForNetwork(item.name)}}
-														<img width="20"
-															height="20"
-															src="https://img.jsdelivr.com/img.logo.dev/{{@this.getDomainForNetwork(item.name)}}?format=png"
-															loading="lazy"
-															alt=""
-															aria-hidden="true"
-														>
-													{{else}}
-														{{item.name[0]}}
-													{{/if}}
-												</span>
-											{{/if}}
-											<span class="gp-filtered-list_list_block_group_item_location">
-												{{item.name}}
-											</span>
-											<span class="gp-filtered-list_list_block_group_item_count">{{item.probes.length}}</span>
-										</div>
-									{{/if}}
-								{{/each}}
-							</div>
-						{{/if}}
-					</div>
-				{{/each}}
-			{{/if}}
+			{{/each}}
 		{{/if}}
 	</div>
 
