@@ -88,6 +88,8 @@
 
 		@media (max-width: @screen-sm-max) {
 			padding-top: 24px;
+			padding-bottom: 130px;
+			gap: 16px;
 		}
 
 		> * {
@@ -96,13 +98,20 @@
 		}
 
 		h1 {
+			z-index: 1;
 			font-size: 40px;
 			font-weight: 600;
 			line-height: 60px;
 			letter-spacing: 0;
+
+			@media (max-width: @screen-sm-max) {
+				font-size: 32px;
+				line-height: 48px;
+			}
 		}
 
 		p {
+			z-index: 1;
 			font-size: 16px;
 			line-height: 32px;
 			letter-spacing: 0;
