@@ -13,7 +13,7 @@
 	<main class="p-providers">
 		<section class="p-providers_hero">
 			<h1>
-				Providers
+				Network providers
 			</h1>
 			<p>
 				Globalping is powered by <strong><span class="p-providers_count" style="min-width: {{providerCountLength+1}}ch">{{Math.floor(providerCount)}}+</span> network providers</strong> across {{continentCount}} continents.
@@ -83,7 +83,7 @@
 									</span>
 								</h3>
 								<h4>
-									{{this.probes.toLocaleString('en-US')}} {{ ~/_.pluralize('probe', this.probes) }} {{~/topProviderLocation}}
+									{{this.locations.toLocaleString('en-US')}} {{ ~/_.pluralize('location', this.locations) }} {{~/topProviderLocation}}
 								</h4>
 								<div>
 									{{#each this[~/topProvidersDisplayedField]}}
@@ -179,7 +179,7 @@
 	const http = require('../../assets/js/utils/http');
 	const dataCache = require('../../assets/js/utils/data-cache');
 
-	const DEFAULT_SORT_ORDER = 'probe-count';
+	const DEFAULT_SORT_ORDER = 'location-count';
 
 	const CONTINENTS = require('../../assets/json/continents.json');
 	const COUNTRIES = require('../../assets/json/countries.json');
@@ -201,8 +201,8 @@
 		data () {
 			return {
 				_,
-				title: 'Probes Overview - Globalping',
-				description: 'Overview of Globalping probes.',
+				title: 'Network Providers - Globalping',
+				description: 'Browse and search providers to explore network coverage and location distribution.',
 				probesLoading: true,
 				probesError: null,
 				rawProbes: null,
@@ -221,9 +221,12 @@
 				allProviders: [],
 				sortOrder: DEFAULT_SORT_ORDER,
 				networkDomainMap: Object.create(null),
+				networkStats: Object.create(null),
+				uniqueLocations: [],
+				allLocationsPopoverListKey: 'countries',
 				sortOptions: [
 					{ name: 'Alphabetically', value: 'alphabetically' },
-					{ name: 'Probe count', value: 'probe-count' },
+					{ name: 'Location count', value: 'location-count' },
 				],
 			};
 		},
@@ -263,19 +266,15 @@
 						return;
 					}
 
-					this.setTopProviders(probes);
-					this.setAllProviders(probes);
+					this.setUniqueLocations(probes);
+					this.setNetworkStats();
+					this.setTopProviders();
+					this.setAllProviders();
 				});
 
 				this.observe('sortOrder', () => {
-					let probes = this.get('locationProbes');
-
-					if (probes === null) {
-						return;
-					}
-
-					this.setAllProviders(probes);
-				});
+					this.setAllProviders();
+				}, { init: false });
 			}
 		},
 		handleProbesResponse (response) {
@@ -305,25 +304,51 @@
 				.catch(error => this.set('probesError', error))
 				.finally(() => this.set('probesLoading', false));
 		},
-		setTopProviders (probes) {
-			let counts = probes.reduce((acc, probe) => {
-				let networkKey = _.networkNameToKey(probe.location.network);
+		setUniqueLocations (probes) {
+			let added = new Set();
+
+			let uniqueLocations = probes.filter((probe) => {
+				let key = `${probe.location.network}|${probe.location.continent}|${probe.location.country}|${probe.location.city}`;
+
+				if (added.has(key)) {
+					return false;
+				}
+
+				added.add(key);
+				return true;
+			});
+
+			this.set('uniqueLocations', uniqueLocations);
+		},
+		setNetworkStats () {
+			let uniqueLocations = this.get('uniqueLocations');
+
+			let networkStats = uniqueLocations.reduce((acc, loc) => {
+				let networkKey = _.networkNameToKey(loc.location.network);
 
 				if (!acc[networkKey]) {
 					acc[networkKey] = {
-						name: probe.location.network,
-						probes: 0,
+						name: loc.location.network,
+						locations: 0,
 						countries: {},
 						continents: {},
 						cities: {},
+						citiesByCountry: {},
 						key: networkKey,
 					};
 				}
 
-				acc[networkKey].probes++;
-				acc[networkKey].countries[probe.location.country] = (acc[networkKey].countries[probe.location.country] || 0) + 1;
-				acc[networkKey].continents[probe.location.continent] = (acc[networkKey].continents[probe.location.continent] || 0) + 1;
-				acc[networkKey].cities[probe.location.city] = (acc[networkKey].cities[probe.location.city] || 0) + 1;
+				acc[networkKey].locations++;
+				acc[networkKey].countries[loc.location.country] = (acc[networkKey].countries[loc.location.country] || 0) + 1;
+				acc[networkKey].continents[loc.location.continent] = (acc[networkKey].continents[loc.location.continent] || 0) + 1;
+				acc[networkKey].cities[loc.location.city] = (acc[networkKey].cities[loc.location.city] || 0) + 1;
+
+				if (!acc[networkKey].citiesByCountry[loc.location.country]) {
+					acc[networkKey].citiesByCountry[loc.location.country] = {};
+				}
+
+				acc[networkKey].citiesByCountry[loc.location.country][loc.location.city] = (acc[networkKey].citiesByCountry[loc.location.country][loc.location.city] || 0) + 1;
+
 				return acc;
 			}, Object.create(null));
 
@@ -344,15 +369,32 @@
 				return sorted;
 			};
 
-			let topProviders = Object.values(counts)
-				.sort((lhs, rhs) => rhs.probes - lhs.probes)
-				.slice(0, 15)
-				.map((provider) => {
-					provider.countries = toSortedArray(provider.countries);
-					provider.continents = toSortedArray(provider.continents);
-					provider.cities = toSortedArray(provider.cities);
-					return provider;
+			Object.values(networkStats).forEach((network) => {
+				network.countries = toSortedArray(network.countries);
+				network.continents = toSortedArray(network.continents);
+				network.cities = toSortedArray(network.cities);
+
+				Object.keys(network.citiesByCountry).forEach((countryCode) => {
+					network.citiesByCountry[countryCode] = toSortedArray(network.citiesByCountry[countryCode]);
 				});
+			});
+
+			let uniqueContinents = new Set(Object.values(networkStats).flatMap(network => Object.keys(network.continents)));
+
+			if (uniqueContinents.size > 1) {
+				this.set('allLocationsPopoverListKey', 'countries');
+			} else {
+				this.set('allLocationsPopoverListKey', 'cities');
+			}
+
+			this.set('networkStats', networkStats);
+		},
+		setTopProviders () {
+			let networkStats = this.get('networkStats');
+
+			let topProviders = Object.values(networkStats)
+				.sort((lhs, rhs) => rhs.locations - lhs.locations)
+				.slice(0, 15);
 
 			let topProvidersDisplayedField = this.getTopProvidersDisplayedField(topProviders);
 
@@ -364,13 +406,14 @@
 				topProviderLocation,
 			});
 		},
-		setAllProviders (probes) {
-			let continentCount = new Set(probes.map(probe => probe.location.continent)).size;
+		setAllProviders () {
+			let locations = this.get('uniqueLocations');
+			let continentCount = new Set(locations.map(loc => loc.location.continent)).size;
 			let groupByCountry = continentCount === 1;
 
-			let groups = probes.reduce((acc, probe) => {
-				let groupCode = groupByCountry ? probe.location.country : probe.location.continent;
-				let networkName = probe.location.network;
+			let groups = locations.reduce((acc, loc) => {
+				let groupCode = groupByCountry ? loc.location.country : loc.location.continent;
+				let networkName = loc.location.network;
 				let networkKey = _.networkNameToKey(networkName);
 
 				if (!acc[groupCode]) {
@@ -378,7 +421,7 @@
 						code: groupCode,
 						name: groupByCountry ? COUNTRIES_MAP[groupCode] || groupCode : CONTINENT_MAP[groupCode] || groupCode,
 						isCountry: groupByCountry,
-						totalProbes: 0,
+						totalLocations: 0,
 						networks: Object.create(null),
 					};
 				}
@@ -390,7 +433,7 @@
 					};
 				}
 
-				acc[groupCode].totalProbes++;
+				acc[groupCode].totalLocations++;
 				acc[groupCode].networks[networkKey].count++;
 
 				return acc;
@@ -411,10 +454,10 @@
 				return group;
 			}).sort((a, b) => {
 				if (sortOrder === 'alphabetically') {
-					return a.name.localeCompare(b.name) || b.totalProbes - a.totalProbes;
+					return a.name.localeCompare(b.name) || b.totalLocations - a.totalLocations;
 				}
 
-				return b.totalProbes - a.totalProbes || a.name.localeCompare(b.name);
+				return b.totalLocations - a.totalLocations || a.name.localeCompare(b.name);
 			});
 
 			this.set('allProviders', allProviders);
@@ -443,9 +486,9 @@
 					return code;
 			}
 		},
-		getPopoverContent (network, continent, targetOnly = false) {
-			continent = CONTINENT_MAP[continent] || continent;
-			let locationValue = `${continent ? continent + '+' : ''}${network}`;
+		getPopoverContent (network, groupCode, targetOnly = false) {
+			let groupName = CONTINENT_MAP[groupCode] || COUNTRIES_MAP[groupCode] || groupCode;
+			let locationValue = `${groupName ? groupName + '+' : ''}${network}`;
 			let targetLoc = _.createLocationString(locationValue, this.get('location'));
 
 			let btnMeasure = `

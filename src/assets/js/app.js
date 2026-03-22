@@ -10,7 +10,7 @@ const cGlobalpingAbout = require('../../views/pages/about-us.html');
 const cGlobalpingSponsors = require('../../views/pages/sponsors.html');
 const cGlobalpingCredits = require('../../views/pages/credits.html');
 const cGlobalpingNetwork = require('../../views/pages/network.html');
-const cGlobalpingProviders = require('../../views/pages/providers.html');
+const cGlobalpingProviders = require('../../views/pages/network-providers.html');
 const cGlobalpingNetworks = require('../../views/pages/_networks.html');
 const cGlobalpingUsers = require('../../views/pages/_users.html');
 const cPP = require('../../views/pages/terms.html');
@@ -40,7 +40,7 @@ const initApp = () => {
 	app.router.addRoute('/sponsors', cGlobalpingSponsors);
 	app.router.addRoute('/credits', cGlobalpingCredits);
 	app.router.addRoute('/network', cGlobalpingNetwork, { qs: [ 'filter', 'group', 'sort' ] });
-	app.router.addRoute('/providers', cGlobalpingProviders, { qs: [ 'filter', 'sort' ] });
+	app.router.addRoute('/network-providers', cGlobalpingProviders, { qs: [ 'filter', 'sort' ] });
 	app.router.addRoute('/terms', cPP);
 	app.router.addRoute('/terms/:currentPolicy', cPP);
 	app.router.addRoute('/networks/:networkName', cGlobalpingNetworks);

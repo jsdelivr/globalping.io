@@ -1,11 +1,11 @@
 const { test } = require('./fixtures');
 const { expect } = require('@playwright/test');
 
-test('Providers page', async ({ page }) => {
-	let response = await page.goto('/providers');
+test('Network providers page', async ({ page }) => {
+	let response = await page.goto('/network-providers');
 	expect(response.ok()).toBeTruthy();
 
-	let providersHeader = page.getByRole('heading', { name: 'Providers', exact: true });
+	let providersHeader = page.getByRole('heading', { name: 'Network providers', exact: true });
 	let largestProvidersHeader = page.getByRole('heading', { name: 'Largest providers', exact: true });
 	let allProvidersHeader = page.getByRole('heading', { name: 'All providers', exact: true });
 	await expect(providersHeader).toBeVisible();
@@ -29,15 +29,15 @@ test('Providers page', async ({ page }) => {
 
 	let sortBySelect = page.getByTestId('sort-by-select');
 	await expect(sortBySelect).toBeVisible();
-	await expect(sortBySelect).toContainText('Probe count');
+	await expect(sortBySelect).toContainText('Location count');
 	await sortBySelect.click();
 	await page.keyboard.press('ArrowUp');
 	await page.keyboard.press('Enter');
 	await expect(sortBySelect).toContainText('Alphabetically');
-	await expect(page).toHaveURL('providers?filter=Western%20Europe&sort=alphabetically');
+	await expect(page).toHaveURL('network-providers?filter=Western%20Europe&sort=alphabetically');
 
-	let hetznerProvider = page.getByRole('heading', { name: 'Hetzner' });
-	await expect(hetznerProvider).toBeVisible();
+	let googleProvider = page.getByRole('heading', { name: 'Google' });
+	await expect(googleProvider).toBeVisible();
 
-	await expect(page.getByText('probes in Western Europe').first()).toBeVisible();
+	await expect(page.getByText('locations in Western Europe').first()).toBeVisible();
 });
