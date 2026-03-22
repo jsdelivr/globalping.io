@@ -8,24 +8,24 @@
 				<p class="mb-12 max-md:mb-4">
 					The networks & providers powering the world’s largest open measurement platform.
 				</p>
-				<div class="flex gap-20 max-md:items-stretch max-md:justify-between max-md:gap-4">
-					<div class="flex flex-col gap-1 max-md:flex-1">
+				<div class="flex gap-16 max-md:items-stretch max-md:justify-between max-md:gap-4">
+					<div class="flex flex-col gap-1 max-md:flex-1 md:w-48">
 						<span class="text-[40px] max-md:text-2xl md:leading-11">
 							<b class="min-w-[3ch]">
 								<AnimatedNumber :number="userCount" underline/>
 							</b>
 						</span>
-						<h4 class="font-normal max-md:text-sm">Total registered contributors</h4>
+						<h4 class="font-normal max-md:text-sm">Registered contributors</h4>
 					</div>
-					<div class="flex flex-col gap-1 max-md:flex-1">
+					<div class="flex flex-col gap-1 max-md:flex-1 md:w-48">
 						<p class="text-[40px] max-md:text-2xl  md:leading-11">
 							<b class="min-w-[4ch]">
 								<AnimatedNumber :number="probesHosted" underline/>
 							</b>
 						</p>
-						<h4 class="font-normal max-md:text-sm">Probes hosted</h4>
+						<h4 class="font-normal max-md:text-sm">Connected probes</h4>
 					</div>
-					<div class="flex flex-col gap-1 max-md:flex-1">
+					<div class="flex flex-col gap-1 max-md:flex-1 md:w-48">
 						<p class="text-[40px] max-md:text-2xl  md:leading-11">
 							<b class="min-w-[3ch]">
 								<AnimatedNumber :number="countriesCovered" underline/>
@@ -89,7 +89,7 @@
 <style scoped>
 	@media (min-width: 768px) {
 		.max-w-section {
-			max-width: min(90vw, 1016px);
+			max-width: min(90vw, 1224px);
 		}
 	}
 
