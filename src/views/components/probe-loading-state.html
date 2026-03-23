@@ -4,16 +4,12 @@
 			<i class="fa fa-circle-o-notch fa-spin fa-fw" aria-hidden="true"></i>
 			<p>{{loadingText}}</p>
 		</div>
-	{{/if}}
-
-	{{#if error}}
+	{{elseif error}}
 		<div class="has-error">
 			<i class="fa fa-exclamation-triangle" aria-hidden="true"></i>
 			<p>{{errorText}}</p>
 		</div>
-	{{/if}}
-
-	{{#if !hasData && !loading}}
+	{{elseif !hasData && !loading}}
 		<div>
 			<i class="fa fa-search" aria-hidden="true"></i>
 			<p>
