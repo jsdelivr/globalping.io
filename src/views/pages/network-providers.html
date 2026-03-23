@@ -127,47 +127,28 @@
 							/>
 						</div>
 					</div>
-					<div class="p-providers_all_groups">
-						{{#each allProviders as providerGroup}}
-							<div class="p-providers_all_group p-providers_{{this.isCountry ? 'country' : 'continent'}}">
-								<h3>
-									{{#if this.isCountry}}
-										<img loading="lazy"
-											width="24"
-											height="16"
+					<div class="p-providers_all_networks">
+						{{#each allProviders}}
+							<div class="p-providers_all_network"
+								tabindex="0"
+								role="button"
+								as-popover="@this.getPopoverContent(this.name)"
+							>
+								<span class="p-providers_all_network_logo p-providers_logo">
+									{{#if @this.getDomainForNetwork(this.key)}}
+										<img width="20"
+											height="20"
+											src="https://img.jsdelivr.com/img.logo.dev/{{@this.getDomainForNetwork(this.key)}}?format=png"
+											loading="lazy"
 											alt=""
 											aria-hidden="true"
-											src="https://cdn.jsdelivr.net/npm/country-flag-icons@1.5.5/3x2/{{this.code}}.svg">
-									{{else}}
-										<img width="36" height="36" src="{{@shared.assetsHost}}/img/network/continent-{{this.code.toLowerCase()}}.svg" alt="" aria-hidden="true">
-									{{/if}}
-									{{this.name}}
-								</h3>
-								<div class="p-providers_all_group_networks">
-									{{#each this.networks}}
-										<div class="p-providers_all_group_network"
-											tabindex="0"
-											role="button"
-											as-popover="@this.getPopoverContent(this.name, providerGroup.name)"
 										>
-											<span class="p-providers_all_group_network_logo p-providers_logo">
-												{{#if @this.getDomainForNetwork(this.key)}}
-													<img width="20"
-														height="20"
-														src="https://img.jsdelivr.com/img.logo.dev/{{@this.getDomainForNetwork(this.key)}}?format=png"
-														loading="lazy"
-														alt=""
-														aria-hidden="true"
-													>
-												{{else}}
-													{{this.name[0]}}
-												{{/if}}
-											</span>
-											<span class="p-providers_all_group_network_name">{{this.name}}</span>
-											<span class="p-providers_all_group_network_count">{{this.count}}</span>
-										</div>
-									{{/each}}
-								</div>
+									{{else}}
+										{{this.name[0]}}
+									{{/if}}
+								</span>
+								<span class="p-providers_all_network_name">{{this.name}}</span>
+								<span class="p-providers_all_network_count">{{this.count}}</span>
 							</div>
 						{{/each}}
 					</div>
@@ -343,7 +324,6 @@
 						countries: {},
 						continents: {},
 						cities: {},
-						citiesByCountry: {},
 						key: networkKey,
 					};
 				}
@@ -353,14 +333,19 @@
 				acc[networkKey].continents[loc.location.continent] = (acc[networkKey].continents[loc.location.continent] || 0) + 1;
 				acc[networkKey].cities[loc.location.city] = (acc[networkKey].cities[loc.location.city] || 0) + 1;
 
-				if (!acc[networkKey].citiesByCountry[loc.location.country]) {
-					acc[networkKey].citiesByCountry[loc.location.country] = {};
-				}
-
-				acc[networkKey].citiesByCountry[loc.location.country][loc.location.city] = (acc[networkKey].citiesByCountry[loc.location.country][loc.location.city] || 0) + 1;
-
 				return acc;
 			}, Object.create(null));
+
+			let uniqueContinents = new Set(Object.values(networkStats).flatMap(network => Object.keys(network.continents)));
+			let uniqueCountries = new Set(Object.values(networkStats).flatMap(network => Object.keys(network.countries)));
+
+			if (uniqueContinents.size > 1) {
+				this.set('allLocationsPopoverListKey', 'continents');
+			} else if (uniqueCountries.size > 1) {
+				this.set('allLocationsPopoverListKey', 'countries');
+			} else {
+				this.set('allLocationsPopoverListKey', 'cities');
+			}
 
 			let toSortedArray = (obj) => {
 				let sorted = Object.entries(obj)
@@ -383,19 +368,7 @@
 				network.countries = toSortedArray(network.countries);
 				network.continents = toSortedArray(network.continents);
 				network.cities = toSortedArray(network.cities);
-
-				Object.keys(network.citiesByCountry).forEach((countryCode) => {
-					network.citiesByCountry[countryCode] = toSortedArray(network.citiesByCountry[countryCode]);
-				});
 			});
-
-			let uniqueContinents = new Set(Object.values(networkStats).flatMap(network => Object.keys(network.continents)));
-
-			if (uniqueContinents.size > 1) {
-				this.set('allLocationsPopoverListKey', 'countries');
-			} else {
-				this.set('allLocationsPopoverListKey', 'cities');
-			}
 
 			this.set('networkStats', networkStats);
 		},
@@ -418,56 +391,31 @@
 		},
 		setAllProviders () {
 			let locations = this.get('uniqueLocations');
-			let continentCount = new Set(locations.map(loc => loc.location.continent)).size;
-			let groupByCountry = continentCount === 1;
 
-			let groups = locations.reduce((acc, loc) => {
-				let groupCode = groupByCountry ? loc.location.country : loc.location.continent;
+			let networks = locations.reduce((acc, loc) => {
 				let networkName = loc.location.network;
 				let networkKey = _.networkNameToKey(networkName);
 
-				if (!acc[groupCode]) {
-					acc[groupCode] = {
-						code: groupCode,
-						name: groupByCountry ? COUNTRIES_MAP[groupCode] || groupCode : CONTINENT_MAP[groupCode] || groupCode,
-						isCountry: groupByCountry,
-						totalLocations: 0,
-						networks: Object.create(null),
-					};
-				}
-
-				if (!acc[groupCode].networks[networkKey]) {
-					acc[groupCode].networks[networkKey] = {
-						count: 0,
+				if (!acc[networkKey]) {
+					acc[networkKey] = {
 						name: networkName,
+						key: networkKey,
+						count: 0,
 					};
 				}
 
-				acc[groupCode].totalLocations++;
-				acc[groupCode].networks[networkKey].count++;
-
+				acc[networkKey].count++;
 				return acc;
 			}, Object.create(null));
 
 			let sortOrder = this.get('sortOrder');
 
-			let allProviders = Object.values(groups).map((group) => {
-				let networksArray = Object.entries(group.networks)
-					.map(([ key, { name, count }]) => ({ name, count, key }));
-
+			let allProviders = Object.values(networks).sort((a, b) => {
 				if (sortOrder === 'alphabetically') {
-					group.networks = networksArray.sort((a, b) => a.name.localeCompare(b.name) || b.count - a.count);
-				} else {
-					group.networks = networksArray.sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
+					return a.name.localeCompare(b.name) || b.count - a.count;
 				}
 
-				return group;
-			}).sort((a, b) => {
-				if (sortOrder === 'alphabetically') {
-					return a.name.localeCompare(b.name) || b.totalLocations - a.totalLocations;
-				}
-
-				return b.totalLocations - a.totalLocations || a.name.localeCompare(b.name);
+				return b.count - a.count || a.name.localeCompare(b.name);
 			});
 
 			this.set('allProviders', allProviders);
@@ -528,15 +476,17 @@
 				let breakdownKey = this.get('allLocationsPopoverListKey');
 				let breakdownEntries = stats[breakdownKey];
 
-				if (breakdownKey === 'cities' && stats.citiesByCountry && stats.citiesByCountry[groupCode]) {
-					breakdownEntries = stats.citiesByCountry[groupCode];
-				}
-
 				if (breakdownEntries) {
 					let listItems = breakdownEntries.map(item => `
 						<div class="p-providers_popover_item ${item.name === 'Other' ? 'p-providers_popover_item--other' : ''}">
-							<span class="p-providers_popover_item_name">${(breakdownKey === 'countries' && COUNTRIES_MAP[item.name]) || item.name}</span>
-							${breakdownKey === 'countries' || item.name === 'Other' ? `<span class="p-providers_popover_item_count">${item.count}</span>` : ''}
+							<span class="p-providers_popover_item_name">
+								${
+									(breakdownKey === 'continents' && CONTINENT_MAP[item.name])
+									|| (breakdownKey === 'countries' && COUNTRIES_MAP[item.name])
+									|| item.name
+								}
+							</span>
+							${breakdownKey !== 'cities' || item.name === 'Other' ? `<span class="p-providers_popover_item_count">${item.count}</span>` : ''}
 						</div>
 					`).join('');
 

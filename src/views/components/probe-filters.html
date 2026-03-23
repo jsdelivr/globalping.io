@@ -62,8 +62,9 @@
 					{{this.name}}
 					<button data-testid="quick-filter-{{this.name}}" on-click="@this.rmFilterRule(@key)"
 						type="button"
+						aria-label="Remove {{this.name}} filter"
 						class="gp-probe-filters_quick_list_selected_remove">
-					<img width="16" height="16" src="{{@shared.assetsHost}}/img/tag-input-close-icon.svg">
+					<img width="16" height="16" alt="" src="{{@shared.assetsHost}}/img/tag-input-close-icon.svg">
 					</button>
 				</span>
 			{{/each}}
