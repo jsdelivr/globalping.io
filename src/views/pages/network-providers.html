@@ -84,7 +84,7 @@
 									</a>
 								</h3>
 								<h4>
-									{{this.locations.toLocaleString('en-US')}} {{ ~/_.pluralize('location', this.locations) }} {{~/topProviderLocation}}
+									{{this.locations.toLocaleString('en-US')}} {{~/topProviderLocation}}
 								</h4>
 								<div>
 									{{#each this[~/topProvidersDisplayedField]}}
@@ -383,7 +383,16 @@
 
 			let topProvidersDisplayedField = this.getTopProvidersDisplayedField(topProviders);
 
-			let topProviderLocation = this.get('location') && this.get('location').toLowerCase() !== 'world' ? `in ${this.get('location')}` : 'worldwide';
+			let location = this.get('location');
+			let locationLc = location.toLowerCase();
+			let locationText = _.pluralize('location', this.locations);
+			let topProviderLocation = `matching ${locationText}`;
+
+			if (locationLc === 'world') {
+				topProviderLocation = `${locationText} worldwide`;
+			} else if (CONTINENTS.some(c => c.name.toLowerCase() === locationLc) || COUNTRIES.some(c => c.name.toLowerCase() === locationLc)) {
+				topProviderLocation = `${locationText} in ${location}`;
+			}
 
 			this.set({
 				topProviders,
