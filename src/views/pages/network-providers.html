@@ -64,7 +64,7 @@
 									<span
 										tabindex="0"
 										role="button"
-										as-popover="@this.getPopoverContent(this.name)"
+										as-popover="@this.getPopoverContent(this.name, null, false, false)"
 									>
 										<span class="p-providers_provider_logo p-providers_logo">
 											{{#if @this.getDomainForNetwork(this.key)}}
@@ -444,7 +444,7 @@
 					return code;
 			}
 		},
-		getPopoverContent (network, groupCode, targetOnly = false) {
+		getPopoverContent (network, groupCode, targetOnly = false, showBreakdown = true) {
 			let groupName = CONTINENT_MAP[groupCode] || COUNTRIES_MAP[groupCode] || groupCode;
 			let locationValue = `${groupName ? groupName + '+' : ''}${network}`;
 			let targetLoc = _.createLocationString(locationValue, this.get('location'));
@@ -472,7 +472,7 @@
 			let breakdownHtml = '';
 			let stats = this.get('networkStats')[networkKey];
 
-			if (stats && !targetOnly) {
+			if (stats && !targetOnly && showBreakdown) {
 				let breakdownKey = this.get('allLocationsPopoverListKey');
 				let breakdownEntries = stats[breakdownKey];
 
