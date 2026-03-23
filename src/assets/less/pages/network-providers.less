@@ -360,6 +360,10 @@
 			border: 1px solid #e7e7ee;
 			font-size: 14px;
 
+			&:focus-within {
+				box-shadow: 0 2px 2px rgba(0, 0, 0, .04), 0 0 0 1px #fff, 0 0 0 4px rgba(23, 212, 167, .48);
+			}
+
 			@media (max-width: @screen-xs-max) {
 				width: 100%;
 			}
@@ -387,7 +391,6 @@
 
 				&:focus {
 					outline: none;
-					box-shadow: 0 0 0 2px #fff, 0 0 0 4px #17d4a7;
 				}
 
 				&:not(:disabled) {
@@ -443,7 +446,7 @@
 
 			&:focus-visible {
 				outline: none;
-				box-shadow: 0 2px 2px rgba(0, 0, 0, .04), 0 0 0 1px #fff, 0 0 0 3px #17d4a7;
+				box-shadow: 0 2px 2px rgba(0, 0, 0, .04), 0 0 0 1px #fff, 0 0 0 4px rgba(23, 212, 167, .48);
 			}
 
 			&_logo {
