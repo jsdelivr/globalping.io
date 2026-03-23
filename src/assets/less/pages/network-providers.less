@@ -350,12 +350,10 @@
 		}
 
 		&_sort-by {
+			position: relative;
 			display: flex;
-			gap: 8px;
 			align-items: center;
-			background: #f9fafb;
-			padding: 4px 4px 4px 12px;
-			border-radius: 12px;
+			border-radius: 8px;
 			border: 1px solid #e7e7ee;
 			font-size: 14px;
 
@@ -369,23 +367,42 @@
 
 			* {
 				margin: 0;
-				font-size: 13px;
+				font-size: 13px !important;
+			}
+
+			.select {
+				position: initial;
 			}
 
 			label {
-				padding: 0;
+				padding: 0 12px;
 				font-weight: 400;
 				flex-shrink: 0;
 			}
 
+			ul {
+				padding: 8px;
+			}
+
+			li {
+				height: initial;
+				border-radius: 8px;
+
+				& > span {
+					border-radius: 8px;
+					padding: 6px 12px;
+				}
+			}
+
 			button {
-				height: 30px;
+				height: 32px;
 				box-shadow: none;
-				border-width: 1px;
+				border-width: 0;
 				width: 160px;
 				margin-left: auto;
-				background: #fff;
-				border-radius: 8px;
+				background: #fafbfc;
+				border-radius: 0 8px 8px 0;
+				border-left: 1px solid #e7e7ee;
 
 				&:focus {
 					outline: none;
