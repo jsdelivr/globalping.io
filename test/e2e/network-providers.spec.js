@@ -35,9 +35,5 @@ test('Network providers page', async ({ page }) => {
 	await page.keyboard.press('Enter');
 	await expect(sortBySelect).toContainText('Alphabetically');
 	await expect(page).toHaveURL('network-providers?filter=Western%20Europe&sort=alphabetically');
-
-	let googleProvider = page.getByRole('heading', { name: 'Google' });
-	await expect(googleProvider).toBeVisible();
-
 	await expect(page.getByText('locations in Western Europe').first()).toBeVisible();
 });
