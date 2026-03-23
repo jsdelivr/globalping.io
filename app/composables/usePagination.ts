@@ -11,10 +11,10 @@ export default ({ itemsPerPage, pageKey = 'page' }: PaginationOptions) => {
 	const pageWidth = usePageWidth();
 	const active = ref(true);
 
-	watch(() => route.query[pageKey], () => {
+	watch(() => route.query[pageKey], (pageQuery) => {
 		if (active.value) {
-			if (route.query[pageKey] && Number(route.query[pageKey])) {
-				page.value = route.query[pageKey] ? Number(route.query[pageKey]) - 1 : 0;
+			if (pageQuery && Number(pageQuery)) {
+				page.value = Number(pageQuery) - 1;
 			}
 		}
 	}, { immediate: true });
