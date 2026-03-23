@@ -18,7 +18,7 @@
 						<h4 class="font-normal max-md:text-sm">Registered contributors</h4>
 					</div>
 					<div class="flex flex-col gap-1 max-md:flex-1 md:w-48">
-						<p class="text-[40px] max-md:text-2xl  md:leading-11">
+						<p class="text-[40px] max-md:text-2xl md:leading-11">
 							<b class="min-w-[4ch]">
 								<AnimatedNumber :number="probesHosted" underline/>
 							</b>
@@ -26,7 +26,7 @@
 						<h4 class="font-normal max-md:text-sm">Connected probes</h4>
 					</div>
 					<div class="flex flex-col gap-1 max-md:flex-1 md:w-48">
-						<p class="text-[40px] max-md:text-2xl  md:leading-11">
+						<p class="text-[40px] max-md:text-2xl md:leading-11">
 							<b class="min-w-[3ch]">
 								<AnimatedNumber :number="countriesCovered" underline/>
 							</b>
