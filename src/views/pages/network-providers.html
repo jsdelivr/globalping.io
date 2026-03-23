@@ -61,9 +61,10 @@
 						{{#each topProviders as provider}}
 							<div class="p-providers_provider">
 								<h3>
-									<span
+									<a
 										tabindex="0"
 										role="button"
+										href="/networks/{{key}}"
 										as-popover="@this.getPopoverContent(this.name, null, false, false)"
 									>
 										<span class="p-providers_provider_logo p-providers_logo">
@@ -80,7 +81,7 @@
 											{{/if}}
 										</span>
 										{{this.name}}
-									</span>
+									</a>
 								</h3>
 								<h4>
 									{{this.locations.toLocaleString('en-US')}} {{ ~/_.pluralize('location', this.locations) }} {{~/topProviderLocation}}
@@ -129,9 +130,10 @@
 					</div>
 					<div class="p-providers_all_networks">
 						{{#each allProviders}}
-							<div class="p-providers_all_network"
+							<a class="p-providers_all_network"
 								tabindex="0"
 								role="button"
+								href="/networks/{{key}}"
 								as-popover="@this.getPopoverContent(this.name)"
 							>
 								<span class="p-providers_all_network_logo p-providers_logo">
@@ -149,7 +151,7 @@
 								</span>
 								<span class="p-providers_all_network_name">{{this.name}}</span>
 								<span class="p-providers_all_network_count">{{this.count}}</span>
-							</div>
+							</a>
 						{{/each}}
 					</div>
 				</div>

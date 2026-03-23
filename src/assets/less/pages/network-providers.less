@@ -233,15 +233,15 @@
 		}
 
 		h3 {
-			> span {
+			> a {
 				display: flex;
 				align-items: center;
 				gap: 12px;
 				width: fit-content;
+				color: inherit;
 
-				&:hover, &:focus-visible {
+				&:hover, &:focus, &:active {
 					outline: none;
-					text-decoration: underline;
 				}
 			}
 		}
@@ -455,6 +455,12 @@
 			gap: 16px;
 			transition: background-color 100ms ease-in-out;
 
+			&:hover, &:focus, &:active {
+				color: inherit;
+				outline: none;
+				text-decoration: none;
+			}
+
 			&:hover {
 				background: #eff1f3;
 			}
@@ -475,6 +481,7 @@
 				overflow: hidden;
 				white-space: nowrap;
 				text-overflow: ellipsis;
+				color: inherit;
 			}
 
 			&_count {

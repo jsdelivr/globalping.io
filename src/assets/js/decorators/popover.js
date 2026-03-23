@@ -16,13 +16,17 @@ let popoverDecorator = (node, contentHtml) => {
 
 	let nodeClickHandler = (e) => {
 		e.preventDefault();
+		e.stopPropagation();
 		$node.popover('toggle');
+		$(document).trigger('click.gpPopover');
 	};
 
 	let keydownHandler = (e) => {
 		if (e.key === 'Enter' || e.key === ' ') {
 			e.preventDefault();
+			e.stopPropagation();
 			$node.popover('toggle');
+			$(document).trigger('click.gpPopover');
 		}
 	};
 
