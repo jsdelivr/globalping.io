@@ -72,7 +72,7 @@
 				exposeProbes: false,
 				results: [],
 				completedValue: '',
-				geographical: false,
+				addNetworks: false,
 			};
 		},
 		oninit () {
@@ -241,9 +241,9 @@
 								</section>
 
 								<div class="aa-gp-no-results">
-									${this.get('geographical')
-											? 'Our magic search supports names of continents, regions, countries, US states, and cities.'
-											: 'Our magic search supports names of continents, regions, countries, US states, cities, networks, and custom tags.'
+									${this.get('addNetworks')
+											? 'Our magic search supports names of continents, regions, countries, US states, cities, networks, and custom tags.'
+											: 'Our magic search supports names of continents, regions, countries, US states, cities, and custom tags.'
 									}
 									<br/><br/>
 									Use <code>+</code> to combine multiple filters, and <code>,</code> to select multiple locations.
@@ -268,7 +268,7 @@
 							return;
 						}
 
-						let geographical = this.get('geographical');
+						let addNetworks = this.get('addNetworks');
 
 						// The input allows several queries separated by a comma.
 						// Each query may have multiple parts separated by a plus sign.
@@ -374,7 +374,7 @@
 						};
 
 						return [
-							!geographical && initSource('tags', {
+							initSource('tags', {
 								templates: {
 									item ({ item, html }) {
 										return columns(html, item.value, `${item.count}`);
@@ -416,7 +416,7 @@
 									},
 								},
 							}),
-							!geographical && initSource('networks', {
+							addNetworks && initSource('networks', {
 								templates: {
 									item ({ item, html }) {
 										return columns(html, `${item.value}`, `${item.count}`);
@@ -527,7 +527,7 @@
 
 				let createNormalizedProbeList = (probes) => {
 					normalizedProbes = probes.map((probe) => {
-						let geographical = this.get('geographical');
+						let addNetworks = this.get('addNetworks');
 						let countryName = countriesByCode[probe.location.country]?.name || probe.location.country;
 						let continentName = continentsByCode[probe.location.continent]?.name || probe.location.continent;
 
@@ -537,9 +537,9 @@
 							state: probe.location.state ? `US-${probe.location.state}` : '',
 							country: `${countryName}\n${probe.location.country}`,
 							continent: `${continentName}\n${probe.location.continent}`,
-							...!geographical && {
+							tags: probe.tags.filter(tag => !tag.startsWith('u-')),
+							...addNetworks && {
 								network: probe.location.network.trim(),
-								tags: probe.tags.filter(tag => !tag.startsWith('u-')),
 							},
 						};
 
@@ -603,7 +603,7 @@
 				};
 
 				let createIndexFor = (filteredProbes, conditions) => {
-					let geographical = this.get('geographical');
+					let addNetworks = this.get('addNetworks');
 					let index = {};
 					index.global = [
 						'World',
@@ -614,9 +614,9 @@
 					index.continents = filteredProbes.map(probe => probe.continent);
 					index.regions = filteredProbes.map(probe => probe.region);
 					index.states = filteredProbes.map(probe => probe.state).filter(v => v);
+					index.tags = filteredProbes.map(probe => probe.tags).flat();
 
-					if (!geographical) {
-						index.tags = filteredProbes.map(probe => probe.tags).flat();
+					if (addNetworks) {
 						index.networks = filteredProbes.map(probe => probe.network).filter(network => network && !network.includes(','));
 					}
 
@@ -674,11 +674,8 @@
 
 					index.count = filteredProbes.length;
 					index.countCap = conditions.length ? index.count - 1 : index.count;
-
-					if (!geographical) {
-						index.tags.unshift(...index.global);
-						index.tags[0].count = filteredProbes.length;
-					}
+					index.tags.unshift(...index.global);
+					index.tags[0].count = filteredProbes.length;
 
 					indexForConditions[conditions.join('+')] = index;
 				};
