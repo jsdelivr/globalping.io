@@ -83,6 +83,23 @@ export default defineNuxtConfig({
 			script: [
 				{ src: 'https://cdn.jsdelivr.net/npm/jquery@3.6.3/dist/jquery.slim.min.js', defer: true },
 				{ src: 'https://cdn.jsdelivr.net/npm/bootstrap@3.3.7/dist/js/bootstrap.js', defer: true },
+				{
+					type: 'application/ld+json',
+					innerHTML: JSON.stringify({
+						'@context': 'https://schema.org',
+						'@type': 'Organization',
+						'name': 'Globalping',
+						'alternateName': 'globalping',
+						'description': 'A global, open source, network testing and monitoring platform',
+						'url': 'https://globalping.io',
+						'logo': 'https://cdn.jsdelivr.net/gh/jsdelivr/globalping-media@refs/heads/master/logo/full_colored_dark.svg',
+						'sameAs': [
+							'https://x.com/jsdelivr',
+							'https://www.linkedin.com/company/globalping/',
+							'https://github.com/jsdelivr/globalping',
+						],
+					}),
+				},
 			],
 		},
 	},
