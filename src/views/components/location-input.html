@@ -418,7 +418,7 @@
 						].map((source) => {
 							return filterSourceResults(source);
 						}).sort((a, b) => {
-						// For sections with the same rank, order by the number of probes in the first location.
+							// For sections with the same rank, order by the number of probes in the first location.
 							if (a.rank === b.rank) {
 								return (b.getItems()[0]?.count || 0) - (a.getItems()[0]?.count || 0);
 							}
@@ -527,8 +527,8 @@
 							state: probe.location.state ? `US-${probe.location.state}` : '',
 							country: `${countryName}\n${probe.location.country}`,
 							continent: `${continentName}\n${probe.location.continent}`,
-							tags: probe.tags.filter(tag => !tag.startsWith('u-')),
 							network: probe.location.network.trim(),
+							tags: probe.tags.filter(tag => !tag.startsWith('u-')),
 						};
 
 						if (probe.location.country === 'GB') {
@@ -658,6 +658,7 @@
 
 					index.count = filteredProbes.length;
 					index.countCap = conditions.length ? index.count - 1 : index.count;
+
 					index.tags.unshift(...index.global);
 					index.tags[0].count = filteredProbes.length;
 
