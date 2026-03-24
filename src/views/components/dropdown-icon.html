@@ -1,0 +1,20 @@
+<span class="c-dropdown-icon">
+	{{#if class}}
+		<i class="{{class}}" aria-hidden="true" style="font-size: {{size}}; margin-top: {{top}};"></i>
+	{{elseif src}}
+		<img src="{{src}}" width="{{size}}" style="margin-top: {{top}};" alt="">
+	{{/if}}
+</span>
+
+<script>
+	component.exports = {
+		data () {
+			return {
+				class: '',
+				top: '0',
+				size: '',
+				src: '',
+			};
+		},
+	};
+</script>
