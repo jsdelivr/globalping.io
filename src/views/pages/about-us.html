@@ -313,11 +313,11 @@
 			this.animate('responseTime', 14, { duration: 2000 });
 
 			this.set('fieldWidths', {
-				totalProbes: _.numericalFieldWidth(response.length, 3) + 1,
-				totalCities: _.numericalFieldWidth(totalCities, 3) + 1,
-				totalCountries: _.numericalFieldWidth(totalCountries, 2) + 1,
+				totalProbes: _.numericalFieldWidth(response.length) + 1,
+				totalCities: _.numericalFieldWidth(totalCities) + 1,
+				totalCountries: _.numericalFieldWidth(totalCountries) + 1,
 				totalMeasurements: 5,
-				totalASNs: _.numericalFieldWidth(totalASNs, 3) + 1,
+				totalASNs: _.numericalFieldWidth(totalASNs) + 1,
 				responseTime: 5,
 			});
 		},
