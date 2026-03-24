@@ -734,4 +734,9 @@ module.exports = {
 			'\'': '&#39;',
 		}[ch]));
 	},
+
+	numericalFieldWidth (value, minWidth = 1) {
+		let optimalWidth = Math.floor(Math.log10(Math.abs(value))) + (value < 0 ? 1 : 0) + 1;
+		return Math.max(optimalWidth, minWidth);
+	},
 };

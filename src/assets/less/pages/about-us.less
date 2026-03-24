@@ -137,7 +137,7 @@
 
 					@media (min-width: @screen-md-min) {
 						flex-direction: row;
-						column-gap: 14px;
+						column-gap: 10px;
 					}
 
 					&_item {
@@ -169,6 +169,10 @@
 							background-clip: text;
 							-webkit-background-clip: text;
 							color: transparent;
+
+							& > span {
+								display: inline-block;
+							}
 						}
 					}
 				}
