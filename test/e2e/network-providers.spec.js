@@ -25,7 +25,7 @@ test('Network providers page', async ({ page }) => {
 	await autocomplete.click();
 	await page.keyboard.press('ArrowDown');
 	await page.keyboard.press('Enter');
-	await expect(autocomplete).toHaveValue(/.*Europe.*/);
+	await expect(autocomplete).toHaveValue('Western Europe');
 
 	let sortBySelect = page.getByTestId('sort-by-select');
 	await expect(sortBySelect).toBeVisible();
