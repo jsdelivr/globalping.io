@@ -496,7 +496,7 @@
 				return { city, country, countryCode: location.country.split(', ')[0], latitude, longitude };
 			};
 
-			return data.reduce((res, probe) => {
+			let byNetwork = data.reduce((res, probe) => {
 				let { location } = probe;
 				let { latitude, longitude, ...locationInfo } = extractLocationInfo(location);
 				let networkNameAsKey = _.networkNameToKey(location.network);
@@ -539,6 +539,12 @@
 
 				return res;
 			}, {});
+
+			Object.values(byNetwork).forEach((network) => {
+				network.asnList.sort((a, b) => a - b);
+			});
+
+			return byNetwork;
 		},
 		onMarkerClick ({ latitude, longitude }) {
 			// find the location which contains the clicked marker's coordinates

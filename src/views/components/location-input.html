@@ -72,6 +72,8 @@
 				exposeProbes: false,
 				results: [],
 				completedValue: '',
+				supportedFeaturesMessage: '',
+				reshapeResults: sources => sources,
 			};
 		},
 		oninit () {
@@ -232,7 +234,7 @@
 							root,
 						);
 					},
-					renderNoResults ({ html, render, state }, root) {
+					renderNoResults: ({ html, render, state }, root) => {
 						return render(html`
 							<div class="aa-PanelLayout">
 								<section class="aa-gp-info">
@@ -240,23 +242,20 @@
 								</section>
 
 								<div class="aa-gp-no-results">
-									Our magic search supports names of continents, regions, countries, US states, cities, networks, and custom tags.<br/><br/>
+									${this.get('supportedFeaturesMessage') || 'Our magic search supports names of continents, regions, countries, US states, cities, networks, and custom tags.'}
+									<br/><br/>
 									Use <code>+</code> to combine multiple filters, and <code>,</code> to select multiple locations.
 								</div>
 							</div>
 						`, root);
 					},
-					reshape ({ sources }) {
+					reshape: ({ sources }) => {
 						return [
-							limit(sources),
+							limit(this.get('reshapeResults')(sources)),
 						];
 					},
-					shouldPanelOpen: ({ state }) => {
-						if (this.get('locationAutofilled')) {
-							return false;
-						}
-
-						return state.collections.some(c => c.items.length > 0);
+					shouldPanelOpen: () => {
+						return !this.get('locationAutofilled');
 					},
 					getSources: ({ query }) => {
 						if (!indexForConditions) {

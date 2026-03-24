@@ -324,6 +324,12 @@
 		visibility: hidden;
 	}
 
+	&:has(.navbar-hidden) {
+		.navbar-toggle {
+			display: none;
+		}
+	}
+
 	.navbar-nav {
 		& > li {
 			& > a, button {
