@@ -251,12 +251,8 @@
 							limit(sources),
 						];
 					},
-					shouldPanelOpen: ({ state }) => {
-						if (this.get('locationAutofilled')) {
-							return false;
-						}
-
-						return state.collections.some(c => c.items.length > 0);
+					shouldPanelOpen: () => {
+						return !this.get('locationAutofilled');
 					},
 					getSources: ({ query }) => {
 						if (!indexForConditions) {
