@@ -84,7 +84,7 @@
 									</a>
 								</h3>
 								<h4>
-									{{this.locations.toLocaleString('en-US')}} {{~/topProviderLocation}}
+									{{this.locations.toLocaleString('en-US')}} {{~/getTopProviderLocationText(this.locations)}}
 								</h4>
 								<div>
 									{{#each this[~/topProvidersDisplayedField]}}
@@ -210,7 +210,7 @@
 				continentCount: 0,
 				topProviders: [],
 				topProvidersDisplayedField: 'continents',
-				topProviderLocation: 'worldwide',
+				getTopProviderLocationText: n => `${_.pluralize('location', n)} worldwide`,
 				allProviders: [],
 				sortOrder: DEFAULT_SORT_ORDER,
 				networkDomainMap: Object.create(null),
@@ -385,19 +385,18 @@
 
 			let location = this.get('location');
 			let locationLc = location.toLowerCase();
-			let locationText = _.pluralize('location', this.locations);
-			let topProviderLocation = `matching ${locationText}`;
+			let getTopProviderLocationText = n => `matching ${_.pluralize('location', n)}`;
 
 			if (locationLc === 'world') {
-				topProviderLocation = `${locationText} worldwide`;
+				getTopProviderLocationText = n => `${_.pluralize('location', n)} worldwide`;
 			} else if (CONTINENTS.some(c => c.name.toLowerCase() === locationLc) || COUNTRIES.some(c => c.name.toLowerCase() === locationLc)) {
-				topProviderLocation = `${locationText} in ${location}`;
+				getTopProviderLocationText = n => `${_.pluralize('location', n)} in ${location}`;
 			}
 
 			this.set({
 				topProviders,
 				topProvidersDisplayedField,
-				topProviderLocation,
+				getTopProviderLocationText,
 			});
 		},
 		setAllProviders () {
