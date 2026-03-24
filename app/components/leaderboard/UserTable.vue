@@ -2,12 +2,12 @@
 	<table class="w-full min-w-150 border-b text-left text-sm" :class="userList.length > 0 ? 'border-b-surface-300' : ''">
 		<thead class="bg-surface-200 border-b-surface-300 border-b">
 			<tr>
-				<th class="w-16 px-6 py-3 font-medium">#</th>
+				<th class="w-24 py-3 pr-6 pl-12 font-medium">#</th>
 				<th class="px-4 py-3 font-medium">Contributor</th>
 				<th
 					v-for="col in columns"
 					:key="col.key"
-					class="border-surface-300 w-[15%] px-4 py-3 text-right font-medium select-none"
+					class="border-surface-300 w-[15%] px-4 py-3 text-right font-medium select-none last:pr-12"
 				>
 					{{ col.label }}
 				</th>
@@ -38,7 +38,7 @@
 					:key="user.username"
 					class="group hover:bg-surface-50 text-right transition-colors"
 				>
-					<td class="py-2 text-center">
+					<td class="py-2 pl-2 text-center">
 						<span
 							class="text-surface-500 relative inline-flex size-8 items-center justify-center rounded-full bg-linear-to-br text-lg"
 							:class="{
@@ -67,7 +67,7 @@
 					<td class="px-4 py-2 tabular-nums">{{ formatNumber(user.cities) }}</td>
 					<td class="px-4 py-2 tabular-nums">{{ formatNumber(user.countries) }}</td>
 					<td class="px-4 py-2 tabular-nums">{{ formatNumber(user.asns) }}</td>
-					<td class="px-4 py-2 tabular-nums">{{ formatNumber(user.totalProbes) }}</td>
+					<td class="py-2 pr-12 pl-4 tabular-nums">{{ formatNumber(user.totalProbes) }}</td>
 				</tr>
 			</tbody>
 		</ClientOnly>
