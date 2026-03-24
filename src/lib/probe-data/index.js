@@ -24,9 +24,10 @@ const updateStatsForNetwork = (networkStatistics, location) => {
 			name: location.network,
 			cities: new Set(),
 			countries: new Set(),
+			asns: new Set(),
 			continents: Object.create(null),
 			probes: 0,
-			domain: null,
+			domain: null, // to be created later
 			logoPromise: null,	// to be created later
 		};
 	}
@@ -40,10 +41,21 @@ const updateStatsForNetwork = (networkStatistics, location) => {
 	networkStatistics[networkKey].probes++;
 	networkStatistics[networkKey].cities.add(location.city);
 	networkStatistics[networkKey].countries.add(location.country);
+	networkStatistics[networkKey].asns.add(location.asn);
+};
 
-	if (location.asn && !networkStatistics[networkKey].domain && asnToDomain?.[`AS${location.asn}`]) {
-		networkStatistics[networkKey].domain = asnToDomain[`AS${location.asn}`];
+const getDomainFromAsns = (asnList) => {
+	if (!asnToDomain) {
+		return null;
 	}
+
+	for (let asn of asnList) {
+		if (asn && asnToDomain[`AS${asn}`]) {
+			return asnToDomain[`AS${asn}`];
+		}
+	}
+
+	return null;
 };
 
 function createProbeUrls (parsedData, ignoredFields) {
@@ -123,8 +135,11 @@ const parseRawProbeData = () => {
 			...val,
 			cities: val.cities.size,
 			countries: val.countries.size,
+			asns: Array.from(val.asns).sort((lhs, rhs) => lhs - rhs),
 			continents: Object.entries(val.continents).sort((lhs, rhs) => rhs[1] - lhs[1] || lhs[0].localeCompare(rhs[0])),
 		};
+
+		acc[key].domain = getDomainFromAsns(acc[key].asns);
 
 		return acc;
 	}, Object.create(null));
