@@ -15,7 +15,8 @@
 				exposeProbes="{{true}}"
 				results="{{locationProbes}}"
 				completedValue="{{locationCompletedValue}}"
-				addNetworks="{{addNetworks}}">
+				reshapeResults="{{reshapeResults}}"
+				supportedFeaturesMessage={{supportedFeaturesMessage}}>
 				{{#partial labelIcon}}
 				<img
 					as-tooltip="['This magic field supports names of continents, regions, countries, US states, cities, ' + (addNetworks ? 'networks,' : '') + ' and our custom tags.',
@@ -136,6 +137,22 @@
 				],
 				filtersSet: null,
 			};
+		},
+		computed: {
+			supportedFeaturesMessage () {
+				if (this.get('addNetworks')) {
+					return undefined;
+				}
+
+				return 'Our magic search supports names of continents, regions, countries, US states, cities, and custom tags.';
+			},
+			reshapeResults () {
+				if (this.get('addNetworks')) {
+					return sources => sources;
+				}
+
+				return sources => sources.filter(source => source.sourceId !== 'networks');
+			},
 		},
 		oninit () {
 			if (!Ractive.isServer) {
