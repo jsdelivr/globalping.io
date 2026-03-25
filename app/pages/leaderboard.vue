@@ -36,7 +36,7 @@
 				</div>
 			</div>
 			<img
-				class="pointer-events-none absolute inset-0 mx-auto h-full min-h-86 w-full max-w-400 object-cover object-center opacity-70 max-md:opacity-75"
+				class="pointer-events-none absolute inset-0 mx-auto h-full min-h-91 w-full max-w-400 object-cover object-center opacity-70 max-md:opacity-75 md:h-96.5"
 				src="~/assets/images/backgrounds/arrows.svg"
 				alt=""
 			>
