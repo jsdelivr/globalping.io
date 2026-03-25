@@ -25,16 +25,16 @@ declare global {
 	};
 
 
-	type Probe<TCountry extends string = string> = {
+	type Probe = {
 		location: {
 			asn: number;
 			city: string;
-			country: TCountry;
+			country: string;
 			latitude: number;
 			longitude: number;
 			network: string;
 			region: string;
-			state: TCountry extends 'US' ? string : null;
+			state: string | null;
 		};
 		resolvers: string[];
 		tags: string[];
