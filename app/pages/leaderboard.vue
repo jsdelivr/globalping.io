@@ -92,7 +92,7 @@
 	const { page, first, template, pageLinkSize } = usePagination({ itemsPerPage: ITEMS_PER_PAGE });
 	const { userCount, userList, countriesCovered, probesHosted, loading } = useUserLeaderboard({ page, itemsPerPage: ITEMS_PER_PAGE });
 
-	usePageHead({ title: 'Globalping User Leaderboard' });
+	usePageHead({ title: 'Globalping Leaderboard' });
 </script>
 
 <style scoped>
