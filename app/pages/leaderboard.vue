@@ -1,6 +1,6 @@
 <template>
-	<main class="relative -mb-4 flex w-full flex-col items-center gap-6 overflow-hidden max-md:gap-0 md:pb-16">
-		<section class="bg-surface-50 relative flex w-full flex-col items-center overflow-hidden py-16 pb-42 max-md:py-8">
+	<main class="relative flex w-full flex-col items-center gap-6 overflow-hidden max-lg:gap-0">
+		<section class="bg-surface-50 relative flex w-full flex-col items-center overflow-hidden py-16 pb-42 max-lg:py-12 max-md:py-8">
 			<div class="max-w-section z-10 flex w-full max-w-[90vw] flex-col gap-4 text-left">
 				<h1>
 					Leaderboard
@@ -36,26 +36,26 @@
 				</div>
 			</div>
 			<img
-				class="pointer-events-none absolute inset-0 mx-auto h-96.5 w-full max-w-400 object-cover object-center opacity-70 max-md:opacity-75"
+				class="pointer-events-none absolute inset-0 mx-auto h-96.5 w-full max-w-400 object-cover object-center opacity-70 max-lg:opacity-75"
 				src="~/assets/images/backgrounds/arrows.svg"
 				alt=""
 			>
-			<div class="absolute inset-x-0 bottom-0 h-25 w-full opacity-65 max-md:-bottom-10 max-md:opacity-40">
-				<span class="absolute inset-x-0 bottom-0 mx-auto h-30 w-150 max-w-1/3 translate-x-1/2 translate-y-3/5 rounded-full bg-blue-500 blur-3xl max-md:translate-x-full"/>
+			<div class="absolute inset-x-0 bottom-0 h-25 w-full opacity-65 max-lg:-bottom-10 max-lg:opacity-40">
+				<span class="absolute inset-x-0 bottom-0 mx-auto h-30 w-150 max-w-1/3 translate-x-1/2 translate-y-3/5 rounded-full bg-blue-500 blur-3xl max-lg:translate-x-full"/>
 				<span class="bg-primary absolute inset-x-0 bottom-0 mx-auto h-30 w-150 max-w-1/3 translate-y-3/5 rounded-full blur-3xl"/>
-				<span class="absolute inset-x-0 bottom-0 mx-auto h-30 w-150 max-w-1/3 -translate-x-1/2 translate-y-3/5 rounded-full bg-blue-500 blur-3xl max-md:-translate-x-full"/>
+				<span class="absolute inset-x-0 bottom-0 mx-auto h-30 w-150 max-w-1/3 -translate-x-1/2 translate-y-3/5 rounded-full bg-blue-500 blur-3xl max-lg:-translate-x-full"/>
 				<span class="bg-primary absolute inset-x-0 bottom-0 h-4 w-full translate-y-1/2 rounded-full blur-2xl"/>
 			</div>
 		</section>
-		<section class="max-w-section z-10 w-full bg-white px-14 pt-8 pb-14 shadow-xl max-md:p-4 max-md:pt-8 md:-translate-y-26 md:rounded-2xl md:border">
+		<section class="max-w-section z-10 w-full bg-white px-14 pt-8 pb-14 max-lg:p-4 max-lg:pt-8 lg:-translate-y-26 lg:rounded-2xl lg:border lg:shadow-xl">
 			<h3 class="mb-4">
 				Most hosted probes
 			</h3>
-			<div class="border-surface-300 w-full rounded-lg md:overflow-hidden md:border md:shadow-lg">
-				<div class="overflow-x-auto max-md:hidden">
+			<div class="border-surface-300 w-full rounded-lg lg:overflow-hidden lg:border lg:shadow-lg">
+				<div class="overflow-x-auto max-lg:hidden">
 					<LeaderboardUserTable :user-list="userList" :loading="loading"/>
 				</div>
-				<div class="mb-4 md:hidden">
+				<div class="mb-4 lg:hidden">
 					<LeaderboardUserList :user-list="userList" :loading="loading"/>
 				</div>
 				<ClientOnly>
