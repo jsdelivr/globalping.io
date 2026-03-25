@@ -1,6 +1,6 @@
 <template>
-	<table class="relative flex max-h-[min(75vh,732px)] w-full min-w-150 flex-col border-b text-left text-sm" :class="userList.length > 0 ? 'border-b-surface-300' : ''">
-		<thead class="bg-surface-200 border-b-surface-300 table w-full shrink-0 table-fixed border-b">
+	<table class="relative flex max-h-137.5 w-full min-w-150 flex-col border-b text-left text-sm" :class="userList.length > 0 ? 'border-b-surface-300' : ''">
+		<thead class="bg-surface-200 border-b-surface-300 table h-12.5 w-full shrink-0 table-fixed border-b">
 			<tr>
 				<th class="w-24 py-3 pr-6 pl-12 font-medium">#</th>
 				<th class="px-4 py-3 font-medium">Contributor</th>
@@ -36,7 +36,7 @@
 					v-for="user in userList"
 					v-else
 					:key="user.username"
-					class="group hover:bg-surface-50 table w-full table-fixed text-right transition-colors"
+					class="group hover:bg-surface-50 table h-12.5 w-full table-fixed text-right transition-colors"
 				>
 					<td class="w-24 py-2 pl-2 text-center">
 						<span
