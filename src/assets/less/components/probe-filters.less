@@ -1,3 +1,5 @@
+@import "../variables.less";
+
 .gp-probe-filters {
 	display: flex;
 	flex-direction: column;
@@ -110,8 +112,7 @@
 		@media (min-width: @screen-md-min) {
 			flex-direction: row;
 			align-items: center;
-			column-gap: 24px;
-			row-gap: 24px;
+			gap: 24px;
 		}
 
 		&_title {
@@ -130,7 +131,7 @@
 		&_list {
 			display: flex;
 			flex-wrap: wrap;
-			gap: 8px 8px;
+			gap: 8px;
 
 			&_item, &_selected {
 				display: flex;
