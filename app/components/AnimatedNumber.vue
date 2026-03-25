@@ -1,6 +1,8 @@
 <template>
-	<span ref="wrapperRef" class="relative z-0 inline-flex text-start">
-		<span class="pointer-events-none invisible" aria-hidden="true">{{ number }}</span>
+	<span ref="wrapperRef" class="relative z-0 inline-flex h-[1em] text-start leading-none">
+		<span class="pointer-events-none invisible" aria-hidden="true">
+			<ClientOnly>{{ number }}</ClientOnly>&#8203;
+		</span>
 		<span class="absolute inset-0">{{ displayedNumber }}</span>
 		<span
 			v-if="underline"
