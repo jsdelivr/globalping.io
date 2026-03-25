@@ -303,14 +303,14 @@
 			let totalCountries = countries.size;
 			let totalASNs = asns.size;
 
-			this.animate('totalProbes', response.length, { duration: 2000 });
-			this.animate('totalCities', totalCities, { duration: 2000 });
-			this.animate('totalCountries', totalCountries, { duration: 2000 });
-			this.animate('totalASNs', totalASNs, { duration: 2000 });
+			this.animate('totalProbes', response.length, { duration: 1500 });
+			this.animate('totalCities', totalCities, { duration: 1500 });
+			this.animate('totalCountries', totalCountries, { duration: 1500 });
+			this.animate('totalASNs', totalASNs, { duration: 1500 });
 
 			// TODO: 670 temp as static values
-			this.animate('totalMeasurements', 300, { duration: 2000 });
-			this.animate('responseTime', 14, { duration: 2000 });
+			this.animate('totalMeasurements', 300, { duration: 1500 });
+			this.animate('responseTime', 14, { duration: 1500 });
 
 			this.set('fieldWidths', {
 				totalProbes: _.numericalFieldWidth(response.length) + 1,

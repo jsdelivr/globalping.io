@@ -16,13 +16,17 @@ let popoverDecorator = (node, contentHtml) => {
 
 	let nodeClickHandler = (e) => {
 		e.preventDefault();
+		e.stopPropagation();
 		$node.popover('toggle');
+		$(document).trigger('click.gpPopover');
 	};
 
 	let keydownHandler = (e) => {
 		if (e.key === 'Enter' || e.key === ' ') {
 			e.preventDefault();
+			e.stopPropagation();
 			$node.popover('toggle');
+			$(document).trigger('click.gpPopover');
 		}
 	};
 
@@ -81,6 +85,7 @@ let popoverDecorator = (node, contentHtml) => {
 
 	return {
 		update (newContentHtml) {
+			$node.popover('hide');
 			let popover = $(node).data('bs.popover');
 
 			if (popover && popover.options) {

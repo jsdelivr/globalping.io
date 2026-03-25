@@ -1,80 +1,21 @@
 <link rel="ractive" href="./select.html" name="c-select">
-<link rel="ractive" href="./location-input.html" name="c-location-input">
 <link rel="ractive" href="./probe-single-card.html" name="c-probe-single-card">
+<link rel="ractive" href="./probe-filters.html" name="c-probe-filters">
+<link rel="ractive" href="./probe-loading-state.html" name="c-probe-loading-state">
 
 <div class="gp-filtered-list">
-	<div class="gp-filtered-list_filters">
-		<div class="gp-filtered-list_filters_row">
-			<div class="gp-filtered-list_filters_field gp-filtered-list_filters_field--location">
-				<c-location-input
-					rawProbes="{{rawProbes}}"
-					value="{{location}}"
-					error="{{locationError}}"
-					placeholder="Enter location"
-					labelText="Location"
-					classList="gp_map-block_settings-wrapper_settings_location gp_input"
-					ttPos="{{ttPositions.locationTtPos}}"
-					exposeProbes="{{true}}"
-					results="{{locationProbes}}"
-					completedValue="{{locationCompletedValue}}">
-					{{#partial labelIcon}}
-						<img as-tooltip="[ 'This magic field supports names of continents, regions, countries, US states, cities, networks, and our custom tags.', '', 'Use + to combine multiple filters.', 'Use , to select multiple locations.' ], ttPos, undefined, undefined, 'multiline'"
-							width="14"
-							height="14"
-							src="{{@shared.assetsHost}}/img/help-icon.svg"
-						>
-					{{/partial}}
-				</c-location-input>
-			</div>
-
-			<div class="gp-filtered-list_filters_field gp-filtered-list_filters_field--group-by">
-				<label>Group by</label>
-				<c-select
-					options="{{groupingOptions}}"
-					selected="{{groupBy}}"
-					name="group-by-select"
-				/>
-			</div>
-
-			<div class="gp-filtered-list_filters_field gp-filtered-list_filters_field--sort-by">
-				<label>Sort by</label>
-				<c-select
-					options="{{sortOptions}}"
-					disabled="{{groupBy === 'disabled'}}"
-					selected="{{sortOrder}}"
-					name="sort-by-select"
-				/>
-			</div>
-		</div>
-		<div class="gp-filtered-list_filters_quick">
-			<span class="gp-filtered-list_filters_quick_title">
-				<span>Quick Filters:</span>
-			</span>
-
-			<div class="gp-filtered-list_filters_quick_list">
-				{{#each filtersSet}}
-					<span class="gp-filtered-list_filters_quick_list_selected">
-						{{this.name}}
-						<button data-testid="quick-filter-{{this.name}}" on-click="@this.rmFilterRule(@key)"
-							type="button"
-							class="gp-filtered-list_filters_quick_list_selected_remove">
-							<img width="16" height="16" src="{{@shared.assetsHost}}/img/tag-input-close-icon.svg">
-						</button>
-					</span>
-				{{/each}}
-
-				{{#each availableFilters}}
-					{{#unless this.selected}}
-						<button data-testid="quick-filter-{{this.name}}" on-click="@this.setFilterRule(@key)"
-							type="button"
-							class="gp-filtered-list_filters_quick_list_item">
-							{{this.name}}
-						</button>
-					{{/unless}}
-				{{/each}}
-			</div>
-		</div>
-	</div>
+	<c-probe-filters
+		rawProbes="{{rawProbes}}"
+		location="{{location}}"
+		locationError="{{locationError}}"
+		locationProbes="{{locationProbes}}"
+		locationCompletedValue="{{locationCompletedValue}}"
+		ttPositions="{{ttPositions}}"
+		groupingOptions="{{groupingOptions}}"
+		groupBy="{{groupBy}}"
+		sortOptions="{{sortOptions}}"
+		sortOrder="{{sortOrder}}"
+	/>
 
 	{{#if preparedProbeBlocks && preparedProbeBlocks.length > 0}}
 		<p class="gp-filtered-list_result-count">
@@ -117,117 +58,104 @@
 	{{/if}}
 
 	<div class="gp-filtered-list_list {{groupBy === 'disabled' ? 'disabled-group-by' : ''}}">
-		{{#if probesLoading}}
-			<div class="gp-filtered-list_list_loading">
-				Loading...
-			</div>
-		{{elseif probesError}}
-			<div class="gp-filtered-list_list_error">
-				Failed to load probes. Please try again later.
-				<button type="button" on-click="refresh()">Try again</button>
-			</div>
-		{{else}}
-			{{#if preparedProbeBlocks && preparedProbeBlocks.length === 0}}
-				<div class="gp-filtered-list_list_no-result">
-					{{#if rawProbes && rawProbes.length}}
-					No results found. Try adjusting your filters.
+		<c-probe-loading-state
+			loading="{{probesLoading}}"
+			error="{{probesError}}"
+			hasData="{{locationProbes.length}}"
+			filter="{{filter}}"
+		/>
+		{{#if preparedProbeBlocks.length}}
+			{{#each preparedProbeBlocks as block}}
+				<div class="gp-filtered-list_list_block group-by-{{groupBy}}">
+					{{#if groupBy === 'disabled'}}
+						{{#each visibleProbeCards as item : index}}
+							<c-probe-single-card
+								location="{{item.location}}"
+								tags="{{item.tags}}"
+								render="{{!loadingProbeCards || index < defaultCardRenderLimit}}"
+								screenWidth="{{screenWidth}}"
+								locationFilter="{{~/location}}">
+							</c-probe-single-card>
+						{{/each}}
+						{{#if visibleProbeCards.length < block.items.length || loadingProbeCards}}
+							<button type="button" on-click="@this.showAllProbeCards()" {{#if loadingProbeCards}}disabled{{/if}}>
+								{{#if loadingProbeCards}}
+									<i class="fa fa-circle-o-notch fa-spin" aria-hidden="true"></i>
+								{{/if}}
+								Show all
+							</button>
+						{{/if}}
 					{{else}}
-					No probes found.
+						<div class="gp-filtered-list_list_block_group group-by-{{groupBy}}" data-testid="probe-block-group">
+							{{#if block.title}}
+								<span class="gp-filtered-list_list_block_group_item cont-header" id="probe-group-{{block.title}}">
+									<img width="24" height="24" src="{{@shared.assetsHost}}/img/network/continent-{{block.title.toLowerCase()}}.svg" alt="" aria-hidden="true">
+									{{@this.getContinentName(block.title)}}
+								</span>
+							{{/if}}
+							{{#each block.items as item}}
+								{{#if item.networks && item.networks.length}}
+									<div class="gp-filtered-list_list_block_group_networks-item">
+										<span class="gp-filtered-list_list_block_group_networks-item_country">
+											<img loading="lazy"
+												width="17"
+												height="20"
+												alt=""
+												aria-hidden="true"
+												src="https://cdn.jsdelivr.net/npm/country-flag-icons@1.5.5/3x2/{{item.location.split(', ')[0]}}.svg">
+											{{item.name}}
+										</span>
+										<div class="gp-filtered-list_list_block_group_networks-item_networks">
+											{{#each item.networks}}
+												<span tabindex="0"
+													role="button"
+													as-popover="@this.getPopoverContent(item.from, this.name)">
+													<span class="gp-filtered-list_list_block_group_networks-item_network">
+														{{name}}{{#if count > 1}} (x{{this.count}}){{/if}}
+													</span>
+												</span>
+											{{/each}}
+										</div>
+									</div>
+								{{else}}
+									<div class="gp-filtered-list_list_block_group_item"
+										tabindex="0"
+										role="button"
+										as-popover="@this.getPopoverContent(item.from)"
+									>
+										{{#if item.showFlag}}
+											<img loading="lazy"
+												width="17"
+												height="20"
+												alt=""
+												aria-hidden="true"
+												src="https://cdn.jsdelivr.net/npm/country-flag-icons@1.5.5/3x2/{{item.location.split(', ')[0]}}.svg">
+										{{elseif groupBy === 'network'}}
+											<span class="gp-filtered-list_network-logo">
+												{{#if @this.getDomainForNetwork(item.name)}}
+													<img width="20"
+														height="20"
+														src="https://img.jsdelivr.com/img.logo.dev/{{@this.getDomainForNetwork(item.name)}}?format=png"
+														loading="lazy"
+														alt=""
+														aria-hidden="true"
+													>
+												{{else}}
+													{{item.name[0]}}
+												{{/if}}
+											</span>
+										{{/if}}
+										<span class="gp-filtered-list_list_block_group_item_location">
+											{{item.name}}
+										</span>
+										<span class="gp-filtered-list_list_block_group_item_count">{{item.probes.length}}</span>
+									</div>
+								{{/if}}
+							{{/each}}
+						</div>
 					{{/if}}
 				</div>
-			{{else}}
-				{{#each preparedProbeBlocks as block}}
-					<div class="gp-filtered-list_list_block group-by-{{groupBy}}">
-						{{#if groupBy === 'disabled'}}
-							{{#each visibleProbeCards as item : index}}
-								<c-probe-single-card
-									location="{{item.location}}"
-									tags="{{item.tags}}"
-									render="{{!loadingProbeCards || index < defaultCardRenderLimit}}"
-									screenWidth="{{screenWidth}}"
-									locationFilter="{{~/location}}">
-								</c-probe-single-card>
-							{{/each}}
-							{{#if visibleProbeCards.length < block.items.length || loadingProbeCards}}
-								<button type="button" on-click="@this.showAllProbeCards()" {{#if loadingProbeCards}}disabled{{/if}}>
-									{{#if loadingProbeCards}}
-										<i class="fa fa-circle-o-notch fa-spin" aria-hidden="true"></i>
-									{{/if}}
-									Show all
-								</button>
-							{{/if}}
-						{{else}}
-							<div class="gp-filtered-list_list_block_group group-by-{{groupBy}}" data-testid="probe-block-group">
-								{{#if block.title}}
-									<span class="gp-filtered-list_list_block_group_item cont-header" id="probe-group-{{block.title}}">
-										<img width="24" height="24" src="{{@shared.assetsHost}}/img/network/continent-{{block.title.toLowerCase()}}.svg" alt="" aria-hidden="true">
-										{{@this.getContinentName(block.title)}}
-									</span>
-								{{/if}}
-								{{#each block.items as item}}
-									{{#if item.networks && item.networks.length}}
-										<div class="gp-filtered-list_list_block_group_networks-item">
-											<span class="gp-filtered-list_list_block_group_networks-item_country">
-												<img loading="lazy"
-													width="17"
-													height="20"
-													alt=""
-													aria-hidden="true"
-													src="https://cdn.jsdelivr.net/npm/country-flag-icons@1.5.5/3x2/{{item.location.split(', ')[0]}}.svg">
-												{{item.name}}
-											</span>
-											<div class="gp-filtered-list_list_block_group_networks-item_networks">
-												{{#each item.networks}}
-													<span tabindex="0"
-														role="button"
-														as-popover="@this.getPopoverContent(item.from, this.name)">
-														<span class="gp-filtered-list_list_block_group_networks-item_network">
-															{{name}}{{#if count > 1}} (x{{this.count}}){{/if}}
-														</span>
-													</span>
-												{{/each}}
-											</div>
-										</div>
-									{{else}}
-										<div class="gp-filtered-list_list_block_group_item"
-											tabindex="0"
-											role="button"
-											as-popover="@this.getPopoverContent(item.from)"
-										>
-											{{#if item.showFlag}}
-												<img loading="lazy"
-													width="17"
-													height="20"
-													alt=""
-													aria-hidden="true"
-													src="https://cdn.jsdelivr.net/npm/country-flag-icons@1.5.5/3x2/{{item.location.split(', ')[0]}}.svg">
-											{{elseif groupBy === 'network'}}
-												<span class="gp-filtered-list_network-logo">
-													{{#if @this.getDomainForNetwork(item.name)}}
-														<img width="20"
-															height="20"
-															src="https://img.jsdelivr.com/img.logo.dev/{{@this.getDomainForNetwork(item.name)}}?format=png"
-															loading="lazy"
-															alt=""
-															aria-hidden="true"
-														>
-													{{else}}
-														{{item.name[0]}}
-													{{/if}}
-												</span>
-											{{/if}}
-											<span class="gp-filtered-list_list_block_group_item_location">
-												{{item.name}}
-											</span>
-											<span class="gp-filtered-list_list_block_group_item_count">{{item.probes.length}}</span>
-										</div>
-									{{/if}}
-								{{/each}}
-							</div>
-						{{/if}}
-					</div>
-				{{/each}}
-			{{/if}}
+			{{/each}}
 		{{/if}}
 	</div>
 
@@ -246,8 +174,6 @@
 
 	const CONTINENTS = require('../../assets/json/continents.json');
 	const COUNTRIES = require('../../assets/json/countries.json');
-	const FILTER_TYPE_BY_CONTINENT = 'byContinent';
-	const FILTER_TYPE_BY_NETWORK = 'byNetwork';
 	const DEFAULT_CARD_RENDER_LIMIT = 99;
 
 	const CONTINENT_MAP = CONTINENTS.reduce((acc, continent) => {
@@ -268,48 +194,6 @@
 			return {
 				_,
 				locationError: '',
-				availableFilters: [
-					{
-						name: 'Europe',
-						value: 'Europe',
-						type: FILTER_TYPE_BY_CONTINENT,
-					},
-					{
-						name: 'North America',
-						value: 'North America',
-						type: FILTER_TYPE_BY_CONTINENT,
-					},
-					{
-						name: 'South America',
-						value: 'South America',
-						type: FILTER_TYPE_BY_CONTINENT,
-					},
-					{
-						name: 'Africa',
-						value: 'Africa',
-						type: FILTER_TYPE_BY_CONTINENT,
-					},
-					{
-						name: 'Asia',
-						value: 'Asia',
-						type: FILTER_TYPE_BY_CONTINENT,
-					},
-					{
-						name: 'Oceania',
-						value: 'Oceania',
-						type: FILTER_TYPE_BY_CONTINENT,
-					},
-					{
-						name: 'eyeball network',
-						value: 'eyeball-network',
-						type: FILTER_TYPE_BY_NETWORK,
-					},
-					{
-						name: 'datacenter',
-						value: 'datacenter-network',
-						type: FILTER_TYPE_BY_NETWORK,
-					},
-				],
 				groupingOptions: [
 					{
 						name: 'Country',
@@ -348,7 +232,6 @@
 				],
 				defaultSortOptions: {},
 				probeContinents: [],
-				filtersSet: null,
 				groupedProbes: null,
 				locationProbes: null,
 				preparedProbeBlocks: null,
@@ -459,10 +342,6 @@
 					}
 
 					this.set('ttPositions', ttPositions);
-				});
-
-				this.observe('location', () => {
-					this.updateFiltersSet();
 				});
 
 				this.observe('locationProbes', (locationProbes) => {
@@ -699,7 +578,6 @@
 
 				let groupKey = groupBy === 'disabled' ? 'disabled' : probe.location.continent;
 
-
 				if (groupBy === 'disabled') {
 					if (!Object.hasOwn(res, groupKey)) {
 						res[groupKey] = [];
@@ -733,88 +611,6 @@
 		},
 		getCountryName (code) {
 			return COUNTRIES_MAP[code] || code;
-		},
-		updateFiltersSet () {
-			let location = this.get('location');
-			let availableFilters = this.get('availableFilters');
-			availableFilters.forEach(f => f.selected = false);
-
-			if (!location) {
-				this.set('filtersSet', []);
-				this.set('availableFilters', availableFilters);
-				return;
-			}
-
-			let parts = location.split(/[+,]/).map(p => p.trim().toLowerCase());
-			let filtersSet = [];
-
-			availableFilters.forEach((f, i) => {
-				let part = parts.find((part) => {
-					return f.name.toLowerCase() === part || f.value.toLowerCase() === part;
-				});
-
-				if (part) {
-					f.selected = true;
-					f.avFiltersIdx = i;
-					filtersSet.push(f);
-				}
-			});
-
-			this.set('filtersSet', filtersSet);
-			this.set('availableFilters', availableFilters);
-		},
-		setFilterRule (idx) {
-			let availableFilters = this.get('availableFilters');
-			let selectedFilter = availableFilters[idx];
-			let location = this.get('location');
-
-			if (!location) {
-				this.set('location', selectedFilter.value);
-			} else {
-				let parts = location.split(',').map(query => query.split('+').map(p => p.trim().toLowerCase())).flat();
-				let hasContinent = false;
-				let hasNetwork = false;
-
-				for (let f of availableFilters) {
-					let matchingPart = parts.find(part => part === f.name.toLowerCase() || part === f.value.toLowerCase());
-
-					if (matchingPart) {
-						if (f.type === FILTER_TYPE_BY_CONTINENT) {
-							hasContinent = true;
-						} else if (f.type === FILTER_TYPE_BY_NETWORK) {
-							hasNetwork = true;
-						}
-					}
-				}
-
-				if (selectedFilter.type === FILTER_TYPE_BY_NETWORK && hasContinent && !hasNetwork) {
-					this.set('location', `${location}+${selectedFilter.value}`);
-				} else if (selectedFilter.type === FILTER_TYPE_BY_CONTINENT && hasNetwork && !hasContinent) {
-					this.set('location', `${location}+${selectedFilter.value}`);
-				} else {
-					this.set('location', selectedFilter.value);
-				}
-			}
-
-			this.findComponent('c-location-input')?.fire('outsideLocationChange');
-		},
-		rmFilterRule (idx) {
-			let filter = this.get('filtersSet')[idx];
-			let selectedFilter = this.get('availableFilters').find(f => f.value === filter.value);
-			let location = this.get('location');
-
-			if (location.includes(selectedFilter.value)) {
-				let parts = location.split(',');
-				let updatedParts = parts.map((part) => {
-					let segments = part.split('+').map(s => s.trim());
-					let filteredSegments = segments.filter(s => s.toLowerCase() !== filter.value.toLowerCase());
-					return filteredSegments.join('+');
-				}).filter(part => part.trim() !== '');
-
-				this.set('location', updatedParts.join(',') || 'World');
-			}
-
-			this.findComponent('c-location-input')?.fire('outsideLocationChange');
 		},
 		sortAndGroup (obj) {
 			let groupBy = this.get('groupBy');
@@ -1098,5 +894,5 @@
 
 			increaseDisplayedProbeCount();
 		},
-};
+	};
 </script>
