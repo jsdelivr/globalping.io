@@ -8,16 +8,12 @@ export default () => {
 	};
 
 	onMounted(() => {
-		if (typeof window !== 'undefined') {
-			updateWidth();
-			window.addEventListener('resize', updateWidth, { passive: true });
-		}
+		updateWidth();
+		addEventListener('resize', updateWidth, { passive: true });
 	});
 
 	onUnmounted(() => {
-		if (typeof window !== 'undefined') {
-			window.removeEventListener('resize', updateWidth);
-		}
+		removeEventListener('resize', updateWidth);
 	});
 
 	return width;
