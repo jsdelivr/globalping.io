@@ -52,7 +52,7 @@
 				Most hosted probes
 			</h3>
 			<div class="border-surface-300 w-full rounded-lg md:overflow-hidden md:border md:shadow-lg">
-				<div class="overflow-x-auto max-md:hidden md:shadow-lg">
+				<div class="overflow-x-auto max-md:hidden">
 					<LeaderboardUserTable :user-list="userList" :loading="loading"/>
 				</div>
 				<div class="mb-4 md:hidden">
