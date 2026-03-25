@@ -6,7 +6,7 @@
 					Leaderboard
 				</h1>
 				<p class="mb-12 max-md:mb-4">
-					The networks & providers powering the world’s largest open measurement platform.
+					The global community driving open internet measurements.
 				</p>
 				<div class="flex gap-16 max-md:items-stretch max-md:justify-between max-md:gap-4">
 					<div class="flex flex-col gap-1 max-md:flex-1 md:w-48">
