@@ -1,6 +1,6 @@
 <template>
-	<table class="w-full min-w-150 border-b text-left text-sm" :class="userList.length > 0 ? 'border-b-surface-300' : ''">
-		<thead class="bg-surface-200 border-b-surface-300 border-b">
+	<table class="relative flex max-h-[min(80vh,732px)] w-full min-w-150 flex-col border-b text-left text-sm" :class="userList.length > 0 ? 'border-b-surface-300' : ''">
+		<thead class="bg-surface-200 border-b-surface-300 table w-full shrink-0 table-fixed border-b">
 			<tr>
 				<th class="w-24 py-3 pr-6 pl-12 font-medium">#</th>
 				<th class="px-4 py-3 font-medium">Contributor</th>
@@ -16,17 +16,17 @@
 
 		<ClientOnly fallback-tag="tbody">
 			<template #fallback>
-				<tbody class="divide-surface-300 divide-y">
-					<LeaderboardUserTableRowSkeleton v-for="i in 10" :key="`skeleton-${i}`"/>
+				<tbody class="divide-surface-300 block w-full divide-y overflow-hidden">
+					<LeaderboardUserTableRowSkeleton v-for="i in 10" :key="`skeleton-${i}`" class="table w-full table-fixed"/>
 				</tbody>
 			</template>
 
-			<tbody v-if="loading" class="divide-surface-300 divide-y">
-				<LeaderboardUserTableRowSkeleton v-for="i in 10" :key="`skeleton-${i}`"/>
+			<tbody v-if="loading" class="divide-surface-300 block w-full divide-y overflow-y-auto">
+				<LeaderboardUserTableRowSkeleton v-for="i in 10" :key="`skeleton-${i}`" class="table w-full table-fixed"/>
 			</tbody>
 
-			<tbody v-else class="divide-surface-300 divide-y">
-				<tr v-if="userList.length === 0">
+			<tbody v-else class="divide-surface-300 block w-full divide-y overflow-y-auto">
+				<tr v-if="userList.length === 0" class="table w-full table-fixed">
 					<td colspan="6" class="text-surface-500 py-12 text-center">
 						No users found.
 					</td>
@@ -36,9 +36,9 @@
 					v-for="user in userList"
 					v-else
 					:key="user.username"
-					class="group hover:bg-surface-50 text-right transition-colors"
+					class="group hover:bg-surface-50 table w-full table-fixed text-right transition-colors"
 				>
-					<td class="py-2 pl-2 text-center">
+					<td class="w-24 py-2 pl-2 text-center">
 						<span
 							class="text-surface-500 relative inline-flex size-8 items-center justify-center rounded-full bg-linear-to-br text-lg"
 							:class="{
@@ -64,10 +64,10 @@
 							{{ user.username }}
 						</a>
 					</td>
-					<td class="px-4 py-2 tabular-nums">{{ formatNumber(user.cities) }}</td>
-					<td class="px-4 py-2 tabular-nums">{{ formatNumber(user.countries) }}</td>
-					<td class="px-4 py-2 tabular-nums">{{ formatNumber(user.asns) }}</td>
-					<td class="py-2 pr-12 pl-4 tabular-nums">{{ formatNumber(user.totalProbes) }}</td>
+					<td class="w-[15%] px-4 py-2 tabular-nums">{{ formatNumber(user.cities) }}</td>
+					<td class="w-[15%] px-4 py-2 tabular-nums">{{ formatNumber(user.countries) }}</td>
+					<td class="w-[15%] px-4 py-2 tabular-nums">{{ formatNumber(user.asns) }}</td>
+					<td class="w-[15%] py-2 pr-12 pl-4 tabular-nums">{{ formatNumber(user.totalProbes) }}</td>
 				</tr>
 			</tbody>
 		</ClientOnly>
