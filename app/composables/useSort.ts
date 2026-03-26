@@ -52,7 +52,7 @@ export default <TSortBy extends string> (
 			const parsedOrder = newQueryOrder as SortOrder;
 
 			sortBy.value = validSortByOptions.includes(parsedBy) ? parsedBy : defaultSortBy;
-			sortOrder.value = [ 'asc', 'desc' ].includes(parsedOrder) ? parsedOrder : defaultSortOrder;
+			sortOrder.value = VALID_SORT_ORDERS.includes(parsedOrder) ? parsedOrder : defaultSortOrder;
 		},
 	);
 
