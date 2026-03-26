@@ -57,17 +57,32 @@ export default ({ page, itemsPerPage }: PageOptions) => {
 			return acc;
 		}, Object.create(null));
 
-		return Object.values(userMap).map((userData) => {
+		const userList = Object.values(userMap).map((userData) => {
 			return {
 				username: userData.username,
 				totalProbes: userData.totalProbes,
 				countries: userData.countries.size,
 				cities: userData.cities.size,
 				asns: userData.asns.size,
+				rank: 1,
 			};
 		}).sort((lhs, rhs) => {
 			return rhs.totalProbes - lhs.totalProbes || lhs.username.localeCompare(rhs.username);
-		}).map((userData, index) => ({ ...userData, rank: index + 1 }));
+		});
+
+		userList.forEach((userData, index) => {
+			if (index === 0) {
+				return;
+			}
+
+			if (userData.totalProbes === userList[index - 1]!.totalProbes) {
+				userData.rank = userList[index - 1]!.rank;
+			} else {
+				userData.rank = index + 1;
+			}
+		});
+
+		return userList;
 	});
 
 	const userList = computed<UserList>(() => {
