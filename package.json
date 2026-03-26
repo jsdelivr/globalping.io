@@ -60,7 +60,7 @@
 		"@html-eslint/eslint-plugin": "^0.47.0",
 		"@html-eslint/parser": "^0.47.0",
 		"@martin-kolarik/eslint-config": "^8.0.4",
-		"@martin-kolarik/stylelint-config": "^3.0.0",
+		"@martin-kolarik/stylelint-config": "^4.0.1",
 		"@nuxt/eslint-config": "^1.10.0",
 		"@playwright/test": "^1.57.0",
 		"@primevue/nuxt-module": "^4.5.4",
@@ -111,10 +111,11 @@
 		"gulp-terser": "^2.1.0",
 		"koa-livereload": "^0.2.0",
 		"lint-staged": "^16.2.7",
+		"postcss-html": "^1.8.1",
 		"postcss-less": "^6.0.0",
 		"postcss-prefix-selector": "^2.1.1",
-		"stylelint": "^14.16.1",
-		"stylelint-no-unsupported-browser-features": "^6.1.0",
+		"stylelint": "^17.5.0",
+		"stylelint-no-unsupported-browser-features": "^8.1.1",
 		"vinyl-buffer": "^1.0.1",
 		"vinyl-source-stream": "^2.0.0",
 		"vue-eslint-parser": "^10.2.0"
@@ -124,8 +125,8 @@
 		"heroku-postbuild": "echo \"$SOURCE_VERSION\" > sha.txt",
 		"lint": "npm run lint:css && npm run lint:js",
 		"lint:fix": "npm run lint:css:fix && npm run lint:js:fix",
-		"lint:css": "stylelint --config .stylelintrc \"./src/**/*.{css,less}\"",
-		"lint:css:fix": "stylelint --fix --config .stylelintrc \"./src/**/*.{css,less}\"",
+		"lint:css": "stylelint --config .stylelintrc \"./{app,src}/**/*.{css,less,vue}\"",
+		"lint:css:fix": "stylelint --fix --config .stylelintrc \"./{app,src}/**/*.{css,less,vue}\"",
 		"lint:js": "eslint --cache .",
 		"lint:js:fix": "eslint --cache --fix .",
 		"prepare": "node bin/fetch-data.js; husky",
@@ -135,7 +136,7 @@
 		"test:e2e:run": "NODE_ENV=test npx playwright test"
 	},
 	"lint-staged": {
-		"*.{css,less}": "stylelint --fix",
+		"*.{css,less,vue}": "stylelint --fix",
 		"*.{html,js,json}": "eslint --cache --fix"
 	},
 	"repository": {
