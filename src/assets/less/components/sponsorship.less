@@ -1,3 +1,5 @@
+@import "../variables.less";
+
 .c-gp-sponsorship {
 	position: relative;
 	display: flex;
@@ -59,7 +61,7 @@
 
 		.switch-input {
 			position: absolute;
-			clip: rect(0 0 0 0);
+			clip-path: rect(0 0 0 0);
 
 			& + label {
 				position: relative;
@@ -258,6 +260,7 @@
 
 			.infographic-cell {
 				display: grid;
+				// stylelint-disable-next-line plugin/no-unsupported-browser-features
 				grid-template-columns: subgrid;
 				grid-column: 1 / 3;
 				column-gap: 16px;
@@ -381,10 +384,9 @@
 
 			.get-now-button {
 				font-size: 14px;
-				justify-self: end;
+				place-self: flex-start end;
 				padding: 10px 20px;
 				width: fit-content;
-				align-self: flex-start;
 
 				@media (min-width: @screen-sm-min) {
 					align-self: center;

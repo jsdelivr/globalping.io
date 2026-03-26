@@ -1,12 +1,13 @@
 @font-face {
-	font-family: 'Lexend';
+	font-family: Lexend;
 	font-style: normal;
 	font-weight: 100 900;
-	src: url(https://cdn.jsdelivr.net/fontsource/fonts/lexend:vf@latest/latin-wght-normal.woff2) format('woff2-variations');
+	src: url("https://cdn.jsdelivr.net/fontsource/fonts/lexend:vf@latest/latin-wght-normal.woff2") format("woff2-variations");
 }
+
 @font-face {
-	font-family: 'Source Code Pro';
+	font-family: "Source Code Pro";
 	font-style: normal;
 	font-weight: 200 900;
-	src: url(https://cdn.jsdelivr.net/fontsource/fonts/source-code-pro:vf@latest/latin-wght-normal.woff2) format('woff2-variations');
+	src: url("https://cdn.jsdelivr.net/fontsource/fonts/source-code-pro:vf@latest/latin-wght-normal.woff2") format("woff2-variations");
 }

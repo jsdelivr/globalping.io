@@ -50,11 +50,13 @@
 	/* apply everywhere except for ractive components */
 	html :where(*:not(.ractive-component):not(.ractive-component *)) {
 		transition: color 0.2s ease-in-out, background-color 0.2s ease-in-out;
+
 		@apply shadow-surface-200/50 border-surface-200 focus:outline-primary;
 	}
 
 	pre {
-		font-family: 'Source Code Pro', monospace;
+		font-family: "Source Code Pro", monospace;
+
 		@apply font-medium;
 	}
 

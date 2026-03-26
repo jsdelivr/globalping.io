@@ -1,3 +1,5 @@
+@import "../variables.less";
+
 .p-globalping {
 	font-family: Lexend, sans-serif;
 	font-style: normal;
@@ -308,8 +310,7 @@
 						display: flex;
 						flex-direction: column;
 						align-items: flex-start;
-						row-gap: 16px;
-						column-gap: 8px;
+						gap: 16px 8px;
 						width: 100%;
 						min-height: 82px;
 
@@ -1686,12 +1687,9 @@
 
 								@media (min-width: @screen-sm-min) {
 									background: linear-gradient(90deg, rgba(23, 212, 167, 0), rgba(23, 212, 167, 1));
-									top: 50%;
-									bottom: 50%;
+									inset: 50% -45% 50% auto;
 									height: 2px;
 									width: 84%;
-									left: auto;
-									right: -45%;
 								}
 							}
 						}

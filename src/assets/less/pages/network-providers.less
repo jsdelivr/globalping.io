@@ -1,3 +1,5 @@
+@import "../variables.less";
+
 .p-providers {
 	position: relative;
 	display: flex;
@@ -264,8 +266,7 @@
 		> div {
 			display: grid;
 			grid-template-columns: calc(50% - 8px);
-			row-gap: 4px;
-			column-gap: 16px;
+			gap: 4px 16px;
 		}
 
 		> div:has(> :nth-child(4)) {
