@@ -15,7 +15,7 @@
 								<AnimatedNumber :number="userCount" underline/>
 							</b>
 						</span>
-						<h4 class="font-normal max-md:text-sm">Registered contributors</h4>
+						<span class="font-normal max-md:text-sm">Registered contributors</span>
 					</div>
 					<div class="flex flex-col gap-1 max-md:flex-1 md:w-48">
 						<p class="text-[40px] max-md:text-2xl md:leading-11">
@@ -23,7 +23,7 @@
 								<AnimatedNumber :number="probesHosted" underline/>
 							</b>
 						</p>
-						<h4 class="font-normal max-md:text-sm">Connected probes</h4>
+						<span class="font-normal max-md:text-sm">Connected probes</span>
 					</div>
 					<div class="flex flex-col gap-1 max-md:flex-1 md:w-48">
 						<p class="text-[40px] max-md:text-2xl md:leading-11">
@@ -31,7 +31,7 @@
 								<AnimatedNumber :number="countriesCovered" underline/>
 							</b>
 						</p>
-						<h4 class="font-normal max-md:text-sm">Countries covered</h4>
+						<span class="font-normal max-md:text-sm">Countries covered</span>
 					</div>
 				</div>
 			</div>
@@ -103,17 +103,8 @@
 	}
 
 	:deep(.metallic-gradient) {
-		color: white;
+		color: #fff;
 		background-blend-mode: soft-light;
-		background-image: linear-gradient(
-			125deg,
-			#777777 0%,
-			#FFFFFF 25.11%,
-			#777777 50%,
-			#FFFFFF 50%,
-			#777777 50%,
-			#FFFFFF 75.69%,
-			#777777 100%
-		);
+		background-image: linear-gradient(125deg, #777 0%, #fff 25.11%, #777 50%, #fff 50%, #777 50%, #fff 75.69%, #777 100%);
 	}
 </style>
