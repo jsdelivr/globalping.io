@@ -61,7 +61,7 @@
 				<ClientOnly>
 					<div class="relative flex justify-center">
 						<span
-							v-if="userCount > ITEMS_PER_PAGE"
+							v-if="userCount > ITEMS_PER_PAGE && userList.length"
 							class="absolute top-1/2 left-8 -translate-y-1/2 text-xs max-lg:hidden"
 						>
 							Results <strong class="font-medium">{{ first + 1 }} - {{ first + userList.length }}</strong> of <strong class="font-medium">{{ userCount }}</strong>
