@@ -136,7 +136,7 @@
 		"test:e2e:run": "NODE_ENV=test npx playwright test"
 	},
 	"lint-staged": {
-		"*.{css,less}": "stylelint --fix",
+		"*.{css,less,vue}": "stylelint --fix",
 		"*.{html,js,json}": "eslint --cache --fix"
 	},
 	"repository": {
