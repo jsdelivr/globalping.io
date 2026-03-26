@@ -13,7 +13,7 @@ export default ({ itemsPerPage, pageKey = 'page' }: PaginationOptions) => {
 
 	watch(() => route.query[pageKey], (pageQuery) => {
 		if (active.value) {
-			if (pageQuery && Number(pageQuery)) {
+			if (pageQuery && Number(pageQuery) && Number(pageQuery) > 0) {
 				page.value = Number(pageQuery) - 1;
 			}
 		}
