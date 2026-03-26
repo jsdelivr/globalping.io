@@ -1,5 +1,5 @@
 <template>
-	<div class="flex w-full flex-col gap-4">
+	<div ref="listRef" class="flex w-full scroll-mt-4 flex-col gap-4">
 		<ClientOnly>
 			<template #fallback>
 				<LeaderboardUserListItemSkeleton v-for="i in 10" :key="`skeleton-${i}`"/>
@@ -70,7 +70,21 @@
 <script setup lang="ts">
 	import type { UserList } from '~/composables/useUserLeaderboard';
 
-	defineProps<{ userList: UserList; loading: boolean }>();
+	const props = defineProps<{ userList: UserList; loading: boolean }>();
+
+	const listRef = ref<HTMLElement | null>(null);
 
 	const formatNumber = (num: number) => new Intl.NumberFormat('en-US', { notation: 'compact', compactDisplay: 'short' }).format(num);
+
+	watch(() => props.userList, () => {
+		nextTick(() => {
+			if (listRef.value) {
+				const rectTop = listRef.value.getBoundingClientRect().top;
+
+				if (rectTop < -50) {
+					listRef.value.scrollIntoView({ behavior: 'smooth', block: 'start' });
+				}
+			}
+		});
+	}, { deep: true });
 </script>
