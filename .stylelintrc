@@ -26,7 +26,6 @@
 			],
 			"customSyntax": "postcss-html"
 		},
-
 		{
 			"files": [
 				"**/*.less"
