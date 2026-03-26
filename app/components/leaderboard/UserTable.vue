@@ -66,7 +66,12 @@
 							</span>
 						</span>
 					</td>
-					<td class="px-4 py-2 text-left font-medium">
+					<td class="inline-flex w-full items-center justify-start gap-3 px-4 py-2 text-left font-medium">
+						<FallbackImage
+							:src="`https://img.jsdelivr.com/github.com/${user.username}.png`"
+							:fallback="userFallbackIcon"
+							class="size-8 rounded-full"
+						/>
 						<a :href="`/users/${user.username}`" class="hover:underline">
 							{{ user.username }}
 						</a>
@@ -82,6 +87,7 @@
 </template>
 
 <script setup lang="ts">
+	import userFallbackIcon from '~/assets/images/icons/user.svg';
 	import useSort from '~/composables/useSort';
 	import type { UserList, SortOption } from '~/composables/useUserLeaderboard';
 

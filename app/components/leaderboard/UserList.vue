@@ -37,6 +37,12 @@
 							</span>
 						</span>
 
+						<FallbackImage
+							:src="`https://img.jsdelivr.com/github.com/${user.username}.png`"
+							:fallback="userFallbackIcon"
+							class="size-8 rounded-full"
+						/>
+
 						<a :href="`/users/${user.username}`" class="text-base font-semibold">
 							{{ user.username }}
 						</a>
@@ -68,6 +74,7 @@
 </template>
 
 <script setup lang="ts">
+	import userFallbackIcon from '~/assets/images/icons/user.svg';
 	import type { UserList } from '~/composables/useUserLeaderboard';
 
 	const props = defineProps<{ userList: UserList; loading: boolean }>();
