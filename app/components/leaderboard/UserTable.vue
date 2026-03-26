@@ -1,5 +1,5 @@
 <template>
-	<table class="relative flex max-h-137.5 w-full min-w-150 flex-col border-b text-left text-sm">
+	<table ref="tableRef" class="relative flex w-full min-w-150 scroll-mt-4 flex-col border-b text-left text-sm">
 		<thead class="bg-surface-200 border-b-surface-300 table h-12.5 w-full shrink-0 table-fixed border-b">
 			<tr>
 				<th class="w-24 py-3 pr-6 pl-12 font-medium">#</th>
@@ -23,16 +23,16 @@
 
 		<ClientOnly fallback-tag="tbody">
 			<template #fallback>
-				<tbody class="divide-surface-300 block w-full divide-y overflow-hidden">
+				<tbody class="divide-surface-300 block w-full divide-y">
 					<LeaderboardUserTableRowSkeleton v-for="i in 10" :key="`skeleton-${i}`" class="table w-full table-fixed"/>
 				</tbody>
 			</template>
 
-			<tbody v-if="loading" class="divide-surface-300 block w-full divide-y overflow-y-auto">
+			<tbody v-if="loading" class="divide-surface-300 block w-full divide-y">
 				<LeaderboardUserTableRowSkeleton v-for="i in 10" :key="`skeleton-${i}`" class="table w-full table-fixed"/>
 			</tbody>
 
-			<tbody v-else class="divide-surface-300 block w-full divide-y overflow-y-auto">
+			<tbody v-else class="divide-surface-300 block w-full divide-y">
 				<tr v-if="userList.length === 0" class="table w-full table-fixed">
 					<td colspan="6" class="text-surface-500 py-12 text-center">
 						No users found.
@@ -92,9 +92,22 @@
 		{ key: 'totalProbes', label: 'Probes' },
 	] as const;
 
-	defineProps<{ userList: UserList; loading: boolean }>();
+	const props = defineProps<{ userList: UserList; loading: boolean }>();
 
+	const tableRef = ref<HTMLElement | null>(null);
 	const { sortBy, sortOrder, onSortChange } = useSort<SortOption>('totalProbes', [ 'totalProbes', 'countries', 'cities', 'asns' ]);
 
 	const formatNumber = (num: number) => new Intl.NumberFormat('en-US').format(num);
+
+	watch(() => props.userList, () => {
+		nextTick(() => {
+			if (tableRef.value) {
+				const rectTop = tableRef.value.getBoundingClientRect().top;
+
+				if (rectTop < -50) {
+					tableRef.value.scrollIntoView({ behavior: 'smooth', block: 'start' });
+				}
+			}
+		});
+	}, { deep: true });
 </script>
