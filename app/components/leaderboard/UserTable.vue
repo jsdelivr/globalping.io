@@ -9,7 +9,14 @@
 					:key="col.key"
 					class="border-surface-300 w-[15%] px-4 py-3 text-right font-medium select-none last:pr-12"
 				>
-					{{ col.label }}
+					<div class="flex cursor-pointer items-center justify-end gap-1.5" @click="onSortChange(col.key)">
+						<span>{{ col.label }}</span>
+						<span class="w-3 text-center">
+							<img v-if="sortBy === col.key && sortOrder === 'asc'" class="size-2" src="~/assets/images/icons/sort-asc.svg" alt="Ascending sort">
+							<img v-else-if="sortBy === col.key" class="size-2" src="~/assets/images/icons/sort-desc.svg" alt="Descending sort">
+							<img v-else class="size-2.5" src="~/assets/images/icons/sort-none.svg" alt="No sort">
+						</span>
+					</div>
 				</th>
 			</tr>
 		</thead>
@@ -48,7 +55,7 @@
 							}"
 						>
 							<span
-								class="absolute inset-0 m-auto size-7 rounded-full"
+								class="absolute inset-0 m-auto size-7 rounded-full transition-none"
 								:class="{
 									'metallic-gradient bg-[#ffcd19]': user.rank === 1,
 									'metallic-gradient bg-[#BBBBBB]': user.rank === 2,
@@ -75,9 +82,8 @@
 </template>
 
 <script setup lang="ts">
-	import type { UserList } from '~/composables/useUserLeaderboard';
-
-	defineProps<{ userList: UserList; loading: boolean }>();
+	import useSort from '~/composables/useSort';
+	import type { UserList, SortOption } from '~/composables/useUserLeaderboard';
 
 	const columns = [
 		{ key: 'cities', label: 'Cities' },
@@ -85,6 +91,10 @@
 		{ key: 'asns', label: 'ASNs' },
 		{ key: 'totalProbes', label: 'Probes' },
 	] as const;
+
+	defineProps<{ userList: UserList; loading: boolean }>();
+
+	const { sortBy, sortOrder, onSortChange } = useSort<SortOption>('totalProbes', [ 'totalProbes', 'countries', 'cities', 'asns' ]);
 
 	const formatNumber = (num: number) => new Intl.NumberFormat('en-US').format(num);
 </script>

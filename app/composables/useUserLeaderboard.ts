@@ -1,3 +1,4 @@
+import useSort from '~/composables/useSort';
 import { USERNAME_TAG_PATTERN } from '~/constants';
 
 type UserDataAccumulator = {
@@ -22,8 +23,12 @@ export type UserList = {
 	asns: number;
 }[];
 
+export type SortOption = 'totalProbes' | 'countries' | 'cities' | 'asns';
+
 export default ({ page, itemsPerPage }: PageOptions) => {
 	const { data: probes, pending: loading } = useProbes();
+
+	const { sortBy, sortOrder } = useSort<SortOption>('totalProbes', [ 'totalProbes', 'countries', 'cities', 'asns' ]);
 
 	const fullUserList = computed(() => {
 		if (!probes.value) {
@@ -67,20 +72,28 @@ export default ({ page, itemsPerPage }: PageOptions) => {
 				rank: 1,
 			};
 		}).sort((lhs, rhs) => {
-			return rhs.totalProbes - lhs.totalProbes || lhs.username.localeCompare(rhs.username);
+			const modifier = sortOrder.value === 'asc' ? 1 : -1;
+			return modifier * (lhs[sortBy.value] - rhs[sortBy.value] || rhs.username.localeCompare(lhs.username));
 		});
 
-		userList.forEach((userData, index) => {
-			if (index === 0) {
-				return;
+		for (let i = 0; i < userList.length; i++) {
+			const currentIndex = sortOrder.value === 'asc' ? userList.length - 1 - i : i;
+			const prevIndex = sortOrder.value === 'asc' ? currentIndex + 1 : currentIndex - 1;
+			const userData = userList[currentIndex];
+
+			if (i === 0) {
+				userData!.rank = 1;
+				continue;
 			}
 
-			if (userData.totalProbes === userList[index - 1]!.totalProbes) {
-				userData.rank = userList[index - 1]!.rank;
+			const prevUserData = userList[prevIndex];
+
+			if (userData!.totalProbes === prevUserData!.totalProbes) {
+				userData!.rank = prevUserData!.rank;
 			} else {
-				userData.rank = index + 1;
+				userData!.rank = i + 1;
 			}
-		});
+		}
 
 		return userList;
 	});

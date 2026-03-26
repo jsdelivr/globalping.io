@@ -13,8 +13,13 @@ export default ({ itemsPerPage, pageKey = 'page' }: PaginationOptions) => {
 
 	watch(() => route.query[pageKey], (pageQuery) => {
 		if (active.value) {
-			if (pageQuery && Number(pageQuery) && Number(pageQuery) > 0) {
-				page.value = Number(pageQuery) - 1;
+			const pageQueryNumber = Number(pageQuery);
+			const isInteger = Number.isInteger(pageQueryNumber);
+
+			if (pageQuery && isInteger && pageQueryNumber > 0) {
+				page.value = pageQueryNumber - 1;
+			} else {
+				page.value = 0;
 			}
 		}
 	}, { immediate: true });

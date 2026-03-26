@@ -7,16 +7,16 @@
 			<div class="bg-surface-200 h-4 w-32 rounded"/>
 		</td>
 		<td class="w-[15%] px-3 py-2">
-			<div class="bg-surface-200 ml-auto h-4 w-12 rounded"/>
+			<div class="bg-surface-200 mr-2 ml-auto h-4 w-12 rounded"/>
 		</td>
 		<td class="w-[15%] px-3 py-2">
-			<div class="bg-surface-200 ml-auto h-4 w-12 rounded"/>
+			<div class="bg-surface-200 mr-2 ml-auto h-4 w-12 rounded"/>
 		</td>
 		<td class="w-[15%] px-3 py-2">
-			<div class="bg-surface-200 ml-auto h-4 w-12 rounded"/>
+			<div class="bg-surface-200 mr-2 ml-auto h-4 w-12 rounded"/>
 		</td>
 		<td class="w-[15%] py-2 pr-12 pl-4">
-			<div class="bg-surface-200 ml-auto h-4 w-12 rounded"/>
+			<div class="bg-surface-200 mr-2 ml-auto h-4 w-12 rounded"/>
 		</td>
 	</tr>
 </template>
