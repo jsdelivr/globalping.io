@@ -9,7 +9,7 @@ const { createConfigForNuxt } = require('@nuxt/eslint-config');
 const tailwindcss = require('eslint-plugin-tailwindcss');
 
 const jsScoped = [
-	{ ...javascript[0], ignores: [ 'app/**', '**.ts', '**.vue' ] },
+	{ ...javascript[0], ignores: [ '{app,server}/**', '**.ts', '**.vue' ] },
 	...javascript.slice(1),
 ];
 
@@ -36,7 +36,7 @@ module.exports = createConfigForNuxt().prepend(
 	},
 	// Nuxt rules
 	{
-		files: [ 'app/**', '*.ts' ],
+		files: [ '{app,server}/**', '*.ts' ],
 		rules: {
 			'import/order': [ 'error', {
 				distinctGroup: false,

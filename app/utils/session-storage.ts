@@ -11,7 +11,7 @@ export const getSessionStorageData = (key: string) => {
 		const cache = data ? JSON.parse(data) : null;
 		return typeof cache?.data !== 'undefined' && cache?.ttl > Date.now() ? cache.data : null;
 	} catch {
-		clearSessionStorageData(key);
+		window?.sessionStorage?.removeItem(key);
 		return undefined;
 	}
 };

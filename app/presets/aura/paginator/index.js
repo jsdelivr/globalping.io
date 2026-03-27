@@ -35,7 +35,7 @@ export default {
 			// State
 			{
 				'hover:bg-surface-50 dark:hover:bg-[rgba(255,255,255,0.03)]': !context.disabled,
-				'focus:outline-none focus:outline-offset-0 focus:ring-1 focus:ring-primary-500 dark:focus:ring-primary-400': !context.disabled,
+				'focus:outline-none focus:outline-offset-0 focus:ring-1 focus:ring-dark-500 dark:focus:ring-dark-400': !context.disabled,
 			},
 
 			// Transition
@@ -66,7 +66,7 @@ export default {
 			// State
 			{
 				'hover:bg-surface-50 dark:hover:bg-[rgba(255,255,255,0.03)]': !context.disabled,
-				'focus:outline-none focus:outline-offset-0 focus:ring-1 focus:ring-primary-500 dark:focus:ring-primary-400': !context.disabled,
+				'focus:outline-none focus:outline-offset-0 focus:ring-1 focus:ring-dark-500 dark:focus:ring-dark-400': !context.disabled,
 			},
 
 			// Transition
@@ -97,7 +97,7 @@ export default {
 			// State
 			{
 				'hover:bg-surface-50 dark:hover:bg-[rgba(255,255,255,0.03)]': !context.disabled,
-				'focus:outline-none focus:outline-offset-0 focus:ring-1 focus:ring-primary-500 dark:focus:ring-primary-400': !context.disabled,
+				'focus:outline-none focus:outline-offset-0 focus:ring-1 focus:ring-dark-500 dark:focus:ring-dark-400': !context.disabled,
 			},
 
 			// Transition
@@ -128,7 +128,7 @@ export default {
 			// State
 			{
 				'hover:bg-surface-50 dark:hover:bg-[rgba(255,255,255,0.03)]': !context.disabled,
-				'focus:outline-none focus:outline-offset-0 focus:ring-1 focus:ring-primary-500 dark:focus:ring-primary-400': !context.disabled,
+				'focus:outline-none focus:outline-offset-0 focus:ring-1 focus:ring-dark-500 dark:focus:ring-dark-400': !context.disabled,
 			},
 
 			// Transition
@@ -158,9 +158,9 @@ export default {
 
 			// State
 			{
-				'hover:bg-surface-50 dark:hover:bg-[rgba(255,255,255,0.03)]': !context.disabled,
-				'focus:outline-none focus:outline-offset-0 focus:ring-1 focus:ring-primary-500 dark:focus:ring-primary-400': !context.disabled,
-				'bg-primary !text-primary-contrast hover:!bg-primary-hover hover:!border-primary-hover': context.active,
+				'hover:bg-surface-100': !context.disabled,
+				'focus:outline-none focus:outline-offset-0 focus:ring-1 focus:ring-dark-600': !context.disabled,
+				'bg-dark-400 !text-dark-contrast hover:!bg-dark-600 hover:!border-dark-600 text-white': context.active,
 			},
 
 			// Transition

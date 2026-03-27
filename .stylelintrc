@@ -17,7 +17,13 @@
 			],
 			"rules": {
 				"at-rule-no-unknown": null,
-				"@stylistic/number-leading-zero": null
+				"@stylistic/number-leading-zero": null,
+				"selector-pseudo-class-no-unknown": [
+					true,
+					{
+						"ignorePseudoClasses": [ "deep" ]
+					}
+				]
 			}
 		},
 		{
