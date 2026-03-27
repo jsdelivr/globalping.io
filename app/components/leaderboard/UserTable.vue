@@ -9,14 +9,14 @@
 					:key="col.key"
 					class="border-surface-300 w-[15%] px-4 py-3 text-right font-medium select-none last:pr-12"
 				>
-					<div class="flex cursor-pointer items-center justify-end gap-1.5" @click="onSortChange(col.key)">
+					<button class="ml-auto flex items-center gap-1.5" role="button" @click="onSortChange(col.key)">
 						<span>{{ col.label }}</span>
 						<span class="w-3 text-center">
 							<img v-if="sortBy === col.key && sortOrder === 'asc'" class="size-2" src="~/assets/images/icons/sort-asc.svg" alt="Ascending sort">
 							<img v-else-if="sortBy === col.key" class="size-2" src="~/assets/images/icons/sort-desc.svg" alt="Descending sort">
 							<img v-else class="size-2.5" src="~/assets/images/icons/sort-none.svg" alt="No sort">
 						</span>
-					</div>
+					</button>
 				</th>
 			</tr>
 		</thead>
