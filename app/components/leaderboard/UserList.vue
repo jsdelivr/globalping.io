@@ -44,22 +44,22 @@
 				</div>
 
 				<div class="text-right">
-					<div class="text-surface-400 text-[10px] font-medium uppercase">Probes</div>
+					<div class="text-surface-500 text-[10px] font-medium uppercase">Probes</div>
 					<div class="text-lg font-bold">{{ formatNumber(user.totalProbes) }}</div>
 				</div>
 			</div>
 
 			<div class="border-surface-200 divide-surface-200 grid grid-cols-3 divide-x border-t pt-3">
 				<div class="px-2 text-center first:pl-0">
-					<div class="text-surface-400 text-xs">Cities</div>
+					<div class="text-surface-500 text-xs">Cities</div>
 					<div class="font-medium">{{ formatNumber(user.cities) }}</div>
 				</div>
 				<div class="px-2 text-center">
-					<div class="text-surface-400 text-xs">Countries</div>
+					<div class="text-surface-500 text-xs">Countries</div>
 					<div class="font-medium">{{ formatNumber(user.countries) }}</div>
 				</div>
 				<div class="px-2 text-center last:pr-0">
-					<div class="text-surface-400 text-xs">ASNs</div>
+					<div class="text-surface-500 text-xs">ASNs</div>
 					<div class="font-medium">{{ formatNumber(user.asns) }}</div>
 				</div>
 			</div>
