@@ -47,16 +47,16 @@
 				<span class="bg-primary absolute inset-x-0 bottom-0 h-4 w-full translate-y-1/2 rounded-full blur-2xl"/>
 			</div>
 		</section>
-		<section class="max-w-section z-10 w-full bg-white px-14 pt-8 pb-14 max-lg:p-4 max-lg:pt-8 lg:-translate-y-26 lg:rounded-2xl lg:border lg:shadow-xl">
+		<section ref="scrollTopAnchorRef" class="max-w-section z-10 w-full bg-white px-14 pt-8 pb-14 max-lg:p-4 max-lg:pt-8 lg:-translate-y-26 lg:rounded-2xl lg:border lg:shadow-xl">
 			<h3 class="mb-4">
 				Most hosted probes
 			</h3>
 			<div class="border-surface-300 w-full rounded-lg lg:overflow-hidden lg:border lg:shadow-lg">
 				<div class="overflow-x-auto max-lg:hidden">
-					<LeaderboardUserTable :user-list="userList" :loading="loading"/>
+					<LeaderboardUserTable :user-list="userList" :loading="loading" :scroll-top-anchor-ref="scrollTopAnchorRef"/>
 				</div>
 				<div class="mb-4 lg:hidden">
-					<LeaderboardUserList :user-list="userList" :loading="loading"/>
+					<LeaderboardUserList :user-list="userList" :loading="loading" :scroll-top-anchor-ref="scrollTopAnchorRef"/>
 				</div>
 				<div class="relative flex justify-center">
 					<span
@@ -86,6 +86,7 @@
 	import useUserLeaderboard from '~/composables/useUserLeaderboard';
 
 	const ITEMS_PER_PAGE = 100;
+	const scrollTopAnchorRef = ref<HTMLElement | null>(null);
 
 	const { page, first, template, pageLinkSize } = usePagination({ itemsPerPage: ITEMS_PER_PAGE });
 	const { userCount, userList, countriesCovered, probesHosted, loading } = useUserLeaderboard({ page, itemsPerPage: ITEMS_PER_PAGE });

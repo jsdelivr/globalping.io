@@ -1,5 +1,5 @@
 <template>
-	<table ref="tableRef" class="relative flex w-full min-w-150 scroll-mt-4 flex-col border-b text-left text-sm">
+	<table class="relative flex w-full min-w-150 scroll-mt-4 flex-col border-b text-left text-sm">
 		<thead class="bg-surface-200 border-b-surface-300 table h-12.5 w-full shrink-0 table-fixed border-b">
 			<tr>
 				<th class="w-24 py-3 pr-6 pl-12 font-medium">#</th>
@@ -90,20 +90,23 @@
 		{ key: 'totalProbes', label: 'Probes' },
 	] as const;
 
-	const props = defineProps<{ userList: UserList; loading: boolean }>();
+	const props = defineProps<{
+		loading: boolean;
+		userList: UserList;
+		scrollTopAnchorRef: HTMLElement | null;
+	}>();
 
-	const tableRef = ref<HTMLElement | null>(null);
 	const { sortBy, sortOrder, onSortChange } = useSort<SortOption>('totalProbes', [ 'totalProbes', 'countries', 'cities', 'asns' ]);
 
 	const formatNumber = (num: number) => new Intl.NumberFormat('en-US').format(num);
 
 	watch(() => props.userList, () => {
 		nextTick(() => {
-			if (tableRef.value) {
-				const rectTop = tableRef.value.getBoundingClientRect().top;
+			if (props.scrollTopAnchorRef) {
+				const rectTop = props.scrollTopAnchorRef.getBoundingClientRect().top;
 
 				if (rectTop < -50) {
-					tableRef.value.scrollIntoView({ behavior: 'smooth', block: 'start' });
+					props.scrollTopAnchorRef.scrollIntoView({ behavior: 'smooth', block: 'start' });
 				}
 			}
 		});

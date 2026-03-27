@@ -1,5 +1,5 @@
 <template>
-	<div ref="listRef" class="flex w-full scroll-mt-4 flex-col gap-4">
+	<div class="flex w-full scroll-mt-4 flex-col gap-4">
 		<template v-if="loading">
 			<LeaderboardUserListItemSkeleton v-for="i in 10" :key="`skeleton-${i}`"/>
 		</template>
@@ -71,19 +71,21 @@
 	import userFallbackIcon from '~/assets/images/icons/user.svg';
 	import type { UserList } from '~/composables/useUserLeaderboard';
 
-	const props = defineProps<{ userList: UserList; loading: boolean }>();
-
-	const listRef = ref<HTMLElement | null>(null);
+	const props = defineProps<{
+		loading: boolean;
+		userList: UserList;
+		scrollTopAnchorRef: HTMLElement | null;
+	}>();
 
 	const formatNumber = (num: number) => new Intl.NumberFormat('en-US', { notation: 'compact', compactDisplay: 'short' }).format(num);
 
 	watch(() => props.userList, () => {
 		nextTick(() => {
-			if (listRef.value) {
-				const rectTop = listRef.value.getBoundingClientRect().top;
+			if (props.scrollTopAnchorRef) {
+				const rectTop = props.scrollTopAnchorRef.getBoundingClientRect().top;
 
 				if (rectTop < -50) {
-					listRef.value.scrollIntoView({ behavior: 'smooth', block: 'start' });
+					props.scrollTopAnchorRef.scrollIntoView({ behavior: 'smooth', block: 'start' });
 				}
 			}
 		});
