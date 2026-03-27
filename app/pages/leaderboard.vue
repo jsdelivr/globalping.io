@@ -58,25 +58,23 @@
 				<div class="mb-4 lg:hidden">
 					<LeaderboardUserList :user-list="userList" :loading="loading"/>
 				</div>
-				<ClientOnly>
-					<div class="relative flex justify-center">
-						<span
-							v-if="userCount > ITEMS_PER_PAGE && userList.length"
-							class="absolute top-1/2 left-8 -translate-y-1/2 text-xs max-lg:hidden"
-						>
-							Results <strong class="font-medium">{{ first + 1 }} - {{ first + userList.length }}</strong> of <strong class="font-medium">{{ userCount }}</strong>
-						</span>
-						<pvPaginator
-							v-if="userCount"
-							:first="first"
-							:rows="ITEMS_PER_PAGE"
-							:total-records="userCount"
-							:template="template"
-							:page-link-size="pageLinkSize"
-							@page="page = $event.page"
-						/>
-					</div>
-				</ClientOnly>
+				<div class="relative flex justify-center">
+					<span
+						v-if="userCount > ITEMS_PER_PAGE && userList.length"
+						class="absolute top-1/2 left-8 -translate-y-1/2 text-xs max-lg:hidden"
+					>
+						Results <strong class="font-medium">{{ first + 1 }} - {{ first + userList.length }}</strong> of <strong class="font-medium">{{ userCount }}</strong>
+					</span>
+					<pvPaginator
+						v-if="userCount"
+						:first="first"
+						:rows="ITEMS_PER_PAGE"
+						:total-records="userCount"
+						:template="template"
+						:page-link-size="pageLinkSize"
+						@page="page = $event.page"
+					/>
+				</div>
 			</div>
 		</section>
 	</main>

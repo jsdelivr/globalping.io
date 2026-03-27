@@ -4,23 +4,34 @@ const SESSION_STORAGE_KEY = 'probesResponse';
 const PROBES_TTL = 1000 * 60 * 60;
 
 export default () => {
-	const nuxtApp = useNuxtApp();
-	const { apiHost } = useRuntimeConfig().public;
+	const config = useRuntimeConfig();
 
-	return useFetch<Probe[]>(`${apiHost}/v1/probes`, {
-		key: 'gp-probes',
-		server: false,
-		default: () => [],
-		getCachedData (key) {
-			const data = nuxtApp.payload.data[key] || nuxtApp.static.data[key] || getSessionStorageData(SESSION_STORAGE_KEY);
-			return data?.length ? data : undefined;
-		},
-		onResponse ({ response }) {
-			const data = response._data;
+	const probeAsyncData = useAsyncData<Probe[]>('gp-probes', async () => {
+		if (import.meta.server) {
+			// see server/middleware/injectProbes.ts
+			const event = useRequestEvent();
+			return event?.context.probes || [];
+		}
 
-			if (data?.length) {
-				setSessionStorageData(data, SESSION_STORAGE_KEY, PROBES_TTL);
+		if (import.meta.client) {
+			// client-side navigation
+			const sessionStorageData = getSessionStorageData(SESSION_STORAGE_KEY);
+
+			if (sessionStorageData?.length) {
+				return sessionStorageData;
 			}
-		},
+
+			return $fetch<Probe[]>(`${config.public.apiHost}/v1/probes`);
+		}
+
+		return [];
 	});
+
+	watch(probeAsyncData.data, (newData) => {
+		if (import.meta.client && newData?.length) {
+			setSessionStorageData(newData, SESSION_STORAGE_KEY, PROBES_TTL);
+		}
+	}, { immediate: true });
+
+	return probeAsyncData;
 };

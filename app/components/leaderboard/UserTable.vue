@@ -21,68 +21,60 @@
 			</tr>
 		</thead>
 
-		<ClientOnly fallback-tag="tbody">
-			<template #fallback>
-				<tbody class="divide-surface-300 block w-full divide-y">
-					<LeaderboardUserTableRowSkeleton v-for="i in 10" :key="`skeleton-${i}`" class="table w-full table-fixed"/>
-				</tbody>
-			</template>
+		<tbody v-if="loading" class="divide-surface-300 block w-full divide-y">
+			<LeaderboardUserTableRowSkeleton v-for="i in 10" :key="`skeleton-${i}`" class="table w-full table-fixed"/>
+		</tbody>
 
-			<tbody v-if="loading" class="divide-surface-300 block w-full divide-y">
-				<LeaderboardUserTableRowSkeleton v-for="i in 10" :key="`skeleton-${i}`" class="table w-full table-fixed"/>
-			</tbody>
+		<tbody v-else class="divide-surface-300 block w-full divide-y">
+			<tr v-if="userList.length === 0" class="table w-full table-fixed">
+				<td colspan="6" class="text-surface-500 py-12 text-center">
+					No users found.
+				</td>
+			</tr>
 
-			<tbody v-else class="divide-surface-300 block w-full divide-y">
-				<tr v-if="userList.length === 0" class="table w-full table-fixed">
-					<td colspan="6" class="text-surface-500 py-12 text-center">
-						No users found.
-					</td>
-				</tr>
-
-				<tr
-					v-for="user in userList"
-					v-else
-					:key="user.username"
-					class="group hover:bg-surface-50 table h-12.5 w-full table-fixed text-right transition-colors"
-				>
-					<td class="w-24 py-2 pl-2 text-center">
+			<tr
+				v-for="user in userList"
+				v-else
+				:key="user.username"
+				class="group hover:bg-surface-50 table h-12.5 w-full table-fixed text-right transition-colors"
+			>
+				<td class="w-24 py-2 pl-2 text-center">
+					<span
+						class="text-surface-500 relative inline-flex size-8 items-center justify-center rounded-full bg-linear-to-br text-lg"
+						:class="{
+							'from-[#ffeeb3] to-[#ffcd19] text-white': user.rank === 1,
+							'from-[#e6e6e6] to-[#BBBBBB] text-white': user.rank === 2,
+							'from-[#e1c3b7] to-[#c28369] text-white': user.rank === 3
+						}"
+					>
 						<span
-							class="text-surface-500 relative inline-flex size-8 items-center justify-center rounded-full bg-linear-to-br text-lg"
+							class="absolute inset-0 m-auto size-7 rounded-full transition-none"
 							:class="{
-								'from-[#ffeeb3] to-[#ffcd19] text-white': user.rank === 1,
-								'from-[#e6e6e6] to-[#BBBBBB] text-white': user.rank === 2,
-								'from-[#e1c3b7] to-[#c28369] text-white': user.rank === 3
-							}"
-						>
-							<span
-								class="absolute inset-0 m-auto size-7 rounded-full transition-none"
-								:class="{
-									'metallic-gradient bg-[#ffcd19]': user.rank === 1,
-									'metallic-gradient bg-[#BBBBBB]': user.rank === 2,
-									'metallic-gradient bg-[#c28369]': user.rank === 3
-								}"/>
-							<span class="z-10">
-								{{ user.rank }}
-							</span>
+								'metallic-gradient bg-[#ffcd19]': user.rank === 1,
+								'metallic-gradient bg-[#BBBBBB]': user.rank === 2,
+								'metallic-gradient bg-[#c28369]': user.rank === 3
+							}"/>
+						<span class="z-10">
+							{{ user.rank }}
 						</span>
-					</td>
-					<td class="inline-flex w-full items-center justify-start gap-3 px-4 py-2 text-left font-medium">
-						<FallbackImage
-							:src="`https://img.jsdelivr.com/github.com/${user.username}.png`"
-							:fallback="userFallbackIcon"
-							class="size-8 rounded-full"
-						/>
-						<a :href="`/users/${user.username}`" class="hover:underline">
-							{{ user.username }}
-						</a>
-					</td>
-					<td class="w-[15%] px-4 py-2 tabular-nums">{{ formatNumber(user.cities) }}</td>
-					<td class="w-[15%] px-4 py-2 tabular-nums">{{ formatNumber(user.countries) }}</td>
-					<td class="w-[15%] px-4 py-2 tabular-nums">{{ formatNumber(user.asns) }}</td>
-					<td class="w-[15%] py-2 pr-12 pl-4 tabular-nums">{{ formatNumber(user.totalProbes) }}</td>
-				</tr>
-			</tbody>
-		</ClientOnly>
+					</span>
+				</td>
+				<td class="inline-flex w-full items-center justify-start gap-3 px-4 py-2 text-left font-medium">
+					<FallbackImage
+						:src="`https://img.jsdelivr.com/github.com/${user.username}.png`"
+						:fallback="userFallbackIcon"
+						class="size-8 rounded-full"
+					/>
+					<a :href="`/users/${user.username}`" class="hover:underline">
+						{{ user.username }}
+					</a>
+				</td>
+				<td class="w-[15%] px-4 py-2 tabular-nums">{{ formatNumber(user.cities) }}</td>
+				<td class="w-[15%] px-4 py-2 tabular-nums">{{ formatNumber(user.countries) }}</td>
+				<td class="w-[15%] px-4 py-2 tabular-nums">{{ formatNumber(user.asns) }}</td>
+				<td class="w-[15%] py-2 pr-12 pl-4 tabular-nums">{{ formatNumber(user.totalProbes) }}</td>
+			</tr>
+		</tbody>
 	</table>
 </template>
 

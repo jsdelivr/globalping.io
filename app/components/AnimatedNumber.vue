@@ -1,7 +1,7 @@
 <template>
-	<span ref="wrapperRef" class="relative z-0 inline-flex h-[1em] text-start leading-none">
+	<span ref="wrapperRef" class="relative z-0 inline-flex h-[1em] leading-none">
 		<span class="pointer-events-none invisible" aria-hidden="true">
-			<ClientOnly>{{ number }}</ClientOnly>&#8203;
+			{{ number }}
 		</span>
 		<span class="absolute inset-0">{{ displayedNumber }}</span>
 		<span
