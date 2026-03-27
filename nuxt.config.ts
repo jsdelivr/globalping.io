@@ -24,7 +24,6 @@ const assetsHost = process.env.NODE_ENV === 'production'
 export default defineNuxtConfig({
 	compatibilityDate: '2025-11-12',
 	runtimeConfig: {
-		injectProbesPaths: [ '/leaderboard', '/cli' ],
 		public: {
 			serverHost,
 			assetsHost,

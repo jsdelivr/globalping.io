@@ -8,9 +8,8 @@ export default () => {
 
 	const probeAsyncData = useAsyncData<Probe[]>('gp-probes', async () => {
 		if (import.meta.server) {
-			// see server/middleware/injectProbes.ts
-			const event = useRequestEvent();
-			return event?.context.probes || [];
+			const { getCachedProbes } = await import('~~/server/utils/getCachedProbes');
+			return getCachedProbes(config.public.apiHost);
 		}
 
 		if (import.meta.client) {
