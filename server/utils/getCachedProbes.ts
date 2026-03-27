@@ -24,7 +24,7 @@ export const refreshProbesCache = async (apiHost: string) => {
 		refreshPromise = null;
 	}
 
-	return refreshPromise;
+	return cachedProbes;
 };
 
 export const getCachedProbes = async (apiHost: string) => {
@@ -32,7 +32,5 @@ export const getCachedProbes = async (apiHost: string) => {
 		return cachedProbes;
 	}
 
-	await refreshProbesCache(apiHost);
-
-	return cachedProbes ?? [];
+	return await refreshProbesCache(apiHost) || [];
 };
