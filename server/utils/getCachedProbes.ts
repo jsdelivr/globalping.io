@@ -1,7 +1,7 @@
 import { useRuntimeConfig } from '#imports';
 
 export default defineCachedFunction(async () => {
-	const data = await $fetch(`${useRuntimeConfig().public.apiHost}/v1/probes`);
+	const data = await $fetch(`${useRuntimeConfig().public.apiHost}/v1/probes`, { timeout: 5000 });
 
 	if (!data || !Array.isArray(data)) {
 		throw new Error('Malformed probe response.');
