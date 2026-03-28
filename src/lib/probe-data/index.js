@@ -8,9 +8,10 @@ const v1TagsUsers = require('./v1-tags-users.json');
 const config = require('config');
 
 const serverConfig = config.get('server');
+const REFRESH_INTERVAL_MS = 60_000;
 const USERNAME_TAG_PATTERN = /^u-[^:]+$/;
 let rawProbeData = null;
-let parsedProbeData = {};
+let parsedProbeData = null;
 
 const refreshRawProbeData = async () => {
 	rawProbeData = await got.get(`${serverConfig.apiHost}/v1/probes`).json().catch(() => null);
@@ -154,38 +155,43 @@ const parseRawProbeData = () => {
 };
 
 let refreshPromise = null;
-let lastRefresh = -1;
 
 const refreshData = async () => {
 	if (!refreshPromise) {
 		refreshPromise = (async () => {
-			await refreshRawProbeData();
-			parseRawProbeData();
-			lastRefresh = Date.now();
-			refreshPromise = null;
+			try {
+				await refreshRawProbeData();
+				parseRawProbeData();
+			} finally {
+				refreshPromise = null;
+			}
 		})();
 	}
 
 	return refreshPromise;
 };
 
-const getParsedProbeData = async (ttl = 1000 * 60) => {
-	if (lastRefresh === -1) {
-		await refreshData();
-	} else if (Date.now() - lastRefresh > ttl) {
-		refreshData();	// revalidate in the background
+refreshData().catch(() => {});
+
+setInterval(() => {
+	refreshData().catch(() => {});
+}, REFRESH_INTERVAL_MS);
+
+const getParsedProbeData = async () => {
+	if (!parsedProbeData) {
+		await refreshData().catch(() => {});
 	}
 
 	return parsedProbeData ?? {};
 };
 
 module.exports = getParsedProbeData;
-module.exports.getNetworkStatistics = async ttl => getParsedProbeData(ttl).then(data => data.networkStatistics);
-module.exports.getNetworks = async ttl => getParsedProbeData(ttl).then(data => data.networks);
-module.exports.getUsers = async ttl => getParsedProbeData(ttl).then(data => data.users);
-module.exports.getDynamicSiteUrls = async ttl => getParsedProbeData(ttl).then(data => data.urls);
+module.exports.getNetworkStatistics = async () => getParsedProbeData().then(data => data.networkStatistics);
+module.exports.getNetworks = async () => getParsedProbeData().then(data => data.networks);
+module.exports.getUsers = async () => getParsedProbeData().then(data => data.users);
+module.exports.getDynamicSiteUrls = async () => getParsedProbeData().then(data => data.urls);
 
-module.exports.getNetworkToDomainMap = async ttl => getParsedProbeData(ttl).then((data) => {
+module.exports.getNetworkToDomainMap = async () => getParsedProbeData().then((data) => {
 	let stats = data.networkStatistics || {};
 
 	return Object.entries(stats).reduce((acc, [ key, val ]) => {
