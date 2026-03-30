@@ -54,13 +54,13 @@
 			title: 'RPM',
 			systems: 'CentOS, RHEL, Fedora',
 			command: 'curl -s https://packagecloud.io/install/repositories/jsdelivr/globalping/script.rpm.sh | sudo bash\ndnf install globalping\nglobalping --help',
-			img: 'icons/homebrew.svg',
+			img: 'icons/rpm.svg',
 		},
 		{
 			title: 'Homebrew',
 			systems: 'macOS',
 			command: 'brew tap jsdelivr/globalping\nbrew install globalping\nglobalping --help',
-			img: 'icons/rpm.svg',
+			img: 'icons/homebrew.svg',
 		},
 	];
 
