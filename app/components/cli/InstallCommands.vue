@@ -7,7 +7,7 @@
 				class="bg-surface-100 hover:bg-surface-50 flex flex-1 items-center justify-start gap-4 p-4"
 				:data-testid="`cli-os-${os.title}`"
 				@click="selectedOs = os">
-				<img class="h-8 w-auto shrink-0 object-contain" :src="os.img" :alt="os.title">
+				<img class="h-8 w-auto shrink-0 object-contain" :src="getImageAsset(os.img)" :alt="os.title">
 				<div class="flex flex-col justify-center gap-1 text-start">
 					<h4>{{os.title}}</h4>
 					<p>{{os.systems}}</p>
@@ -26,7 +26,7 @@
 	<div class="flex flex-col gap-6 md:hidden">
 		<div v-for="os in OS_OPTIONS" :key="os.title" class="flex flex-col overflow-hidden rounded-lg border shadow-md">
 			<div class="bg-surface-100 flex items-center justify-start gap-4 p-4">
-				<img class="h-8 w-auto shrink-0 object-contain" :src="os.img" :alt="os.title">
+				<img class="h-8 w-auto shrink-0 object-contain" :src="getImageAsset(os.img)" :alt="os.title">
 				<div class="flex flex-col justify-center gap-1 text-start">
 					<h4>{{os.title}}</h4>
 					<p>{{os.systems}}</p>
@@ -41,29 +41,26 @@
 </template>
 
 <script setup lang="ts">
-	// cannot use dynamic links to assets/images https://nuxt.com/docs/4.x/getting-started/assets
-	import debIcon from '~/assets/images/icons/deb.svg';
-	import homebrewIcon from '~/assets/images/icons/homebrew.svg';
-	import rpmIcon from '~/assets/images/icons/rpm.svg';
+	import getImageAsset from '~/utils/getImageAsset';
 
 	const OS_OPTIONS = [
 		{
 			title: 'DEB',
 			systems: 'Debian, UbuntuDEB, Ubuntu',
 			command: 'curl -s https://packagecloud.io/install/repositories/jsdelivr/globalping/script.deb.sh | sudo bash\napt install globalping\nglobalping --help',
-			img: debIcon,
+			img: 'icons/deb.svg',
 		},
 		{
 			title: 'RPM',
 			systems: 'CentOS, RHEL, Fedora',
 			command: 'curl -s https://packagecloud.io/install/repositories/jsdelivr/globalping/script.rpm.sh | sudo bash\ndnf install globalping\nglobalping --help',
-			img: rpmIcon,
+			img: 'icons/homebrew.svg',
 		},
 		{
 			title: 'Homebrew',
 			systems: 'macOS',
 			command: 'brew tap jsdelivr/globalping\nbrew install globalping\nglobalping --help',
-			img: homebrewIcon,
+			img: 'icons/rpm.svg',
 		},
 	];
 
