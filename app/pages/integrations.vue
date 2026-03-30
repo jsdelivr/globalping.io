@@ -142,6 +142,7 @@
 			description: 'Make Globalping part of your flow with our IFTTT integration.',
 			img: 'ifttt.svg',
 			disabled: true,
+			imgClass: 'scale-135',
 		},
 		{
 			header: 'GitHub Action',
