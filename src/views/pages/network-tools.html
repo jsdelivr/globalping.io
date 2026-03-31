@@ -36,6 +36,12 @@
 						{{/unless}}
 					</span>
 
+					{{#if locationData.type === 'asn'}}
+						<a target="_blank" rel="noopener noreferrer" href="/networks/{{_.networkNameToKey(locationData.from)}}" class="gp-nettools_network-link">
+							{{locationData.from}}
+						</a>
+					{{/if}}
+
 					<div class="gp-nettools_main-info_content_input-block">
 						<span>Run a Free</span>
 
@@ -552,7 +558,7 @@
 				if (!Object.keys(res.asns).includes(asnName)) {
 					res.asns[asnName] = {
 						name: asnName,
-						from: 'world',
+						from: location.network,
 						probesCnt: 1,
 						fromAsUrlPart: 'world',
 					};
