@@ -37,7 +37,7 @@
 					</span>
 
 					{{#if locationData.type === 'asn'}}
-						<a target="_blank" rel="noopener noreferrer" href="/networks/{{_.networkNameToKey(locationData.from)}}" class="gp-nettools_network-link">
+						<a target="_blank" rel="noopener noreferrer" href="/networks/{{locationData.fromAsUrlPart}}" class="gp-nettools_network-link">
 							{{locationData.from}}
 						</a>
 					{{/if}}
@@ -513,7 +513,7 @@
 				let countryNameLC = countries.find(i => i.code.toLowerCase() === countryCodeLC).name.toLowerCase();
 				let countryNameAsUrlPart = countryNameLC.split(' ').join('-');
 				let asnName = `as${location.asn}`;
-				let networkNameAsKey = location.network.replace(/\./g, '').replace(/[\W]|_/g, ' ').replace(/\s\s+|_/g, ' ').trim().split(' ').join('-').toLowerCase();
+				let networkNameAsKey = _.networkNameToKey(location.network);
 				let continentCodeLC = location.continent.toLowerCase();
 				let continentNameLC = continents.find(i => i.code.toLowerCase() === continentCodeLC).name.toLowerCase();
 				let continentNameAsUrlPart = continentNameLC.split(' ').join('-');
@@ -560,7 +560,7 @@
 						name: asnName,
 						from: location.network,
 						probesCnt: 1,
-						fromAsUrlPart: 'world',
+						fromAsUrlPart: networkNameAsKey,
 					};
 				} else {
 					res.asns[asnName].probesCnt += 1;
