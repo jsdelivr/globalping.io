@@ -13,7 +13,7 @@ try {
 
 module.exports.isReady = () => !!ipToDomainReader;
 
-module.exports.getDomainByIp = (ip) => {
+module.exports.getNetworkByIp = (ip) => {
 	let result = ipToDomainReader?.get(ip);
-	return result?.domain || null;
+	return { domain: result?.domain || null, name: result?.name || null };
 };

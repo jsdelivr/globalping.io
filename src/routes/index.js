@@ -5,7 +5,7 @@ const globalpingSitemap = require('../middleware/sitemap');
 const ogImage = require('../middleware/open-graph/image');
 const ogMetadata = require('../middleware/open-graph');
 const asnDomains = require('../lib/asn-to-domain');
-const ipToDomain = require('../lib/ip-to-domain');
+const ipToNetwork = require('../lib/ip-to-network');
 const { getUsers, getNetworks, getNetworkToDomainMap } = require('../lib/probe-data');
 const maxmind = require('maxmind');
 
@@ -226,10 +226,10 @@ koaElasticUtils.addRoutes(router, [
 });
 
 /**
- * Translate IP to domain name via MMDB ASN lookup
+ * Translate IP to network name and domain via MMDB ASN lookup
  */
 koaElasticUtils.addRoutes(router, [
-	[ '/ip-to-domain/:ip' ],
+	[ '/ip-to-network/:ip' ],
 ], async (ctx) => {
 	let { ip = '' } = ctx.params;
 
@@ -238,19 +238,19 @@ koaElasticUtils.addRoutes(router, [
 		return;
 	}
 
-	if (!ipToDomain.isReady()) {
+	if (!ipToNetwork.isReady()) {
 		ctx.status = 503;
 		return;
 	}
 
-	let domain = ipToDomain.getDomainByIp(ip);
+	let network = ipToNetwork.getNetworkByIp(ip);
 
-	if (!domain) {
+	if (!network.domain && !network.name) {
 		ctx.status = 404;
 		return;
 	}
 
-	ctx.body = { domain };
+	ctx.body = { domain: network.domain, name: network.name };
 });
 
 /**

@@ -48,6 +48,7 @@
 										class="c-gp-results-raw-output_list_item_header_metrics_logo"
 										width="28"
 										height="28"
+										as-tooltip="@this.getNetworkName(this.statsPerTarget[activeTargetIdx].ipAddr)"
 										src="https://img.jsdelivr.com/img.logo.dev/{{@this.getNetworkDomainName(this.statsPerTarget[activeTargetIdx].ipAddr)}}?format=png"
 										alt="{{this.network}} logo"
 										on-error="@this.handleLogoLoadError(this.statsPerTarget[activeTargetIdx].ipAddr)">
@@ -199,13 +200,13 @@
 
 				pendingDomainLookups.add(ipAddr);
 
-				http.getDomainFromIP(ipAddr)
+				http.getNetworkFromIP(ipAddr)
 					.then((res) => {
 						this.set('showingNetworkLogos', this.get('showingNetworkLogos') || !!res.domain);
 
 						this.set('networkDomainNamesByIp', {
 							...this.get('networkDomainNamesByIp'),
-							[ipAddr]: res.domain || null,
+							[ipAddr]: res,
 						});
 					})
 					.catch(() => {
@@ -220,7 +221,10 @@
 			});
 		},
 		getNetworkDomainName (ipAddr) {
-			return ipAddr ? this.get('networkDomainNamesByIp')[ipAddr] : null;
+			return ipAddr ? this.get('networkDomainNamesByIp')[ipAddr].domain : null;
+		},
+		getNetworkName (ipAddr) {
+			return ipAddr ? this.get('networkDomainNamesByIp')[ipAddr].name || this.get('networkDomainNamesByIp')[ipAddr].domain : null;
 		},
 		handleLogoLoadError (ipAddr) {
 			this.set('networkDomainNamesByIp', {
