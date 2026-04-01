@@ -116,6 +116,7 @@
 				PROBE_STATUS_FAILED,
 				PROBE_STATUS_OFFLINE,
 				pendingDomainLookups: new Set(),
+				showingNetworkLogos: false,
 			};
 		},
 		onrender () {
@@ -200,13 +201,11 @@
 
 				http.getDomainFromIP(ipAddr)
 					.then((res) => {
-						if (!res?.domain) {
-							return;
-						}
+						this.set('showingNetworkLogos', this.get('showingNetworkLogos') || !!res.domain);
 
 						this.set('networkDomainNamesByIp', {
 							...this.get('networkDomainNamesByIp'),
-							[ipAddr]: res.domain,
+							[ipAddr]: res.domain || null,
 						});
 					})
 					.catch(() => {

@@ -734,7 +734,8 @@
 								isInfiniteModeRes="{{isInfiniteModeRes}}"
 								screenWidth="{{screenWidth}}"
 								sortOrder="{{sortOrder}}"
-								sortBy="{{sortBy}}">
+								sortBy="{{sortBy}}"
+								showingNetworkLogos="{{showingNetworkLogos}}">
 							</c-gp-results-raw-output>
 						</div>
 					{{else}}
@@ -783,8 +784,8 @@
 					</div>
 				</div>
 			{{/if}}
-			{{#if rawOutputMode && testReqParams.id}}
-				<a class="gp_map-block_logo-dev-link" href="https://logo.dev" target="_blank" rel="noopener">Network logos provided by Logo.dev</a>
+			{{#if rawOutputMode && showingNetworkLogos}}
+				<a class="gp_map-block_logo-dev-link" href="https://logo.dev" target="_blank" rel="noopener noreferrer">Network logos provided by Logo.dev</a>
 			{{/if}}
 		</div>
 
@@ -1726,6 +1727,7 @@
 				sortOrder: DEFAULT_SORT_ORDER,
 				sortByOpts: SORT_BY_OPTS,
 				locationAutofilled: false,
+				showingNetworkLogos: false,
 			};
 		},
 		computed: {
@@ -2347,6 +2349,7 @@
 			this.set('probesMaxTiming', type.toLowerCase() === 'http' ? 1000 : 200);
 			this.set('_measurementOgTitle', null);
 			this.set('_measurementOgDescription', null);
+			this.set('showingNetworkLogos', false);
 
 			// if it is infinite/multi-endpoint measurement then we should show TableOutput by default
 			// otherwise leave prev value set by user
