@@ -7,67 +7,69 @@
 				<div class="c-gp-results-raw-output_list_item_inner-wrapper">
 					<div class="c-gp-results-raw-output_list_item">
 						<div class="c-gp-results-raw-output_list_item_header">
-							<span class="c-gp-results-raw-output_list_item_header_info">
-								<span>
+							<div class="c-gp-results-raw-output_list_item_header_info">
+								<div
+									class="c-gp-results-raw-output_list_item_status-line"
+									style="background-color: {{_.getGpProbeStatusColor(this.statsPerTarget[activeTargetIdx].avgTiming, testReqParams.type === 'http' ? 1000 : 200) || ''}}">
+								</div>
+
+								<span class="c-gp-results-raw-output_list_item_header_info_target">
 									<img width="28"
 										height="20"
 										src="https://cdn.jsdelivr.net/npm/country-flag-icons@1.5.5/3x2/{{this.country}}.svg">
 										{{this.city}}, {{this.country}}, {{this.continent}}
+									<span>&nbsp;-&nbsp;</span>
+									<a class="c-gp-results-raw-output_list_item_header_info_network-link" href="{{@this.getUrlNetworkName('/networks', this.network)}}">
+										{{this.network}} (AS{{this.asn}})
+									</a>
 								</span>
-								<span>&nbsp;-&nbsp;</span>
-								<a class="c-gp-results-raw-output_list_item_header_info_network-link" href="{{@this.getUrlNetworkName('/networks', this.network)}}">
-									{{this.network}} (AS{{this.asn}})
-								</a>
-							</span>
 
-							{{#if _.getGpTargetTiming(this.statsPerTarget[activeTargetIdx])}}
-								<span class="c-gp-results-raw-output_list_item_header_time main-value">
-									<img class="c-gp-results-raw-output_list_item_header_time_dot-icon"
-										width="4"
-										height="4"
-										src="{{@shared.assetsHost}}/img/dot-icon.svg">
-
-									<span>Time:</span>
-									<span class="c-gp-results-raw-output_list_item_header_time_value">
-										{{_.getGpTargetTiming(this.statsPerTarget[activeTargetIdx])}}
+								{{#if testReqParams.type === 'http' && this.statsPerTarget[activeTargetIdx].ipAddr}}
+									<span class="c-gp-results-raw-output_list_item_header_address">
+										<span>Resolved address:</span>
+										<span class="c-gp-results-raw-output_list_item_header_address_value">
+											{{this.statsPerTarget[activeTargetIdx].ipAddr}}
+										</span>
 									</span>
-								</span>
-							{{/if}}
+								{{/if}}
 
-							{{#unless this.statsPerTarget[activeTargetIdx].isFailed || this.statsPerTarget[activeTargetIdx].avgTiming === PROBE_STATUS_OFFLINE}}
-								{{#each this.statsPerTarget[activeTargetIdx].extraValues}}
-									<span class="c-gp-results-raw-output_list_item_header_time">
-										<span>{{this.text}}:</span>
-										<span class="c-gp-results-raw-output_list_item_header_time_value">{{this.value}}{{this.units}}</span>
+								<c-gp-tls-details tls="{{this.statsPerTarget[activeTargetIdx].tls}}" screenWidth="{{screenWidth}}"></c-gp-tls-details>
+
+								<img on-click="@this.hideShowTestResult(this)"
+									class="c-gp-results-raw-output_list_item_header_dropdown-icon {{#if hiddenTestResults.includes(this)}}upside-down{{/if}}"
+									width="24"
+									height="24"
+									src="{{@shared.assetsHost}}/img/chevron-up-icon.svg">
+							</div>
+
+							<div class="c-gp-results-raw-output_list_item_header_metrics {{#if testInProgress && !this.statsPerTarget[activeTargetIdx].rawOutput}}in-progress{{/if}}">
+								{{#if @this.getNetworkDomainName(this.statsPerTarget[activeTargetIdx].ipAddr)}}
+									<img
+										class="c-gp-results-raw-output_list_item_header_metrics_logo"
+										width="28"
+										height="28"
+										src="https://img.jsdelivr.com/img.logo.dev/{{@this.getNetworkDomainName(this.statsPerTarget[activeTargetIdx].ipAddr)}}?format=png"
+										alt="{{this.network}} logo"
+										on-error="@this.handleLogoLoadError(this.statsPerTarget[activeTargetIdx].ipAddr)">
+								{{/if}}
+
+								{{#if _.getGpTargetTiming(this.statsPerTarget[activeTargetIdx])}}
+									<span class="c-gp-results-raw-output_list_item_header_time main-value">
+										Time
+										<b>
+											{{_.getGpTargetTiming(this.statsPerTarget[activeTargetIdx])}}
+										</b>
 									</span>
-								{{/each}}
-							{{/unless}}
+								{{/if}}
 
-							{{#if testReqParams.type === 'http' && this.statsPerTarget[activeTargetIdx].ipAddr}}
-								<span class="c-gp-results-raw-output_list_item_header_time main-value">
-									<img class="c-gp-results-raw-output_list_item_header_time_dot-icon"
-										width="4"
-										height="4"
-										src="{{@shared.assetsHost}}/img/dot-icon.svg">
-
-									<span>Resolved address:</span>
-									<span class="c-gp-results-raw-output_list_item_header_time_value">
-										{{this.statsPerTarget[activeTargetIdx].ipAddr}}
-									</span>
-								</span>
-							{{/if}}
-
-							<c-gp-tls-details tls="{{this.statsPerTarget[activeTargetIdx].tls}}" screenWidth="{{screenWidth}}"></c-gp-tls-details>
-
-							<img on-click="@this.hideShowTestResult(this)"
-								class="c-gp-results-raw-output_list_item_header_dropdown-icon {{#if hiddenTestResults.includes(this)}}upside-down{{/if}}"
-								width="24"
-								height="24"
-								src="{{@shared.assetsHost}}/img/chevron-up-icon.svg">
-
-							<div
-								class="c-gp-results-raw-output_list_item_status-line"
-								style="background-color: {{_.getGpProbeStatusColor(this.statsPerTarget[activeTargetIdx].avgTiming, testReqParams.type === 'http' ? 1000 : 200) || ''}}">
+								{{#unless this.statsPerTarget[activeTargetIdx].isFailed || this.statsPerTarget[activeTargetIdx].avgTiming === PROBE_STATUS_OFFLINE}}
+									{{#each this.statsPerTarget[activeTargetIdx].extraValues}}
+										<span class="c-gp-results-raw-output_list_item_header_time">
+											{{this.text}}
+											<b>{{this.value}}{{this.units}}</b>
+										</span>
+									{{/each}}
+								{{/unless}}
 							</div>
 
 							<div class="c-gp-results-raw-output_list_item_top-wrapper_actions">
@@ -97,6 +99,7 @@
 
 <script>
 	const _ = require('../../assets/js/_');
+	const http = require('../../assets/js/utils/http');
 	const tooltip = require('../../assets/js/decorators/tooltip');
 	const PROBE_STATUS_FAILED = _.getProbeStatusFailedValue();
 	const PROBE_STATUS_OFFLINE = _.getProbeStatusOfflineValue();
@@ -109,8 +112,10 @@
 			return {
 				_,
 				hiddenTestResults: [],
+				networkDomainNamesByIp: Object.create(null),
 				PROBE_STATUS_FAILED,
 				PROBE_STATUS_OFFLINE,
+				pendingDomainLookups: new Set(),
 			};
 		},
 		onrender () {
@@ -134,6 +139,10 @@
 					this.setResultsBlockHeight(preparedTestResults);
 					// remove old hidden results
 					this.set('hiddenTestResults', []);
+				});
+
+				this.observe('preparedTestResults activeTargetIdx', () => {
+					this.populateNetworkDomains();
 				});
 
 				this.observe('sortOrder sortBy activeTargetIdx', () => {
@@ -169,6 +178,56 @@
 		},
 		setProbeAsLocation (probeData) {
 			this.set('currSearchLocation', `AS${probeData.asn}+${probeData.city}`);
+		},
+		populateNetworkDomains () {
+			let preparedTestResults = this.get('preparedTestResults') || [];
+			let activeTargetIdx = this.get('activeTargetIdx');
+			let networkDomainNamesByIp = this.get('networkDomainNamesByIp');
+			let pendingDomainLookups = this.get('pendingDomainLookups');
+
+			preparedTestResults.forEach((result) => {
+				let ipAddr = result?.statsPerTarget?.[activeTargetIdx]?.ipAddr;
+
+				if (
+					!ipAddr
+					|| Object.hasOwn(networkDomainNamesByIp, ipAddr)
+					|| pendingDomainLookups.has(ipAddr)
+				) {
+					return;
+				}
+
+				pendingDomainLookups.add(ipAddr);
+
+				http.getDomainFromIP(ipAddr)
+					.then((res) => {
+						if (!res?.domain) {
+							return;
+						}
+
+						this.set('networkDomainNamesByIp', {
+							...this.get('networkDomainNamesByIp'),
+							[ipAddr]: res.domain,
+						});
+					})
+					.catch(() => {
+						this.set('networkDomainNamesByIp', {
+							...this.get('networkDomainNamesByIp'),
+							[ipAddr]: null,
+						});
+					})
+					.finally(() => {
+						pendingDomainLookups.delete(ipAddr);
+					});
+			});
+		},
+		getNetworkDomainName (ipAddr) {
+			return ipAddr ? this.get('networkDomainNamesByIp')[ipAddr] : null;
+		},
+		handleLogoLoadError (ipAddr) {
+			this.set('networkDomainNamesByIp', {
+				...this.get('networkDomainNamesByIp'),
+				[ipAddr]: null,
+			});
 		},
 		getUrlNetworkName (base = '', network) {
 			return `${base}/${network.replace(/\./g, '').replace(/[\W]|_/g, ' ').replace(/\s\s+|_/g, ' ').trim().split(' ').join('-').toLowerCase()}`;

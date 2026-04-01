@@ -154,6 +154,7 @@
 		}
 
 		&_map-block {
+			position: relative;
 			display: flex;
 			flex-direction: column;
 			align-items: center;
@@ -899,6 +900,19 @@
 
 				@media (min-width: @screen-sm-min) {
 					margin-top: -32px;
+				}
+			}
+
+			&_logo-dev-link {
+				position: absolute;
+				bottom: -21px;
+				right: 34px;
+				font-size: 10.5px;
+				color: #79849a;
+				transition: color 100ms ease-in-out;
+
+				&:hover {
+					color: #17233a;
 				}
 			}
 		}

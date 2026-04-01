@@ -66,6 +66,10 @@ module.exports.getDomainFromASN = (asn) => {
 	return _.makeHTTPRequest({ url: `/asn-to-domain/${asn}` });
 };
 
+module.exports.getDomainFromIP = (ip) => {
+	return _.makeHTTPRequest({ url: `/ip-to-domain/${encodeURIComponent(ip)}` });
+};
+
 module.exports.getNetworkDomainMap = () => {
 	return _.makeHTTPRequest({ url: `/network-to-domain` });
 };
