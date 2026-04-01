@@ -243,14 +243,14 @@ koaElasticUtils.addRoutes(router, [
 		return;
 	}
 
-	let network = ipToNetwork.getNetworkByIp(ip);
+	let { domain, name } = ipToNetwork.getNetworkByIp(ip);
 
-	if (!network.domain && !network.name) {
+	if (!domain && !name) {
 		ctx.status = 404;
 		return;
 	}
 
-	ctx.body = { domain: network.domain, name: network.name };
+	ctx.body = { domain, name };
 });
 
 /**
