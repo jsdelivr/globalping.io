@@ -636,6 +636,17 @@ body.noscroll {
 						animation-delay: -.15s;
 					}
 				}
+
+				& > i {
+					font-size: 11px;
+				}
+
+				&:has(> i) {
+					div {
+						width: 24px;
+						height: 24px;
+					}
+				}
 			}
 		}
 
@@ -657,63 +668,6 @@ body.noscroll {
 
 			&:focus {
 				background: #17233a;
-			}
-		}
-
-		&_infinite {
-			background: #17233a;
-			color: #fff;
-
-			&:hover {
-				background: #303d57;
-			}
-
-			&:active {
-				background: #17233a;
-
-				&:focus {
-					background: #17233a;
-					box-shadow: none;
-				}
-			}
-
-			&:focus {
-				background: #17233a;
-			}
-
-			&_loading {
-				display: flex;
-				column-gap: 8px;
-				justify-content: center;
-
-				>.spinner {
-					width: 20px;
-					height: 20px;
-
-					div {
-						display: block;
-						position: absolute;
-						width: 20px;
-						height: 20px;
-						border: 2px solid #fff;
-						border-radius: 50%;
-						animation: gp_btn_loading 1.2s cubic-bezier(.5, 0, .5, 1) infinite;
-						border-color: #fff transparent transparent;
-
-						&:nth-child(1) {
-							animation-delay: -.45s;
-							border: 2px solid rgba(255, 255, 255, .1);
-						}
-
-						&:nth-child(2) {
-							animation-delay: -.3s;
-						}
-
-						&:nth-child(3) {
-							animation-delay: -.15s;
-						}
-					}
-				}
 			}
 		}
 	}
