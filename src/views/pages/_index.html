@@ -1992,11 +1992,12 @@
 						&& Object.values(respStatuses).every(s => s === true)
 					) {
 						this.set('testInProgress', false);
-						this.disableRunTestBtnForDelay();
 
 						// if it is a share-results-flow - scroll mapBlock into the view
 						if (this.get('shareResFlow')) {
 							this.scrollMapIntoView();
+						} else {
+							this.disableRunTestBtnForDelay();
 						}
 					}
 
