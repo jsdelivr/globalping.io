@@ -597,15 +597,16 @@
 				<div id="dd-run-test-btn" class="btn-group run-test-btn">
 					{{#if prevProbesMeasId && !testInProgress}}
 						<div class="gp_map-block_settings-wrapper_split-btn">
-							<button disabled="{{runTestBtnDisabled}}" class="gp_map-block_settings-wrapper_split-btn_run gp_btn_green" on-click="@this.handleRunTestBtn()">
+							<button disabled="{{runTestBtnDisabled}}" class="gp_map-block_settings-wrapper_split-btn_run gp_btn_green {{#if runTestBtnDisabled}}gp_btn_disabled{{/if}}" on-click="@this.handleRunTestBtn()">
 								Run
 							</button>
 
 							<button type="button"
-								class="dropdown-toggle gp_btn_green"
+								class="dropdown-toggle gp_btn_green {{#if runTestBtnDisabled}}gp_btn_disabled{{/if}}"
 								data-toggle="dropdown"
 								aria-haspopup="true"
-								aria-expanded="false">
+								aria-expanded="false"
+								disabled="{{runTestBtnDisabled}}">
 									<div class="gp_map-block_settings-wrapper_split-btn_icon">
 										<img width="20" height="20" src="{{@shared.assetsHost}}/img/chevron-down.white.svg">
 									</div>
@@ -617,15 +618,17 @@
 						</div>
 					{{else}}
 						<button on-click="@this.handleRunTestBtn()"
-							class="gp_map-block_settings-wrapper_btn gp_btn_green {{#if testInProgress}}gp_btn_green_loading{{/if}}"
+							class="gp_map-block_settings-wrapper_btn {{#if !testInProgress}}gp_btn_green{{else}}gp_btn_black gp_btn_black_loading{{/if}} {{#if runTestBtnDisabled}}gp_btn_disabled{{/if}}"
 							data-testid="run-test-btn"
 							disabled="{{runTestBtnDisabled}}">
 							{{#if testInProgress}}
-								<div></div>
-								<div></div>
-								<div></div>
-								<div></div>
-								<i class="fa fa-stop"></i>
+								<span>Stop</span>
+								<div class="spinner">
+									<div></div>
+									<div></div>
+									<div></div>
+									<div></div>
+								</div>
 							{{else}}
 								{{runTestBtnText}}
 							{{/if}}
@@ -2301,7 +2304,7 @@
 			this.set('runTestBtnDelayTimeout', setTimeout(() => {
 				this.set('runTestBtnDisabled', false);
 				this.set('runTestBtnDelayTimeout', null);
-			}, 200));
+			}, 1000));
 		},
 		proceedToTest (prevProbesMeasId) {
 			let { type, target, location, limit, ipVersion } = this.get('mainOptions');
