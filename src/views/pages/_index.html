@@ -3076,6 +3076,7 @@
 		},
 		resetMapAndRunTest (prevProbesMeasId = null) {
 			this.disableRunTestBtnForDelay();
+			this.set('testInProgress', true);
 
 			let mq = window.matchMedia('(min-width: 768px)');
 
