@@ -1711,6 +1711,8 @@
 				runTestBtnText: 'Run Test',
 				testReqParams: null,
 				probesResponse: null,
+				clusterRadius: null,
+				nextClusterRadius: null,
 				shareResFlow: false,
 				activeTargetIdx: 0,
 				rawOutputMode: true,
@@ -2493,6 +2495,8 @@
 				map.setZoom(MAP_ZOOM_ALT);
 			}
 
+			this.set('clusterRadius', this.getClusterRadius());
+
 			// handle map changes on zoom
 			map.addListener('zoom_changed', () => {
 				// close all IWs on zoom
@@ -2508,6 +2512,20 @@
 					m.content.style.width = `${svgWidth}px`;
 					m.content.style.height = `${svgHeight}px`;
 				});
+
+				let nextClusterRadius = this.getClusterRadius();
+
+				if (
+					this.get('probesResponse')
+					&& !this.get('shareResFlow')
+					&& nextClusterRadius !== this.get('clusterRadius')
+				) {
+					this.set('nextClusterRadius', nextClusterRadius);
+				}
+			});
+
+			map.addListener('idle', () => {
+				this.refreshProbeClusters();
 			});
 
 			// draw probes Clusters or clear the map from them
@@ -2578,6 +2596,8 @@
 			});
 		},
 		updateClusters (probes) {
+			this.set('nextClusterRadius', null);
+
 			let preparedMarkers = Object.keys(probes).map((key) => {
 				let [ lat, lng ] = key.split(', ');
 				let marker = probesMarkers.find(pm => pm.position.lat === lat && pm.position.lng === lng);
@@ -2586,8 +2606,6 @@
 					marker = this.createMapClusterMarkerWithIW(key, probes[key]);
 					probesMarkers.push(marker);
 				}
-
-				marker.map = map;
 
 				return marker;
 			});
@@ -2637,7 +2655,7 @@
 				},
 				// eslint-disable-next-line no-undef
 				algorithm: new markerClusterer.SuperClusterAlgorithm({
-					radius: 200,
+					radius: this.getClusterRadius(),
 				}),
 			});
 
@@ -2646,6 +2664,30 @@
 			google.maps.event.addListener(map, 'click', () => {
 				probesInfoWindows.forEach(piw => piw.close());
 			});
+		},
+		refreshProbeClusters () {
+			let probesResponse = this.get('probesResponse');
+			let nextClusterRadius = this.get('nextClusterRadius');
+
+			if (
+				!probesResponse
+				|| this.get('shareResFlow')
+				|| !nextClusterRadius
+				|| nextClusterRadius === this.get('clusterRadius')
+			) {
+				return;
+			}
+
+			this.set('clusterRadius', nextClusterRadius);
+			this.clearProbesClusters();
+			this.updateClusters(probesResponse);
+		},
+		getClusterRadius () {
+			if (map.zoom <= MAP_ZOOM_REG) {
+				return 150;
+			}
+
+			return 200;
 		},
 		clearTestResponseMarkers () {
 			infoWindows.forEach(iw => iw.close());
@@ -2656,6 +2698,7 @@
 		clearProbesClusters () {
 			probesInfoWindows.forEach(piw => piw.close());
 			mapProbesClusters.forEach(pc => pc.setMap(null));
+			probesMarkers.forEach(pm => pm.map = null);
 			probesMarkers = [];
 			probesInfoWindows = [];
 			mapProbesClusters = [];
