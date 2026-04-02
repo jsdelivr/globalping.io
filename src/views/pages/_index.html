@@ -2932,6 +2932,11 @@
 					}).catch((e) => {
 						cancel();
 
+						if (!this.isActiveTestRun(testRunId)) {
+							resolve();
+							return;
+						}
+
 						if (e.responseStatusCode === 404) {
 							this.set('shareResHeaderData', 'This measurement has expired!');
 							this.set('runTestBtnText', 'Run Test');
