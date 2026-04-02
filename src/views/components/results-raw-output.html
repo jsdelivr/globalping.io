@@ -221,10 +221,12 @@
 			});
 		},
 		getNetworkDomainName (ipAddr) {
-			return ipAddr ? this.get('networkDomainNamesByIp')[ipAddr].domain : null;
+			let network = ipAddr ? this.get('networkDomainNamesByIp')[ipAddr] : null;
+			return network?.domain || null;
 		},
 		getNetworkName (ipAddr) {
-			return ipAddr ? this.get('networkDomainNamesByIp')[ipAddr].name || this.get('networkDomainNamesByIp')[ipAddr].domain : null;
+			let network = ipAddr ? this.get('networkDomainNamesByIp')[ipAddr] : null;
+			return network?.name || network?.domain || null;
 		},
 		handleLogoLoadError (ipAddr) {
 			this.set('networkDomainNamesByIp', {
