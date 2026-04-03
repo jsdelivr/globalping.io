@@ -2264,8 +2264,17 @@
 			}
 		},
 		onunrender () {
+			this.set('activeTestRunId', this.get('activeTestRunId') + 1);
+			let gmapsIdleListener = this.get('gmapsIdleListener');
+
+			if (gmapsIdleListener) {
+				google.maps.event.removeListener(gmapsIdleListener);
+				this.set('gmapsIdleListener', null);
+			}
+
 			clearTimeout(this.get('runTestBtnDelayTimeout'));
 			this.get('testReqCancelFn')?.forEach(cancel => cancel?.());
+			this.set('testReqCancelFn', []);
 		},
 		isActiveTestRun (testRunId) {
 			return testRunId === null || testRunId === undefined || testRunId === this.get('activeTestRunId');
@@ -2790,7 +2799,7 @@
 					}
 
 					http.getGlobalpingMeasurement(measurementId).then((testRes) => {
-						if (!this.isActiveTestRun(testRunId)) {
+						if (cancelled || !this.isActiveTestRun(testRunId)) {
 							cancel();
 							resolve();
 							return;
@@ -2944,12 +2953,13 @@
 							timeout = setTimeout(fetch, 500);
 						}
 					}).catch((e) => {
-						cancel();
-
-						if (!this.isActiveTestRun(testRunId)) {
+						if (cancelled || !this.isActiveTestRun(testRunId)) {
+							cancel();
 							resolve();
 							return;
 						}
+
+						cancel();
 
 						if (e.responseStatusCode === 404) {
 							this.set('shareResHeaderData', 'This measurement has expired!');
