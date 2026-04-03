@@ -223,6 +223,7 @@ koaElasticUtils.addRoutes(router, [
 	}
 
 	ctx.body = { domain };
+	ctx.maxAge = 7 * 24 * 60 * 60;
 });
 
 /**
@@ -251,6 +252,7 @@ koaElasticUtils.addRoutes(router, [
 	}
 
 	ctx.body = { domain, name };
+	ctx.maxAge = 7 * 24 * 60 * 60;
 });
 
 /**
