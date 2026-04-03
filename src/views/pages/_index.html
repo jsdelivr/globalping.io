@@ -2617,7 +2617,7 @@
 				renderer: {
 					render ({ markers, position }) {
 						let totalCustomNumber = markers.reduce((sum, marker) => sum + (marker.markersCount || 0), 0);
-						let clusterSvg = window.btoa(`<svg xmlns="http://www.w3.org/2000/svg" width="68" height="68" fill="none">
+						let clusterSvg = window.btoa(`<svg xmlns="http://www.w3.org/2000/svg" width="54" height="54" viewBox="0 0 68 68" fill="none">
 							<g clip-path="url(#a)">
 							<path fill="url(#b)" d="M30 2.31a8 8 0 0 1 8 0l21.445 12.38a8 8 0 0 1 4 6.929V46.38a8 8 0 0 1-4 6.928L38 65.691a8 8 0 0 1-8 0L8.555 53.309a8 8 0 0 1-4-6.928V21.62a8 8 0 0 1 4-6.928z"/>
 							<path stroke="#69E7C8" stroke-width="1.5" d="M30.375 4.959a7.25 7.25 0 0 1 7.25 0L57.338 16.34a7.25 7.25 0 0 1 3.625 6.279V45.38a7.25 7.25 0 0 1-3.625 6.279L37.625 63.04a7.25 7.25 0 0 1-7.25 0L10.662 51.66a7.25 7.25 0 0 1-3.625-6.279V22.62a7.25 7.25 0 0 1 3.625-6.279L30.375 4.96Z"/>
@@ -2639,12 +2639,12 @@
 						let clusterImg = document.createElement('img');
 
 						clusterDiv.style.position = 'relative';
-						clusterDiv.style.width = '68px';
-						clusterDiv.style.height = '68px';
+						clusterDiv.style.width = '54px';
+						clusterDiv.style.height = '54px';
 						clusterDiv.style.background = 'transparent';
 						clusterImg.src = `data:image/svg+xml;base64,${clusterSvg}`;
-						clusterImg.width = '68';
-						clusterImg.height = '68';
+						clusterImg.width = '54';
+						clusterImg.height = '54';
 						clusterDiv.appendChild(clusterImg);
 
 						return new google.maps.marker.AdvancedMarkerElement({
@@ -2684,7 +2684,7 @@
 		},
 		getClusterRadius () {
 			if (map.zoom <= MAP_ZOOM_REG) {
-				return 130;
+				return 120;
 			}
 
 			return 200;
