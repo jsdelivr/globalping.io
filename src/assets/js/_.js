@@ -739,4 +739,8 @@ module.exports = {
 		let optimalWidth = Math.floor(Math.log10(Math.abs(value))) + (value < 0 ? 1 : 0) + 1;
 		return Math.max(optimalWidth, minWidth);
 	},
+
+	isTouchDevice () {
+		return window?.matchMedia('(hover: none), (pointer: coarse)').matches;
+	},
 };

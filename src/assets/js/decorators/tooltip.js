@@ -1,3 +1,5 @@
+const { isTouchDevice } = require('../_');
+
 let tooltipDecorator = (
 	node,
 	content,
@@ -9,6 +11,53 @@ let tooltipDecorator = (
 	offsetY,
 ) => {
 	let tooltip, handlers, eventName;
+
+	let createTooltip = () => {
+		if (document.querySelector('#ractive-tooltip-instance') !== null) {
+			return;
+		}
+
+		tooltip = document.createElement(elementName);
+		tooltip.className = `ractive-tooltip ${getPositionClass(position)}${className ? ` ${className}` : ''}`;
+
+		if (rawHtml) {
+			let preTag = document.createElement('pre');
+			tooltip.classList.add('raw');
+
+			preTag.textContent = content;
+			tooltip.appendChild(preTag);
+		} else {
+			if (!Array.isArray(content)) {
+				tooltip.textContent = content;
+			} else {
+				content.forEach((line) => {
+					tooltip.appendChild(document.createTextNode(line));
+					tooltip.appendChild(document.createElement('br'));
+				});
+			}
+		}
+
+		tooltip.id = 'ractive-tooltip-instance';
+		document.body.appendChild(tooltip);
+	};
+	let positionTooltip = () => {
+		if (!tooltip) {
+			return;
+		}
+
+		tooltip.style.left = `${offsetX ? offsetX : getXPos(position)}px`;
+		tooltip.style.top = `${offsetY ? offsetY : getYPos(position)}px`;
+	};
+	let removeTooltip = () => {
+		let tooltipInstance = document.querySelector('#ractive-tooltip-instance');
+
+		if (!tooltipInstance) {
+			return;
+		}
+
+		tooltipInstance.parentElement.removeChild(tooltipInstance);
+		tooltip = null;
+	};
 	let getPositionClass = (position) => {
 		let resClass;
 
@@ -67,38 +116,25 @@ let tooltipDecorator = (
 
 	handlers = {
 		mouseover () {
-			if (document.querySelector('#ractive-tooltip-instance') === null) {
-				tooltip = document.createElement(elementName);
-				tooltip.className = `ractive-tooltip ${getPositionClass(position)}${className ? ` ${className}` : ''}`;
-
-				if (rawHtml) {
-					let preTag = document.createElement('pre');
-					tooltip.classList.add('raw');
-
-					preTag.textContent = content;
-					tooltip.appendChild(preTag);
-				} else {
-					if (!Array.isArray(content)) {
-						tooltip.textContent = content;
-					} else {
-						content.forEach((line) => {
-							tooltip.appendChild(document.createTextNode(line));
-							tooltip.appendChild(document.createElement('br'));
-						});
-					}
-				}
-
-				tooltip.id = 'ractive-tooltip-instance';
-				document.body.appendChild(tooltip);
-			}
+			createTooltip();
+			positionTooltip();
 		},
 		mousemove () {
-			tooltip.style.left = `${offsetX ? offsetX : getXPos(position)}px`;
-			tooltip.style.top = `${offsetY ? offsetY : getYPos(position)}px`;
+			positionTooltip();
 		},
 		mouseleave () {
-			let tooltipInstance = document.querySelector('#ractive-tooltip-instance');
-			tooltipInstance.parentElement.removeChild(tooltipInstance);
+			removeTooltip();
+		},
+		click (e) {
+			if (!isTouchDevice()) {
+				return;
+			}
+
+			e.preventDefault();
+			e.stopPropagation();
+			removeTooltip();
+			createTooltip();
+			positionTooltip();
 		},
 	};
 
@@ -108,6 +144,8 @@ let tooltipDecorator = (
 		}
 	}
 
+	window.addEventListener('scroll', removeTooltip, true);
+
 	return {
 		teardown () {
 			for (eventName in handlers) {
@@ -115,6 +153,9 @@ let tooltipDecorator = (
 					node.removeEventListener(eventName, handlers[eventName], false);
 				}
 			}
+
+			window.removeEventListener('scroll', removeTooltip, true);
+			removeTooltip();
 		},
 	};
 };
