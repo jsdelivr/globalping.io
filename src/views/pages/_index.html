@@ -2320,7 +2320,7 @@
 			this.set('runTestBtnDelayTimeout', setTimeout(() => {
 				this.set('runTestBtnDisabled', false);
 				this.set('runTestBtnDelayTimeout', null);
-			}, 1000));
+			}, 500));
 		},
 		proceedToTest (prevProbesMeasId) {
 			let { type, target, location, limit, ipVersion } = this.get('mainOptions');
