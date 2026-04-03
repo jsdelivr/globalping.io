@@ -51,7 +51,7 @@ async function fetchAndSaveAsnDomainMap (url) {
 }
 
 async function downloadMmdb (url) {
-	let outputPath = path.resolve(__dirname, '../data/ipdb.mmdb');
+	let outputPath = path.resolve(__dirname, '../data/IPINFO_LITE_ASN.mmdb');
 	fs.mkdirSync(path.dirname(outputPath), { recursive: true });
 
 	await pipeline(

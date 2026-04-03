@@ -5,7 +5,7 @@ const maxmind = require('maxmind');
 let ipToDomainReader = null;
 
 try {
-	let mmdb = fs.readFileSync(path.join(__dirname, '/../../../data/ipdb.mmdb'));
+	let mmdb = fs.readFileSync(path.join(__dirname, '/../../../data/IPINFO_LITE_ASN.mmdb'));
 	ipToDomainReader = new maxmind.Reader(mmdb);
 } catch {
 	console.error('IP to domain MMDB data not downloaded.');
