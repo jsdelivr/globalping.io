@@ -1689,6 +1689,7 @@
 				runTestBtnDelayTimeout: null,
 				testReqCancelFn: null,
 				activeTestRunId: 0,
+				gmapsIdleListener: null,
 				notAppliedOpts: {},
 				defaultPacketsAmount: DEFAULT_PACKETS_AMOUNT,
 				defaultLimit: DEFAULT_LIMIT,
@@ -2283,6 +2284,12 @@
 		},
 		stopCurrentTest () {
 			let nextTestRunId = this.get('activeTestRunId') + 1;
+			let gmapsIdleListener = this.get('gmapsIdleListener');
+
+			if (gmapsIdleListener) {
+				google.maps.event.removeListener(gmapsIdleListener);
+				this.set('gmapsIdleListener', null);
+			}
 
 			this.set('activeTestRunId', nextTestRunId);
 			this.get('testReqCancelFn')?.forEach(cancel => cancel?.());
@@ -3097,11 +3104,14 @@
 			}
 
 			// once zoom is ended the idle event will be fired
-			map.addListener('idle', () => {
+			let listener = map.addListener('idle', () => {
 				this.proceedToTest(prevProbesMeasId);
 				// remove listener to avoid unintended test runs while zoom
-				google.maps.event.clearListeners(map, 'idle');
+				google.maps.event.removeListener(listener);
+				this.set('gmapsIdleListener', null);
 			});
+
+			this.set('gmapsIdleListener', listener);
 		},
 		filterForInitPresetOpts (defaultOpts, optionsToFilter) {
 			return Object.keys(optionsToFilter).reduce((res, key) => {
