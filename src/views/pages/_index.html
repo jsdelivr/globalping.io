@@ -597,12 +597,12 @@
 				<div id="dd-run-test-btn" class="btn-group run-test-btn">
 					{{#if prevProbesMeasId && !testInProgress}}
 						<div class="gp_map-block_settings-wrapper_split-btn">
-							<button disabled="{{runTestBtnDisabled}}" class="gp_map-block_settings-wrapper_split-btn_run gp_btn_green {{#if runTestBtnDisabled}}gp_btn_disabled{{/if}}" on-click="@this.handleRunTestBtn()">
+							<button disabled="{{runTestBtnDisabled}}" class="gp_map-block_settings-wrapper_split-btn_run gp_btn_green" on-click="@this.handleRunTestBtn()">
 								Run
 							</button>
 
 							<button type="button"
-								class="dropdown-toggle gp_btn_green {{#if runTestBtnDisabled}}gp_btn_disabled{{/if}}"
+								class="dropdown-toggle gp_btn_green"
 								data-toggle="dropdown"
 								aria-haspopup="true"
 								aria-expanded="false"
@@ -618,7 +618,7 @@
 						</div>
 					{{else}}
 						<button on-click="@this.handleRunTestBtn()"
-							class="gp_map-block_settings-wrapper_btn {{#if !testInProgress}}gp_btn_green{{else}}gp_btn_black gp_btn_black_loading{{/if}} {{#if runTestBtnDisabled}}gp_btn_disabled{{/if}}"
+							class="gp_map-block_settings-wrapper_btn {{#if !testInProgress}}gp_btn_green{{else}}gp_btn_black gp_btn_black_loading{{/if}}"
 							data-testid="run-test-btn"
 							disabled="{{runTestBtnDisabled}}">
 							{{#if testInProgress}}

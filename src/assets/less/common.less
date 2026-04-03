@@ -699,10 +699,15 @@ body.noscroll {
 			&:focus {
 				background: #17233a;
 			}
+
+			&:disabled {
+				cursor: pointer;
+			}
 		}
 
 		&_disabled {
 			opacity: .5;
+			cursor: default;
 		}
 	}
 
