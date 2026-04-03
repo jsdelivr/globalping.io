@@ -36,6 +36,10 @@ const isDev = process.env.NODE_ENV === 'development';
 let app = new Koa();
 let router = new KoaRouter();
 
+const shouldLogRenderError = (ctx, error) => {
+	return !(ctx.path.startsWith('/.well-known') && error?.code === 'ENOENT');
+};
+
 const nuxtRouteHandlerPromise = initializeNuxt().catch((err) => {
 	console.error(err);
 	return null;
@@ -305,7 +309,7 @@ koaElasticUtils.addRoutes(router, [
 		ctx.body = await ctx.render(`pages/${root}` + (path === '/' ? '_index' : path) + '.html', data);
 		ctx.maxAge = 5 * 60;
 	} catch (e) {
-		if (app.env === 'development') {
+		if (app.env === 'development' && shouldLogRenderError(ctx, e)) {
 			console.error(e);
 		}
 
