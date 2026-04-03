@@ -2596,7 +2596,11 @@
 			});
 		},
 		updateClusters (probes) {
-			this.set('nextClusterRadius', null);
+			let clusterRadius = this.getClusterRadius();
+			this.set({
+				clusterRadius,
+				nextClusterRadius: null,
+			});
 
 			let preparedMarkers = Object.keys(probes).map((key) => {
 				let [ lat, lng ] = key.split(', ');
@@ -2655,7 +2659,7 @@
 				},
 				// eslint-disable-next-line no-undef
 				algorithm: new markerClusterer.SuperClusterAlgorithm({
-					radius: this.getClusterRadius(),
+					radius: clusterRadius,
 				}),
 			});
 
