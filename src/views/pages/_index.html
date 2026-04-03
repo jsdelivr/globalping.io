@@ -2479,6 +2479,10 @@
 						this.set('showMap', this.get('originalShowMap'));
 
 						this.getTestMeasurementById({ measurementId: res.response.id, testRunId }).then(() => {
+							if (!this.isActiveTestRun(testRunId)) {
+								return;
+							}
+
 							this.handlePostGPMeasError(err, true);
 							this.set('targetsArr', [ targetsArr[0] ]);
 						});
