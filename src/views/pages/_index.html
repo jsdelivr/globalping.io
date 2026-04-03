@@ -2518,9 +2518,8 @@
 				if (
 					this.get('probesResponse')
 					&& !this.get('shareResFlow')
-					&& nextClusterRadius !== this.get('clusterRadius')
 				) {
-					this.set('nextClusterRadius', nextClusterRadius);
+					this.set('nextClusterRadius', nextClusterRadius === this.get('clusterRadius') ? null : nextClusterRadius);
 				}
 			});
 
