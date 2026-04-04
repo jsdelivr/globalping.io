@@ -741,6 +741,6 @@ module.exports = {
 	},
 
 	isTouchDevice () {
-		return window?.matchMedia('(hover: none), (pointer: coarse)').matches;
+		return !!window?.matchMedia('(hover: none), (pointer: coarse)')?.matches;
 	},
 };
