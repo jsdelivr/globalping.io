@@ -618,7 +618,7 @@
 						</div>
 					{{else}}
 						<button on-click="@this.handleRunTestBtn()"
-							class="gp_map-block_settings-wrapper_btn {{#if !testInProgress}}gp_btn_green{{else}}gp_btn_black gp_btn_black_loading{{/if}}"
+							class="gp_map-block_settings-wrapper_btn {{#if !testInProgress}}gp_btn_green{{else}}gp_btn_black gp_btn_black_loading{{/if}} {{#if !testInProgress && runTestBtnDisabled}}gp_btn_green_disabled{{/if}}"
 							data-testid="run-test-btn"
 							disabled="{{runTestBtnDisabled}}">
 							{{#if testInProgress}}
@@ -1685,7 +1685,9 @@
 				inputErrors: {},
 				testResults: null,
 				testInProgress: false,
-				runTestBtnDisabled: false,
+				runTestBtnDisabled: true,
+				probesLoaded: false,
+				gmapsReady: false,
 				runTestBtnDelayTimeout: null,
 				testReqCancelFn: null,
 				activeTestRunId: 0,
@@ -2310,18 +2312,28 @@
 			this.set('runTestBtnText', 'Run Again');
 			this.enableRunTestBtn();
 		},
+		isRunTestBtnReady () {
+			return this.get('probesLoaded') && this.get('gmapsReady');
+		},
+		syncRunTestBtnState () {
+			if (this.get('testInProgress') || this.get('runTestBtnDelayTimeout')) {
+				return;
+			}
+
+			this.set('runTestBtnDisabled', !this.isRunTestBtnReady());
+		},
 		enableRunTestBtn () {
 			clearTimeout(this.get('runTestBtnDelayTimeout'));
-			this.set('runTestBtnDisabled', false);
 			this.set('runTestBtnDelayTimeout', null);
+			this.syncRunTestBtnState();
 		},
 		disableRunTestBtnForDelay () {
 			clearTimeout(this.get('runTestBtnDelayTimeout'));
 			this.set('runTestBtnDisabled', true);
 
 			this.set('runTestBtnDelayTimeout', setTimeout(() => {
-				this.set('runTestBtnDisabled', false);
 				this.set('runTestBtnDelayTimeout', null);
+				this.syncRunTestBtnState();
 			}, 500));
 		},
 		proceedToTest (prevProbesMeasId) {
@@ -2621,6 +2633,9 @@
 					this.updateMarkers(markersData, prevMarkersData);
 				}
 			});
+
+			this.set('gmapsReady', true);
+			this.syncRunTestBtnState();
 		},
 		updateMarkers (markersData, prevMarkersData) {
 			markersData.forEach((markerData) => {
@@ -3043,6 +3058,8 @@
 			this.animate('totalCities', totalCities, { duration: 1500 });
 			this.animate('totalCountries', totalCountries, { duration: 1500 });
 			this.set('probesResponse', this.groupProbes(response));
+			this.set('probesLoaded', true);
+			this.syncRunTestBtnState();
 		},
 		translateTestTypeName (name) {
 			switch (name.toLowerCase()) {
