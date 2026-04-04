@@ -5,10 +5,12 @@
 			Copy URL
 		</button>
 
-		<button as-clipboard data-clipboard-text="{{markdownResults}}">
-			<img width="20" height="20" src="{{@shared.assetsHost}}/img/markdown-icon.svg">
-			Copy Markdown
-		</button>
+		{{#if showMarkdownResults}}
+			<button as-clipboard data-clipboard-text="{{markdownResults}}">
+				<img width="20" height="20" src="{{@shared.assetsHost}}/img/markdown-icon.svg">
+				Copy Markdown
+			</button>
+		{{/if}}
 
 		<div class="c-gp-results-share_content_command">
 			<span class="c-gp-results-share_content_command_label">
@@ -48,6 +50,7 @@
 				markdownResults: '',
 				measurementLink: '',
 				cliCommand: '',
+				showMarkdownResults: false,
 			};
 		},
 		onrender () {
@@ -218,6 +221,7 @@
 			let results = this.get('preparedTestResults');
 			let testReqParams = this.get('testReqParams');
 			let measurementsMetadata = this.get('measurementsMetadata');
+			this.set('showMarkdownResults', false);
 
 			// create result title consisting of the test type and locations
 			let locationStr = testReqParams.locations.map(location => Object.values(location).join('+').trim()).join(', ');
@@ -257,7 +261,7 @@
 						subheaderParts.push({ title: 'Time', value: timing });
 					}
 
-					if (!targetStats.isFailed && targetStats.avgTiming !== PROBE_STATUS_OFFLINE) {
+					if (!targetStats.isFailed && targetStats.avgTiming !== PROBE_STATUS_OFFLINE && targetStats.extraValues) {
 						Object.keys(targetStats.extraValues).forEach((key) => {
 							let extraVal = targetStats.extraValues[key];
 							subheaderParts.push({ title: extraVal.text, value: `${extraVal.value}${extraVal.units}` });
@@ -275,7 +279,7 @@
 					}
 
 					// RAW OUTPUT
-					let rawOutputContent = targetStats.rawOutput.trim();
+					let rawOutputContent = targetStats.rawOutput?.trim() ?? '';
 					let tickCount = 3;
 
 					for (let tickSequence of rawOutputContent.matchAll(/`+/g)) {
@@ -284,12 +288,16 @@
 
 					let tickWrapper = '`'.repeat(tickCount);
 					let rawOutputBlock = `${tickWrapper}\n${rawOutputContent}\n${tickWrapper}`;
+					let hasContent = !!subheader || !!rawOutputContent;
 
 					// COMPLETE THE STRING
-					return `${header}${subheader}${rawOutputBlock}`;
-				}).join('\n\n');
+					return hasContent ? `${header}${subheader}${rawOutputBlock}` : '';
+				}).filter(Boolean).join('\n\n');
 
-				targetStrings.push(targetHeader + perProbe);
+				if (perProbe) {
+					this.set('showMarkdownResults', true);
+					targetStrings.push(targetHeader + perProbe);
+				}
 			}
 
 			let targetStr = targetStrings.join('\n\n---\n\n');
