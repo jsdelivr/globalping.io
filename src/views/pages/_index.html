@@ -597,15 +597,16 @@
 				<div id="dd-run-test-btn" class="btn-group run-test-btn">
 					{{#if prevProbesMeasId && !testInProgress}}
 						<div class="gp_map-block_settings-wrapper_split-btn">
-							<div class="gp_map-block_settings-wrapper_split-btn_run gp_btn_green" on-click="@this.resetMapAndRunTest()">
+							<button disabled="{{runTestBtnDisabled}}" class="gp_map-block_settings-wrapper_split-btn_run gp_btn_green" on-click="@this.handleRunTestBtn()">
 								Run
-							</div>
+							</button>
 
 							<button type="button"
 								class="dropdown-toggle gp_btn_green"
 								data-toggle="dropdown"
 								aria-haspopup="true"
-								aria-expanded="false">
+								aria-expanded="false"
+								disabled="{{runTestBtnDisabled}}">
 									<div class="gp_map-block_settings-wrapper_split-btn_icon">
 										<img width="20" height="20" src="{{@shared.assetsHost}}/img/chevron-down.white.svg">
 									</div>
@@ -615,31 +616,19 @@
 								<span class="dropdown-item" on-click="@this.reUseProbesRunTest()">Re-use probes</span>
 							</div>
 						</div>
-					{{elseif infiniteSwitchEnabled}}
-						<button on-click="@this.handleInfiniteMeasBtn()"
-							class="gp_map-block_settings-wrapper_btn gp_btn_green {{#if testInProgress}}gp_btn_infinite gp_btn_infinite_loading{{/if}}">
+					{{else}}
+						<button on-click="@this.handleRunTestBtn()"
+							class="gp_map-block_settings-wrapper_btn {{#if !testInProgress}}gp_btn_green{{else}}gp_btn_black gp_btn_black_loading{{/if}}"
+							data-testid="run-test-btn"
+							disabled="{{runTestBtnDisabled}}">
 							{{#if testInProgress}}
-								<span>{{runTestBtnText}}</span>
+								<span>Stop</span>
 								<div class="spinner">
 									<div></div>
 									<div></div>
 									<div></div>
 									<div></div>
 								</div>
-							{{else}}
-								{{runTestBtnText}}
-							{{/if}}
-						</button>
-					{{else}}
-						<button on-click="@this.resetMapAndRunTest()"
-							class="gp_map-block_settings-wrapper_btn gp_btn_green {{#if testInProgress}}gp_btn_green_disabled gp_btn_green_loading{{/if}}"
-							data-testid="run-test-btn"
-							disabled="{{testInProgress}}">
-							{{#if testInProgress}}
-								<div></div>
-								<div></div>
-								<div></div>
-								<div></div>
 							{{else}}
 								{{runTestBtnText}}
 							{{/if}}
@@ -1364,11 +1353,11 @@
 						</div>
 
 						<div class="gp_sponsors_content_list_tier-one_row">
-							<a target="_blank" rel="noopener noreferrer" href="https://www.host-stage.net/">
-								<img title="Sponsored by HostStage"
-									width="189"
-									height="40"
-									src="{{@shared.assetsHost}}/img/sponsors/host-stage.svg">
+							<a target="_blank" rel="noopener noreferrer" href="https://oneprovider.com/">
+								<img title="Sponsored by OneProvider"
+									width="171"
+									height="45"
+									src="{{@shared.assetsHost}}/img/sponsors/oneprovider.svg">
 							</a>
 
 							<a target="_blank" rel="noopener noreferrer" href="https://www.mvps.net/">
@@ -1376,6 +1365,15 @@
 									width="158"
 									height="50"
 									src="{{@shared.assetsHost}}/img/sponsors/mvps.svg">
+							</a>
+						</div>
+
+						<div class="gp_sponsors_content_list_tier-one_row">
+							<a target="_blank" rel="noopener noreferrer" href="https://www.host-stage.net/">
+								<img title="Sponsored by HostStage"
+									width="189"
+									height="40"
+									src="{{@shared.assetsHost}}/img/sponsors/host-stage.svg">
 							</a>
 						</div>
 
@@ -1687,7 +1685,11 @@
 				inputErrors: {},
 				testResults: null,
 				testInProgress: false,
+				runTestBtnDisabled: false,
+				runTestBtnDelayTimeout: null,
 				testReqCancelFn: null,
+				activeTestRunId: 0,
+				gmapsIdleListener: null,
 				notAppliedOpts: {},
 				defaultPacketsAmount: DEFAULT_PACKETS_AMOUNT,
 				defaultLimit: DEFAULT_LIMIT,
@@ -1998,6 +2000,8 @@
 						// if it is a share-results-flow - scroll mapBlock into the view
 						if (this.get('shareResFlow')) {
 							this.scrollMapIntoView();
+						} else {
+							this.disableRunTestBtnForDelay();
 						}
 					}
 
@@ -2134,8 +2138,8 @@
 				// check the statuses of probes in the measurement and stop measurement if all of them are failed
 				this.observe('testResults', (testResults) => {
 					for (let i in testResults) {
-						if (testResults[i].every(r => r.result.status === PROBE_STATUS_FAILED)) {
-							this.stopInfiniteTest();
+						if (this.get('testInProgress') && this.get('isInfiniteModeRes') && testResults[i].every(r => r.result.status === PROBE_STATUS_FAILED)) {
+							this.stopCurrentTest();
 
 							return;
 						}
@@ -2260,7 +2264,63 @@
 			}
 		},
 		onunrender () {
+			this.set('activeTestRunId', this.get('activeTestRunId') + 1);
+			let gmapsIdleListener = this.get('gmapsIdleListener');
+
+			if (gmapsIdleListener) {
+				google.maps.event.removeListener(gmapsIdleListener);
+				this.set('gmapsIdleListener', null);
+			}
+
+			clearTimeout(this.get('runTestBtnDelayTimeout'));
 			this.get('testReqCancelFn')?.forEach(cancel => cancel?.());
+			this.set('testReqCancelFn', []);
+		},
+		isActiveTestRun (testRunId) {
+			return testRunId === null || testRunId === undefined || testRunId === this.get('activeTestRunId');
+		},
+		handleRunTestBtn () {
+			if (this.get('runTestBtnDisabled')) {
+				return;
+			}
+
+			if (this.get('testInProgress')) {
+				this.stopCurrentTest();
+				return;
+			}
+
+			this.resetMapAndRunTest();
+		},
+		stopCurrentTest () {
+			let nextTestRunId = this.get('activeTestRunId') + 1;
+			let gmapsIdleListener = this.get('gmapsIdleListener');
+
+			if (gmapsIdleListener) {
+				google.maps.event.removeListener(gmapsIdleListener);
+				this.set('gmapsIdleListener', null);
+			}
+
+			this.set('activeTestRunId', nextTestRunId);
+			this.get('testReqCancelFn')?.forEach(cancel => cancel?.());
+			this.set('testReqCancelFn', []);
+			this.set('testInProgress', false);
+			this.set('isInfiniteMeasStopped', true);
+			this.set('runTestBtnText', 'Run Again');
+			this.enableRunTestBtn();
+		},
+		enableRunTestBtn () {
+			clearTimeout(this.get('runTestBtnDelayTimeout'));
+			this.set('runTestBtnDisabled', false);
+			this.set('runTestBtnDelayTimeout', null);
+		},
+		disableRunTestBtnForDelay () {
+			clearTimeout(this.get('runTestBtnDelayTimeout'));
+			this.set('runTestBtnDisabled', true);
+
+			this.set('runTestBtnDelayTimeout', setTimeout(() => {
+				this.set('runTestBtnDisabled', false);
+				this.set('runTestBtnDelayTimeout', null);
+			}, 500));
 		},
 		proceedToTest (prevProbesMeasId) {
 			let { type, target, location, limit, ipVersion } = this.get('mainOptions');
@@ -2268,6 +2328,7 @@
 			let measurementOpts = _.deepExtend({}, appliedMeasOpts.initPresetOpts, appliedMeasOpts.notPresetOpts);
 			let targetsArr = target.split(',').map(target => target.trim());
 			let infiniteSwitchEnabled = this.get('infiniteSwitchEnabled');
+			let testRunId = this.get('activeTestRunId') + 1;
 
 			// create parameters for the measurement request
 			let reqParams = {
@@ -2344,6 +2405,8 @@
 			this.set('probesMaxTiming', type.toLowerCase() === 'http' ? 1000 : 200);
 			this.set('_measurementOgTitle', null);
 			this.set('_measurementOgDescription', null);
+			this.set('activeTestRunId', testRunId);
+			this.set('testReqCancelFn', []);
 
 			// if it is infinite/multi-endpoint measurement then we should show TableOutput by default
 			// otherwise leave prev value set by user
@@ -2364,13 +2427,17 @@
 
 			// run Infinite type of the measurement
 			if (type === 'ping' && targetsArr.length === 1 && infiniteSwitchEnabled) {
-				this.postInfiniteGlobalpingMeasurement({ reqParams, target: targetsArr[0] });
+				this.postInfiniteGlobalpingMeasurement({ reqParams, target: targetsArr[0], testRunId });
 
 				return;
 			}
 
 			// common type of the measurement
 			http.postGlobalpingMeasurement({ ...reqParams, target: targetsArr[0] }, RATE_LIMIT_HEADERS).then((res) => {
+				if (!this.isActiveTestRun(testRunId)) {
+					return;
+				}
+
 				// set measurement ID for re-use probes case
 				this.set('prevProbesMeasId', res.response.id);
 
@@ -2391,6 +2458,10 @@
 					}
 
 					http.postGlobalpingMeasurement(secReqParams, RATE_LIMIT_HEADERS).then((res1) => {
+						if (!this.isActiveTestRun(testRunId)) {
+							return;
+						}
+
 						let combinedHeaders = { ...res1.responseHeaders };
 
 						[
@@ -2403,25 +2474,37 @@
 
 						// set response headers for gp-credits/gp-credits-message
 						this.set('rateCreditsData', combinedHeaders);
-						this.getTestMeasurementById({ measurementId: res.response.id });
-						this.getTestMeasurementById({ measurementId: res1.response.id, resNumber: 1 });
+						this.getTestMeasurementById({ measurementId: res.response.id, testRunId });
+						this.getTestMeasurementById({ measurementId: res1.response.id, resNumber: 1, testRunId });
 						this.set('showMap', this.get('originalShowMap'));
 
 						// Update the URL without creating a new history entry.
 						app.router.replaceQueryParam('measurement', `${this.get('measurement')},${res1.response.id}`);
 					}).catch((err) => {
+						if (!this.isActiveTestRun(testRunId)) {
+							return;
+						}
+
 						this.set('showMap', this.get('originalShowMap'));
 
-						this.getTestMeasurementById({ measurementId: res.response.id }).then(() => {
+						this.getTestMeasurementById({ measurementId: res.response.id, testRunId }).then(() => {
+							if (!this.isActiveTestRun(testRunId)) {
+								return;
+							}
+
 							this.handlePostGPMeasError(err, true);
 							this.set('targetsArr', [ targetsArr[0] ]);
 						});
 					});
 				} else {
-					this.getTestMeasurementById({ measurementId: res.response.id });
+					this.getTestMeasurementById({ measurementId: res.response.id, testRunId });
 					this.set('showMap', this.get('originalShowMap'));
 				}
 			}).catch((err) => {
+				if (!this.isActiveTestRun(testRunId)) {
+					return;
+				}
+
 				this.handlePostGPMeasError(err);
 			});
 		},
@@ -2697,6 +2780,7 @@
 			isLastShareReq = false,
 			isInfiniteMeas = false,
 			reqParams = {},
+			testRunId = null,
 		}) {
 			return new Promise((resolve, reject) => {
 				let cancelled = false;
@@ -2709,11 +2793,18 @@
 				};
 
 				let fetch = () => {
-					if (cancelled) {
+					if (cancelled || !this.isActiveTestRun(testRunId)) {
+						resolve();
 						return;
 					}
 
 					http.getGlobalpingMeasurement(measurementId).then((testRes) => {
+						if (cancelled || !this.isActiveTestRun(testRunId)) {
+							cancel();
+							resolve();
+							return;
+						}
+
 						if (isShareResCase) {
 							let currentTargets = this.get('mainOptions.target');
 							let currTargetsArr = _.removeDuplicatedTargets(currentTargets ? currentTargets.split(',') : []);
@@ -2850,6 +2941,7 @@
 										target: testRes.target,
 										isInfiniteMeas: true,
 										resNumber: infiniteMeasIds.length + 1,
+										testRunId,
 									});
 								}
 							}
@@ -2861,6 +2953,12 @@
 							timeout = setTimeout(fetch, 500);
 						}
 					}).catch((e) => {
+						if (cancelled || !this.isActiveTestRun(testRunId)) {
+							cancel();
+							resolve();
+							return;
+						}
+
 						cancel();
 
 						if (e.responseStatusCode === 404) {
@@ -3006,6 +3104,9 @@
 			this.set('modifiedMeasOptsCnt', modifiedMeasOptsCnt);
 		},
 		resetMapAndRunTest (prevProbesMeasId = null) {
+			this.disableRunTestBtnForDelay();
+			this.set('testInProgress', true);
+
 			let mq = window.matchMedia('(min-width: 768px)');
 
 			if (mq.matches) {
@@ -3017,11 +3118,14 @@
 			}
 
 			// once zoom is ended the idle event will be fired
-			map.addListener('idle', () => {
+			let listener = map.addListener('idle', () => {
 				this.proceedToTest(prevProbesMeasId);
 				// remove listener to avoid unintended test runs while zoom
-				google.maps.event.clearListeners(map, 'idle');
+				google.maps.event.removeListener(listener);
+				this.set('gmapsIdleListener', null);
 			});
+
+			this.set('gmapsIdleListener', listener);
 		},
 		filterForInitPresetOpts (defaultOpts, optionsToFilter) {
 			return Object.keys(optionsToFilter).reduce((res, key) => {
@@ -3195,10 +3299,14 @@
 				});
 			}
 		},
-		postInfiniteGlobalpingMeasurement ({ reqParams, target, isInfiniteMeas = true, resNumber = 0 }) {
+		postInfiniteGlobalpingMeasurement ({ reqParams, target, isInfiniteMeas = true, resNumber = 0, testRunId = null }) {
 			this.set('runTestBtnText', 'Stop');
 
 			http.postGlobalpingMeasurement({ ...reqParams, target }, RATE_LIMIT_HEADERS).then((res) => {
+				if (!this.isActiveTestRun(testRunId)) {
+					return;
+				}
+
 				// set response headers for gp-credits/gp-credits-message
 				this.set('rateCreditsData', { ...res.responseHeaders, probesCount: res.response.probesCount });
 
@@ -3217,9 +3325,13 @@
 					locations: res.response.id,
 				};
 
-				this.getTestMeasurementById({ measurementId: res.response.id, resNumber, isInfiniteMeas, reqParams: updReqParams });
+				this.getTestMeasurementById({ measurementId: res.response.id, resNumber, isInfiniteMeas, reqParams: updReqParams, testRunId });
 				this.set('showMap', this.get('originalShowMap'));
 			}).catch((err) => {
+				if (!this.isActiveTestRun(testRunId)) {
+					return;
+				}
+
 				this.handlePostGPMeasError(err);
 			});
 		},
@@ -3247,26 +3359,13 @@
 				this.handleInfiniteSwitch();
 			}
 		},
-		handleInfiniteMeasBtn () {
-			let testInProgress = this.get('testInProgress');
-
-			if (testInProgress) {
-				this.stopInfiniteTest();
-			} else {
-				this.resetMapAndRunTest();
-			}
-		},
-		stopInfiniteTest () {
-			this.set('testInProgress', false);
-			this.set('isInfiniteMeasStopped', true);
-			this.set('runTestBtnText', 'Run Again');
-		},
 		handlePostGPMeasError (err, isSecondTarget = false) {
 			let isInfiniteModeRes = this.get('isInfiniteModeRes');
 			let testResults = this.get('testResults');
 			let targetsArr = this.get('targetsArr');
 
 			this.set('testInProgress', false);
+			this.enableRunTestBtn();
 			// we show the error block under the map block only if it is not an infinite measurement or the one with no results
 			this.set('runTestBtnText', 'Run Test');
 			// set response headers (from error) for gp-credits/gp-credits-message
