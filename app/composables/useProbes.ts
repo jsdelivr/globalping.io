@@ -1,4 +1,4 @@
-import { getSessionStorageData, setSessionStorageData } from '~/utils/session-storage';
+import { getSessionStorageData, setSessionStorageData } from '~/utils/sessionStorage';
 
 const SESSION_STORAGE_KEY = 'probesResponse';
 const PROBES_TTL = 1000 * 60 * 60;

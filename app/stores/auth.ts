@@ -1,6 +1,6 @@
 import type { FetchError } from 'ofetch';
 import { defineStore } from 'pinia';
-import { getSessionStorageData, setSessionStorageData } from '~/utils/session-storage';
+import { getSessionStorageData, setSessionStorageData } from '~/utils/sessionStorage';
 
 const STORAGE_KEY = 'gp-user';
 
