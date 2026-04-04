@@ -3026,10 +3026,6 @@
 			});
 		},
 		handleProbesResponse (response) {
-			if (this.get('activeTestRunId') !== 0) {
-				return;
-			}
-
 			this.set('rawProbes', response);
 
 			let { totalCities, totalCountries } = response.reduce((res, item) => {
@@ -3050,7 +3046,10 @@
 			this.animate('totalProbes', response.length, { duration: 1500 });
 			this.animate('totalCities', totalCities, { duration: 1500 });
 			this.animate('totalCountries', totalCountries, { duration: 1500 });
-			this.set('probesResponse', this.groupProbes(response));
+
+			if (this.get('activeTestRunId') === 0) {
+				this.set('probesResponse', this.groupProbes(response));
+			}
 		},
 		translateTestTypeName (name) {
 			switch (name.toLowerCase()) {
