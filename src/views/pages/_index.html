@@ -618,7 +618,7 @@
 						</div>
 					{{else}}
 						<button on-click="@this.handleRunTestBtn()"
-							class="gp_map-block_settings-wrapper_btn {{#if !testInProgress}}gp_btn_green{{else}}gp_btn_black gp_btn_black_loading{{/if}}"
+							class="gp_map-block_settings-wrapper_btn {{#if !testInProgress}}gp_btn_green{{else}}gp_btn_black gp_btn_black_loading{{/if}} {{#if !testInProgress && !gmapsReady}}gp_btn_green_disabled{{/if}}"
 							data-testid="run-test-btn"
 							disabled="{{runTestBtnDisabled}}">
 							{{#if testInProgress}}
@@ -1685,7 +1685,8 @@
 				inputErrors: {},
 				testResults: null,
 				testInProgress: false,
-				runTestBtnDisabled: false,
+				runTestBtnDisabled: true,
+				gmapsReady: false,
 				runTestBtnDelayTimeout: null,
 				testReqCancelFn: null,
 				activeTestRunId: 0,
@@ -2621,6 +2622,9 @@
 					this.updateMarkers(markersData, prevMarkersData);
 				}
 			});
+
+			this.enableRunTestBtn();
+			this.set('gmapsReady', true);
 		},
 		updateMarkers (markersData, prevMarkersData) {
 			markersData.forEach((markerData) => {
@@ -3022,6 +3026,10 @@
 			});
 		},
 		handleProbesResponse (response) {
+			if (this.get('activeTestRunId') !== 0) {
+				return;
+			}
+
 			this.set('rawProbes', response);
 
 			let { totalCities, totalCountries } = response.reduce((res, item) => {
