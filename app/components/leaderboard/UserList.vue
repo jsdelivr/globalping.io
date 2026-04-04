@@ -34,7 +34,7 @@
 
 					<FallbackImage
 						:src="`https://img.jsdelivr.com/github.com/${user.username}.png`"
-						:fallback="userFallbackIcon"
+						:fallback="getImageAsset('icons/user.svg')"
 						class="size-8 rounded-full"
 					/>
 
@@ -68,8 +68,8 @@
 </template>
 
 <script setup lang="ts">
-	import userFallbackIcon from '~/assets/images/icons/user.svg';
 	import type { UserList } from '~/composables/useUserLeaderboard';
+	import getImageAsset from '~/utils/getImageAsset';
 
 	const props = defineProps<{
 		loading: boolean;

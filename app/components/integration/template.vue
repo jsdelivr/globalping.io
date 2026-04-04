@@ -54,7 +54,7 @@
 					<img
 						class="max-h-72 shrink-0 object-contain md:w-[40%]"
 						:class="[index % 2 ? 'object-left' : 'object-right', item.class ?? '']"
-						:src="item.image"
+						:src="getImageAsset(item.image)"
 						:alt="item.title"
 					>
 				</div>
@@ -69,6 +69,7 @@
 
 <script setup lang="ts">
 	import usePageHead from '~/composables/usePageHead';
+	import getImageAsset from '~/utils/getImageAsset';
 
 	interface Step {
 		title: string;
