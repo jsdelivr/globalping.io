@@ -65,7 +65,7 @@
 						:fallback="getImageAsset('icons/user.svg')"
 						class="size-8 rounded-full"
 					/>
-					<a :href="`/users/${user.username}`" class="hover:underline">
+					<a :href="`/users/${user.username}`" class="truncate hover:underline">
 						{{ user.username }}
 					</a>
 				</td>
