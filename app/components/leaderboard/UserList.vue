@@ -11,7 +11,7 @@
 			class="bg-surface-50 border-surface-200 w-full rounded-lg border p-4 shadow-lg"
 		>
 			<div class="mb-4 flex items-center justify-between">
-				<div class="flex items-center gap-3">
+				<div class="flex items-center gap-3 overflow-hidden">
 					<span
 						class="text-surface-500 bg-surface-200 relative inline-flex h-8 min-w-8 items-center justify-center rounded-full bg-linear-to-br px-2 text-lg"
 						:class="{
@@ -38,7 +38,7 @@
 						class="size-8 rounded-full"
 					/>
 
-					<a :href="`/users/${user.username}`" class="text-base font-semibold">
+					<a :href="`/users/${user.username}`" class="truncate pr-3 text-base font-semibold">
 						{{ user.username }}
 					</a>
 				</div>
