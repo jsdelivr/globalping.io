@@ -1,5 +1,6 @@
 const { test } = require('./fixtures');
 const { expect } = require('@playwright/test');
+const { normalizeMultilineText } = require('../utils');
 
 test('CLI page', async ({ page }) => {
 	let response = await page.goto('/cli');
@@ -31,8 +32,8 @@ test('CLI page', async ({ page }) => {
 
 	await copyBtn.click();
 
-	let clipboardText = await page.evaluate(() => navigator.clipboard.readText());
-	let innerCmdText = (await cmd.innerText()).trim();
+	let clipboardText = normalizeMultilineText(await page.evaluate(() => navigator.clipboard.readText()));
+	let innerCmdText = normalizeMultilineText(await cmd.innerText());
 	await expect(clipboardText).toEqual(innerCmdText);
 
 	// quick start section
