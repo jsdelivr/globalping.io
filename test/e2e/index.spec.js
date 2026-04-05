@@ -104,7 +104,7 @@ test('Homepage', async ({ page, context }) => {
 	await expect(page.locator('#gp-map > div > div.gm-style')).not.toBeVisible();
 });
 
-test('Header', async ({ page, context }) => {
+test('Header', async ({ page }) => {
 	await page.goto('/');
 	await expect(page.locator('header')).toBeVisible();
 
@@ -112,11 +112,11 @@ test('Header', async ({ page, context }) => {
 	let anchorCount = await anchors.count();
 
 	for (let i = 0; i < anchorCount; i++) {
-		await testAnchor(anchors.nth(i), page, context);
+		await testAnchor(anchors.nth(i), page);
 	}
 });
 
-test('Footer', async ({ page, context }) => {
+test('Footer', async ({ page }) => {
 	await page.goto('/');
 	await expect(page.locator('footer')).toBeVisible();
 
@@ -124,6 +124,6 @@ test('Footer', async ({ page, context }) => {
 	let anchorCount = await anchors.count();
 
 	for (let i = 0; i < anchorCount; i++) {
-		await testAnchor(anchors.nth(i), page, context);
+		await testAnchor(anchors.nth(i), page);
 	}
 });
