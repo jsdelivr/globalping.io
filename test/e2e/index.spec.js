@@ -12,27 +12,32 @@ const testAnchor = async (anchor, page) => {
 		return;
 	}
 
-	let url = new URL(href, page.url());
+	let res;
 
-	let res = await page.request.fetch(url.toString(), {
-		method: 'HEAD',
-		failOnStatusCode: false,
-	});
+	try {
+		let url = new URL(href, page.url());
 
-	let status = res.status();
-
-	// e.g., x.com returns 403 for HEAD
-	if ([ 403, 405 ].includes(status)) {
-		await res.dispose();
-
-		res = await page.request.fetch(url.toString(), {
-			method: 'GET',
+		let res = await page.request.fetch(url.toString(), {
+			method: 'HEAD',
 			failOnStatusCode: false,
 		});
-	}
 
-	expect(res.ok()).toBeTruthy();
-	await res.dispose();
+		let status = res.status();
+
+		// e.g., x.com returns 403 for HEAD
+		if ([ 403, 405 ].includes(status)) {
+			await res.dispose();
+
+			res = await page.request.fetch(url.toString(), {
+				method: 'GET',
+				failOnStatusCode: false,
+			});
+		}
+
+		expect(res.ok()).toBeTruthy();
+	} finally {
+		await res?.dispose();
+	}
 };
 
 test('Homepage', async ({ page, context }) => {
