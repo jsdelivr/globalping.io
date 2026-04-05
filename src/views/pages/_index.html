@@ -2127,7 +2127,7 @@
 								return {
 									...mD,
 									timings: [ ...mD.timings, ...secReqMD.timings ],
-									httpErrors: [ ...mD.httpErrors || [], ...secReqMD.httpErrors || [] ],
+									httpErrors: [ ...mD.httpErrors, ...secReqMD.httpErrors ],
 									targets: [ ...mD.targets, ...secReqMD.targets ],
 								};
 							});

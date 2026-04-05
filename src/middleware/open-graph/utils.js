@@ -3,6 +3,10 @@ const got = require('../../lib/got');
 const GLOBALPING_API_HOST = 'https://api.globalping.io';
 const MEASUREMENT_TYPES = [ 'ping', 'traceroute', 'mtr', 'dns', 'http' ];
 
+function isHttpErrorStatusCode (statusCode) {
+	return typeof statusCode === 'number' && (statusCode >= 500 || statusCode === 403);
+}
+
 function formatNumber (number) {
 	if (number > 0 && number < 1) {
 		return '1';
@@ -92,7 +96,7 @@ module.exports.getViableData = (data) => {
 		}
 
 		case 'http': {
-			return data.results.filter(obj => obj.result.status === 'finished' && _.isFinite(obj.result?.timings?.total) && obj.result?.statusCode && !(obj.result.statusCode >= 500 || obj.result.statusCode === 403));
+			return data.results.filter(obj => obj.result.status === 'finished' && _.isFinite(obj.result?.timings?.total) && obj.result?.statusCode && !isHttpErrorStatusCode(obj.result.statusCode));
 		}
 
 		default: {
