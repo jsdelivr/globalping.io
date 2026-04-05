@@ -49,11 +49,11 @@
 						<span class="results-table_row_location_status-line">
 							<span
 								class="results-table_row_location_status-line_top"
-								style="background-color: {{_.getGpProbeStatusColor(this.statsPerTarget[0].avgTiming)}}">
+								style="background-color: {{_.getGpProbeStatusColor(this.statsPerTarget[0].avgTiming, 200, 5, this.statsPerTarget[0].isHttpError)}}">
 							</span>
 							<span
 								class="results-table_row_location_status-line_bottom"
-								style="background-color: {{_.getGpProbeStatusColor(this.statsPerTarget[1] ? this.statsPerTarget[1].avgTiming : this.statsPerTarget[0].avgTiming)}}">
+								style="background-color: {{_.getGpProbeStatusColor(this.statsPerTarget[1] ? this.statsPerTarget[1].avgTiming : this.statsPerTarget[0].avgTiming, 200, 5, this.statsPerTarget[1] ? this.statsPerTarget[1].isHttpError : this.statsPerTarget[0].isHttpError)}}">
 							</span>
 						</span>
 

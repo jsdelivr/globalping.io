@@ -2099,6 +2099,7 @@
 							return {
 								...data,
 								timings: [ resTiming ],
+								httpErrors: [ calcTiming?.isHttpError || false ],
 							};
 						});
 
@@ -2126,6 +2127,7 @@
 								return {
 									...mD,
 									timings: [ ...mD.timings, ...secReqMD.timings ],
+									httpErrors: [ ...mD.httpErrors || [], ...secReqMD.httpErrors || [] ],
 									targets: [ ...mD.targets, ...secReqMD.targets ],
 								};
 							});
@@ -3481,7 +3483,7 @@
 			let probesMinTiming = this.get('probesMinTiming');
 
 			for (let i = 0; i < targetsCnt; i++) {
-				svgFillColors.push(markerData.timings[i] ? _.getGpProbeStatusColor(markerData.timings[i], probesMaxTiming, probesMinTiming) : DEFAULT_MARKER_COLOR);
+				svgFillColors.push(markerData.timings[i] ? _.getGpProbeStatusColor(markerData.timings[i], probesMaxTiming, probesMinTiming, markerData.httpErrors && markerData.httpErrors[i]) : DEFAULT_MARKER_COLOR);
 			}
 
 			if (markerData.timings.length > 1) {
@@ -3551,7 +3553,7 @@
 					infoWindowContent += `<span class="gp-map_popup_multi_data_target">${target}</span>`;
 
 					infoWindowContent += `<span class="gp-map_popup_multi_data_timing"
-						style='color: ${_.getGpProbeStatusColor(markerData.timings[targetIdx], probesMaxTiming, probesMinTiming)}'>${markerData.timings[targetIdx] || ''}</span>`;
+						style='color: ${_.getGpProbeStatusColor(markerData.timings[targetIdx], probesMaxTiming, probesMinTiming, markerData.httpErrors && markerData.httpErrors[targetIdx])}'>${markerData.timings[targetIdx] || ''}</span>`;
 
 					infoWindowContent += '</div>';
 				});
@@ -3581,7 +3583,7 @@
 						};
 
 						if (res.result.status !== 'in-progress') {
-							let { isFailed = false, lastTiming, value: avgTiming, extraValues } = _.calcGpTestResTiming(res.type, res, dnsTraceEnabled);
+							let { isFailed = false, isHttpError = false, lastTiming, value: avgTiming, extraValues } = _.calcGpTestResTiming(res.type, res, dnsTraceEnabled);
 							let { packetsRtt, packetsTotal } = _.parseGpRawOutputForTimings(res.result.rawOutput);
 							let minTiming = res.result?.stats?.min || PROBE_NO_TIMING_VALUE;
 							let maxTiming = res.result?.stats?.max || PROBE_NO_TIMING_VALUE;
@@ -3599,6 +3601,7 @@
 								statsTotal,
 								statsDrop,
 								isFailed,
+								isHttpError,
 								isOffline,
 								packetsRtt,
 								extraValues,
@@ -3629,7 +3632,7 @@
 						};
 
 						if (nextReqRes.result.status !== 'in-progress') {
-							let { isFailed = false, lastTiming, value: avgTiming, extraValues } = _.calcGpTestResTiming(nextReqRes.type, nextReqRes, dnsTraceEnabled);
+							let { isFailed = false, isHttpError = false, lastTiming, value: avgTiming, extraValues } = _.calcGpTestResTiming(nextReqRes.type, nextReqRes, dnsTraceEnabled);
 							let { packetsRtt, packetsTotal } = _.parseGpRawOutputForTimings(nextReqRes.result.rawOutput);
 							let minTiming = nextReqRes.result?.stats?.min || PROBE_NO_TIMING_VALUE;
 							let maxTiming = nextReqRes.result?.stats?.max || PROBE_NO_TIMING_VALUE;
@@ -3649,6 +3652,7 @@
 									statsTotal,
 									statsDrop,
 									isFailed,
+									isHttpError,
 									isOffline,
 									packetsRtt,
 									extraValues,

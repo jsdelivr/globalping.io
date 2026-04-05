@@ -378,6 +378,8 @@ module.exports = {
 			}
 		}
 
+		let isHttpError = lowCaseTestName === 'http' && this.isHttpErrorStatusCode(testResData.result?.statusCode);
+
 		if (typeof resTiming === 'number') {
 			let note = '';
 
@@ -399,6 +401,7 @@ module.exports = {
 				note,
 				fullText: note ? `${Math.round(resTiming)}${units} ${note}` : `${Math.round(resTiming)}${units}`,
 				lastTiming,
+				isHttpError,
 			};
 		}
 
@@ -421,6 +424,10 @@ module.exports = {
 
 	getProbeStatusOfflineValue () {
 		return PROBE_STATUS_OFFLINE;
+	},
+
+	isHttpErrorStatusCode (statusCode) {
+		return typeof statusCode === 'number' && (statusCode >= 500 || statusCode === 403);
 	},
 
 	capitalizeFirstLetter (word) {
@@ -494,7 +501,7 @@ module.exports = {
 			return cache.get(key);
 		};
 	},
-	getGpProbeStatusColor (timing, probesMaxTiming = 200, probesMinTiming = 5) {
+	getGpProbeStatusColor (timing, probesMaxTiming = 200, probesMinTiming = 5, isHttpError = false) {
 		// return default GREY color while probe has no timing yet
 		if (!timing) { return '#c0c0c0'; }
 
@@ -503,6 +510,7 @@ module.exports = {
 			timing === PROBE_NO_TIMING_VALUE
 			|| timing === PROBE_STATUS_FAILED
 			|| timing === PROBE_STATUS_OFFLINE
+			|| isHttpError
 		) {
 			return '#17233A';
 		}

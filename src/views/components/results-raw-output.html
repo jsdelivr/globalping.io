@@ -67,7 +67,7 @@
 
 							<div
 								class="c-gp-results-raw-output_list_item_status-line"
-								style="background-color: {{_.getGpProbeStatusColor(this.statsPerTarget[activeTargetIdx].avgTiming, testReqParams.type === 'http' ? 1000 : 200) || ''}}">
+								style="background-color: {{_.getGpProbeStatusColor(this.statsPerTarget[activeTargetIdx].avgTiming, testReqParams.type === 'http' ? 1000 : 200, 5, this.statsPerTarget[activeTargetIdx].isHttpError) || ''}}">
 							</div>
 
 							<div class="c-gp-results-raw-output_list_item_top-wrapper_actions">

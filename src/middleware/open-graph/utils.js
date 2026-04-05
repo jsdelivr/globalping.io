@@ -92,7 +92,7 @@ module.exports.getViableData = (data) => {
 		}
 
 		case 'http': {
-			return data.results.filter(obj => obj.result.status === 'finished' && _.isFinite(obj.result?.timings?.total) && obj.result?.statusCode);
+			return data.results.filter(obj => obj.result.status === 'finished' && _.isFinite(obj.result?.timings?.total) && obj.result?.statusCode && !(obj.result.statusCode >= 500 || obj.result.statusCode === 403));
 		}
 
 		default: {

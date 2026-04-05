@@ -668,7 +668,7 @@
 				};
 
 				if (res.result.status !== 'in-progress') {
-					let { isFailed = false, lastTiming, value: avgTiming, extraValues } = _.calcGpTestResTiming(selectedTestType, res, dnsTraceEnabled);
+					let { isFailed = false, isHttpError = false, lastTiming, value: avgTiming, extraValues } = _.calcGpTestResTiming(selectedTestType, res, dnsTraceEnabled);
 					let { packetsTotal } = _.parseGpRawOutputForTimings(res.result.rawOutput);
 					let minTiming = res.result?.stats?.min || PROBE_NO_TIMING_VALUE;
 					let maxTiming = res.result?.stats?.max || PROBE_NO_TIMING_VALUE;
@@ -678,6 +678,7 @@
 						...preparedRes.statsPerTarget[0],
 						avgTiming,
 						isFailed,
+						isHttpError,
 						isOffline,
 						extraValues,
 						rawOutput: res.result.rawOutput,
