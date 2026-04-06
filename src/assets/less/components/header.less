@@ -14,18 +14,6 @@
 		box-shadow: 0 2px 2px rgba(0, 0, 0, .04), 0 0 0 1px #fff;
 	}
 
-	&.header-with-orange-bg {
-		.icon-bar {
-			background-color: #fff;
-		}
-
-		.nav.navbar-nav > li > a:focus {
-			@media (min-width: @screen-md-min) {
-				color: #fff;
-			}
-		}
-	}
-
 	&.page-404-header {
 		position: absolute;
 		width: 100%;
@@ -78,6 +66,17 @@
 	&.gp-about-us-header, &.gp-404-header {
 		position: absolute;
 		width: 100%;
+
+		.nav.navbar-nav > li {
+			& > a:focus {
+				@media (min-width: @screen-md-min) {
+					color: #fff;
+					border-radius: 4px;
+					box-shadow: 0 2px 2px rgba(0, 0, 0, .04), 0 0 0 1px #fff;
+					outline: none;
+				}
+			}
+		}
 
 		.navbar {
 			background-color: transparent;
@@ -219,6 +218,13 @@
 		@media (min-width: @screen-md-min) {
 			margin-right: 0;
 			margin-left: 0;
+
+			a:focus-visible {
+				color: #fff;
+				border-radius: 4px;
+				box-shadow: 0 2px 2px rgba(0, 0, 0, .04), 0 0 0 1px #fff;
+				outline: none;
+			}
 		}
 
 		> .main-logo {
