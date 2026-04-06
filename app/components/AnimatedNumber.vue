@@ -56,16 +56,23 @@
 		});
 	};
 
-	watch(
-		[ () => props.number, isInViewport ],
-		([ newNumber, inView ], [ oldNumber ]) => {
-			if (inView && (!hasAnimated.value || newNumber !== oldNumber)) {
+	watch(() => props.number, (newNumber, oldNumber) => {
+		if (newNumber !== oldNumber) {
+			hasAnimated.value = false;
+
+			if (isInViewport.value) {
 				animateChange(displayedNumber.value, Date.now());
 				hasAnimated.value = true;
 			}
-		},
-		{ immediate: true },
-	);
+		}
+	});
+
+	watch(isInViewport, (inView) => {
+		if (inView && !hasAnimated.value) {
+			animateChange(displayedNumber.value, Date.now());
+			hasAnimated.value = true;
+		}
+	}, { immediate: true });
 
 	onMounted(() => {
 		if (wrapperRef.value) {
