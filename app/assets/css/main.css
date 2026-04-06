@@ -9,10 +9,6 @@
 		background-color: var(--color-surface-0);
 	}
 
-	.ractive-component {
-		background: none !important;
-	}
-
 	::-webkit-scrollbar {
 		width: 8px;
 	}
