@@ -258,7 +258,7 @@ router.get('/auth/callback', '/auth/callback', async (ctx) => {
  */
 const NUXT_DEV_ONLY_ROUTES = [ '/__nuxt_devtools__' ];
 const NUXT_PROD_ONLY_ROUTES = [];
-const NUXT_ROUTES = [ '/integrations', '/leaderboard', '/discord', '/slack', '/cli', '/_nuxt', ...isDev ? NUXT_DEV_ONLY_ROUTES : NUXT_PROD_ONLY_ROUTES ];
+const NUXT_ROUTES = [ '/integrations', '/leaderboard', '/discord', '/slack', '/cli', '/about-us', '/_nuxt', ...isDev ? NUXT_DEV_ONLY_ROUTES : NUXT_PROD_ONLY_ROUTES ];
 
 router.use(async (ctx, next) => {
 	if (NUXT_ROUTES.some(route => ctx.req.path.startsWith(`${route}/`) || ctx.req.path === route)) {
