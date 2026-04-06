@@ -14,7 +14,7 @@
 	import { useAuth } from '~/stores/auth';
 
 	const HEADER_PROPERTIES = {
-		'default': { additionalClasses: 'header-with-globalping-bg' },
+		'default': { additionalClasses: 'header-with-globalping-bg', mainLogoName: undefined },
 		'about-us': { additionalClasses: 'gp-about-us-header', mainLogoName: 'globalping-full-white.svg' },
 	};
 
