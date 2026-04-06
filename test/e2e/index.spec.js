@@ -1,8 +1,7 @@
 const { test } = require('./fixtures');
 const { expect } = require('@playwright/test');
 
-const testAnchor = async (anchor, page, context) => {
-	// test that all links lead to a valid page
+const testAnchor = async (anchor, page) => {
 	let href = await anchor.getAttribute('href');
 
 	if (!href) {
@@ -13,12 +12,32 @@ const testAnchor = async (anchor, page, context) => {
 		return;
 	}
 
-	let url = new URL(href, page.url()).toString();
+	let res;
 
-	let newPage = await context.newPage();
-	let res = await newPage.goto(url);
-	expect(res.ok()).toBeTruthy();
-	await newPage.close();
+	try {
+		let url = new URL(href, page.url());
+
+		let res = await page.request.fetch(url.toString(), {
+			method: 'HEAD',
+			failOnStatusCode: false,
+		});
+
+		let status = res.status();
+
+		// e.g., x.com returns 403 for HEAD
+		if ([ 403, 405 ].includes(status)) {
+			await res.dispose();
+
+			res = await page.request.fetch(url.toString(), {
+				method: 'GET',
+				failOnStatusCode: false,
+			});
+		}
+
+		expect(res.ok()).toBeTruthy();
+	} finally {
+		await res?.dispose();
+	}
 };
 
 test('Homepage', async ({ page, context }) => {
@@ -85,7 +104,7 @@ test('Homepage', async ({ page, context }) => {
 	await expect(page.locator('#gp-map > div > div.gm-style')).not.toBeVisible();
 });
 
-test('Header', async ({ page, context }) => {
+test('Header', async ({ page }) => {
 	await page.goto('/');
 	await expect(page.locator('header')).toBeVisible();
 
@@ -93,11 +112,11 @@ test('Header', async ({ page, context }) => {
 	let anchorCount = await anchors.count();
 
 	for (let i = 0; i < anchorCount; i++) {
-		await testAnchor(anchors.nth(i), page, context);
+		await testAnchor(anchors.nth(i), page);
 	}
 });
 
-test('Footer', async ({ page, context }) => {
+test('Footer', async ({ page }) => {
 	await page.goto('/');
 	await expect(page.locator('footer')).toBeVisible();
 
@@ -105,6 +124,6 @@ test('Footer', async ({ page, context }) => {
 	let anchorCount = await anchors.count();
 
 	for (let i = 0; i < anchorCount; i++) {
-		await testAnchor(anchors.nth(i), page, context);
+		await testAnchor(anchors.nth(i), page);
 	}
 });

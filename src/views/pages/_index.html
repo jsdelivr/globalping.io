@@ -2606,6 +2606,11 @@
 				if (markersData === null) {
 					this.clearTestResponseMarkers();
 				} else if (JSON.stringify(markersData) !== JSON.stringify(prevMarkersData)) {
+					// clear stale markers (happens on client-side navigation)
+					if (!prevMarkersData && (infoWindows.length || mapMarkers.length)) {
+						this.clearTestResponseMarkers();
+					}
+
 					// update Markers on the map (replace or add new) if Markers data is different
 					this.updateMarkers(markersData, prevMarkersData);
 				}
