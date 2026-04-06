@@ -108,7 +108,7 @@
 						>
 							<img
 								:src="person.image"
-								:srcset="person.image2x"
+								:srcset="person.image2x || undefined"
 								:alt="person.name"
 								class="size-16 rounded-full object-cover max-md:size-13"
 							>
