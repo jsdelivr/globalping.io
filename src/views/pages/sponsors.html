@@ -82,7 +82,7 @@
 							<span class="gp-sponsors_sponsors-list_platinum_list_item_link">
 								<img src="{{@shared.assetsHost}}/img/link-icon.svg" width="20" height="20">
 
-								<a href="{{this.href}}">{{this.linkDisplayed}}</a>
+								<a href="{{this.href}}" target="_blank" rel="noreferrer">{{this.linkDisplayed}}</a>
 							</span>
 						</div>
 					{{/each}}
@@ -120,7 +120,7 @@
 							<span class="gp-sponsors_sponsors-list_gold_list_item_link">
 								<img src="{{@shared.assetsHost}}/img/link-icon.svg" width="20" height="20">
 
-								<a href="{{this.href}}">{{this.linkDisplayed}}</a>
+								<a href="{{this.href}}" target="_blank" rel="noreferrer">{{this.linkDisplayed}}</a>
 							</span>
 						</div>
 					{{/each}}
@@ -204,6 +204,15 @@
 						imgHeight: 64,
 						imgSrc: [ '/img/sponsors/oneprovider.svg' ],
 						spDescr: 'OneProvider provides worldwide hosting services with dedicated servers available in over 140 locations and its OneCloud VPS service in more than 60 locations.',
+					},
+					{
+						href: 'https://www.fastly.com/',
+						linkDisplayed: 'fastly.com',
+						imgTitle: 'Sponsored by Fastly',
+						imgWidth: 150,
+						imgHeight: 60,
+						imgSrc: [ '/img/sponsors/fastly.svg' ],
+						spDescr: 'Fastly\'s edge cloud platform powers fast, secure, and scalable digital experiences.',
 					},
 				],
 				goldSponsors: [
