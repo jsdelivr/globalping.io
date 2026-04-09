@@ -618,7 +618,7 @@
 						</div>
 					{{else}}
 						<button on-click="@this.handleRunTestBtn()"
-							class="gp_map-block_settings-wrapper_btn {{#if !testInProgress}}gp_btn_green{{else}}gp_btn_black gp_btn_black_loading{{/if}}"
+							class="gp_map-block_settings-wrapper_btn {{#if !testInProgress}}gp_btn_green{{else}}gp_btn_black gp_btn_black_loading{{/if}} {{#if !testInProgress && !gmapsReady}}gp_btn_green_disabled{{/if}}"
 							data-testid="run-test-btn"
 							disabled="{{runTestBtnDisabled}}">
 							{{#if testInProgress}}
@@ -1692,7 +1692,8 @@
 				inputErrors: {},
 				testResults: null,
 				testInProgress: false,
-				runTestBtnDisabled: false,
+				runTestBtnDisabled: true,
+				gmapsReady: false,
 				runTestBtnDelayTimeout: null,
 				testReqCancelFn: null,
 				activeTestRunId: 0,
@@ -1711,6 +1712,8 @@
 				runTestBtnText: 'Run Test',
 				testReqParams: null,
 				probesResponse: null,
+				clusterRadius: null,
+				nextClusterRadius: null,
 				shareResFlow: false,
 				activeTargetIdx: 0,
 				rawOutputMode: true,
@@ -2574,6 +2577,8 @@
 				map.setZoom(MAP_ZOOM_ALT);
 			}
 
+			this.set('clusterRadius', this.getClusterRadius());
+
 			// handle map changes on zoom
 			map.addListener('zoom_changed', () => {
 				// close all IWs on zoom
@@ -2589,6 +2594,19 @@
 					m.content.style.width = `${svgWidth}px`;
 					m.content.style.height = `${svgHeight}px`;
 				});
+
+				let nextClusterRadius = this.getClusterRadius();
+
+				if (
+					this.get('probesResponse')
+					&& !this.get('shareResFlow')
+				) {
+					this.set('nextClusterRadius', nextClusterRadius === this.get('clusterRadius') ? null : nextClusterRadius);
+				}
+			});
+
+			map.addListener('idle', () => {
+				this.refreshProbeClusters();
 			});
 
 			// draw probes Clusters or clear the map from them
@@ -2616,6 +2634,9 @@
 					this.updateMarkers(markersData, prevMarkersData);
 				}
 			});
+
+			this.enableRunTestBtn();
+			this.set('gmapsReady', true);
 		},
 		updateMarkers (markersData, prevMarkersData) {
 			markersData.forEach((markerData) => {
@@ -2664,6 +2685,12 @@
 			});
 		},
 		updateClusters (probes) {
+			let clusterRadius = this.getClusterRadius();
+			this.set({
+				clusterRadius,
+				nextClusterRadius: null,
+			});
+
 			let preparedMarkers = Object.keys(probes).map((key) => {
 				let [ lat, lng ] = key.split(', ');
 				let marker = probesMarkers.find(pm => pm.position.lat === lat && pm.position.lng === lng);
@@ -2672,8 +2699,6 @@
 					marker = this.createMapClusterMarkerWithIW(key, probes[key]);
 					probesMarkers.push(marker);
 				}
-
-				marker.map = map;
 
 				return marker;
 			});
@@ -2685,7 +2710,7 @@
 				renderer: {
 					render ({ markers, position }) {
 						let totalCustomNumber = markers.reduce((sum, marker) => sum + (marker.markersCount || 0), 0);
-						let clusterSvg = window.btoa(`<svg xmlns="http://www.w3.org/2000/svg" width="68" height="68" fill="none">
+						let clusterSvg = window.btoa(`<svg xmlns="http://www.w3.org/2000/svg" width="54" height="54" viewBox="0 0 68 68" fill="none">
 							<g clip-path="url(#a)">
 							<path fill="url(#b)" d="M30 2.31a8 8 0 0 1 8 0l21.445 12.38a8 8 0 0 1 4 6.929V46.38a8 8 0 0 1-4 6.928L38 65.691a8 8 0 0 1-8 0L8.555 53.309a8 8 0 0 1-4-6.928V21.62a8 8 0 0 1 4-6.928z"/>
 							<path stroke="#69E7C8" stroke-width="1.5" d="M30.375 4.959a7.25 7.25 0 0 1 7.25 0L57.338 16.34a7.25 7.25 0 0 1 3.625 6.279V45.38a7.25 7.25 0 0 1-3.625 6.279L37.625 63.04a7.25 7.25 0 0 1-7.25 0L10.662 51.66a7.25 7.25 0 0 1-3.625-6.279V22.62a7.25 7.25 0 0 1 3.625-6.279L30.375 4.96Z"/>
@@ -2707,12 +2732,12 @@
 						let clusterImg = document.createElement('img');
 
 						clusterDiv.style.position = 'relative';
-						clusterDiv.style.width = '68px';
-						clusterDiv.style.height = '68px';
+						clusterDiv.style.width = '54px';
+						clusterDiv.style.height = '54px';
 						clusterDiv.style.background = 'transparent';
 						clusterImg.src = `data:image/svg+xml;base64,${clusterSvg}`;
-						clusterImg.width = '68';
-						clusterImg.height = '68';
+						clusterImg.width = '54';
+						clusterImg.height = '54';
 						clusterDiv.appendChild(clusterImg);
 
 						return new google.maps.marker.AdvancedMarkerElement({
@@ -2723,7 +2748,7 @@
 				},
 				// eslint-disable-next-line no-undef
 				algorithm: new markerClusterer.SuperClusterAlgorithm({
-					radius: 200,
+					radius: clusterRadius,
 				}),
 			});
 
@@ -2732,6 +2757,30 @@
 			google.maps.event.addListener(map, 'click', () => {
 				probesInfoWindows.forEach(piw => piw.close());
 			});
+		},
+		refreshProbeClusters () {
+			let probesResponse = this.get('probesResponse');
+			let nextClusterRadius = this.get('nextClusterRadius');
+
+			if (
+				!probesResponse
+				|| this.get('shareResFlow')
+				|| !nextClusterRadius
+				|| nextClusterRadius === this.get('clusterRadius')
+			) {
+				return;
+			}
+
+			this.set('clusterRadius', nextClusterRadius);
+			this.clearProbesClusters();
+			this.updateClusters(probesResponse);
+		},
+		getClusterRadius () {
+			if (map.zoom <= MAP_ZOOM_REG) {
+				return 120;
+			}
+
+			return 200;
 		},
 		clearTestResponseMarkers () {
 			infoWindows.forEach(iw => iw.close());
@@ -2742,6 +2791,7 @@
 		clearProbesClusters () {
 			probesInfoWindows.forEach(piw => piw.close());
 			mapProbesClusters.forEach(pc => pc.setMap(null));
+			probesMarkers.forEach(pm => pm.map = null);
 			probesMarkers = [];
 			probesInfoWindows = [];
 			mapProbesClusters = [];
@@ -3008,7 +3058,10 @@
 			this.animate('totalProbes', response.length, { duration: 1500 });
 			this.animate('totalCities', totalCities, { duration: 1500 });
 			this.animate('totalCountries', totalCountries, { duration: 1500 });
-			this.set('probesResponse', this.groupProbes(response));
+
+			if (this.get('activeTestRunId') === 0) {
+				this.set('probesResponse', this.groupProbes(response));
+			}
 		},
 		translateTestTypeName (name) {
 			switch (name.toLowerCase()) {
