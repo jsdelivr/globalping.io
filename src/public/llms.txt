@@ -39,23 +39,6 @@ Globalping lets users run internet measurements such as **ping**, **traceroute**
 - **Asynchronous measurements:** new measurements are created first, then queried for status/results.
 - **Public API:** the API works without authentication for baseline usage, with higher limits for authenticated users.
 
-## Important API behavior
-
-- **Core endpoints:**
-  - `POST /v1/measurements` - create a measurement
-  - `GET /v1/measurements/{id}` - retrieve measurement status/results
-  - `GET /v1/probes` - list probes currently online
-  - `GET /v1/limits` - get current rate limits
-- **Authentication:** optional for basic usage; dashboard tokens and OAuth are available for higher limits and user-account-based usage.
-- **Rate limits:** public/free access is rate-limited. Registered users get higher limits and can spend credits for extra tests.
-- **Polling guidance:** measurement status should not be queried more than every 500 ms for the same measurement.
-- **Caching guidance:** non-browser clients should use `ETag` / `If-None-Match` where appropriate.
-
-## Current published limits
-
-- **Unauthenticated users:** up to 50 probes per measurement and 250 free tests per hour
-- **Registered users:** up to 500 probes per measurement and 500 free tests per hour, with credits for additional tests
-
 Always treat limits as product policy that may change; prefer the live docs and API responses over hard-coded assumptions.
 
 ## Guidance for assistants and agents
