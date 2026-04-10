@@ -1,14 +1,15 @@
 <template>
-	<main class="flex flex-col items-center gap-16 pb-16 max-md:pb-4">
-		<section class="max-w-section flex w-full flex-col gap-32 pt-36 max-md:gap-16 max-md:px-1 max-md:pt-20">
-			<div class="from-primary-500 absolute top-0 left-0 h-120 w-screen overflow-hidden bg-linear-to-b from-50% to-white max-md:h-80">
-				<img
-					src="~/assets/images/backgrounds/grid-2.svg"
-					alt=""
-					class="absolute inset-0 z-0 mx-auto max-w-340 object-contain opacity-20"
-				>
-				<div class="mt-top absolute bottom-0 z-10 h-20 w-full bg-linear-to-t from-white to-transparent"/>
-			</div>
+	<main class="flex max-w-screen flex-col items-center gap-16 overflow-hidden pb-16 max-md:pb-4">
+		<div class="from-primary-500 absolute top-0 left-0 h-120 w-full overflow-hidden bg-linear-to-b from-50% to-white max-md:h-80">
+			<img
+				src="~/assets/images/backgrounds/grid-2.svg"
+				alt=""
+				class="absolute inset-0 z-0 mx-auto max-w-340 object-contain opacity-20"
+			>
+			<div class="mt-top absolute bottom-0 z-10 h-20 w-full bg-linear-to-t from-white to-transparent"/>
+		</div>
+
+		<section class="max-w-section flex w-full flex-col gap-32 overflow-hidden pt-36 max-md:gap-16 max-md:px-1 max-md:pt-20">
 			<h1 class="z-10 text-white">
 				Globalping
 				<br>
