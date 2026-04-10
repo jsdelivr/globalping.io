@@ -168,12 +168,12 @@
 					let currentHeight = parseFloat(listEl.style.height) || 0;
 					let currentScrollTop = listEl.scrollTop;
 					listEl.style.height = 'auto';
-					this.set('heightSetForCurrentResults', true);
 
 					let items = listEl.querySelectorAll('.c-gp-results-raw-output_list_item_top-wrapper');
 					let itemsAmount = items.length;
 
 					if (itemsAmount === 0) {
+						this.set('heightSetForCurrentResults', true);
 						return;
 					}
 
@@ -198,6 +198,7 @@
 					}
 
 					listEl.scrollTop = currentScrollTop;
+					this.set('heightSetForCurrentResults', true);
 				}
 			});
 		},
