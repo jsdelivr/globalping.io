@@ -58,9 +58,12 @@
 					<p>
 						{{ stat.label }}
 					</p>
-					<p class="from-dark-800 w-fit bg-linear-to-r from-30% to-green-700 bg-clip-text text-2xl font-semibold text-transparent">
-						<AnimatedNumber class="text-dark-800" :prefix="stat.prefix || ''" :suffix="stat.suffix || ''" :number="stat.value"/>
-						{{ stat.caption }}
+					<p class="w-fit text-2xl font-semibold">
+						<AnimatedNumber :prefix="stat.prefix || ''" :suffix="stat.suffix || ''" :number="stat.value"/>
+
+						<span class="from-dark-800 ml-2 bg-linear-to-r from-[-20%] to-green-700 bg-clip-text text-transparent">
+							{{ stat.caption }}
+						</span>
 					</p>
 				</div>
 			</div>
