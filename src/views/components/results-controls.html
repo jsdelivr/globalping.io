@@ -11,32 +11,29 @@
 		</div>
 
 		<div class="content-wrapper_ctrls">
-			<div class="content-wrapper_ctrls_display-settings">
-				<span>Display<span class="desktop-only"> settings</span>:</span>
-
-				<div class="content-wrapper_ctrls_display-settings_switch" data-testid="results-display-switch" on-click="@this.handleOutputModeSwitch()">
-					<img width="16"
-						height="16"
-						src="{{@shared.assetsHost}}/img/raw-output-icon{{#if rawOutputMode}}.active{{/if}}.svg">
-
-					<div class="content-wrapper_ctrls_display-settings_switch_line"></div>
-
-					<img width="16"
-						height="16"
-						src="{{@shared.assetsHost}}/img/table-output-icon{{#unless rawOutputMode}}.active{{/unless}}.svg"
-						{{#if testType !== 'ping'}}style="opacity: 0.5; cursor: not-allowed;"{{/if}}>
-				</div>
+			<div class="content-wrapper_ctrls_switch {{#if testType !== 'ping'}}content-wrapper_ctrls_switch--disabled{{/if}}" data-testid="results-display-switch">
+				<input id="display-type" type="checkbox" aria-checked="{{rawOutputMode}}" checked="{{rawOutputMode}}" disabled="{{testType !== 'ping'}}" class="switch-input {{#if !rawOutputMode}}grid{{/if}}">
+				<label for="display-type">
+					<span>
+						<img width="16" height="16" alt="" src="{{@shared.assetsHost}}/img/raw-output-icon{{#if rawOutputMode}}.active{{/if}}.svg">
+						List
+					</span>
+					<span>
+						<img width="16" height="16" alt="" src="{{@shared.assetsHost}}/img/table-output-icon{{#unless rawOutputMode}}.active{{/unless}}.svg">
+						Grid
+					</span>
+				</label>
 			</div>
 
-			<div class="content-wrapper_ctrls_map-switch">
-				<span>Map: </span>
-				<div class="content-wrapper_ctrls_map-switch_switch" data-testid="map-switch" on-click="@this.set('originalShowMap', !showMap),@this.set('showMap', !showMap)">
-					<img width="16" height="16" src="{{@shared.assetsHost}}/img/map-icon{{#if showMap}}.active{{/if}}.svg">
-				</div>
-			</div>
+			<button class="content-wrapper_ctrls_map-switch {{#if showMap}}content-wrapper_ctrls_map-switch--active{{/if}}"
+				data-testid="map-switch"
+				as-tooltip="showMap ? 'Hide map' : 'Show map'"
+				aria-label="{{#if showMap}}Hide map{{else}}Show map{{/if}}"
+				on-click="@this.set('originalShowMap', !showMap),@this.set('showMap', !showMap)">
+				<img width="13" height="13" alt="" src="{{@shared.assetsHost}}/img/map-icon{{#if showMap}}.active{{/if}}.svg"/>
+			</button>
 
 			<div class="content-wrapper_ctrls_sort-options desktop-hidden dropdown">
-				<span>Sort: </span>
 				<div class="btn-group">
 					<button type="button"
 						class="dropdown-toggle content-wrapper_ctrls_btn"
@@ -62,25 +59,39 @@
 					</ul>
 				</div>
 			</div>
+
+			{{#if allCollapsed}}
+				<button class="content-wrapper_ctrls_collapse" disabled="{{!rawOutputMode}}" as-tooltip="'Expand all'" aria-label="Expand all" on-click="onExpandAll()">
+					<i class="fa fa-chevron-up"></i>
+					<i class="fa fa-chevron-up"></i>
+				</button>
+			{{else}}
+				<button class="content-wrapper_ctrls_collapse" disabled="{{!rawOutputMode}}" as-tooltip="'Collapse all'" aria-label="Collapse all" on-click="onCollapseAll()">
+					<i class="fa fa-chevron-down"></i>
+					<i class="fa fa-chevron-down"></i>
+				</button>
+			{{/if}}
 		</div>
 	</div>
 </div>
 
 <script>
+	const tooltip = require('../../assets/js/decorators/tooltip.js');
+
 	component.exports = {
-		handleTabSwitch (idx) {
-			let isRawOutputMode = this.get('rawOutputMode');
-
-			if (isRawOutputMode) {
-				this.set('activeTargetIdx', idx);
-			}
+		decorators: {
+			tooltip,
 		},
-		handleOutputModeSwitch () {
-			let rawOutputMode = this.get('rawOutputMode');
-			let testType = this.get('testType');
-
-			if (testType === 'ping') {
-				this.set('rawOutputMode', !rawOutputMode);
+		data () {
+			return {
+				onCollapseAll: () => null,
+				onExpandAll: () => null,
+				allCollapsed: false,
+			};
+		},
+		handleTabSwitch (idx) {
+			if (this.get('rawOutputMode')) {
+				this.set('activeTargetIdx', idx);
 			}
 		},
 		onSortOptionSelect (field) {

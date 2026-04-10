@@ -111,6 +111,7 @@
 				hiddenTestResults: [],
 				PROBE_STATUS_FAILED,
 				PROBE_STATUS_OFFLINE,
+				heightSetForCurrentResults: false,
 			};
 		},
 		onrender () {
@@ -129,12 +130,17 @@
 					this.set('scrolledToResId', null);
 				}, { init: false });
 
-				this.observe('preparedTestResults', (preparedTestResults) => {
+				this.observe('preparedTestResults', () => {
+					this.set('heightSetForCurrentResults', false);
 					// set results block height based on content
-					this.setResultsBlockHeight(preparedTestResults);
+					this.setResultsBlockHeight();
 					// remove old hidden results
 					this.set('hiddenTestResults', []);
-				});
+				}, { deep: true, defer: true });
+
+				this.observe('hiddenTestResults', () => {
+					this.setResultsBlockHeight();
+				}, { deep: true, defer: true, init: false });
 
 				this.observe('sortOrder sortBy activeTargetIdx', () => {
 					let listEl = this.find('.c-gp-results-raw-output_list');
@@ -154,16 +160,44 @@
 
 			this.set('hiddenTestResults', updated);
 		},
-		setResultsBlockHeight (results) {
+		setResultsBlockHeight () {
 			requestAnimationFrame(() => {
 				let listEl = this.find('.c-gp-results-raw-output_list');
 
 				if (listEl) {
-					let itemsAmount = results.length;
-					let listElScrollHeight = listEl.scrollHeight;
-					let avgItemElHeight = Math.round(listElScrollHeight / itemsAmount);
+					let currentHeight = parseFloat(listEl.style.height) || 0;
+					let currentScrollTop = listEl.scrollTop;
+					listEl.style.height = 'auto';
+					this.set('heightSetForCurrentResults', true);
 
-					listEl.style.height = `${itemsAmount < 3 ? avgItemElHeight * itemsAmount : avgItemElHeight * 3}px`;
+					let items = listEl.querySelectorAll('.c-gp-results-raw-output_list_item_top-wrapper');
+					let itemsAmount = items.length;
+
+					if (itemsAmount === 0) {
+						return;
+					}
+
+					let targetHeight = 0;
+					let limit = Math.min(itemsAmount, 3);
+
+					for (let i = 0; i < limit; i++) {
+						targetHeight += items[i].scrollHeight;
+					}
+
+					let totalItemHeight = 0;
+
+					for (let i = 0; i < itemsAmount; i++) {
+						totalItemHeight += items[i].scrollHeight;
+					}
+
+					// if the container height has already been set for current results, only shrink the container if it would contain empty space (totalHeight < currentHeight)
+					if (!this.get('heightSetForCurrentResults') || (targetHeight !== currentHeight && (targetHeight > currentHeight || totalItemHeight < currentHeight))) {
+						listEl.style.height = `${targetHeight}px`;
+					} else {
+						listEl.style.height = `${currentHeight}px`;
+					}
+
+					listEl.scrollTop = currentScrollTop;
 				}
 			});
 		},

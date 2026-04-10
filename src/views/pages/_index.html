@@ -703,6 +703,9 @@
 						targets="{{targetsArr}}"
 						activeTargetIdx="{{activeTargetIdx}}"
 						rawOutputMode="{{rawOutputMode}}"
+						onCollapseAll="{{@this.collapseAllRawOutput}}"
+						onExpandAll="{{@this.expandAllRawOutput}}"
+						allCollapsed="{{allCollapsed}}"
 						testType="{{testReqParams.type}}"
 						sortOrder="{{sortOrder}}"
 						sortBy="{{sortBy}}"
@@ -715,6 +718,7 @@
 							<c-gp-results-raw-output
 								testReqParams="{{testReqParams}}"
 								preparedTestResults="{{preparedTestResults}}"
+								hiddenTestResults="{{hiddenTestResults}}"
 								testInProgress="{{testInProgress}}"
 								scrolledToResId="{{scrolledToResId}}"
 								currSearchLocation="{{mainOptions.location}}"
@@ -1719,6 +1723,7 @@
 				rawOutputMode: true,
 				measurementsMetadata: null,
 				targetsArr: [],
+				hiddenTestResults: [],
 				qsMeasurementIdsArr: [],
 				showCreditsErrorBar: false,
 				infiniteMeasIds: [],
@@ -1765,6 +1770,9 @@
 					this.set('_location', value);
 					this.set('mainOptions.location', value.replace(/%/g, '+'));
 				},
+			},
+			allCollapsed () {
+				return this.get('hiddenTestResults').length === this.get('preparedTestResults').length;
 			},
 		},
 		onrender () {
@@ -2833,6 +2841,12 @@
 			if (el) {
 				el.scrollIntoView({ behavior: 'smooth' });
 			}
+		},
+		collapseAllRawOutput () {
+			this.set('hiddenTestResults', [ ...this.get('preparedTestResults') ]);
+		},
+		expandAllRawOutput () {
+			this.set('hiddenTestResults', []);
 		},
 		getTestMeasurementById ({
 			measurementId,
