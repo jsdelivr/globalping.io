@@ -100,7 +100,7 @@
 					<h3 class="text-dark-800 mb-4">
 						{{ group.title }}
 					</h3>
-					<div class="grid gap-5 md:grid-cols-3">
+					<div class="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
 						<article
 							v-for="person in group.data"
 							:key="person.name"
@@ -120,6 +120,7 @@
 									{{ person.position }}
 								</p>
 								<a
+									v-if="person.social"
 									:href="person.social.url"
 									target="_blank"
 									rel="noreferrer"
@@ -186,7 +187,7 @@
 				},
 				{
 					name: 'Martin Kolarik',
-					position: 'Core Developer',
+					position: 'Lead Engineer',
 					image: getImageAsset('/about/martin-kolarik.png'),
 					image2x: `${getImageAsset('/about/martin-kolarik@2x.png')} 2x`,
 					social: {
@@ -200,6 +201,15 @@
 					image: getImageAsset('/about/alexey-yarmosh.jpeg'),
 					social: {
 						url: 'https://www.linkedin.com/in/alexey-yarmosh/',
+						icon: getImageAsset(`/icons/linkedin.svg`),
+					},
+				},
+				{
+					name: 'Pavel Kopecky',
+					position: 'Software Engineer',
+					image: getImageAsset('/about/pavel-kopecky.jpg'),
+					social: {
+						url: 'https://www.linkedin.com/in/pavel-kopecký-6a1997302',
 						icon: getImageAsset(`/icons/linkedin.svg`),
 					},
 				},
@@ -219,15 +229,6 @@
 					},
 				},
 				{
-					name: 'Pavel Kopecky',
-					position: 'Developer',
-					image: getImageAsset('/about/pavel-kopecky.jpg'),
-					social: {
-						url: 'https://www.linkedin.com/in/pavel-kopecký-6a1997302',
-						icon: getImageAsset(`/icons/linkedin.svg`),
-					},
-				},
-				{
 					name: 'Robert Zygmuntowski',
 					position: 'UI/UX Designer',
 					image: getImageAsset('/about/robert-zygmuntowski.jpeg'),
@@ -236,6 +237,11 @@
 						icon: getImageAsset(`/icons/linkedin.svg`),
 					},
 				},
+				{
+					name: 'Kyrylo Chyzhov',
+					position: 'Developer',
+					image: getImageAsset('/about/kyrylo-chyzhov.jpg'),
+				},
 			],
 		},
 	];
@@ -243,7 +249,7 @@
 
 <style scoped>
 	.max-w-section {
-		max-width: min(90vw, 808px);
+		max-width: min(90vw, 924px);
 	}
 </style>
 
