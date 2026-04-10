@@ -139,7 +139,9 @@
 				}, { deep: true, defer: true });
 
 				this.observe('hiddenTestResults', () => {
-					this.setResultsBlockHeight();
+					if (!this.get('scrolledToResId')) {
+						this.setResultsBlockHeight();
+					}
 				}, { deep: true, defer: true, init: false });
 
 				this.observe('sortOrder sortBy activeTargetIdx', () => {
