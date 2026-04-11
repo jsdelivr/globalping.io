@@ -60,7 +60,7 @@
 							<c-gp-tls-details tls="{{this.statsPerTarget[activeTargetIdx].tls}}" screenWidth="{{screenWidth}}"></c-gp-tls-details>
 
 							<img on-click="@this.hideShowTestResult(this.clientSideId)"
-								class="c-gp-results-raw-output_list_item_header_dropdown-icon {{#if hiddenTestResults.includes(this.clientSideId)}}upside-down{{/if}}"
+								class="c-gp-results-raw-output_list_item_header_dropdown-icon {{#if hiddenTestResults[activeTargetIdx].includes(this.clientSideId)}}upside-down{{/if}}"
 								width="24"
 								height="24"
 								src="{{@shared.assetsHost}}/img/chevron-up-icon.svg">
@@ -79,10 +79,10 @@
 							</div>
 						</div>
 
-						<pre class="{{#if hiddenTestResults.includes(this.clientSideId)}}hidden{{/if}}">{{this.statsPerTarget[activeTargetIdx].rawOutput}}</pre>
+						<pre class="{{#if hiddenTestResults[activeTargetIdx].includes(this.clientSideId)}}hidden{{/if}}">{{this.statsPerTarget[activeTargetIdx].rawOutput}}</pre>
 
 						{{#if testInProgress === false && isInfiniteModeRes}}
-							<pre class="{{#if hiddenTestResults.includes(this.clientSideId)}}hidden{{/if}}">{{this.statsPerTarget[activeTargetIdx].rawFooter}}</pre>
+							<pre class="{{#if hiddenTestResults[activeTargetIdx].includes(this.clientSideId)}}hidden{{/if}}">{{this.statsPerTarget[activeTargetIdx].rawFooter}}</pre>
 						{{/if}}
 					</div>
 
@@ -108,7 +108,11 @@
 		data () {
 			return {
 				_,
-				hiddenTestResults: [],
+				activeTargetIdx: 0,
+				hiddenTestResults: {
+					0: [],
+					1: [],
+				},
 				PROBE_STATUS_FAILED,
 				PROBE_STATUS_OFFLINE,
 				heightSetForCurrentResults: false,
@@ -117,7 +121,10 @@
 		},
 		oninit () {
 			if (!Ractive.isServer) {
-				this.set('hiddenTestResults', []);
+				this.set('hiddenTestResults', {
+					0: [],
+					1: [],
+				});
 			}
 		},
 		onrender () {
@@ -126,7 +133,8 @@
 				this.observe('scrolledToResId', (clientSideId) => {
 					if (clientSideId === null) { return; }
 
-					let hiddenTestResults = this.get('hiddenTestResults');
+					let activeTargetIdx = this.get('activeTargetIdx');
+					let hiddenTestResults = this.get(`hiddenTestResults[${activeTargetIdx}]`);
 					let targetId = hiddenTestResults.find(resId => resId === clientSideId);
 
 					if (typeof targetId === 'number') {
@@ -161,17 +169,24 @@
 			}
 		},
 		hideShowTestResult (resultId) {
-			let hidden = this.get('hiddenTestResults');
+			let activeTargetIdx = this.get('activeTargetIdx');
+			let hidden = this.get(`hiddenTestResults[${activeTargetIdx}]`) ?? [];
 
 			let updated = hidden.includes(resultId)
 				? hidden.filter(clientSideId => clientSideId !== resultId)
 				: [ ...hidden, resultId ];
 
-			this.set('hiddenTestResults', updated);
+			this.set(`hiddenTestResults[${activeTargetIdx}]`, updated);
 		},
 		setResultsBlockHeight () {
 			requestAnimationFrame(() => {
-				let listEl = this.find('.c-gp-results-raw-output_list');
+				let listEl;
+
+				try {
+					listEl = this.find('.c-gp-results-raw-output_list');
+				} catch {
+					return;
+				}
 
 				if (listEl) {
 					let currentHeight = parseFloat(listEl.style.height) || 0;

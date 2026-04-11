@@ -1723,7 +1723,7 @@
 				rawOutputMode: true,
 				measurementsMetadata: null,
 				targetsArr: [],
-				hiddenTestResults: [],
+				hiddenTestResults: { 0: [], 1: [] },
 				qsMeasurementIdsArr: [],
 				showCreditsErrorBar: false,
 				infiniteMeasIds: [],
@@ -1772,7 +1772,8 @@
 				},
 			},
 			allCollapsed () {
-				return this.get('hiddenTestResults').length === this.get('preparedTestResults').length;
+				let activeTargetIdx = this.get('activeTargetIdx');
+				return this.get(`hiddenTestResults[${activeTargetIdx}]`).length === this.get('preparedTestResults').length;
 			},
 		},
 		onrender () {
@@ -2425,7 +2426,7 @@
 			this.set('_measurementOgDescription', null);
 			this.set('activeTestRunId', testRunId);
 			this.set('testReqCancelFn', []);
-			this.expandAllRawOutput();
+			this.expandAllRawOutput(true);
 
 			// if it is infinite/multi-endpoint measurement then we should show TableOutput by default
 			// otherwise leave prev value set by user
@@ -2844,10 +2845,17 @@
 			}
 		},
 		collapseAllRawOutput () {
-			this.set('hiddenTestResults', this.get('preparedTestResults').map(result => result.clientSideId));
+			let ids = this.get('preparedTestResults').map(result => result.clientSideId);
+			let activeTargetIdx = this.get('activeTargetIdx');
+			this.set(`hiddenTestResults[${activeTargetIdx}]`, ids);
 		},
-		expandAllRawOutput () {
-			this.set('hiddenTestResults', []);
+		expandAllRawOutput (allTargets = false) {
+			if (allTargets) {
+				this.set('hiddenTestResults', { 0: [], 1: [] });
+			} else {
+				let activeTargetIdx = this.get('activeTargetIdx');
+				this.set(`hiddenTestResults[${activeTargetIdx}]`, []);
+			}
 		},
 		getTestMeasurementById ({
 			measurementId,
