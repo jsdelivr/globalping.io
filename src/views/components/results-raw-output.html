@@ -59,7 +59,7 @@
 
 							<c-gp-tls-details tls="{{this.statsPerTarget[activeTargetIdx].tls}}" screenWidth="{{screenWidth}}"></c-gp-tls-details>
 
-							<img on-click="@this.hideShowTestResult(this)"
+							<img on-click="@this.hideShowTestResult(this.clientSideId)"
 								class="c-gp-results-raw-output_list_item_header_dropdown-icon {{#if hiddenTestResults.includes(this.clientSideId)}}upside-down{{/if}}"
 								width="24"
 								height="24"
@@ -127,11 +127,11 @@
 					if (clientSideId === null) { return; }
 
 					let hiddenTestResults = this.get('hiddenTestResults');
-					let targetLocation = hiddenTestResults.find(item => item.clientSideId === clientSideId);
+					let targetId = hiddenTestResults.find(resId => resId === clientSideId);
 
-					if (targetLocation) {
+					if (typeof targetId === 'number') {
 						this.set('skipNextResize', true);
-						this.hideShowTestResult(targetLocation);
+						this.hideShowTestResult(targetId);
 					}
 
 					this.set('scrolledToResId', null);
@@ -160,12 +160,12 @@
 				}, { init: false });
 			}
 		},
-		hideShowTestResult (result) {
+		hideShowTestResult (resultId) {
 			let hidden = this.get('hiddenTestResults');
 
-			let updated = hidden.includes(result.clientSideId)
-				? hidden.filter(clientSideId => clientSideId !== result.clientSideId)
-				: [ ...hidden, result.clientSideId ];
+			let updated = hidden.includes(resultId)
+				? hidden.filter(clientSideId => clientSideId !== resultId)
+				: [ ...hidden, resultId ];
 
 			this.set('hiddenTestResults', updated);
 		},
