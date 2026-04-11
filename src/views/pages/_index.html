@@ -2425,6 +2425,7 @@
 			this.set('_measurementOgDescription', null);
 			this.set('activeTestRunId', testRunId);
 			this.set('testReqCancelFn', []);
+			this.expandAllRawOutput();
 
 			// if it is infinite/multi-endpoint measurement then we should show TableOutput by default
 			// otherwise leave prev value set by user
