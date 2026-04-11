@@ -2843,7 +2843,7 @@
 			}
 		},
 		collapseAllRawOutput () {
-			this.set('hiddenTestResults', [ ...this.get('preparedTestResults') ]);
+			this.set('hiddenTestResults', this.get('preparedTestResults').map(result => result.clientSideId));
 		},
 		expandAllRawOutput () {
 			this.set('hiddenTestResults', []);
