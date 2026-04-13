@@ -61,7 +61,7 @@
 					<p class="w-fit text-2xl font-semibold">
 						<AnimatedNumber :prefix="stat.prefix || ''" :suffix="stat.suffix || ''" :number="stat.value"/>
 
-						<span class="from-dark-800 ml-2 bg-linear-to-r from-[-20%] to-green-700 bg-clip-text text-transparent">
+						<span class="from-dark-800 to-primary-700 ml-2 bg-linear-to-r from-[-20%] to-120% bg-clip-text text-transparent">
 							{{ stat.caption }}
 						</span>
 					</p>
