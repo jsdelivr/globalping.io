@@ -16,11 +16,11 @@
 				results="{{locationProbes}}"
 				completedValue="{{locationCompletedValue}}"
 				reshapeResults="{{reshapeResults}}"
+				locationTooltipContent="{{locationTooltipContent}}"
 				supportedFeaturesMessage={{supportedFeaturesMessage}}>
 				{{#partial labelIcon}}
 				<img
-					as-tooltip="['This magic field supports names of continents, regions, countries, US states, cities, ' + (addNetworks ? 'networks,' : '') + ' and our custom tags.',
-					'', 'Use + to combine multiple filters.', 'Use , to select multiple locations.' ], ttPos, undefined, undefined, 'multiline'"
+					as-tooltip="locationTooltipContent, ttPos, undefined, undefined, 'multiline'"
 					width="14"
 					height="14"
 					src="{{@shared.assetsHost}}/img/help-icon.svg"
@@ -139,6 +139,14 @@
 			};
 		},
 		computed: {
+			locationTooltipContent () {
+				return [
+					`This magic field supports names of continents, regions, countries, US states, cities, ${this.get('addNetworks') ? 'networks, ' : ''}and our custom tags.`,
+					'',
+					'Use + to combine multiple filters.',
+					'Use , to select multiple locations.',
+				];
+			},
 			supportedFeaturesMessage () {
 				if (this.get('addNetworks')) {
 					return undefined;
