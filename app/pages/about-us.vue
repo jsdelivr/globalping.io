@@ -185,8 +185,8 @@
 					image: getImageAsset('/about/dmitriy-akulov.png'),
 					image2x: `${getImageAsset('/about/dmitriy-akulov@2x.png')} 2x`,
 					social: {
-						url: 'https://twitter.com/jimaek',
-						icon: getImageAsset(`/icons/twitter.svg`),
+						url: 'https://www.linkedin.com/in/dakulov',
+						icon: getImageAsset(`/icons/linkedin.svg`),
 					},
 				},
 				{
