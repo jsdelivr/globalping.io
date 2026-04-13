@@ -52,7 +52,7 @@
 				noDataText="No providers found. Please try again later."
 			/>
 
-			{{#if topProviders.length}}
+			{{#if topProviders.length >= 3}}
 				<div class="p-providers_largest">
 					<h2>
 						Largest providers
@@ -378,6 +378,7 @@
 			let networkStats = this.get('networkStats');
 
 			let topProviders = Object.values(networkStats)
+				.filter(network => network.locations > 3)
 				.sort((lhs, rhs) => rhs.locations - lhs.locations)
 				.slice(0, 6);
 
