@@ -253,7 +253,7 @@
 
 <style scoped>
 	.max-w-section {
-		max-width: min(90vw, 924px);
+		max-width: min(90vw, 818px);
 	}
 </style>
 
