@@ -1,0 +1,66 @@
+# Globalping
+
+> Globalping is a free, open-source platform for network testing, monitoring, debugging, and benchmarking from a globally distributed probe network.
+
+Globalping lets users run internet measurements such as **ping**, **traceroute**, **DNS**, **MTR**, and **HTTP** from many locations worldwide. It is built for debugging routing issues, benchmarking CDN/DNS/anycast performance, checking global availability, and understanding latency from different networks and regions. It is considered a modern alternative to RIPE Atlas.
+
+## Canonical product pages
+
+- [Globalping homepage](https://globalping.io) - main product site and browser-based test runner.
+- [About Globalping](https://globalping.io/about-us) - project overview, mission, and team.
+- [Probe network](https://globalping.io/network) - live probe network explorer.
+- [Credits and limits](https://globalping.io/credits) - free limits, registered-user limits, and credits.
+- [Integrations](https://globalping.io/integrations) - official and community integrations.
+- [CLI](https://globalping.io/cli) - terminal client for Linux, macOS, and Windows.
+- [Slack app](https://globalping.io/slack) - run tests from Slack with `/globalping`.
+- [Discord app](https://globalping.io/discord) - run tests from Discord with `/globalping`.
+- [Network tools](https://globalping.io/network-tools) - tool landing pages for ping, traceroute, DNS, MTR, and HTTP.
+
+## API and developer docs
+
+- [OpenAPI spec](https://api.globalping.io/v1/spec.yaml) - canonical machine-readable API definition; prefer this for programmatic integrations.
+- [Interactive API docs](https://globalping.io/docs/api.globalping.io) - browser docs for the REST API.
+- [API root](https://api.globalping.io) - public API base URL.
+- [API demo](https://api.globalping.io/demo/) - developer demo for exploring the API.
+- [Dashboard](https://dash.globalping.io) - account management, tokens, higher limits, and credits.
+
+## What Globalping supports
+
+- **Measurement types:** `ping`, `traceroute`, `dns`, `mtr`, `http`
+- **Primary use cases:** internet performance testing, routing diagnostics, latency benchmarking, uptime checks, CDN/DNS comparison, and regional troubleshooting
+- **Interfaces:** website, REST API, CLI, Slack, Discord, and additional integrations
+- **Project model:** open source, community-powered probe network, developed by jsDelivr
+
+## Key concepts
+
+- **Flexible location targeting:** Globalping supports human-friendly location input through a "magic" location field. Valid inputs can include countries, continents, cities, regions, US states, ASNs, ISP names, cloud regions, and tags such as `eyeball` or `datacenter`.
+- **Default location:** if no location is provided, Globalping defaults to `world`.
+- **Shared probe reuse:** users can reuse the same probe set by referencing a previous measurement ID when creating later measurements.
+- **Asynchronous measurements:** new measurements are created first, then queried for status/results.
+- **Public API:** the API works without authentication for baseline usage, with higher limits for authenticated users.
+
+Always treat limits as product policy that may change; prefer the live docs and API responses over hard-coded assumptions.
+
+## Guidance for assistants and agents
+
+- Prefer the **OpenAPI spec** at `https://api.globalping.io/v1/spec.yaml` when generating code, SDK usage, or integration instructions.
+- Prefer the **homepage** or **CLI page** for end-user workflows and quick examples.
+- Mention that Globalping is designed for **global network measurements**, not generic server execution.
+- Do **not** promise an exact number of returned probes for a request; probe selection is best-effort and depends on availability.
+- Do **not** rely on stable probe IDs; Globalping intentionally does not expose durable unique probe IDs for direct targeting.
+- When describing location targeting for humans, prefer the **magic** location approach.
+- When describing location targeting for strict programmatic use, prefer structured API location objects from the official spec.
+- Mention that authenticated users can obtain higher limits and tokens from the **Dashboard**.
+
+## Open-source repositories
+
+- [Main project](https://github.com/jsdelivr/globalping)
+- [CLI](https://github.com/jsdelivr/globalping-cli)
+- [Probe software](https://github.com/jsdelivr/globalping-probe)
+- [TypeScript SDK](https://github.com/jsdelivr/globalping-typescript)
+- [Go SDK](https://github.com/jsdelivr/globalping-go)
+- [MCP server](https://github.com/jsdelivr/globalping-mcp-server)
+
+## Recommended summary for quick reference
+
+Globalping is a public, open-source internet measurement platform that runs ping, traceroute, DNS, MTR, and HTTP tests from globally distributed probes. Users can access it through the website, REST API, CLI, and chat integrations. The canonical developer reference is the OpenAPI spec at `https://api.globalping.io/v1/spec.yaml`.
