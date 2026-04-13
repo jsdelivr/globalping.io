@@ -82,6 +82,7 @@
 						overflow-wrap: anywhere;
 						word-break: normal;
 						max-width: calc(100% - 24px);
+						min-height: 28px;
 
 						& > img {
 							margin-right: 6px;
@@ -111,17 +112,35 @@
 
 				&_address {
 					display: flex;
-					gap: 8px;
+					flex-wrap: wrap;
 					align-items: center;
 					font-size: 13px;
+					gap: 8px;
+
+					&_cell {
+						display: flex;
+						align-items: center;
+						border: 1px solid #e7e7ee;
+						border-radius: 8px;
+						overflow: hidden;
+						height: 28px;
+					}
+
+					&_logo {
+						width: 22px;
+						height: 22px;
+						overflow: hidden;
+						object-fit: contain;
+						margin: 3px;
+						border-radius: 6px;
+					}
 
 					&_value {
 						font-weight: 600;
-						padding: 0 12px;
 						background: #fff;
-						border: 1px solid #e7e7ee;
-						border-radius: 8px;
 						height: 28px;
+						border-left: 1px solid #e7e7ee;
+						padding: 0 8px;
 					}
 				}
 
@@ -201,9 +220,7 @@
 			}
 
 			&_status-line {
-				position: absolute;
-				top: 3px;
-				left: -10px;
+				transform: translateX(-10px);
 				width: 2px;
 				height: 20px;
 				background: #c0c0c0;

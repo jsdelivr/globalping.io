@@ -8,12 +8,11 @@
 					<div class="c-gp-results-raw-output_list_item">
 						<div class="c-gp-results-raw-output_list_item_header">
 							<div class="c-gp-results-raw-output_list_item_header_info">
-								<div
-									class="c-gp-results-raw-output_list_item_status-line"
-									style="background-color: {{_.getGpProbeStatusColor(this.statsPerTarget[activeTargetIdx].avgTiming, testReqParams.type === 'http' ? 1000 : 200) || ''}}">
-								</div>
-
 								<span class="c-gp-results-raw-output_list_item_header_info_target">
+									<span
+										class="c-gp-results-raw-output_list_item_status-line"
+										style="background-color: {{_.getGpProbeStatusColor(this.statsPerTarget[activeTargetIdx].avgTiming, testReqParams.type === 'http' ? 1000 : 200) || ''}}">
+									</span>
 									<img width="28"
 										height="20"
 										src="https://cdn.jsdelivr.net/npm/country-flag-icons@1.5.5/3x2/{{this.country}}.svg">
@@ -24,11 +23,23 @@
 									</a>
 								</span>
 
-								{{#if testReqParams.type === 'http' && this.statsPerTarget[activeTargetIdx].ipAddr}}
+								{{#if this.statsPerTarget[activeTargetIdx].ipAddr}}
 									<span class="c-gp-results-raw-output_list_item_header_address">
-										<span>Resolved address:</span>
-										<span class="c-gp-results-raw-output_list_item_header_address_value">
-											{{this.statsPerTarget[activeTargetIdx].ipAddr}}
+										Resolved address:
+										<span class="c-gp-results-raw-output_list_item_header_address_cell">
+											{{#if @this.getNetworkDomainName(this.statsPerTarget[activeTargetIdx].ipAddr)}}
+												<img
+													class="c-gp-results-raw-output_list_item_header_address_logo"
+													width="28"
+													height="28"
+													as-tooltip="@this.getNetworkName(this.statsPerTarget[activeTargetIdx].ipAddr)"
+													src="https://img.jsdelivr.com/img.logo.dev/{{@this.getNetworkDomainName(this.statsPerTarget[activeTargetIdx].ipAddr)}}?format=png"
+													alt="{{this.network}} logo"
+													on-error="@this.handleLogoLoadError(this.statsPerTarget[activeTargetIdx].ipAddr)">
+											{{/if}}
+											<span class="c-gp-results-raw-output_list_item_header_address_value">
+												{{this.statsPerTarget[activeTargetIdx].ipAddr}}
+											</span>
 										</span>
 									</span>
 								{{/if}}
@@ -43,17 +54,6 @@
 							</div>
 
 							<div class="c-gp-results-raw-output_list_item_header_metrics {{#if testInProgress && !this.statsPerTarget[activeTargetIdx].rawOutput}}in-progress{{/if}}">
-								{{#if @this.getNetworkDomainName(this.statsPerTarget[activeTargetIdx].ipAddr)}}
-									<img
-										class="c-gp-results-raw-output_list_item_header_metrics_logo"
-										width="28"
-										height="28"
-										as-tooltip="@this.getNetworkName(this.statsPerTarget[activeTargetIdx].ipAddr)"
-										src="https://img.jsdelivr.com/img.logo.dev/{{@this.getNetworkDomainName(this.statsPerTarget[activeTargetIdx].ipAddr)}}?format=png"
-										alt="{{this.network}} logo"
-										on-error="@this.handleLogoLoadError(this.statsPerTarget[activeTargetIdx].ipAddr)">
-								{{/if}}
-
 								{{#if _.getGpTargetTiming(this.statsPerTarget[activeTargetIdx])}}
 									<span class="c-gp-results-raw-output_list_item_header_time main-value">
 										Time
