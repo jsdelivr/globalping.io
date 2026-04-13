@@ -34,7 +34,7 @@
 													height="28"
 													as-tooltip="@this.getNetworkName(this.statsPerTarget[activeTargetIdx].ipAddr)"
 													src="https://img.jsdelivr.com/img.logo.dev/{{@this.getNetworkDomainName(this.statsPerTarget[activeTargetIdx].ipAddr)}}?format=png"
-													alt="{{this.network}} logo"
+													alt="{{@this.getNetworkName(this.statsPerTarget[activeTargetIdx].ipAddr)}} logo"
 													on-error="@this.handleLogoLoadError(this.statsPerTarget[activeTargetIdx].ipAddr)">
 											{{/if}}
 											<span class="c-gp-results-raw-output_list_item_header_address_value">
