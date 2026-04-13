@@ -1,3 +1,5 @@
+const { isTouchDevice } = require('../_');
+
 let tooltipDecorator = (
 	node,
 	content,
@@ -8,7 +10,95 @@ let tooltipDecorator = (
 	offsetX,
 	offsetY,
 ) => {
-	let tooltip, handlers, eventName;
+	let tooltip, handlers, eventName, initialNodeTop, rafId, longPressTimer;
+
+	let handleOutsideClick = (e) => {
+		if (tooltip && !node.contains(e.target) && !tooltip.contains(e.target)) {
+			removeTooltip();
+		}
+	};
+
+	let createTooltip = () => {
+		if (document.querySelector('#ractive-tooltip-instance') !== null) {
+			return;
+		}
+
+		initialNodeTop = Math.round(node.getBoundingClientRect().top);
+
+		tooltip = document.createElement(elementName);
+		tooltip.className = `ractive-tooltip ${getPositionClass(position)}${className ? ` ${className}` : ''}`;
+
+		if (rawHtml) {
+			let preTag = document.createElement('pre');
+			tooltip.classList.add('raw');
+
+			preTag.textContent = content;
+			tooltip.appendChild(preTag);
+		} else {
+			if (!Array.isArray(content)) {
+				tooltip.textContent = content;
+			} else {
+				content.forEach((line) => {
+					tooltip.appendChild(document.createTextNode(line));
+					tooltip.appendChild(document.createElement('br'));
+				});
+			}
+		}
+
+		tooltip.id = 'ractive-tooltip-instance';
+		document.body.appendChild(tooltip);
+
+		document.addEventListener('click', handleOutsideClick, true);
+		document.addEventListener('touchstart', handleOutsideClick, true);
+
+		monitorPosition();
+	};
+
+	let monitorPosition = () => {
+		if (!tooltip) {
+			return;
+		}
+
+		let currentTop = Math.round(node.getBoundingClientRect().top);
+
+		if (currentTop !== initialNodeTop) {
+			removeTooltip();
+			return;
+		}
+
+		rafId = requestAnimationFrame(monitorPosition);
+	};
+
+	let positionTooltip = () => {
+		if (!tooltip) {
+			return;
+		}
+
+		tooltip.style.left = `${offsetX ? offsetX : getXPos(position)}px`;
+		tooltip.style.top = `${offsetY ? offsetY : getYPos(position)}px`;
+	};
+
+	let removeTooltip = () => {
+		if (typeof rafId === 'number') {
+			cancelAnimationFrame(rafId);
+			rafId = null;
+		}
+
+		clearTimeout(longPressTimer);
+
+		document.removeEventListener('click', handleOutsideClick, true);
+		document.removeEventListener('touchstart', handleOutsideClick, true);
+
+		let tooltipInstance = document.querySelector('#ractive-tooltip-instance');
+
+		if (!tooltipInstance) {
+			return;
+		}
+
+		tooltipInstance.parentElement.removeChild(tooltipInstance);
+		tooltip = null;
+	};
+
 	let getPositionClass = (position) => {
 		let resClass;
 
@@ -28,6 +118,7 @@ let tooltipDecorator = (
 
 		return resClass;
 	};
+
 	let getYPos = (position) => {
 		let yPos;
 		let { top, bottom } = node.getBoundingClientRect();
@@ -67,38 +158,32 @@ let tooltipDecorator = (
 
 	handlers = {
 		mouseover () {
-			if (document.querySelector('#ractive-tooltip-instance') === null) {
-				tooltip = document.createElement(elementName);
-				tooltip.className = `ractive-tooltip ${getPositionClass(position)}${className ? ` ${className}` : ''}`;
-
-				if (rawHtml) {
-					let preTag = document.createElement('pre');
-					tooltip.classList.add('raw');
-
-					preTag.textContent = content;
-					tooltip.appendChild(preTag);
-				} else {
-					if (!Array.isArray(content)) {
-						tooltip.textContent = content;
-					} else {
-						content.forEach((line) => {
-							tooltip.appendChild(document.createTextNode(line));
-							tooltip.appendChild(document.createElement('br'));
-						});
-					}
-				}
-
-				tooltip.id = 'ractive-tooltip-instance';
-				document.body.appendChild(tooltip);
-			}
+			createTooltip();
+			positionTooltip();
 		},
 		mousemove () {
-			tooltip.style.left = `${offsetX ? offsetX : getXPos(position)}px`;
-			tooltip.style.top = `${offsetY ? offsetY : getYPos(position)}px`;
+			positionTooltip();
 		},
 		mouseleave () {
-			let tooltipInstance = document.querySelector('#ractive-tooltip-instance');
-			tooltipInstance.parentElement.removeChild(tooltipInstance);
+			removeTooltip();
+		},
+		touchstart () {
+			if (!isTouchDevice()) {
+				return;
+			}
+
+			longPressTimer = setTimeout(() => {
+				removeTooltip();
+				createTooltip();
+				positionTooltip();
+			}, 100);
+		},
+		contextmenu (e) {
+			if (!isTouchDevice()) {
+				return;
+			}
+
+			e.preventDefault();
 		},
 	};
 
@@ -115,6 +200,9 @@ let tooltipDecorator = (
 					node.removeEventListener(eventName, handlers[eventName], false);
 				}
 			}
+
+			clearTimeout(longPressTimer);
+			removeTooltip();
 		},
 	};
 };
