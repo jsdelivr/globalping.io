@@ -152,6 +152,11 @@
 				border-radius: 8px;
 				cursor: pointer;
 
+				&:focus-visible {
+					outline: none;
+					box-shadow: 0 0 0 2px #fff, 0 0 0 4px rgba(23, 212, 167, .48);
+				}
+
 				@media (min-width: @screen-sm-min) {
 					height: 28px;
 					width: 28px;
@@ -181,6 +186,12 @@
 				.switch-input {
 					position: absolute;
 					opacity: 0;
+
+					&:focus-visible {
+						& + label {
+							box-shadow: 0 0 0 2px #fff, 0 0 0 4px rgba(23, 212, 167, .48);
+						}
+					}
 
 					& + label {
 						position: relative;
