@@ -103,7 +103,9 @@
 												alt=""
 												aria-hidden="true"
 												src="https://cdn.jsdelivr.net/npm/country-flag-icons@1.5.5/3x2/{{item.location.split(', ')[0]}}.svg">
-											{{item.name}}
+											<span as-popover="@this.getPopoverContent(item.from)">
+												{{item.name}}
+											</span>
 										</span>
 										<div class="gp-filtered-list_list_block_group_networks-item_networks">
 											{{#each item.networks}}
@@ -503,12 +505,12 @@
 				});
 			}
 		},
-		getPopoverContent (locationValue, locationName = '') {
+		getPopoverContent (locationValue, networkName = '') {
 			let groupBy = this.get('groupBy');
 			let targetLoc = '';
 
-			if (locationName) {
-				targetLoc = `${locationName}+${locationValue}`;
+			if (networkName) {
+				targetLoc = `${networkName}+${locationValue}`;
 			} else {
 				targetLoc = _.createLocationString(locationValue, this.get('location'));
 			}
@@ -517,7 +519,7 @@
 
 			if (groupBy === 'network') {
 				focusTargetText = 'network';
-			} else if (groupBy.includes('network')) {
+			} else if (groupBy.includes('network') && networkName) {
 				focusTargetText = 'location + network';
 			}
 
@@ -537,8 +539,8 @@
 
 			let btnLookingGlass = '';
 
-			if (this.get('groupBy').includes('network')) {
-				let networkName = locationName || locationValue;
+			if (groupBy === 'network' || !!networkName) {
+				networkName = networkName || locationValue;
 				let networkKey = _.networkNameToKey(networkName);
 
 				btnLookingGlass = `
