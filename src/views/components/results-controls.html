@@ -12,7 +12,7 @@
 
 		<div class="content-wrapper_ctrls">
 			<div class="content-wrapper_ctrls_switch {{#if testType !== 'ping'}}content-wrapper_ctrls_switch--disabled{{/if}}" data-testid="results-display-switch">
-				<input id="display-type" type="checkbox" aria-checked="{{rawOutputMode}}" checked="{{rawOutputMode}}" disabled="{{testType !== 'ping'}}" class="switch-input {{#if !rawOutputMode}}grid{{/if}}">
+				<input id="display-type" type="checkbox" aria-checked="{{rawOutputMode}}" checked="{{rawOutputMode}}" disabled="{{testType !== 'ping'}}" class="switch-input {{#if !rawOutputMode}}table{{/if}}">
 				<label for="display-type">
 					<span>
 						<img width="16" height="16" alt="" src="{{@shared.assetsHost}}/img/raw-output-icon{{#if rawOutputMode}}.active{{/if}}.svg">
