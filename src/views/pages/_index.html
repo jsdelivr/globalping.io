@@ -3643,6 +3643,7 @@
 							...res.probe,
 							statsPerTarget: [{
 								target: res.target,
+								rawOutput: res.result.rawOutput,
 							}],
 						};
 
@@ -3669,7 +3670,6 @@
 								packetsRtt,
 								extraValues,
 								failureRawOutput: this.getFailureProbeRawOutput(res),
-								rawOutput: res.result.rawOutput,
 								qualityStr: this.createQualityString(isOffline, statsTotal, statsDrop),
 								areTimingsReady: this.checkAreTimingsReady(lastTiming, maxTiming, minTiming, avgTiming, packetsTotal),
 								tls: res.result.tls,
