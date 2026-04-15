@@ -59,8 +59,8 @@
 
 							<c-gp-tls-details tls="{{this.statsPerTarget[activeTargetIdx].tls}}" screenWidth="{{screenWidth}}"></c-gp-tls-details>
 
-							<img on-click="@this.hideShowTestResult(this)"
-								class="c-gp-results-raw-output_list_item_header_dropdown-icon {{#if hiddenTestResults.includes(this)}}upside-down{{/if}}"
+							<img on-click="@this.hideShowTestResult(this.clientSideId)"
+								class="c-gp-results-raw-output_list_item_header_dropdown-icon {{#if hiddenTestResults[activeTargetIdx].includes(this.clientSideId)}}upside-down{{/if}}"
 								width="24"
 								height="24"
 								src="{{@shared.assetsHost}}/img/chevron-up-icon.svg">
@@ -79,10 +79,10 @@
 							</div>
 						</div>
 
-						<pre class="{{#if hiddenTestResults.includes(this)}}hidden{{/if}}">{{this.statsPerTarget[activeTargetIdx].rawOutput}}</pre>
+						<pre class="{{#if hiddenTestResults[activeTargetIdx].includes(this.clientSideId)}}hidden{{/if}}">{{this.statsPerTarget[activeTargetIdx].rawOutput}}</pre>
 
 						{{#if testInProgress === false && isInfiniteModeRes}}
-							<pre class="{{#if hiddenTestResults.includes(this)}}hidden{{/if}}">{{this.statsPerTarget[activeTargetIdx].rawFooter}}</pre>
+							<pre class="{{#if hiddenTestResults[activeTargetIdx].includes(this.clientSideId)}}hidden{{/if}}">{{this.statsPerTarget[activeTargetIdx].rawFooter}}</pre>
 						{{/if}}
 					</div>
 
@@ -108,10 +108,24 @@
 		data () {
 			return {
 				_,
-				hiddenTestResults: [],
+				activeTargetIdx: 0,
+				hiddenTestResults: {
+					0: [],
+					1: [],
+				},
 				PROBE_STATUS_FAILED,
 				PROBE_STATUS_OFFLINE,
+				heightSetForCurrentResults: false,
+				skipNextResize: false,
 			};
+		},
+		oninit () {
+			if (!Ractive.isServer) {
+				this.set('hiddenTestResults', {
+					0: [],
+					1: [],
+				});
+			}
 		},
 		onrender () {
 			if (!Ractive.isServer) {
@@ -119,22 +133,31 @@
 				this.observe('scrolledToResId', (clientSideId) => {
 					if (clientSideId === null) { return; }
 
-					let hiddenTestResults = this.get('hiddenTestResults');
-					let targetLocation = hiddenTestResults.find(item => item.clientSideId === clientSideId);
+					let activeTargetIdx = this.get('activeTargetIdx');
+					let hiddenTestResults = this.get(`hiddenTestResults[${activeTargetIdx}]`);
+					let targetId = hiddenTestResults.find(resId => resId === clientSideId);
 
-					if (targetLocation) {
-						this.hideShowTestResult(targetLocation);
+					if (typeof targetId === 'number') {
+						this.set('skipNextResize', true);
+						this.hideShowTestResult(targetId);
 					}
 
 					this.set('scrolledToResId', null);
 				}, { init: false });
 
-				this.observe('preparedTestResults', (preparedTestResults) => {
-					// set results block height based on content
-					this.setResultsBlockHeight(preparedTestResults);
-					// remove old hidden results
-					this.set('hiddenTestResults', []);
-				});
+				this.observe('preparedTestResults', () => {
+					this.set('heightSetForCurrentResults', false);
+					this.setResultsBlockHeight();
+				}, { deep: true, defer: true });
+
+				this.observe('hiddenTestResults', () => {
+					if (this.get('skipNextResize')) {
+						this.set('skipNextResize', false);
+						return;
+					}
+
+					this.setResultsBlockHeight();
+				}, { deep: true, defer: true, init: false });
 
 				this.observe('sortOrder sortBy activeTargetIdx', () => {
 					let listEl = this.find('.c-gp-results-raw-output_list');
@@ -145,25 +168,61 @@
 				}, { init: false });
 			}
 		},
-		hideShowTestResult (result) {
-			let hidden = this.get('hiddenTestResults');
+		hideShowTestResult (resultId) {
+			let activeTargetIdx = this.get('activeTargetIdx');
+			let hidden = this.get(`hiddenTestResults[${activeTargetIdx}]`) ?? [];
 
-			let updated = hidden.includes(result)
-				? hidden.filter(item => item !== result)
-				: [ ...hidden, result ];
+			let updated = hidden.includes(resultId)
+				? hidden.filter(clientSideId => clientSideId !== resultId)
+				: [ ...hidden, resultId ];
 
-			this.set('hiddenTestResults', updated);
+			this.set(`hiddenTestResults[${activeTargetIdx}]`, updated);
 		},
-		setResultsBlockHeight (results) {
+		setResultsBlockHeight () {
 			requestAnimationFrame(() => {
-				let listEl = this.find('.c-gp-results-raw-output_list');
+				let listEl;
+
+				try {
+					listEl = this.find('.c-gp-results-raw-output_list');
+				} catch {
+					return;
+				}
 
 				if (listEl) {
-					let itemsAmount = results.length;
-					let listElScrollHeight = listEl.scrollHeight;
-					let avgItemElHeight = Math.round(listElScrollHeight / itemsAmount);
+					let currentHeight = parseFloat(listEl.style.height) || 0;
+					let currentScrollTop = listEl.scrollTop;
+					listEl.style.height = 'auto';
 
-					listEl.style.height = `${itemsAmount < 3 ? avgItemElHeight * itemsAmount : avgItemElHeight * 3}px`;
+					let items = listEl.querySelectorAll('.c-gp-results-raw-output_list_item_top-wrapper');
+					let itemsAmount = items.length;
+
+					if (itemsAmount === 0) {
+						this.set('heightSetForCurrentResults', true);
+						return;
+					}
+
+					let targetHeight = 0;
+					let limit = Math.min(itemsAmount, 3);
+
+					for (let i = 0; i < limit; i++) {
+						targetHeight += items[i].scrollHeight;
+					}
+
+					let totalItemHeight = 0;
+
+					for (let i = 0; i < itemsAmount; i++) {
+						totalItemHeight += items[i].scrollHeight;
+					}
+
+					// if the container height has already been set for current results, only shrink the container if it would contain empty space (totalHeight < currentHeight)
+					if (!this.get('heightSetForCurrentResults') || (targetHeight !== currentHeight && (targetHeight > currentHeight || totalItemHeight < currentHeight))) {
+						listEl.style.height = `${targetHeight}px`;
+					} else {
+						listEl.style.height = `${currentHeight}px`;
+					}
+
+					listEl.scrollTop = currentScrollTop;
+					this.set('heightSetForCurrentResults', true);
 				}
 			});
 		},
