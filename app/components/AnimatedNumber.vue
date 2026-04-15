@@ -1,9 +1,9 @@
 <template>
 	<span ref="wrapperRef" class="relative z-0 inline-flex h-[1em] leading-none">
 		<span class="pointer-events-none invisible" aria-hidden="true">
-			{{ number }}
+			{{ prefix }}{{ number }}{{ suffix }}
 		</span>
-		<span class="absolute inset-0">{{ displayedNumber }}</span>
+		<span class="absolute inset-0">{{ prefix }}{{ displayedNumber }}{{ suffix }}</span>
 		<span
 			v-if="underline"
 			class="bg-primary absolute bottom-0.5 -left-1 -z-10 h-2 transition-all duration-500"
@@ -13,10 +13,14 @@
 </template>
 
 <script setup lang="ts">
+	import useIsInViewport from '~/composables/useIsInViewport';
+
 	const props = defineProps({
 		number: { type: Number, required: true },
 		duration: { type: Number, default: 1500 },
 		underline: { type: Boolean, default: false },
+		prefix: { type: String, default: '' },
+		suffix: { type: String, default: '' },
 	});
 
 	const displayedNumber = ref(0);
@@ -25,6 +29,9 @@
 	const wrapperRef = ref<HTMLElement | null>(null);
 	const underlineWidth = ref(0);
 	let resizeObserver: ResizeObserver | null = null;
+
+	const isInViewport = useIsInViewport(wrapperRef);
+	const hasAnimated = ref(false);
 
 	const easeInOutFn = (val: number) => {
 		const sqr = Math.pow(val, 2);
@@ -49,8 +56,22 @@
 		});
 	};
 
-	watch(() => props.number, () => {
-		animateChange(displayedNumber.value, Date.now());
+	watch(() => props.number, (newNumber, oldNumber) => {
+		if (newNumber !== oldNumber) {
+			hasAnimated.value = false;
+
+			if (isInViewport.value) {
+				animateChange(displayedNumber.value, Date.now());
+				hasAnimated.value = true;
+			}
+		}
+	});
+
+	watch(isInViewport, (inView) => {
+		if (inView && !hasAnimated.value) {
+			animateChange(displayedNumber.value, Date.now());
+			hasAnimated.value = true;
+		}
 	}, { immediate: true });
 
 	onMounted(() => {
