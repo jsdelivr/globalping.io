@@ -104,23 +104,23 @@
 					<h3 class="text-dark-800 mb-4">
 						{{ group.title }}
 					</h3>
-					<div class="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+					<div class="grid gap-x-5 gap-y-12 max-md:gap-y-8 md:grid-cols-2">
 						<article
 							v-for="person in group.data"
 							:key="person.name"
-							class="flex gap-1.5 max-md:gap-4 md:flex-col"
+							class="flex gap-4"
 						>
 							<img
 								:src="person.image"
 								:srcset="person.image2x || undefined"
 								:alt="person.name"
-								class="size-16 rounded-full object-cover max-md:size-13"
+								class="mt-2 size-16 rounded-full object-cover max-md:size-15"
 							>
-							<div class="flex min-w-0 flex-col md:gap-1">
-								<h4 class="text-lg font-semibold">
+							<div class="flex min-w-0 flex-col">
+								<h4 class="text-lg leading-6 font-semibold">
 									{{ person.name }}
 								</h4>
-								<p class="mb-1 text-sm">
+								<p class="mb-2 text-sm">
 									{{ person.position }}
 								</p>
 								<a
@@ -240,11 +240,6 @@
 						url: 'https://www.linkedin.com/in/robert-zygmuntowski-144865a9',
 						icon: getImageAsset(`/icons/linkedin.svg`),
 					},
-				},
-				{
-					name: 'Kyrylo Chyzhov',
-					position: 'Developer',
-					image: getImageAsset('/about/kyrylo-chyzhov.jpg'),
 				},
 			],
 		},
