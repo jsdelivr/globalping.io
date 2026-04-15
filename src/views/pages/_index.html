@@ -703,6 +703,9 @@
 						targets="{{targetsArr}}"
 						activeTargetIdx="{{activeTargetIdx}}"
 						rawOutputMode="{{rawOutputMode}}"
+						onCollapseAll="{{@this.collapseAllRawOutput}}"
+						onExpandAll="{{@this.expandAllRawOutput}}"
+						allCollapsed="{{allCollapsed}}"
 						testType="{{testReqParams.type}}"
 						sortOrder="{{sortOrder}}"
 						sortBy="{{sortBy}}"
@@ -715,6 +718,7 @@
 							<c-gp-results-raw-output
 								testReqParams="{{testReqParams}}"
 								preparedTestResults="{{preparedTestResults}}"
+								hiddenTestResults="{{hiddenTestResults}}"
 								testInProgress="{{testInProgress}}"
 								scrolledToResId="{{scrolledToResId}}"
 								currSearchLocation="{{mainOptions.location}}"
@@ -1719,6 +1723,7 @@
 				rawOutputMode: true,
 				measurementsMetadata: null,
 				targetsArr: [],
+				hiddenTestResults: { 0: [], 1: [] },
 				qsMeasurementIdsArr: [],
 				showCreditsErrorBar: false,
 				infiniteMeasIds: [],
@@ -1765,6 +1770,10 @@
 					this.set('_location', value);
 					this.set('mainOptions.location', value.replace(/%/g, '+'));
 				},
+			},
+			allCollapsed () {
+				let activeTargetIdx = this.get('activeTargetIdx');
+				return this.get(`hiddenTestResults[${activeTargetIdx}]`).length === this.get('preparedTestResults').length;
 			},
 		},
 		onrender () {
@@ -2417,6 +2426,7 @@
 			this.set('_measurementOgDescription', null);
 			this.set('activeTestRunId', testRunId);
 			this.set('testReqCancelFn', []);
+			this.expandAllRawOutput(true);
 
 			// if it is infinite/multi-endpoint measurement then we should show TableOutput by default
 			// otherwise leave prev value set by user
@@ -2832,6 +2842,19 @@
 
 			if (el) {
 				el.scrollIntoView({ behavior: 'smooth' });
+			}
+		},
+		collapseAllRawOutput () {
+			let ids = this.get('preparedTestResults').map(result => result.clientSideId);
+			let activeTargetIdx = this.get('activeTargetIdx');
+			this.set(`hiddenTestResults[${activeTargetIdx}]`, ids);
+		},
+		expandAllRawOutput (allTargets = false) {
+			if (allTargets) {
+				this.set('hiddenTestResults', { 0: [], 1: [] });
+			} else {
+				let activeTargetIdx = this.get('activeTargetIdx');
+				this.set(`hiddenTestResults[${activeTargetIdx}]`, []);
 			}
 		},
 		getTestMeasurementById ({
