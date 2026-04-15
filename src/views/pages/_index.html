@@ -3690,6 +3690,7 @@
 								...pR.statsPerTarget,
 								{
 									target: nextReqRes.target,
+									rawOutput: nextReqRes.result.rawOutput,
 								},
 							],
 						};
@@ -3719,7 +3720,6 @@
 									packetsRtt,
 									extraValues,
 									failureRawOutput: this.getFailureProbeRawOutput(nextReqRes),
-									rawOutput: nextReqRes.result.rawOutput,
 									qualityStr: this.createQualityString(isOffline, statsTotal, statsDrop),
 									areTimingsReady: this.checkAreTimingsReady(lastTiming, maxTiming, minTiming, avgTiming, packetsTotal),
 								},
