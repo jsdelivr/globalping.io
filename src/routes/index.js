@@ -8,6 +8,7 @@ const asnDomains = require('../lib/asn-to-domain');
 const ipToNetwork = require('../lib/ip-to-network');
 const { getUsers, getNetworks, getNetworkToDomainMap } = require('../lib/probe-data');
 const maxmind = require('maxmind');
+const { processDomainLogo } = require('../lib/logo-processing');
 
 const router = new KoaRouter();
 
@@ -253,6 +254,30 @@ koaElasticUtils.addRoutes(router, [
 
 	ctx.body = { domain, name };
 	ctx.maxAge = 7 * 24 * 60 * 60;
+});
+
+koaElasticUtils.addRoutes(router, [
+	[ '/domain-logo/:domain' ],
+], async (ctx) => {
+	let { domain = '' } = ctx.params;
+	let { padding } = ctx.query;
+
+	if (!domain) {
+		ctx.status = 400;
+		return;
+	}
+
+	let { image, error } = await processDomainLogo(domain, padding);
+
+	if (error) {
+		ctx.status = error.status;
+		ctx.body = { message: error.message };
+		return;
+	}
+
+	ctx.type = 'image/png';
+	ctx.set('Cache-Control', 'public, max-age=31536000');
+	ctx.body = image;
 });
 
 /**
