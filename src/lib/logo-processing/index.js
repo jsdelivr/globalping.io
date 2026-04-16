@@ -51,7 +51,7 @@ module.exports.processDomainLogo = async (domain, padding) => {
 		let response = await fetch(imageUrl);
 
 		if (!response.ok) {
-			return { error: { status: response.status, message: response.message } };
+			return { error: { status: response.status, message: response.statusText || 'Failed to fetch upstream image' } };
 		}
 
 		let arrayBuffer = await response.arrayBuffer();

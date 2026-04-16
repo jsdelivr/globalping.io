@@ -271,7 +271,7 @@ koaElasticUtils.addRoutes(router, [
 
 	if (error) {
 		ctx.status = error.status;
-		ctx.body = { message: error.message };
+		ctx.body = { error: error.message };
 		return;
 	}
 
