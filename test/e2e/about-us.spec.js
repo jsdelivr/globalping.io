@@ -5,6 +5,7 @@ test('About us page', async ({ page }) => {
 	let response = await page.goto('/about-us');
 	expect(response.ok()).toBeTruthy();
 
-	// no special interactions to be tested here, just check that the HTML rendered
-	await expect(page.getByText('Globalping A globally distributed network of probes or network vantage points')).toBeVisible();
+	await expect(page.getByRole('heading', { level: 1, name: 'Globalping' })).toBeVisible();
+	await expect(page.getByText('A globally distributed network of probes or network vantage points.')).toBeVisible();
+	await expect(page.getByText('Globalping in numbers')).toBeVisible();
 });
