@@ -5,7 +5,6 @@ const http = require('./utils/http');
 const _ = require('./_');
 const cGlobalping = require('../../views/pages/_index.html');
 const cGlobalpingNetworkTools = require('../../views/pages/network-tools.html');
-const cGlobalpingAbout = require('../../views/pages/about-us.html');
 const cGlobalpingSponsors = require('../../views/pages/sponsors.html');
 const cGlobalpingCredits = require('../../views/pages/credits.html');
 const cGlobalpingNetwork = require('../../views/pages/network.html');
@@ -34,7 +33,6 @@ const initApp = () => {
 
 	app.router.addRoute('/', cGlobalping, { qs: [ 'location', 'measurement', 'display', 'map', 'by', 'order' ] });
 	app.router.addRoute('/network-tools/:params?', cGlobalpingNetworkTools);
-	app.router.addRoute('/about-us', cGlobalpingAbout);
 	app.router.addRoute('/sponsors', cGlobalpingSponsors);
 	app.router.addRoute('/credits', cGlobalpingCredits);
 	app.router.addRoute('/network', cGlobalpingNetwork, { qs: [ 'filter', 'group', 'sort' ] });

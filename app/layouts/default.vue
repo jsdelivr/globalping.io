@@ -13,6 +13,11 @@
 	import Header from '~/ractive/header';
 	import { useAuth } from '~/stores/auth';
 
+	const HEADER_PROPERTIES = {
+		'default': { additionalClasses: 'header-with-globalping-bg', mainLogoName: undefined },
+		'about-us': { additionalClasses: 'gp-about-us-header', mainLogoName: 'globalping-full-white.svg' },
+	};
+
 	const headerEl = ref<HTMLElement>();
 	const footerEl = ref<HTMLElement>();
 	const headerInstance = ref<Ractive<Ractive>>();
@@ -29,6 +34,20 @@
 		apiDocsHost,
 		assetsVersion,
 	} = useRuntimeConfig().public;
+
+	const pathKey = computed(() => route.path.replace(/^\/|\/$/g, ''));
+
+	const setHeaderProps = () => {
+		const props = HEADER_PROPERTIES[pathKey.value as keyof typeof HEADER_PROPERTIES] || HEADER_PROPERTIES.default;
+
+		Object.entries(props).forEach(([ key, value ]) => {
+			headerInstance.value?.set(key, value);
+		});
+	};
+
+	watch(pathKey, () => {
+		setHeaderProps();
+	}, { immediate: true });
 
 	const auth = useAuth();
 
@@ -49,8 +68,7 @@
 	if (import.meta.server) {
 		footerInstance.value = new Footer();
 		headerInstance.value = new Header();
-
-		headerInstance.value.set('additionalClasses', 'header-with-globalping-bg');
+		setHeaderProps();
 		setRactiveData(true);
 
 		footerHtml.value = footerInstance.value.toHTML();
@@ -62,7 +80,7 @@
 		headerInstance.value = new Header({ target: headerEl.value, enhance: true });
 		headerInstance.value.set('@global.app.signIn', auth.signIn);
 		headerInstance.value.set('@global.app.signOut', auth.signOut);
-		headerInstance.value.set('additionalClasses', 'header-with-globalping-bg');
+		setHeaderProps();
 
 		headerEl.value?.addEventListener('click', handleRactiveNavigation);
 		footerEl.value?.addEventListener('click', handleRactiveNavigation);
