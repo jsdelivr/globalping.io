@@ -3666,7 +3666,6 @@
 							...res.probe,
 							statsPerTarget: [{
 								target: res.target,
-								rawOutput: res.result.rawOutput,
 							}],
 						};
 
@@ -3693,6 +3692,7 @@
 								packetsRtt,
 								extraValues,
 								failureRawOutput: this.getFailureProbeRawOutput(res),
+								rawOutput: res.result.rawOutput,
 								qualityStr: this.createQualityString(isOffline, statsTotal, statsDrop),
 								areTimingsReady: this.checkAreTimingsReady(lastTiming, maxTiming, minTiming, avgTiming, packetsTotal),
 								tls: res.result.tls,
@@ -3713,7 +3713,6 @@
 								...pR.statsPerTarget,
 								{
 									target: nextReqRes.target,
-									rawOutput: nextReqRes.result.rawOutput,
 								},
 							],
 						};
@@ -3743,6 +3742,7 @@
 									packetsRtt,
 									extraValues,
 									failureRawOutput: this.getFailureProbeRawOutput(nextReqRes),
+									rawOutput: nextReqRes.result.rawOutput,
 									qualityStr: this.createQualityString(isOffline, statsTotal, statsDrop),
 									areTimingsReady: this.checkAreTimingsReady(lastTiming, maxTiming, minTiming, avgTiming, packetsTotal),
 								},

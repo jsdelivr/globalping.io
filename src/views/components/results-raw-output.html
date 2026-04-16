@@ -54,7 +54,7 @@
 								</button>
 							</div>
 
-							<div class="c-gp-results-raw-output_list_item_header_metrics {{#if testInProgress && !this.statsPerTarget[activeTargetIdx].areTimingsReady}}in-progress{{/if}}">
+							<div class="c-gp-results-raw-output_list_item_header_metrics {{#if testInProgress && !this.statsPerTarget[activeTargetIdx].rawOutput}}in-progress{{/if}}">
 								{{#if _.getGpTargetTiming(this.statsPerTarget[activeTargetIdx])}}
 									<span class="c-gp-results-raw-output_list_item_header_time main-value">
 										Time
