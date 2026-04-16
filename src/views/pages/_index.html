@@ -2358,7 +2358,7 @@
 			let reqParams = {
 				type,
 				// to get test results in real time
-				inProgressUpdates: true,
+				inProgressUpdates: !!infiniteSwitchEnabled,
 			};
 
 			// ipVersion should only be passed if all targets are a domain name and the test type is not 'DNS'
@@ -2985,7 +2985,7 @@
 						delete testReqParams.createdAt;
 
 						testReqParams = {
-							inProgressUpdates: true,
+							inProgressUpdates: isInfiniteMeas,
 							limit: DEFAULT_LIMIT,
 							...testReqParams,
 							measurementOptions: {
