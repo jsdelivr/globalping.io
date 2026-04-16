@@ -46,11 +46,12 @@
 
 								<c-gp-tls-details tls="{{this.statsPerTarget[activeTargetIdx].tls}}" screenWidth="{{screenWidth}}"></c-gp-tls-details>
 
-								<img on-click="@this.hideShowTestResult(this)"
-									class="c-gp-results-raw-output_list_item_header_dropdown-icon {{#if hiddenTestResults.includes(this)}}upside-down{{/if}}"
-									width="24"
-									height="24"
-									src="{{@shared.assetsHost}}/img/chevron-up-icon.svg">
+								<button on-click="@this.hideShowTestResult(this.clientSideId)"
+									role="button"
+									aria-label="{{#if hiddenTestResults[activeTargetIdx].includes(this.clientSideId)}}Expand{{else}}Collapse{{/if}} output"
+									class="c-gp-results-raw-output_list_item_header_dropdown-btn {{#if hiddenTestResults[activeTargetIdx].includes(this.clientSideId)}}upside-down{{/if}}">
+									<i class="fa fa-chevron-up" aria-hidden="true"/>
+								</button>
 							</div>
 
 							<div class="c-gp-results-raw-output_list_item_header_metrics {{#if testInProgress && !this.statsPerTarget[activeTargetIdx].areTimingsReady}}in-progress{{/if}}">
