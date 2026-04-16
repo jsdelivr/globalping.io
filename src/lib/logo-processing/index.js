@@ -60,6 +60,8 @@ module.exports.processDomainLogo = async (domain, padding) => {
 		let sharpInstance = sharp(imageBuffer);
 
 		let metadata = await sharpInstance.metadata();
+		let aspectRatio = metadata.width / metadata.height;
+
 		let bgColor = await getCornerAverageColor(imageBuffer, metadata.width, metadata.height);
 		let luminance = calculateLuminance(bgColor.r, bgColor.g, bgColor.b);
 
@@ -79,19 +81,18 @@ module.exports.processDomainLogo = async (domain, padding) => {
 			let rightMargin = metadata.width - trimInfo.width - leftMargin;
 			let bottomMargin = metadata.height - trimInfo.height - topMargin;
 
-			// find the maximum safe trim boundaries
+			// find the maximum safe trim boundaries on each axis
 			let maxSafeTrimX = Math.min(leftMargin, rightMargin);
 			let maxSafeTrimY = Math.min(topMargin, bottomMargin);
 
-			let aspectRatio = metadata.width / metadata.height;
-
+			// ensure the trim maintains the aspect ratio and is centered on the image
 			let finalTrimY = Math.min(maxSafeTrimY, maxSafeTrimX / aspectRatio);
 			let finalTrimX = finalTrimY * aspectRatio;
 
 			finalTrimX = Math.floor(finalTrimX);
 			finalTrimY = Math.floor(finalTrimY);
 
-			// apply the boundaries
+			// apply the trim
 			if (finalTrimX > 0 || finalTrimY > 0) {
 				sharpInstance = sharpInstance.extract({
 					left: finalTrimX,
@@ -105,7 +106,7 @@ module.exports.processDomainLogo = async (domain, padding) => {
 				let paddingInt = parseInt(padding);
 
 				if (!isNaN(paddingInt) && paddingInt > 0) {
-					// To maintain the aspect ratio during extension, pad proportionally
+					// to maintain the aspect ratio during extension, pad proportionally
 					sharpInstance = sharpInstance.extend({
 						top: paddingInt,
 						bottom: paddingInt,
@@ -122,8 +123,8 @@ module.exports.processDomainLogo = async (domain, padding) => {
 				sharpInstance = sharpInstance.extend({
 					top: paddingInt,
 					bottom: paddingInt,
-					left: paddingInt,
-					right: paddingInt,
+					left: Math.round(paddingInt * aspectRatio),
+					right: Math.round(paddingInt * aspectRatio),
 					background: bgColor,
 				});
 			}
