@@ -48,7 +48,7 @@ module.exports.processDomainLogo = async (domain, padding) => {
 	let imageUrl = `https://img.jsdelivr.com/img.logo.dev/${domain}?format=png`;
 
 	try {
-		let response = await fetch(imageUrl);
+		let response = await fetch(imageUrl, { headers: { Accept: 'image/png' } });
 
 		if (!response.ok) {
 			return { error: { status: response.status, message: response.statusText || 'Failed to fetch upstream image' } };

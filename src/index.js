@@ -169,6 +169,9 @@ app.use(render({
 			? `${process.env.RENDER_EXTERNAL_URL}/assets/${assetsVersion}`
 			: serverConfig.assetsHost
 		: `/assets/${assetsVersion}`,
+	logoHost: isRenderPreview
+		? `${process.env.RENDER_EXTERNAL_URL}/domain-logo`
+		: serverConfig.logoHost,
 	apiDocsHost: serverConfig.apiDocsHost,
 	assetsVersion,
 }, app));
