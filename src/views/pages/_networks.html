@@ -32,7 +32,7 @@
 				{{#if networkDomainName}}
 					<img width="32"
 						height="32"
-						src="https://img.jsdelivr.com/img.logo.dev/{{networkDomainName}}?format=png"
+						src="{{@shared.logoHost}}/{{networkDomainName}}"
 						loading="lazy"
 						alt="{{networkFullName}} logo"
 						as-tooltip="networkFullName"
@@ -219,7 +219,7 @@
 							{{#if this.networkDomainName}}
 								<img width="24"
 									height="24"
-									src="https://img.jsdelivr.com/img.logo.dev/{{this.networkDomainName}}?format=png"
+									src="{{@shared.logoHost}}/{{this.networkDomainName}}"
 									loading="lazy"
 									on-error="@this.onLogoError(this)"
 									alt="{{this.fullName}} logo">

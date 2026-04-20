@@ -6,27 +6,30 @@ const TRIM_TOLERANCE = 10;
 /**
  * Extracts and calculates the average RGBA color from the 4 corners of the image.
  */
-async function getCornerAverageColor (imageBuffer, width, height) {
+const getCornerAverageColor = async (imageBuffer, width, height) => {
+	let { data, info } = await sharp(imageBuffer)
+		.ensureAlpha()
+		.raw()
+		.toBuffer({ resolveWithObject: true });
+
+	let channels = info.channels;
+
+	let getPixelIndex = (x, y) => (y * width + x) * channels;
+
 	let corners = [
-		{ left: 0, top: 0, width: 1, height: 1 },
-		{ left: width - 1, top: 0, width: 1, height: 1 },
-		{ left: 0, top: height - 1, width: 1, height: 1 },
-		{ left: width - 1, top: height - 1, width: 1, height: 1 },
+		getPixelIndex(0, 0),
+		getPixelIndex(width - 1, 0),
+		getPixelIndex(0, height - 1),
+		getPixelIndex(width - 1, height - 1),
 	];
 
 	let r = 0, g = 0, b = 0, a = 0;
 
-	for (let region of corners) {
-		let pixelBuffer = await sharp(imageBuffer)
-			.extract(region)
-			.ensureAlpha()
-			.raw()
-			.toBuffer();
-
-		r += pixelBuffer[0];
-		g += pixelBuffer[1];
-		b += pixelBuffer[2];
-		a += pixelBuffer[3];
+	for (let idx of corners) {
+		r += data[idx];
+		g += data[idx + 1];
+		b += data[idx + 2];
+		a += data[idx + 3];
 	}
 
 	return {
@@ -35,7 +38,7 @@ async function getCornerAverageColor (imageBuffer, width, height) {
 		b: Math.round(b / 4),
 		alpha: Math.round(a / 4) / 255,
 	};
-}
+};
 
 /**
  * See https://en.wikipedia.org/wiki/Relative_luminance
@@ -44,14 +47,51 @@ const calculateLuminance = (r, g, b) => {
 	return (0.299 * r) + (0.587 * g) + (0.114 * b);
 };
 
+/**
+ * Applies padding while maintaining the dimensions of the image
+ */
+const applyPadding = async (sharpInstance, metadata, padding, bgColor) => {
+	if (padding <= 0) {
+		return sharpInstance;
+	}
+
+	let aspectRatio = metadata.width / metadata.height;
+
+	let extendedBuffer = await sharpInstance.extend({
+		top: padding,
+		bottom: padding,
+		left: Math.round(padding * aspectRatio),
+		right: Math.round(padding * aspectRatio),
+		background: bgColor,
+	}).toBuffer();
+
+	return sharp(extendedBuffer).resize({
+		width: metadata.width,
+		height: metadata.height,
+		fit: 'contain',
+		background: bgColor,
+	});
+};
+
 module.exports.processDomainLogo = async (domain, padding) => {
-	let imageUrl = `https://img.jsdelivr.com/img.logo.dev/${domain}?format=png`;
+	let defaultUrl = `https://img.jsdelivr.com/img.logo.dev/${domain}?format=png`;
+	let strictUrl = `${defaultUrl}&fallback=404`; // forces a 404 if the logo is unavailable
 
 	try {
-		let response = await fetch(imageUrl, { headers: { Accept: 'image/png' } });
+		let response = await fetch(strictUrl, { headers: { Accept: 'image/png' } });
 
 		if (!response.ok) {
-			return { error: { status: response.status, message: response.statusText || 'Failed to fetch upstream image' } };
+			if (response.status === 404) {
+				response = await fetch(defaultUrl, { headers: { Accept: 'image/png' } });
+				padding += 20;
+			} else {
+				return {
+					error: {
+						status: response.status,
+						message: response.statusText || 'Failed to fetch upstream image',
+					},
+				};
+			}
 		}
 
 		let arrayBuffer = await response.arrayBuffer();
@@ -102,32 +142,9 @@ module.exports.processDomainLogo = async (domain, padding) => {
 				});
 			}
 
-			if (padding) {
-				let paddingInt = parseInt(padding);
-
-				if (!isNaN(paddingInt) && paddingInt > 0) {
-					// to maintain the aspect ratio during extension, pad proportionally
-					sharpInstance = sharpInstance.extend({
-						top: paddingInt,
-						bottom: paddingInt,
-						left: Math.round(paddingInt * aspectRatio),
-						right: Math.round(paddingInt * aspectRatio),
-						background: bgColor,
-					});
-				}
-			}
+			sharpInstance = await applyPadding(sharpInstance, metadata, padding, bgColor);
 		} else if (bgColor.alpha === 0) {
-			let paddingInt = parseInt(padding);
-
-			if (!isNaN(paddingInt) && paddingInt > 0) {
-				sharpInstance = sharpInstance.extend({
-					top: paddingInt,
-					bottom: paddingInt,
-					left: Math.round(paddingInt * aspectRatio),
-					right: Math.round(paddingInt * aspectRatio),
-					background: bgColor,
-				});
-			}
+			sharpInstance = await applyPadding(sharpInstance, metadata, padding, bgColor);
 		}
 
 		return { image: await sharpInstance.png().toBuffer() };
