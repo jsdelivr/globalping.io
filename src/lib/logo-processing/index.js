@@ -75,23 +75,23 @@ const applyPadding = async (sharpInstance, metadata, padding, bgColor) => {
 
 module.exports.processDomainLogo = async (domain, padding) => {
 	let defaultUrl = `https://img.jsdelivr.com/img.logo.dev/${domain}?format=png`;
-	let strictUrl = `${defaultUrl}&fallback=404`; // forces a 404 if the logo is unavailable
+	let strictUrl = `${defaultUrl}&fallback=404`; // forces a 404 response if the logo is unavailable
 
 	try {
 		let response = await fetch(strictUrl, { headers: { Accept: 'image/png' } });
 
+		if (response.status === 404) {
+			response = await fetch(defaultUrl, { headers: { Accept: 'image/png' } });
+			padding += 20;
+		}
+
 		if (!response.ok) {
-			if (response.status === 404) {
-				response = await fetch(defaultUrl, { headers: { Accept: 'image/png' } });
-				padding += 20;
-			} else {
-				return {
-					error: {
-						status: response.status,
-						message: response.statusText || 'Failed to fetch upstream image',
-					},
-				};
-			}
+			return {
+				error: {
+					status: response.status,
+					message: response.statusText || 'Failed to fetch upstream image',
+				},
+			};
 		}
 
 		let arrayBuffer = await response.arrayBuffer();
