@@ -61,10 +61,24 @@
 					flex-basis: 0;
 					color: #fff;
 					row-gap: 8px;
+					border-radius: 4px;
 
 					@media (min-width: @screen-sm-min) {
 						row-gap: 0;
 						flex-grow: 0;
+					}
+
+					&:hover {
+						text-decoration: none;
+					}
+
+					&:focus, &:focus-visible {
+						outline: none;
+						text-decoration: none;
+					}
+
+					&:focus-visible {
+						box-shadow: 0 0 0 3px rgba(23, 212, 167, .8);
 					}
 
 					&:nth-child(1) {
