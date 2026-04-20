@@ -116,6 +116,7 @@
 					align-items: center;
 					font-size: 13px;
 					gap: 8px;
+					overflow: hidden;
 
 					&_cell {
 						display: flex;
@@ -133,6 +134,7 @@
 						object-fit: contain;
 						margin: 3px;
 						border-radius: 6px;
+						flex-shrink: 0;
 					}
 
 					&_value {
@@ -141,6 +143,9 @@
 						height: 28px;
 						border-left: 1px solid #e7e7ee;
 						padding: 0 8px;
+						white-space: nowrap;
+						text-overflow: ellipsis;
+						overflow: hidden;
 					}
 				}
 
