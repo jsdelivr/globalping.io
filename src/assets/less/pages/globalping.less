@@ -61,10 +61,24 @@
 					flex-basis: 0;
 					color: #fff;
 					row-gap: 8px;
+					border-radius: 4px;
 
 					@media (min-width: @screen-sm-min) {
 						row-gap: 0;
 						flex-grow: 0;
+					}
+
+					&:hover {
+						text-decoration: none;
+					}
+
+					&:focus, &:focus-visible {
+						outline: none;
+						text-decoration: none;
+					}
+
+					&:focus-visible {
+						box-shadow: 0 0 0 3px rgba(23, 212, 167, .8);
 					}
 
 					&:nth-child(1) {
@@ -114,21 +128,9 @@
 
 					&_number {
 						position: relative;
-						color: #fff;
 						font-weight: 600;
 						font-size: 26px;
 						line-height: 36px;
-						border-radius: 4px;
-
-						&:hover {
-							text-decoration: none;
-						}
-
-						&:focus, &:focus-visible {
-							outline: none;
-							box-shadow: 0 0 0 3px rgba(23, 212, 167, .8);
-							text-decoration: none;
-						}
 
 						@media (min-width: @screen-sm-min) {
 							font-weight: 600;
