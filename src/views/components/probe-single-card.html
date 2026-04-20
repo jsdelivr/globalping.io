@@ -8,7 +8,13 @@
 			alt=""
 			aria-hidden="true">
 		<div class="probe-single-card_title">
-			<span class="probe-single-card_title_location">{{ location.city }}, {{ location.country }}</span>
+			<span class="probe-single-card_title_location"
+				tabindex="0"
+				role="button"
+				as-popover="@this.getPopoverContent(`${location.city}+${location.country}`, false)"
+			>
+				{{ location.city }}, {{ location.country }}
+			</span>
 			<span class="probe-single-card_title_network"
 				tabindex="0"
 				role="button"
@@ -105,7 +111,7 @@
 				hiddenTags,
 			});
 		},
-		getPopoverContent (locationValue) {
+		getPopoverContent (locationValue, isNetwork = true) {
 			let targetLoc = _.createLocationString(locationValue, this.get('locationFilter'));
 
 			// a parent component MUST handle the click of this button
@@ -114,7 +120,7 @@
 					class="popover-focus-loc"
 					data-location="${_.escapeLocationString(targetLoc)}">
 					<i class="fa fa-map-marker" aria-hidden="true" style="padding-right: 3px;"></i>
-					Focus this network
+					Focus this ${isNetwork ? 'network' : 'location'}
 				</button>`;
 
 			let btnMeasure = `
@@ -123,15 +129,19 @@
 					Target in a measurement
 				</a>`;
 
-			let networkKey = _.networkNameToKey(locationValue);
+			let btnLookingGlass = '';
 
-			let btnLookingGlass = `
-			<a href="/networks/${networkKey}">
-				<i class="fa fa-search" aria-hidden="true"></i>
-				<span>
-					<span class="probe-single-card_popover_network-name">${_.escapeLocationString(locationValue)}</span>&nbsp;looking glass
-				</span>
-			</a>`;
+			if (isNetwork) {
+				let networkKey = _.networkNameToKey(locationValue);
+
+				btnLookingGlass = `
+				<a href="/networks/${networkKey}">
+					<i class="fa fa-search" aria-hidden="true"></i>
+					<span>
+						<span class="probe-single-card_popover_network-name">${_.escapeLocationString(locationValue)}</span>&nbsp;looking glass
+					</span>
+				</a>`;
+			}
 
 			return `<div class="gp-popover-menu">${btnFocus}${btnMeasure}${btnLookingGlass}</div>`;
 		},
