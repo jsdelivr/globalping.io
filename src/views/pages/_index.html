@@ -703,9 +703,11 @@
 						targets="{{targetsArr}}"
 						activeTargetIdx="{{activeTargetIdx}}"
 						rawOutputMode="{{rawOutputMode}}"
-						onCollapseAll="{{@this.collapseAllRawOutput}}"
-						onExpandAll="{{@this.expandAllRawOutput}}"
+						collapseOutput="{{@this.collapseAllRawOutput}}"
+						expandOutput="{{@this.expandAllRawOutput}}"
 						allCollapsed="{{allCollapsed}}"
+						anyCollapsed="{{anyCollapsed}}"
+						allHttpContentCollapsed="{{allHttpContentCollapsed}}"
 						testType="{{testReqParams.type}}"
 						sortOrder="{{sortOrder}}"
 						sortBy="{{sortBy}}"
@@ -719,6 +721,7 @@
 								testReqParams="{{testReqParams}}"
 								preparedTestResults="{{preparedTestResults}}"
 								hiddenTestResults="{{hiddenTestResults}}"
+								hiddenHttpContent="{{hiddenHttpContent}}"
 								testInProgress="{{testInProgress}}"
 								scrolledToResId="{{scrolledToResId}}"
 								currSearchLocation="{{mainOptions.location}}"
@@ -1620,6 +1623,7 @@
 			name: 'Rtt max',
 		},
 	];
+	const ALLOWED_COLLAPSE_OPTS = [ 'all', 'none' ]; // default would be HTTP content
 
 	const getMarkerSize = (probeCount, zoom) => {
 		let size = {
@@ -1728,6 +1732,7 @@
 				measurementsMetadata: null,
 				targetsArr: [],
 				hiddenTestResults: { 0: [], 1: [] },
+				hiddenHttpContent: { 0: [], 1: [] },
 				qsMeasurementIdsArr: [],
 				showCreditsErrorBar: false,
 				infiniteMeasIds: [],
@@ -1745,6 +1750,7 @@
 				sortByOpts: SORT_BY_OPTS,
 				locationAutofilled: false,
 				showingNetworkLogos: false,
+				collapseFromQuery: null,
 			};
 		},
 		computed: {
@@ -1777,8 +1783,39 @@
 				},
 			},
 			allCollapsed () {
-				let activeTargetIdx = this.get('activeTargetIdx');
-				return this.get(`hiddenTestResults[${activeTargetIdx}]`).length === this.get('preparedTestResults').length;
+				let targetCount = this.get('targetsArr').length;
+				let testProbeCount = this.get('preparedTestResults').length;
+
+				for (let i = 0; i < targetCount; i++) {
+					if (this.get(`hiddenTestResults[${i}]`).length !== testProbeCount) {
+						return false;
+					}
+				}
+
+				return true;
+			},
+			anyCollapsed () {
+				let targetCount = this.get('targetsArr').length;
+
+				for (let i = 0; i < targetCount; i++) {
+					if (this.get(`hiddenTestResults[${i}]`).length) {
+						return true;
+					}
+				}
+
+				return false;
+			},
+			allHttpContentCollapsed () {
+				let targetCount = this.get('targetsArr').length;
+				let testProbeCount = this.get('preparedTestResults').length;
+
+				for (let i = 0; i < targetCount; i++) {
+					if (this.get(`hiddenHttpContent[${i}]`).length !== testProbeCount) {
+						return false;
+					}
+				}
+
+				return true;
 			},
 		},
 		onrender () {
@@ -1861,6 +1898,13 @@
 					this.set('sortOrder', order);
 				}
 
+				// read the collapse URL param and apply it once results are available
+				let collapse = this.get('collapse');
+
+				if (ALLOWED_COLLAPSE_OPTS.includes(collapse)) {
+					this.set('collapseFromQuery', collapse);
+				}
+
 				// get probes from sessionStorage or fetch them and handle
 				this.getProbesData();
 				let location = this.get('location');
@@ -1921,6 +1965,80 @@
 				this.observe('showMap', (showMap) => {
 					app.router.replaceQueryParam('map', showMap ? null : 'hidden', this);
 				});
+
+				this.observe('preparedTestResults', (preparedTestResults, prevPreparedTestResults) => {
+					let collapse = this.get('collapseFromQuery');
+
+					if (prevPreparedTestResults.length === 0 && preparedTestResults.length > 0 && !collapse) {
+						this.collapseAllRawOutput({ httpContentOnly: true });
+					}
+
+					if (!collapse || !preparedTestResults.length) {
+						return;
+					}
+
+					if (collapse === 'none') {
+						this.expandAllRawOutput({ withHttp: true });
+					} else { // === 'all'
+						this.collapseAllRawOutput();
+					}
+
+					this.set('collapseFromQuery', null);
+				}, { defer: true });
+
+				this.observe('hiddenTestResults hiddenHttpContent preparedTestResults targetsArr collapseFromQuery', () => {
+					if (this.get('collapseFromQuery')) {
+						return;
+					}
+
+					let preparedTestResults = this.get('preparedTestResults');
+
+					if (!preparedTestResults.length) {
+						app.router.replaceQueryParam('collapse', null, this);
+						return;
+					}
+
+					let hiddenTestResults = this.get('hiddenTestResults') || {};
+					let hiddenHttpContent = this.get('hiddenHttpContent') || {};
+					let testType = this.get('testReqParams.type');
+					let availableTargets = this.get('targetsArr').length;
+
+					let allCollapsed = true;
+					let allExpanded = true;
+					let allHttpContentCollapsed = true;
+					let allHttpContentExpanded = testType.toLowerCase() === 'http';
+
+					for (let targetIdx = 0; targetIdx < availableTargets; targetIdx++) {
+						let hidden = hiddenTestResults[targetIdx] || [];
+						let hiddenContent = hiddenHttpContent[targetIdx] || [];
+
+						if (hidden.length !== preparedTestResults.length) {
+							allCollapsed = false;
+						}
+
+						if (hiddenContent.length) {
+							allHttpContentExpanded = false;
+						}
+
+						if (hidden.length) {
+							allExpanded = false;
+						}
+
+						if (hiddenContent.length !== preparedTestResults.length) {
+							allHttpContentCollapsed = false;
+						}
+					}
+
+					let collapsedValue = null;
+
+					if (allCollapsed && allHttpContentCollapsed) {
+						collapsedValue = 'all';
+					} else if (allExpanded && allHttpContentExpanded) {
+						collapsedValue = 'none';
+					}
+
+					app.router.replaceQueryParam('collapse', collapsedValue, this);
+				}, { defer: true, init: false });
 
 				// handle test type switch
 				this.observe('mainOptions.type', (type) => {
@@ -2432,7 +2550,7 @@
 			this.set('showingNetworkLogos', false);
 			this.set('activeTestRunId', testRunId);
 			this.set('testReqCancelFn', []);
-			this.expandAllRawOutput(true);
+			this.expandAllRawOutput();
 
 			// if it is infinite/multi-endpoint measurement then we should show TableOutput by default
 			// otherwise leave prev value set by user
@@ -2850,17 +2968,32 @@
 				el.scrollIntoView({ behavior: 'smooth' });
 			}
 		},
-		collapseAllRawOutput () {
+		collapseAllRawOutput ({ httpContentOnly } = { httpContentOnly: false }) {
 			let ids = this.get('preparedTestResults').map(result => result.clientSideId);
-			let activeTargetIdx = this.get('activeTargetIdx');
-			this.set(`hiddenTestResults[${activeTargetIdx}]`, ids);
+
+			this.set('hiddenHttpContent', {
+				0: [ ...ids ],
+				1: [ ...ids ],
+			});
+
+			if (!httpContentOnly) {
+				this.set(`hiddenTestResults`, {
+					0: [ ...ids ],
+					1: [ ...ids ],
+				});
+			}
 		},
-		expandAllRawOutput (allTargets = false) {
-			if (allTargets) {
-				this.set('hiddenTestResults', { 0: [], 1: [] });
-			} else {
-				let activeTargetIdx = this.get('activeTargetIdx');
-				this.set(`hiddenTestResults[${activeTargetIdx}]`, []);
+		expandAllRawOutput ({ withHttp } = { withHttp: false }) {
+			this.set('hiddenTestResults', {
+				0: [ ],
+				1: [ ],
+			});
+
+			if (withHttp) {
+				this.set(`hiddenHttpContent`, {
+					0: [],
+					1: [],
+				});
 			}
 		},
 		getTestMeasurementById ({
@@ -3656,105 +3789,71 @@
 			return infoWindowContent;
 		},
 		prepareRegularResults (testResults) {
-			return testResults.reduce((prepResults, resArr, resArrIdx) => {
-				let dnsTraceEnabled = this.get('testReqParams.measurementOptions.trace');
+			if (!testResults || testResults.length === 0) {
+				return [];
+			}
 
-				if (resArrIdx === 0) {
-					return resArr.map((res) => {
-						let preparedRes = {
-							clientSideId: res.clientSideId,
-							...res.probe,
-							statsPerTarget: [{
-								target: res.target,
-							}],
-						};
+			let dnsTraceEnabled = this.get('testReqParams.measurementOptions.trace');
 
-						if (res.result.status !== 'in-progress') {
-							let { isFailed = false, lastTiming, value: avgTiming, extraValues } = _.calcGpTestResTiming(res.type, res, dnsTraceEnabled);
-							let { packetsRtt, packetsTotal } = _.parseGpRawOutputForTimings(res.result.rawOutput);
-							let minTiming = res.result?.stats?.min || PROBE_NO_TIMING_VALUE;
-							let maxTiming = res.result?.stats?.max || PROBE_NO_TIMING_VALUE;
-							let statsTotal = res.result?.stats?.total;
-							let statsDrop = res.result?.stats?.drop;
-							let isOffline = res.result.status === PROBE_STATUS_OFFLINE;
+			let parseTargetStats = (res) => {
+				let baseStat = { target: res.target };
 
-							preparedRes.statsPerTarget = [{
-								...preparedRes.statsPerTarget[0],
-								ipAddr: res.result.resolvedAddress,
-								lastTiming,
-								minTiming,
-								avgTiming,
-								maxTiming,
-								statsTotal,
-								statsDrop,
-								isFailed,
-								isOffline,
-								packetsRtt,
-								extraValues,
-								failureRawOutput: this.getFailureProbeRawOutput(res),
-								rawOutput: res.result.rawOutput,
-								qualityStr: this.createQualityString(isOffline, statsTotal, statsDrop),
-								areTimingsReady: this.checkAreTimingsReady(lastTiming, maxTiming, minTiming, avgTiming, packetsTotal),
-								tls: res.result.tls,
-							}];
-						}
-
-						return preparedRes;
-					});
+				if (res.result.status === 'in-progress') {
+					return baseStat;
 				}
 
-				return prepResults.map((pR) => {
-					let nextReqRes = resArr.find(rA => rA.clientSideId === pR.clientSideId);
+				let {
+					isFailed = false,
+					lastTiming,
+					value: avgTiming,
+					extraValues,
+				} = _.calcGpTestResTiming(res.type, res, dnsTraceEnabled);
 
-					if (nextReqRes) {
-						let preparedNextRes = {
-							...pR,
-							statsPerTarget: [
-								...pR.statsPerTarget,
-								{
-									target: nextReqRes.target,
-								},
-							],
-						};
+				let { packetsRtt, packetsTotal } = _.parseGpRawOutputForTimings(res.result.rawOutput);
+				let stats = res.result?.stats || {};
+				let isOffline = res.result.status === PROBE_STATUS_OFFLINE;
+				let minTiming = stats.min || PROBE_NO_TIMING_VALUE;
+				let maxTiming = stats.max || PROBE_NO_TIMING_VALUE;
 
-						if (nextReqRes.result.status !== 'in-progress') {
-							let { isFailed = false, lastTiming, value: avgTiming, extraValues } = _.calcGpTestResTiming(nextReqRes.type, nextReqRes, dnsTraceEnabled);
-							let { packetsRtt, packetsTotal } = _.parseGpRawOutputForTimings(nextReqRes.result.rawOutput);
-							let minTiming = nextReqRes.result?.stats?.min || PROBE_NO_TIMING_VALUE;
-							let maxTiming = nextReqRes.result?.stats?.max || PROBE_NO_TIMING_VALUE;
-							let statsTotal = nextReqRes.result?.stats?.total;
-							let statsDrop = nextReqRes.result?.stats?.drop;
-							let isOffline = nextReqRes.result.status === PROBE_STATUS_OFFLINE;
+				return {
+					...baseStat,
+					ipAddr: res.result.resolvedAddress,
+					lastTiming,
+					minTiming,
+					avgTiming,
+					maxTiming,
+					statsTotal: stats.total,
+					statsDrop: stats.drop,
+					isFailed,
+					isOffline,
+					packetsRtt,
+					extraValues,
+					failureRawOutput: this.getFailureProbeRawOutput(res),
+					rawOutput: res.type === 'http' ? res.result.rawOutput.split('\n\n')[0] : res.result.rawOutput,
+					httpContent: res.type === 'http' ? res.result.rawOutput.split('\n\n').slice(1).join('\n\n') : null,
+					qualityStr: this.createQualityString(isOffline, stats.total, stats.drop),
+					areTimingsReady: this.checkAreTimingsReady(lastTiming, maxTiming, minTiming, avgTiming, packetsTotal),
+					tls: res.result.tls,
+				};
+			};
 
-							preparedNextRes.statsPerTarget = [
-								...pR.statsPerTarget,
-								{
-									...preparedNextRes.statsPerTarget[1],
-									ipAddr: nextReqRes.result.resolvedAddress,
-									lastTiming,
-									minTiming,
-									avgTiming,
-									maxTiming,
-									statsTotal,
-									statsDrop,
-									isFailed,
-									isOffline,
-									packetsRtt,
-									extraValues,
-									failureRawOutput: this.getFailureProbeRawOutput(nextReqRes),
-									rawOutput: nextReqRes.result.rawOutput,
-									qualityStr: this.createQualityString(isOffline, statsTotal, statsDrop),
-									areTimingsReady: this.checkAreTimingsReady(lastTiming, maxTiming, minTiming, avgTiming, packetsTotal),
-								},
-							];
-						}
+			let prepResults = testResults[0].map(res => ({
+				clientSideId: res.clientSideId,
+				...res.probe,
+				statsPerTarget: [ parseTargetStats(res) ],
+			}));
 
-						return preparedNextRes;
+			for (let i = 1; i < testResults.length; i++) {
+				prepResults.forEach((pR) => {
+					let nextRes = testResults[i].find(r => r.clientSideId === pR.clientSideId);
+
+					if (nextRes) {
+						pR.statsPerTarget.push(parseTargetStats(nextRes));
 					}
-
-					return pR;
 				});
-			}, []);
+			}
+
+			return prepResults;
 		},
 		prepareInfiniteResults (rawResults) {
 			let probesAmount = rawResults[0].length;

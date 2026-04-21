@@ -67,15 +67,37 @@
 			<button class="content-wrapper_ctrls_collapse"
 				type="button"
 				disabled="{{!rawOutputMode}}"
-				as-tooltip="allCollapsed ? 'Expand all' : 'Collapse all'"
-				aria-label="{{#if allCollapsed}}Expand{{else}}Collapse{{/if}} all"
-				on-click="allCollapsed ? onExpandAll() : onCollapseAll()"
+				{{#if rawOutputMode}}
+					as-tooltip="generalCollapseTooltip"
+					aria-label="{{generalCollapseTooltip}}"
+				{{/if}}
+				on-click="allCollapsed ? expandOutput() : collapseOutput()"
 			>
 				{{#if allCollapsed}}
 					<i class="fa fa-chevron-down"></i>
 					<i class="fa fa-chevron-down"></i>
 				{{else}}
 					<i class="fa fa-chevron-up"></i>
+					<i class="fa fa-chevron-up"></i>
+				{{/if}}
+			</button>
+
+			<button class="content-wrapper_ctrls_collapse"
+				type="button"
+				disabled="{{testType !== 'http'}}"
+				{{#if testType === 'http'}}
+					as-tooltip="httpCollapseTooltip"
+					aria-label="{{httpCollapseTooltip}}"
+				{{/if}}
+				on-click="allHttpContentCollapsed ? expandOutput({withHttp: true}) : collapseOutput({httpContentOnly: true})"
+			>
+				{{#if allHttpContentCollapsed && testType === 'http'}}
+					<i class="fa fa-chevron-down"></i>
+					{{#if anyCollapsed}}
+						<i class="fa fa-chevron-down"></i>
+						<i class="fa fa-chevron-down"></i>
+					{{/if}}
+				{{else}}
 					<i class="fa fa-chevron-up"></i>
 				{{/if}}
 			</button>
@@ -92,10 +114,29 @@
 		},
 		data () {
 			return {
-				onCollapseAll: () => null,
-				onExpandAll: () => null,
+				collapseOutput: () => null,
+				expandOutput: () => null,
 				allCollapsed: false,
+				anyCollapsed: false,
+				allHttpContentCollapsed: false,
 			};
+		},
+		computed: {
+			generalCollapseTooltip () {
+				if (this.get('allCollapsed')) {
+					return this.get('testType') === 'http' ? 'Expand all headers' : 'Expand all output';
+				}
+
+				return 'Collapse all output';
+			},
+
+			httpCollapseTooltip () {
+				return this.get('allHttpContentCollapsed')
+					? this.get('anyCollapsed')
+						? 'Expand all output'
+						: 'Expand HTTP content'
+					: 'Collapse HTTP content';
+			},
 		},
 		handleTabSwitch (idx) {
 			if (this.get('rawOutputMode')) {

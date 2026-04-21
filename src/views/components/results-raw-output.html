@@ -85,6 +85,18 @@
 
 						<pre class="{{#if hiddenTestResults[activeTargetIdx].includes(this.clientSideId)}}hidden{{/if}}">{{this.statsPerTarget[activeTargetIdx].rawOutput}}</pre>
 
+						{{#if this.statsPerTarget[activeTargetIdx].httpContent}}
+							<div class="c-gp-results-raw-output_list_item_http-content-toggle {{#if hiddenTestResults[activeTargetIdx].includes(this.clientSideId)}}hidden{{/if}}">
+								<button type="button"
+									class="c-gp-results-raw-output_list_item_http-content-toggle_btn"
+									on-click="@this.hideShowHttpContent(this.clientSideId)"
+									aria-label="{{#if hiddenHttpContent[activeTargetIdx].includes(this.clientSideId)}}Show{{else}}Hide{{/if}} HTTP content">
+									{{#if hiddenHttpContent[activeTargetIdx].includes(this.clientSideId)}}Show HTTP content{{else}}Hide HTTP content{{/if}}
+								</button>
+							</div>
+							<pre class="{{#if hiddenTestResults[activeTargetIdx].includes(this.clientSideId) || hiddenHttpContent[activeTargetIdx].includes(this.clientSideId)}}hidden{{/if}}">{{this.statsPerTarget[activeTargetIdx].httpContent}}</pre>
+						{{/if}}
+
 						{{#if testInProgress === false && isInfiniteModeRes}}
 							<pre class="{{#if hiddenTestResults[activeTargetIdx].includes(this.clientSideId)}}hidden{{/if}}">{{this.statsPerTarget[activeTargetIdx].rawFooter}}</pre>
 						{{/if}}
@@ -118,6 +130,10 @@
 					0: [],
 					1: [],
 				},
+				hiddenHttpContent: {
+					0: [],
+					1: [],
+				},
 				networkDomainNamesByIp: Object.create(null),
 				PROBE_STATUS_FAILED,
 				PROBE_STATUS_OFFLINE,
@@ -126,14 +142,6 @@
 				heightSetForCurrentResults: false,
 				skipNextResize: false,
 			};
-		},
-		oninit () {
-			if (!Ractive.isServer) {
-				this.set('hiddenTestResults', {
-					0: [],
-					1: [],
-				});
-			}
 		},
 		onrender () {
 			if (!Ractive.isServer) {
@@ -167,6 +175,10 @@
 					this.setResultsBlockHeight();
 				}, { deep: true, defer: true, init: false });
 
+				this.observe('hiddenHttpContent', () => {
+					this.setResultsBlockHeight();
+				}, { deep: true, defer: true, init: false });
+
 				this.observe('preparedTestResults activeTargetIdx', () => {
 					this.populateNetworkDomains();
 				});
@@ -189,6 +201,16 @@
 				: [ ...hidden, resultId ];
 
 			this.set(`hiddenTestResults[${activeTargetIdx}]`, updated);
+		},
+		hideShowHttpContent (resultId) {
+			let activeTargetIdx = this.get('activeTargetIdx');
+			let hidden = this.get(`hiddenHttpContent[${activeTargetIdx}]`) ?? [];
+
+			let updated = hidden.includes(resultId)
+				? hidden.filter(clientSideId => clientSideId !== resultId)
+				: [ ...hidden, resultId ];
+
+			this.set(`hiddenHttpContent[${activeTargetIdx}]`, updated);
 		},
 		setResultsBlockHeight () {
 			requestAnimationFrame(() => {
