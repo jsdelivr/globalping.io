@@ -262,7 +262,7 @@ koaElasticUtils.addRoutes(router, [
 	let { domain = '' } = ctx.params;
 	let { padding } = ctx.query;
 
-	padding = Number.parseFloat(padding) || 10;
+	padding = Number.parseInt(padding) || 10;
 
 	if (!domain) {
 		ctx.status = 400;
