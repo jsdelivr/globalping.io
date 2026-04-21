@@ -217,14 +217,17 @@
 					let limit = Math.min(itemsAmount, 3);
 
 					for (let i = 0; i < limit; i++) {
-						targetHeight += items[i].scrollHeight;
+						targetHeight += items[i].getBoundingClientRect().height;
 					}
 
-					let totalItemHeight = 0;
+					let totalItemHeight = targetHeight;
 
-					for (let i = 0; i < itemsAmount; i++) {
-						totalItemHeight += items[i].scrollHeight;
+					for (let i = limit; i < itemsAmount; i++) {
+						totalItemHeight += items[i].getBoundingClientRect().height;
 					}
+
+					targetHeight = Math.ceil(targetHeight);
+					totalItemHeight = Math.ceil(totalItemHeight);
 
 					// if the container height has already been set for current results, only shrink the container if it would contain empty space (totalHeight < currentHeight)
 					if (!this.get('heightSetForCurrentResults') || (targetHeight !== currentHeight && (targetHeight > currentHeight || totalItemHeight < currentHeight))) {
