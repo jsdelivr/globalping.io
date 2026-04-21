@@ -62,29 +62,29 @@
 			</div>
 
 			<div class="gp_main-info_stats">
-				<div class="gp_main-info_stats_item">
+				<a href="/network?group=disabled" class="gp_main-info_stats_item" aria-label="Explore the network">
 					<span class="gp_main-info_stats_item_number">
 						{{ Math.floor(totalProbes) }}
 						<span></span>
 					</span>
 					<span class="gp_main-info_stats_item_text">connected probes</span>
-				</div>
+				</a>
 
-				<div class="gp_main-info_stats_item">
+				<a href="/network" class="gp_main-info_stats_item" aria-label="Explore the network">
 					<span class="gp_main-info_stats_item_number">
 						{{ Math.floor(totalCities) }}
 						<span></span>
 					</span>
 					<span class="gp_main-info_stats_item_text">different cities</span>
-				</div>
+				</a>
 
-				<div class="gp_main-info_stats_item">
-					<span class="gp_main-info_stats_item_number">
+				<a href="/network?group=country" class="gp_main-info_stats_item" aria-label="Explore the network">
+					<span href="/network" class="gp_main-info_stats_item_number">
 						{{ Math.floor(totalCountries) }}
 						<span></span>
 					</span>
 					<span class="gp_main-info_stats_item_text">different countries</span>
-				</div>
+				</a>
 			</div>
 		</div>
 
