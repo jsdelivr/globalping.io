@@ -50,9 +50,9 @@ const calculateLuminance = (r, g, b) => {
 /**
  * Applies padding while maintaining the dimensions of the image
  */
-const applyPadding = async (sharpInstance, metadata, padding, bgColor) => {
-	if (padding <= 0) {
-		return sharpInstance;
+const applyPaddingAndResize = async (sharpInstance, metadata, padding, bgColor) => {
+	if (padding < 0) {
+		padding = 0;
 	}
 
 	let aspectRatio = metadata.width / metadata.height;
@@ -142,9 +142,9 @@ module.exports.processDomainLogo = async (domain, padding) => {
 				});
 			}
 
-			sharpInstance = await applyPadding(sharpInstance, metadata, padding, bgColor);
+			sharpInstance = await applyPaddingAndResize(sharpInstance, metadata, padding, bgColor);
 		} else if (bgColor.alpha === 0) {
-			sharpInstance = await applyPadding(sharpInstance, metadata, padding, bgColor);
+			sharpInstance = await applyPaddingAndResize(sharpInstance, metadata, padding, bgColor);
 		}
 
 		return { image: await sharpInstance.png().toBuffer() };
