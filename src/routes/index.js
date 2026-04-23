@@ -263,7 +263,7 @@ koaElasticUtils.addRoutes(router, [
 	let { padding } = ctx.query;
 
 	padding = Number.parseInt(padding);
-	padding = Number.isNaN(padding) ? 0 : Math.min(Math.abs(padding), 100);
+	padding = Number.isNaN(padding) ? 10 : Math.min(Math.abs(padding), 48);
 
 	if (!domain) {
 		ctx.status = 400;

@@ -1,6 +1,7 @@
 const sharp = require('sharp');
 
 const LUMINANCE_THRESHOLD = 230;
+const ALPHA_THRESHOLD = 255 - LUMINANCE_THRESHOLD;
 const TRIM_TOLERANCE = 10;
 
 /**
@@ -50,27 +51,35 @@ const calculateLuminance = (r, g, b) => {
 /**
  * Applies padding while maintaining the dimensions of the image
  */
-const applyPaddingAndResize = async (sharpInstance, metadata, padding, bgColor) => {
-	if (padding < 0) {
-		padding = 0;
+const applyPaddingAndResize = (sharpInstance, metadata, padding, bgColor) => {
+	let aspectRatio = metadata.width / metadata.height;
+	let horizontalPadding = Math.round(padding * aspectRatio);
+
+	let innerWidth = metadata.width - (2 * horizontalPadding);
+	let innerHeight = metadata.height - (2 * padding);
+
+	if (innerWidth <= 0 || innerHeight <= 0) {
+		throw new Error('Padding is too large for the image dimensions.');
 	}
 
-	let aspectRatio = metadata.width / metadata.height;
+	let topPad = Math.floor((metadata.height - innerHeight) / 2);
+	let bottomPad = metadata.height - innerHeight - topPad;
+	let leftPad = Math.floor((metadata.width - innerWidth) / 2);
+	let rightPad = metadata.width - innerWidth - leftPad;
 
-	let extendedBuffer = await sharpInstance.extend({
-		top: padding,
-		bottom: padding,
-		left: Math.round(padding * aspectRatio),
-		right: Math.round(padding * aspectRatio),
-		background: bgColor,
-	}).toBuffer();
-
-	return sharp(extendedBuffer).resize({
-		width: metadata.width,
-		height: metadata.height,
-		fit: 'contain',
-		background: bgColor,
-	});
+	return sharpInstance
+		.resize({
+			width: innerWidth,
+			height: innerHeight,
+			fit: 'fill',
+		})
+		.extend({
+			top: topPad,
+			bottom: bottomPad,
+			left: leftPad,
+			right: rightPad,
+			background: bgColor,
+		});
 };
 
 module.exports.processDomainLogo = async (domain, padding) => {
@@ -106,7 +115,7 @@ module.exports.processDomainLogo = async (domain, padding) => {
 		let luminance = calculateLuminance(bgColor.r, bgColor.g, bgColor.b);
 
 		// if the background is light enough, trim the logo
-		if (luminance >= LUMINANCE_THRESHOLD) {
+		if (luminance >= LUMINANCE_THRESHOLD || bgColor.alpha <= ALPHA_THRESHOLD) {
 			// trim without maintaining the aspect ratio or center pixel
 			let { info: trimInfo } = await sharp(imageBuffer)
 				.trim({
@@ -142,8 +151,6 @@ module.exports.processDomainLogo = async (domain, padding) => {
 				});
 			}
 
-			sharpInstance = await applyPaddingAndResize(sharpInstance, metadata, padding, bgColor);
-		} else if (bgColor.alpha === 0) {
 			sharpInstance = await applyPaddingAndResize(sharpInstance, metadata, padding, bgColor);
 		}
 
