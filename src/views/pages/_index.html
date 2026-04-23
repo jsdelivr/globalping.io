@@ -706,8 +706,6 @@
 						collapseOutput="{{@this.collapseAllRawOutput}}"
 						expandOutput="{{@this.expandAllRawOutput}}"
 						allCollapsed="{{allCollapsed}}"
-						anyCollapsed="{{anyCollapsed}}"
-						allHttpContentCollapsed="{{allHttpContentCollapsed}}"
 						testType="{{testReqParams.type}}"
 						sortOrder="{{sortOrder}}"
 						sortBy="{{sortBy}}"
@@ -721,7 +719,6 @@
 								testReqParams="{{testReqParams}}"
 								preparedTestResults="{{preparedTestResults}}"
 								hiddenTestResults="{{hiddenTestResults}}"
-								hiddenHttpContent="{{hiddenHttpContent}}"
 								testInProgress="{{testInProgress}}"
 								scrolledToResId="{{scrolledToResId}}"
 								currSearchLocation="{{mainOptions.location}}"
@@ -1623,7 +1620,6 @@
 			name: 'Rtt max',
 		},
 	];
-	const ALLOWED_COLLAPSE_OPTS = [ 'all', 'none' ]; // default would be HTTP content
 
 	const getMarkerSize = (probeCount, zoom) => {
 		let size = {
@@ -1732,7 +1728,6 @@
 				measurementsMetadata: null,
 				targetsArr: [],
 				hiddenTestResults: { 0: [], 1: [] },
-				hiddenHttpContent: { 0: [], 1: [] },
 				qsMeasurementIdsArr: [],
 				showCreditsErrorBar: false,
 				infiniteMeasIds: [],
@@ -1750,7 +1745,7 @@
 				sortByOpts: SORT_BY_OPTS,
 				locationAutofilled: false,
 				showingNetworkLogos: false,
-				collapseFromQuery: null,
+				collapseFromQuery: false,
 			};
 		},
 		computed: {
@@ -1788,29 +1783,6 @@
 
 				for (let i = 0; i < targetCount; i++) {
 					if (this.get(`hiddenTestResults[${i}]`).length !== testProbeCount) {
-						return false;
-					}
-				}
-
-				return true;
-			},
-			anyCollapsed () {
-				let targetCount = this.get('targetsArr').length;
-
-				for (let i = 0; i < targetCount; i++) {
-					if (this.get(`hiddenTestResults[${i}]`).length) {
-						return true;
-					}
-				}
-
-				return false;
-			},
-			allHttpContentCollapsed () {
-				let targetCount = this.get('targetsArr').length;
-				let testProbeCount = this.get('preparedTestResults').length;
-
-				for (let i = 0; i < targetCount; i++) {
-					if (this.get(`hiddenHttpContent[${i}]`).length !== testProbeCount) {
 						return false;
 					}
 				}
@@ -1901,8 +1873,8 @@
 				// read the collapse URL param and apply it once results are available
 				let collapse = this.get('collapse');
 
-				if (ALLOWED_COLLAPSE_OPTS.includes(collapse)) {
-					this.set('collapseFromQuery', collapse);
+				if (collapse === true) {
+					this.set('collapseFromQuery', true);
 				}
 
 				// get probes from sessionStorage or fetch them and handle
@@ -1966,27 +1938,18 @@
 					app.router.replaceQueryParam('map', showMap ? null : 'hidden', this);
 				});
 
-				this.observe('preparedTestResults', (preparedTestResults, prevPreparedTestResults) => {
+				this.observe('preparedTestResults', (preparedTestResults) => {
 					let collapse = this.get('collapseFromQuery');
-
-					if (prevPreparedTestResults.length === 0 && preparedTestResults.length > 0 && !collapse) {
-						this.collapseAllRawOutput({ httpContentOnly: true });
-					}
 
 					if (!collapse || !preparedTestResults.length) {
 						return;
 					}
 
-					if (collapse === 'none') {
-						this.expandAllRawOutput({ withHttp: true });
-					} else { // === 'all'
-						this.collapseAllRawOutput();
-					}
-
-					this.set('collapseFromQuery', null);
+					this.collapseAllRawOutput();
+					this.set('collapseFromQuery', false);
 				}, { defer: true });
 
-				this.observe('hiddenTestResults hiddenHttpContent preparedTestResults targetsArr collapseFromQuery', () => {
+				this.observe('hiddenTestResults preparedTestResults targetsArr collapseFromQuery', () => {
 					if (this.get('collapseFromQuery')) {
 						return;
 					}
@@ -1999,45 +1962,19 @@
 					}
 
 					let hiddenTestResults = this.get('hiddenTestResults') || {};
-					let hiddenHttpContent = this.get('hiddenHttpContent') || {};
-					let testType = this.get('testReqParams.type');
 					let availableTargets = this.get('targetsArr').length;
 
 					let allCollapsed = true;
-					let allExpanded = true;
-					let allHttpContentCollapsed = true;
-					let allHttpContentExpanded = testType.toLowerCase() === 'http';
 
 					for (let targetIdx = 0; targetIdx < availableTargets; targetIdx++) {
 						let hidden = hiddenTestResults[targetIdx] || [];
-						let hiddenContent = hiddenHttpContent[targetIdx] || [];
 
 						if (hidden.length !== preparedTestResults.length) {
 							allCollapsed = false;
 						}
-
-						if (hiddenContent.length) {
-							allHttpContentExpanded = false;
-						}
-
-						if (hidden.length) {
-							allExpanded = false;
-						}
-
-						if (hiddenContent.length !== preparedTestResults.length) {
-							allHttpContentCollapsed = false;
-						}
 					}
 
-					let collapsedValue = null;
-
-					if (allCollapsed && allHttpContentCollapsed) {
-						collapsedValue = 'all';
-					} else if (allExpanded && allHttpContentExpanded) {
-						collapsedValue = 'none';
-					}
-
-					app.router.replaceQueryParam('collapse', collapsedValue, this);
+					app.router.replaceQueryParam('collapse', allCollapsed ? 'true' : null, this);
 				}, { defer: true, init: false });
 
 				// handle test type switch
@@ -2968,33 +2905,19 @@
 				el.scrollIntoView({ behavior: 'smooth' });
 			}
 		},
-		collapseAllRawOutput ({ httpContentOnly } = { httpContentOnly: false }) {
+		collapseAllRawOutput () {
 			let ids = this.get('preparedTestResults').map(result => result.clientSideId);
 
-			this.set('hiddenHttpContent', {
+			this.set(`hiddenTestResults`, {
 				0: [ ...ids ],
 				1: [ ...ids ],
 			});
-
-			if (!httpContentOnly) {
-				this.set(`hiddenTestResults`, {
-					0: [ ...ids ],
-					1: [ ...ids ],
-				});
-			}
 		},
-		expandAllRawOutput ({ withHttp } = { withHttp: false }) {
+		expandAllRawOutput () {
 			this.set('hiddenTestResults', {
-				0: [ ],
-				1: [ ],
+				0: [],
+				1: [],
 			});
-
-			if (withHttp) {
-				this.set(`hiddenHttpContent`, {
-					0: [],
-					1: [],
-				});
-			}
 		},
 		getTestMeasurementById ({
 			measurementId,
@@ -3829,9 +3752,7 @@
 					packetsRtt,
 					extraValues,
 					failureRawOutput: this.getFailureProbeRawOutput(res),
-					rawOutput: res.type === 'http' ? res.result.rawOutput.split('\n\n')[0] : res.result.rawOutput,
-					httpContent: res.type === 'http' ? res.result.rawOutput.split('\n\n').slice(1).join('\n\n') : null,
-					qualityStr: this.createQualityString(isOffline, stats.total, stats.drop),
+					rawOutput: res.result.rawOutput,
 					areTimingsReady: this.checkAreTimingsReady(lastTiming, maxTiming, minTiming, avgTiming, packetsTotal),
 					tls: res.result.tls,
 				};
