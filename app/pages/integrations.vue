@@ -197,6 +197,12 @@
 			img: 'feature/craftcms-cache-igniter.svg',
 			imgClass: 'p-2',
 		},
+		{
+			header: 'Checkmate',
+			description: 'Open-source infrastructure monitoring for uptime and servers with Globalping.',
+			href: 'https://blog.globalping.io/global-uptime-monitoring-with-checkmate-and-globalping/',
+			docsLink: 'https://checkmate.so/',
+		},
 	];
 
 	const communityTiles = [
