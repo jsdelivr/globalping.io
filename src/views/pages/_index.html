@@ -4023,7 +4023,6 @@ rtt min/avg/max/mdev = ${minTiming}/${avgTiming}/${maxTiming}/${mdev}${showRttUn
 			markerContent.style.height = `${svgHeight}px`;
 
 			let probeMarker = new google.maps.marker.AdvancedMarkerElement({
-				map,
 				content: markerContent,
 				position: { lat: Number(lat), lng: Number(lng) },
 				zIndex: 1,
