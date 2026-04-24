@@ -33,7 +33,7 @@
 													width="28"
 													height="28"
 													as-tooltip="@this.getNetworkName(this.statsPerTarget[activeTargetIdx].ipAddr)"
-													src="{{@shared.logoHost}}/{{@this.getNetworkDomainName(this.statsPerTarget[activeTargetIdx].ipAddr)}}"
+													src="{{@shared.logoHost}}/{{@this.getNetworkDomainName(this.statsPerTarget[activeTargetIdx].ipAddr)}}?v={{@shared.assetsVersion}}"
 													alt="{{@this.getNetworkName(this.statsPerTarget[activeTargetIdx].ipAddr)}} logo"
 													on-error="@this.handleLogoLoadError(this.statsPerTarget[activeTargetIdx].ipAddr)">
 											{{/if}}
