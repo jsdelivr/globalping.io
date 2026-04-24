@@ -703,8 +703,8 @@
 						targets="{{targetsArr}}"
 						activeTargetIdx="{{activeTargetIdx}}"
 						rawOutputMode="{{rawOutputMode}}"
-						onCollapseAll="{{@this.collapseAllRawOutput}}"
-						onExpandAll="{{@this.expandAllRawOutput}}"
+						collapseOutput="{{@this.collapseAllRawOutput}}"
+						expandOutput="{{@this.expandAllRawOutput}}"
 						allCollapsed="{{allCollapsed}}"
 						testType="{{testReqParams.type}}"
 						sortOrder="{{sortOrder}}"
@@ -727,7 +727,8 @@
 								isInfiniteModeRes="{{isInfiniteModeRes}}"
 								screenWidth="{{screenWidth}}"
 								sortOrder="{{sortOrder}}"
-								sortBy="{{sortBy}}">
+								sortBy="{{sortBy}}"
+								showingNetworkLogos="{{showingNetworkLogos}}">
 							</c-gp-results-raw-output>
 						</div>
 					{{else}}
@@ -775,6 +776,9 @@
 						<c-test-examples onExampleClick="{{@this.onExampleClick}}"></c-test-examples>
 					</div>
 				</div>
+			{{/if}}
+			{{#if rawOutputMode && showingNetworkLogos}}
+				<a class="gp_map-block_logo-dev-link" href="https://logo.dev" target="_blank" rel="noopener noreferrer">Network logos provided by Logo.dev</a>
 			{{/if}}
 		</div>
 
@@ -1740,6 +1744,8 @@
 				sortOrder: DEFAULT_SORT_ORDER,
 				sortByOpts: SORT_BY_OPTS,
 				locationAutofilled: false,
+				showingNetworkLogos: false,
+				collapseFromQuery: false,
 			};
 		},
 		computed: {
@@ -1772,8 +1778,16 @@
 				},
 			},
 			allCollapsed () {
-				let activeTargetIdx = this.get('activeTargetIdx');
-				return this.get(`hiddenTestResults[${activeTargetIdx}]`).length === this.get('preparedTestResults').length;
+				let targetCount = this.get('targetsArr').length;
+				let testProbeCount = this.get('preparedTestResults').length;
+
+				for (let i = 0; i < targetCount; i++) {
+					if (this.get(`hiddenTestResults[${i}]`).length !== testProbeCount) {
+						return false;
+					}
+				}
+
+				return true;
 			},
 		},
 		onrender () {
@@ -1856,6 +1870,13 @@
 					this.set('sortOrder', order);
 				}
 
+				// read the collapse URL param and apply it once results are available
+				let collapse = this.get('collapse');
+
+				if (collapse === true) {
+					this.set('collapseFromQuery', true);
+				}
+
 				// get probes from sessionStorage or fetch them and handle
 				this.getProbesData();
 				let location = this.get('location');
@@ -1916,6 +1937,45 @@
 				this.observe('showMap', (showMap) => {
 					app.router.replaceQueryParam('map', showMap ? null : 'hidden', this);
 				});
+
+				this.observe('preparedTestResults', (preparedTestResults) => {
+					let collapse = this.get('collapseFromQuery');
+
+					if (!collapse || !preparedTestResults.length) {
+						return;
+					}
+
+					this.collapseAllRawOutput();
+					this.set('collapseFromQuery', false);
+				}, { defer: true });
+
+				this.observe('hiddenTestResults preparedTestResults targetsArr collapseFromQuery', () => {
+					if (this.get('collapseFromQuery')) {
+						return;
+					}
+
+					let preparedTestResults = this.get('preparedTestResults');
+
+					if (!preparedTestResults.length) {
+						app.router.replaceQueryParam('collapse', null, this);
+						return;
+					}
+
+					let hiddenTestResults = this.get('hiddenTestResults') || {};
+					let availableTargets = this.get('targetsArr').length;
+
+					let allCollapsed = true;
+
+					for (let targetIdx = 0; targetIdx < availableTargets; targetIdx++) {
+						let hidden = hiddenTestResults[targetIdx] || [];
+
+						if (hidden.length !== preparedTestResults.length) {
+							allCollapsed = false;
+						}
+					}
+
+					app.router.replaceQueryParam('collapse', allCollapsed ? 'true' : null, this);
+				}, { defer: true, init: false });
 
 				// handle test type switch
 				this.observe('mainOptions.type', (type) => {
@@ -2353,7 +2413,7 @@
 			let reqParams = {
 				type,
 				// to get test results in real time
-				inProgressUpdates: true,
+				inProgressUpdates: !!infiniteSwitchEnabled,
 			};
 
 			// ipVersion should only be passed if all targets are a domain name and the test type is not 'DNS'
@@ -2424,9 +2484,10 @@
 			this.set('probesMaxTiming', type.toLowerCase() === 'http' ? 1000 : 200);
 			this.set('_measurementOgTitle', null);
 			this.set('_measurementOgDescription', null);
+			this.set('showingNetworkLogos', false);
 			this.set('activeTestRunId', testRunId);
 			this.set('testReqCancelFn', []);
-			this.expandAllRawOutput(true);
+			this.expandAllRawOutput();
 
 			// if it is infinite/multi-endpoint measurement then we should show TableOutput by default
 			// otherwise leave prev value set by user
@@ -2846,16 +2907,17 @@
 		},
 		collapseAllRawOutput () {
 			let ids = this.get('preparedTestResults').map(result => result.clientSideId);
-			let activeTargetIdx = this.get('activeTargetIdx');
-			this.set(`hiddenTestResults[${activeTargetIdx}]`, ids);
+
+			this.set(`hiddenTestResults`, {
+				0: [ ...ids ],
+				1: [ ...ids ],
+			});
 		},
-		expandAllRawOutput (allTargets = false) {
-			if (allTargets) {
-				this.set('hiddenTestResults', { 0: [], 1: [] });
-			} else {
-				let activeTargetIdx = this.get('activeTargetIdx');
-				this.set(`hiddenTestResults[${activeTargetIdx}]`, []);
-			}
+		expandAllRawOutput () {
+			this.set('hiddenTestResults', {
+				0: [],
+				1: [],
+			});
 		},
 		getTestMeasurementById ({
 			measurementId,
@@ -2979,7 +3041,7 @@
 						delete testReqParams.createdAt;
 
 						testReqParams = {
-							inProgressUpdates: true,
+							inProgressUpdates: isInfiniteMeas,
 							limit: DEFAULT_LIMIT,
 							...testReqParams,
 							measurementOptions: {
@@ -3650,105 +3712,69 @@
 			return infoWindowContent;
 		},
 		prepareRegularResults (testResults) {
-			return testResults.reduce((prepResults, resArr, resArrIdx) => {
-				let dnsTraceEnabled = this.get('testReqParams.measurementOptions.trace');
+			if (!testResults || testResults.length === 0) {
+				return [];
+			}
 
-				if (resArrIdx === 0) {
-					return resArr.map((res) => {
-						let preparedRes = {
-							clientSideId: res.clientSideId,
-							...res.probe,
-							statsPerTarget: [{
-								target: res.target,
-							}],
-						};
+			let dnsTraceEnabled = this.get('testReqParams.measurementOptions.trace');
 
-						if (res.result.status !== 'in-progress') {
-							let { isFailed = false, lastTiming, value: avgTiming, extraValues } = _.calcGpTestResTiming(res.type, res, dnsTraceEnabled);
-							let { packetsRtt, packetsTotal } = _.parseGpRawOutputForTimings(res.result.rawOutput);
-							let minTiming = res.result?.stats?.min || PROBE_NO_TIMING_VALUE;
-							let maxTiming = res.result?.stats?.max || PROBE_NO_TIMING_VALUE;
-							let statsTotal = res.result?.stats?.total;
-							let statsDrop = res.result?.stats?.drop;
-							let isOffline = res.result.status === PROBE_STATUS_OFFLINE;
+			let parseTargetStats = (res) => {
+				let baseStat = { target: res.target };
 
-							preparedRes.statsPerTarget = [{
-								...preparedRes.statsPerTarget[0],
-								ipAddr: res.result.resolvedAddress,
-								lastTiming,
-								minTiming,
-								avgTiming,
-								maxTiming,
-								statsTotal,
-								statsDrop,
-								isFailed,
-								isOffline,
-								packetsRtt,
-								extraValues,
-								failureRawOutput: this.getFailureProbeRawOutput(res),
-								rawOutput: res.result.rawOutput,
-								qualityStr: this.createQualityString(isOffline, statsTotal, statsDrop),
-								areTimingsReady: this.checkAreTimingsReady(lastTiming, maxTiming, minTiming, avgTiming, packetsTotal),
-								tls: res.result.tls,
-							}];
-						}
-
-						return preparedRes;
-					});
+				if (res.result.status === 'in-progress') {
+					return baseStat;
 				}
 
-				return prepResults.map((pR) => {
-					let nextReqRes = resArr.find(rA => rA.clientSideId === pR.clientSideId);
+				let {
+					isFailed = false,
+					lastTiming,
+					value: avgTiming,
+					extraValues,
+				} = _.calcGpTestResTiming(res.type, res, dnsTraceEnabled);
 
-					if (nextReqRes) {
-						let preparedNextRes = {
-							...pR,
-							statsPerTarget: [
-								...pR.statsPerTarget,
-								{
-									target: nextReqRes.target,
-								},
-							],
-						};
+				let { packetsRtt, packetsTotal } = _.parseGpRawOutputForTimings(res.result.rawOutput);
+				let stats = res.result?.stats || {};
+				let isOffline = res.result.status === PROBE_STATUS_OFFLINE;
+				let minTiming = stats.min || PROBE_NO_TIMING_VALUE;
+				let maxTiming = stats.max || PROBE_NO_TIMING_VALUE;
 
-						if (nextReqRes.result.status !== 'in-progress') {
-							let { isFailed = false, lastTiming, value: avgTiming, extraValues } = _.calcGpTestResTiming(nextReqRes.type, nextReqRes, dnsTraceEnabled);
-							let { packetsRtt, packetsTotal } = _.parseGpRawOutputForTimings(nextReqRes.result.rawOutput);
-							let minTiming = nextReqRes.result?.stats?.min || PROBE_NO_TIMING_VALUE;
-							let maxTiming = nextReqRes.result?.stats?.max || PROBE_NO_TIMING_VALUE;
-							let statsTotal = nextReqRes.result?.stats?.total;
-							let statsDrop = nextReqRes.result?.stats?.drop;
-							let isOffline = nextReqRes.result.status === PROBE_STATUS_OFFLINE;
+				return {
+					...baseStat,
+					ipAddr: res.result.resolvedAddress,
+					lastTiming,
+					minTiming,
+					avgTiming,
+					maxTiming,
+					statsTotal: stats.total,
+					statsDrop: stats.drop,
+					isFailed,
+					isOffline,
+					packetsRtt,
+					extraValues,
+					failureRawOutput: this.getFailureProbeRawOutput(res),
+					rawOutput: res.result.rawOutput,
+					areTimingsReady: this.checkAreTimingsReady(lastTiming, maxTiming, minTiming, avgTiming, packetsTotal),
+					tls: res.result.tls,
+				};
+			};
 
-							preparedNextRes.statsPerTarget = [
-								...pR.statsPerTarget,
-								{
-									...preparedNextRes.statsPerTarget[1],
-									ipAddr: nextReqRes.result.resolvedAddress,
-									lastTiming,
-									minTiming,
-									avgTiming,
-									maxTiming,
-									statsTotal,
-									statsDrop,
-									isFailed,
-									isOffline,
-									packetsRtt,
-									extraValues,
-									failureRawOutput: this.getFailureProbeRawOutput(nextReqRes),
-									rawOutput: nextReqRes.result.rawOutput,
-									qualityStr: this.createQualityString(isOffline, statsTotal, statsDrop),
-									areTimingsReady: this.checkAreTimingsReady(lastTiming, maxTiming, minTiming, avgTiming, packetsTotal),
-								},
-							];
-						}
+			let prepResults = testResults[0].map(res => ({
+				clientSideId: res.clientSideId,
+				...res.probe,
+				statsPerTarget: [ parseTargetStats(res) ],
+			}));
 
-						return preparedNextRes;
+			for (let i = 1; i < testResults.length; i++) {
+				prepResults.forEach((pR) => {
+					let nextRes = testResults[i].find(r => r.clientSideId === pR.clientSideId);
+
+					if (nextRes) {
+						pR.statsPerTarget.push(parseTargetStats(nextRes));
 					}
-
-					return pR;
 				});
-			}, []);
+			}
+
+			return prepResults;
 		},
 		prepareInfiniteResults (rawResults) {
 			let probesAmount = rawResults[0].length;

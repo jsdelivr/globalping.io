@@ -26,6 +26,7 @@ module.exports = (options) => {
 			component.set('@shared.isServer', true);
 			component.set('@shared.serverHost', options.serverHost);
 			component.set('@shared.assetsHost', options.assetsHost);
+			component.set('@shared.logoHost', options.logoHost);
 			component.set('@shared.apiDocsHost', options.apiDocsHost);
 			component.set('@shared.assetsVersion', options.assetsVersion);
 			component.set('@shared.actualPath', ctx.path);

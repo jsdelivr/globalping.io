@@ -71,7 +71,7 @@
 											{{#if @this.getDomainForNetwork(this.key)}}
 												<img width="36"
 													height="36"
-													src="https://img.jsdelivr.com/img.logo.dev/{{@this.getDomainForNetwork(this.key)}}?format=png"
+													src="{{@shared.logoHost}}/{{@this.getDomainForNetwork(this.key)}}"
 													loading="lazy"
 													alt=""
 													aria-hidden="true"
@@ -140,7 +140,7 @@
 									{{#if @this.getDomainForNetwork(this.key)}}
 										<img width="20"
 											height="20"
-											src="https://img.jsdelivr.com/img.logo.dev/{{@this.getDomainForNetwork(this.key)}}?format=png"
+											src="{{@shared.logoHost}}/{{@this.getDomainForNetwork(this.key)}}"
 											loading="lazy"
 											alt=""
 											aria-hidden="true"

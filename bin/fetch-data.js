@@ -7,8 +7,8 @@ const fs = require('fs');
 const path = require('path');
 const { pipeline } = require('node:stream/promises');
 
-const ASN_COLUMN_NUM = 5;
-const DOMAIN_COLUMN_NUM = 7;
+const ASN_COLUMN_NUM = 2;
+const DOMAIN_COLUMN_NUM = 4;
 
 async function fetchAndSaveAsnDomainMap (url) {
 	let asnDomainMap = {};
@@ -20,7 +20,7 @@ async function fetchAndSaveAsnDomainMap (url) {
 	});
 
 	let pipelinePromise = pipeline(
-		got.stream(url),
+		got.stream(`${url}.csv.gz`),
 		zlib.createGunzip(),
 		parser,
 	);
@@ -50,11 +50,24 @@ async function fetchAndSaveAsnDomainMap (url) {
 	console.log(`ASN-domain map saved to: ${outputPath}`);
 }
 
+async function downloadMmdb (url) {
+	let outputPath = path.resolve(__dirname, '../data/IPINFO_LITE_ASN.mmdb');
+	fs.mkdirSync(path.dirname(outputPath), { recursive: true });
+
+	await pipeline(
+		got.stream(`${url}.mmdb`),
+		fs.createWriteStream(outputPath),
+	);
+
+	console.log(`MMDB file saved to: ${outputPath}`);
+}
+
 async function main () {
-	let url = `https://download.jsdelivr.com/IPINFO_LITE.csv.gz`;
+	let url = `https://download.jsdelivr.com/IPINFO_LITE_ASN`;
 
 	try {
 		await fetchAndSaveAsnDomainMap(url);
+		await downloadMmdb(url);
 	} catch (err) {
 		console.error('Failed to fetch or process data:', err);
 		process.exit(1);

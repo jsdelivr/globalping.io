@@ -7,67 +7,71 @@
 				<div class="c-gp-results-raw-output_list_item_inner-wrapper">
 					<div class="c-gp-results-raw-output_list_item">
 						<div class="c-gp-results-raw-output_list_item_header">
-							<span class="c-gp-results-raw-output_list_item_header_info">
-								<span>
+							<div class="c-gp-results-raw-output_list_item_header_info">
+								<span class="c-gp-results-raw-output_list_item_header_info_target">
+									<span
+										class="c-gp-results-raw-output_list_item_status-line"
+										style="background-color: {{_.getGpProbeStatusColor(this.statsPerTarget[activeTargetIdx].avgTiming, testReqParams.type === 'http' ? 1000 : 200) || ''}}">
+									</span>
 									<img width="28"
 										height="20"
 										src="https://cdn.jsdelivr.net/npm/country-flag-icons@1.5.5/3x2/{{this.country}}.svg">
 										{{this.city}}, {{this.country}}, {{this.continent}}
+									<span>&nbsp;-&nbsp;</span>
+									<a class="c-gp-results-raw-output_list_item_header_info_network-link" href="{{@this.getUrlNetworkName('/networks', this.network)}}">
+										{{this.network}} (AS{{this.asn}})
+									</a>
 								</span>
-								<span>&nbsp;-&nbsp;</span>
-								<a class="c-gp-results-raw-output_list_item_header_info_network-link" href="{{@this.getUrlNetworkName('/networks', this.network)}}">
-									{{this.network}} (AS{{this.asn}})
-								</a>
-							</span>
 
-							{{#if _.getGpTargetTiming(this.statsPerTarget[activeTargetIdx])}}
-								<span class="c-gp-results-raw-output_list_item_header_time main-value">
-									<img class="c-gp-results-raw-output_list_item_header_time_dot-icon"
-										width="4"
-										height="4"
-										src="{{@shared.assetsHost}}/img/dot-icon.svg">
-
-									<span>Time:</span>
-									<span class="c-gp-results-raw-output_list_item_header_time_value">
-										{{_.getGpTargetTiming(this.statsPerTarget[activeTargetIdx])}}
+								{{#if this.statsPerTarget[activeTargetIdx].ipAddr}}
+									<span class="c-gp-results-raw-output_list_item_header_address">
+										Resolved address:
+										<span class="c-gp-results-raw-output_list_item_header_address_cell">
+											{{#if @this.getNetworkDomainName(this.statsPerTarget[activeTargetIdx].ipAddr)}}
+												<img
+													class="c-gp-results-raw-output_list_item_header_address_logo"
+													width="28"
+													height="28"
+													as-tooltip="@this.getNetworkName(this.statsPerTarget[activeTargetIdx].ipAddr)"
+													src="{{@shared.logoHost}}/{{@this.getNetworkDomainName(this.statsPerTarget[activeTargetIdx].ipAddr)}}"
+													alt="{{@this.getNetworkName(this.statsPerTarget[activeTargetIdx].ipAddr)}} logo"
+													on-error="@this.handleLogoLoadError(this.statsPerTarget[activeTargetIdx].ipAddr)">
+											{{/if}}
+											<span class="c-gp-results-raw-output_list_item_header_address_value">
+												{{this.statsPerTarget[activeTargetIdx].ipAddr}}
+											</span>
+										</span>
 									</span>
-								</span>
-							{{/if}}
+								{{/if}}
 
-							{{#unless this.statsPerTarget[activeTargetIdx].isFailed || this.statsPerTarget[activeTargetIdx].avgTiming === PROBE_STATUS_OFFLINE}}
-								{{#each this.statsPerTarget[activeTargetIdx].extraValues}}
-									<span class="c-gp-results-raw-output_list_item_header_time">
-										<span>{{this.text}}:</span>
-										<span class="c-gp-results-raw-output_list_item_header_time_value">{{this.value}}{{this.units}}</span>
+								<c-gp-tls-details tls="{{this.statsPerTarget[activeTargetIdx].tls}}" screenWidth="{{screenWidth}}"></c-gp-tls-details>
+
+								<button on-click="@this.hideShowTestResult(this.clientSideId)"
+									role="button"
+									aria-label="{{#if hiddenTestResults[activeTargetIdx].includes(this.clientSideId)}}Expand{{else}}Collapse{{/if}} output"
+									class="c-gp-results-raw-output_list_item_header_dropdown-btn">
+									<i class="fa fa-chevron-{{#if hiddenTestResults[activeTargetIdx].includes(this.clientSideId)}}down{{else}}up{{/if}}" aria-hidden="true"/>
+								</button>
+							</div>
+
+							<div class="c-gp-results-raw-output_list_item_header_metrics {{#if testInProgress && !this.statsPerTarget[activeTargetIdx].rawOutput}}in-progress{{/if}}">
+								{{#if _.getGpTargetTiming(this.statsPerTarget[activeTargetIdx])}}
+									<span class="c-gp-results-raw-output_list_item_header_time main-value">
+										Time
+										<b>
+											{{_.getGpTargetTiming(this.statsPerTarget[activeTargetIdx])}}
+										</b>
 									</span>
-								{{/each}}
-							{{/unless}}
+								{{/if}}
 
-							{{#if testReqParams.type === 'http' && this.statsPerTarget[activeTargetIdx].ipAddr}}
-								<span class="c-gp-results-raw-output_list_item_header_time main-value">
-									<img class="c-gp-results-raw-output_list_item_header_time_dot-icon"
-										width="4"
-										height="4"
-										src="{{@shared.assetsHost}}/img/dot-icon.svg">
-
-									<span>Resolved address:</span>
-									<span class="c-gp-results-raw-output_list_item_header_time_value">
-										{{this.statsPerTarget[activeTargetIdx].ipAddr}}
-									</span>
-								</span>
-							{{/if}}
-
-							<c-gp-tls-details tls="{{this.statsPerTarget[activeTargetIdx].tls}}" screenWidth="{{screenWidth}}"></c-gp-tls-details>
-
-							<img on-click="@this.hideShowTestResult(this.clientSideId)"
-								class="c-gp-results-raw-output_list_item_header_dropdown-icon {{#if hiddenTestResults[activeTargetIdx].includes(this.clientSideId)}}upside-down{{/if}}"
-								width="24"
-								height="24"
-								src="{{@shared.assetsHost}}/img/chevron-up-icon.svg">
-
-							<div
-								class="c-gp-results-raw-output_list_item_status-line"
-								style="background-color: {{_.getGpProbeStatusColor(this.statsPerTarget[activeTargetIdx].avgTiming, testReqParams.type === 'http' ? 1000 : 200) || ''}}">
+								{{#unless this.statsPerTarget[activeTargetIdx].isFailed || this.statsPerTarget[activeTargetIdx].avgTiming === PROBE_STATUS_OFFLINE}}
+									{{#each this.statsPerTarget[activeTargetIdx].extraValues}}
+										<span class="c-gp-results-raw-output_list_item_header_time">
+											{{this.text}}
+											<b>{{this.value}}{{this.units}}</b>
+										</span>
+									{{/each}}
+								{{/unless}}
 							</div>
 
 							<div class="c-gp-results-raw-output_list_item_top-wrapper_actions">
@@ -97,6 +101,7 @@
 
 <script>
 	const _ = require('../../assets/js/_');
+	const http = require('../../assets/js/utils/http');
 	const tooltip = require('../../assets/js/decorators/tooltip');
 	const PROBE_STATUS_FAILED = _.getProbeStatusFailedValue();
 	const PROBE_STATUS_OFFLINE = _.getProbeStatusOfflineValue();
@@ -113,19 +118,14 @@
 					0: [],
 					1: [],
 				},
+				networkDomainNamesByIp: Object.create(null),
 				PROBE_STATUS_FAILED,
 				PROBE_STATUS_OFFLINE,
+				pendingDomainLookups: new Set(),
+				showingNetworkLogos: false,
 				heightSetForCurrentResults: false,
 				skipNextResize: false,
 			};
-		},
-		oninit () {
-			if (!Ractive.isServer) {
-				this.set('hiddenTestResults', {
-					0: [],
-					1: [],
-				});
-			}
 		},
 		onrender () {
 			if (!Ractive.isServer) {
@@ -158,6 +158,10 @@
 
 					this.setResultsBlockHeight();
 				}, { deep: true, defer: true, init: false });
+
+				this.observe('preparedTestResults activeTargetIdx', () => {
+					this.populateNetworkDomains();
+				});
 
 				this.observe('sortOrder sortBy activeTargetIdx', () => {
 					let listEl = this.find('.c-gp-results-raw-output_list');
@@ -205,14 +209,17 @@
 					let limit = Math.min(itemsAmount, 3);
 
 					for (let i = 0; i < limit; i++) {
-						targetHeight += items[i].scrollHeight;
+						targetHeight += items[i].getBoundingClientRect().height;
 					}
 
-					let totalItemHeight = 0;
+					let totalItemHeight = targetHeight;
 
-					for (let i = 0; i < itemsAmount; i++) {
-						totalItemHeight += items[i].scrollHeight;
+					for (let i = limit; i < itemsAmount; i++) {
+						totalItemHeight += items[i].getBoundingClientRect().height;
 					}
+
+					targetHeight = Math.ceil(targetHeight);
+					totalItemHeight = Math.ceil(totalItemHeight);
 
 					// if the container height has already been set for current results, only shrink the container if it would contain empty space (totalHeight < currentHeight)
 					if (!this.get('heightSetForCurrentResults') || (targetHeight !== currentHeight && (targetHeight > currentHeight || totalItemHeight < currentHeight))) {
@@ -228,6 +235,59 @@
 		},
 		setProbeAsLocation (probeData) {
 			this.set('currSearchLocation', `AS${probeData.asn}+${probeData.city}`);
+		},
+		populateNetworkDomains () {
+			let preparedTestResults = this.get('preparedTestResults') || [];
+			let activeTargetIdx = this.get('activeTargetIdx');
+			let networkDomainNamesByIp = this.get('networkDomainNamesByIp');
+			let pendingDomainLookups = this.get('pendingDomainLookups');
+
+			preparedTestResults.forEach((result) => {
+				let ipAddr = result?.statsPerTarget?.[activeTargetIdx]?.ipAddr;
+
+				if (
+					!ipAddr
+					|| Object.hasOwn(networkDomainNamesByIp, ipAddr)
+					|| pendingDomainLookups.has(ipAddr)
+				) {
+					return;
+				}
+
+				pendingDomainLookups.add(ipAddr);
+
+				http.getNetworkFromIP(ipAddr)
+					.then((res) => {
+						this.set('showingNetworkLogos', this.get('showingNetworkLogos') || !!res.domain);
+
+						this.set('networkDomainNamesByIp', {
+							...this.get('networkDomainNamesByIp'),
+							[ipAddr]: res,
+						});
+					})
+					.catch(() => {
+						this.set('networkDomainNamesByIp', {
+							...this.get('networkDomainNamesByIp'),
+							[ipAddr]: null,
+						});
+					})
+					.finally(() => {
+						pendingDomainLookups.delete(ipAddr);
+					});
+			});
+		},
+		getNetworkDomainName (ipAddr) {
+			let network = ipAddr ? this.get('networkDomainNamesByIp')[ipAddr] : null;
+			return network?.domain || null;
+		},
+		getNetworkName (ipAddr) {
+			let network = ipAddr ? this.get('networkDomainNamesByIp')[ipAddr] : null;
+			return network?.name || network?.domain || null;
+		},
+		handleLogoLoadError (ipAddr) {
+			this.set('networkDomainNamesByIp', {
+				...this.get('networkDomainNamesByIp'),
+				[ipAddr]: null,
+			});
 		},
 		getUrlNetworkName (base = '', network) {
 			return `${base}/${network.replace(/\./g, '').replace(/[\W]|_/g, ' ').replace(/\s\s+|_/g, ' ').trim().split(' ').join('-').toLowerCase()}`;

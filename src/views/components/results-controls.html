@@ -67,9 +67,11 @@
 			<button class="content-wrapper_ctrls_collapse"
 				type="button"
 				disabled="{{!rawOutputMode}}"
-				as-tooltip="allCollapsed ? 'Expand all' : 'Collapse all'"
-				aria-label="{{#if allCollapsed}}Expand{{else}}Collapse{{/if}} all"
-				on-click="allCollapsed ? onExpandAll() : onCollapseAll()"
+				{{#if rawOutputMode}}
+					as-tooltip="collapseTooltip"
+					aria-label="{{collapseTooltip}}"
+				{{/if}}
+				on-click="allCollapsed ? expandOutput() : collapseOutput()"
 			>
 				{{#if allCollapsed}}
 					<i class="fa fa-chevron-down"></i>
@@ -92,10 +94,15 @@
 		},
 		data () {
 			return {
-				onCollapseAll: () => null,
-				onExpandAll: () => null,
+				collapseOutput: () => null,
+				expandOutput: () => null,
 				allCollapsed: false,
 			};
+		},
+		computed: {
+			collapseTooltip () {
+				return this.get('allCollapsed') ? 'Expand all' : 'Collapse all';
+			},
 		},
 		handleTabSwitch (idx) {
 			if (this.get('rawOutputMode')) {

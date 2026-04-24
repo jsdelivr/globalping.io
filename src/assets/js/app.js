@@ -31,7 +31,7 @@ const initApp = () => {
 		history: historyProxy,
 	});
 
-	app.router.addRoute('/', cGlobalping, { qs: [ 'location', 'measurement', 'display', 'map', 'by', 'order' ] });
+	app.router.addRoute('/', cGlobalping, { qs: [ 'location', 'measurement', 'display', 'map', 'by', 'order', 'collapse' ] });
 	app.router.addRoute('/network-tools/:params?', cGlobalpingNetworkTools);
 	app.router.addRoute('/sponsors', cGlobalpingSponsors);
 	app.router.addRoute('/credits', cGlobalpingCredits);
