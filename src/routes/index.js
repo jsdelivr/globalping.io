@@ -279,7 +279,7 @@ koaElasticUtils.addRoutes(router, [
 	}
 
 	ctx.type = 'image/png';
-	ctx.set('Cache-Control', 'public, max-age=31536000');
+	ctx.maxAge = 31536000;
 	ctx.body = image;
 });
 
