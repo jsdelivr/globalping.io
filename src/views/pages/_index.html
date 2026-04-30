@@ -812,6 +812,34 @@
 			</div>
 		</div>
 
+		<section class="gp_integrations">
+			<div class="gp_integrations_content">
+				<div class="gp_integrations_background-container">
+					<img src="{{@shared.assetsHost}}/img/polygons_5.svg" class="gp_integrations_background" alt="">
+				</div>
+				<div class="gp_integrations_main">
+					<h4 class="gp_integrations_header">Integrations</h4>
+					<p class="gp_integrations_description">A fully-featured REST API for your own app, easy-to-use CLI for scripting, or a no-code chatbot – we have it all. Integrate Globalping into anything!</p>
+					<a class="gp_integrations_link" href="/integrations">Check our integrations</a>
+				</div>
+				<div class="gp_integrations_examples">
+					{{#each integrationExamples}}
+						<div class="gp_integrations_example">
+							<img class="gp_integrations_example_logo" src="{{@shared.assetsHost}}{{this.img}}" height="48" width="48" alt="">
+							<div>
+								<h5 class="gp_integrations_example_header">
+									{{this.name}}
+								</h5>
+								<p class="gp_integrations_example_description">
+									{{this.description}}
+								</p>
+							</div>
+						</div>
+					{{/each}}
+				</div>
+			</div>
+		</section>
+
 		<div class="gp_features">
 			<div class="gp_features_item">
 				<span class="gp_features_item_icon">
@@ -1746,6 +1774,28 @@
 				locationAutofilled: false,
 				showingNetworkLogos: false,
 				collapseFromQuery: false,
+				integrationExamples: [
+					{
+						name: 'n8n',
+						description: 'Add Globalping to your n8n workflows and get access to thousands of probes.',
+						img: '/img/integrations/n8n.svg',
+					},
+					{
+						name: 'Uptime Kuma',
+						description: 'Self-hosted uptime monitoring with native Globalping integration.',
+						img: '/img/integrations/uptime-kuma.svg',
+					},
+					{
+						name: 'Zapier',
+						description: 'Build advanced automations without writing any code using Zapier.',
+						img: '/img/integrations/zapier.svg',
+					},
+					{
+						name: 'Upptime',
+						description: 'GitHub Actions based uptime monitoring with Globalping.',
+						img: '/img/integrations/upptime.svg',
+					},
+				],
 			};
 		},
 		computed: {
