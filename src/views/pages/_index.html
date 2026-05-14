@@ -722,7 +722,7 @@
 								testReqParams="{{testReqParams}}"
 								preparedTestResults="{{preparedTestResults}}"
 								hiddenTestResults="{{hiddenTestResults}}"
-								hiddenResponseBody="{{hiddenResponseBody}}"
+								hiddenResponseBodies="{{hiddenResponseBodies}}"
 								testInProgress="{{testInProgress}}"
 								scrolledToResId="{{scrolledToResId}}"
 								currSearchLocation="{{mainOptions.location}}"
@@ -1762,7 +1762,7 @@
 				measurementsMetadata: null,
 				targetsArr: [],
 				hiddenTestResults: { 0: [], 1: [] },
-				hiddenResponseBody: { 0: [], 1: [] },
+				hiddenResponseBodies: { 0: [], 1: [] },
 				qsMeasurementIdsArr: [],
 				showCreditsErrorBar: false,
 				infiniteMeasIds: [],
@@ -1861,13 +1861,13 @@
 			allResponseBodiesCollapsed () {
 				let targetCount = this.get('targetsArr').length;
 				let preparedTestResults = this.get('preparedTestResults') || [];
-				let hiddenResponseBody = this.get('hiddenResponseBody') || {};
+				let hiddenResponseBodies = this.get('hiddenResponseBodies') || {};
 
 				for (let i = 0; i < targetCount; i++) {
 					let collapsibleProbeIds = preparedTestResults
 						.filter(result => _.shouldCollapseResponseBody(result?.statsPerTarget?.[i]?.responseBody || '', this.getRawOutputCharsPerLine()))
 						.map(result => result.clientSideId);
-					let hiddenForTarget = hiddenResponseBody[i] || [];
+					let hiddenForTarget = hiddenResponseBodies[i] || [];
 					let hiddenCollapsibleCount = hiddenForTarget.filter(id => collapsibleProbeIds.includes(id)).length;
 
 					if (hiddenCollapsibleCount !== collapsibleProbeIds.length) {
@@ -2089,7 +2089,7 @@
 					}
 				}, { deep: true, defer: true });
 
-				this.observe('hiddenTestResults hiddenResponseBody preparedTestResults targetsArr collapseFromQuery', () => {
+				this.observe('hiddenTestResults hiddenResponseBodies preparedTestResults targetsArr collapseFromQuery', () => {
 					if (this.get('collapseFromQuery')) {
 						return;
 					}
@@ -2109,7 +2109,7 @@
 					}
 
 					let hiddenTestResults = this.get('hiddenTestResults') || {};
-					let hiddenResponseBody = this.get('hiddenResponseBody') || {};
+					let hiddenResponseBodies = this.get('hiddenResponseBodies') || {};
 					let testType = this.get('testReqParams.type');
 					let isHttpTest = testType.toLowerCase() === 'http';
 					let anyResponseBodyCollapsible = this.get('anyResponseBodyCollapsible');
@@ -2125,7 +2125,7 @@
 
 					for (let targetIdx = 0; targetIdx < availableTargets; targetIdx++) {
 						let hidden = hiddenTestResults[targetIdx] || [];
-						let hiddenContent = hiddenResponseBody[targetIdx] || [];
+						let hiddenContent = hiddenResponseBodies[targetIdx] || [];
 
 						if (hidden.length !== preparedTestResults.length) {
 							allCollapsed = false;
@@ -3121,7 +3121,7 @@
 					.map(result => result.clientSideId);
 			}
 
-			this.set('hiddenResponseBody', {
+			this.set('hiddenResponseBodies', {
 				0: [ ...hiddenResponseBodyByTarget[0] || [] ],
 				1: [ ...hiddenResponseBodyByTarget[1] || [] ],
 			});
@@ -3140,7 +3140,7 @@
 			});
 
 			if (withResponseBody) {
-				this.set(`hiddenResponseBody`, {
+				this.set(`hiddenResponseBodies`, {
 					0: [],
 					1: [],
 				});

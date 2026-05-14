@@ -166,7 +166,7 @@
 					0: [],
 					1: [],
 				},
-				hiddenResponseBody: {
+				hiddenResponseBodies: {
 					0: [],
 					1: [],
 				},
@@ -234,7 +234,7 @@
 					this.recalculateHeaderInfoLayoutStates();
 				}, { deep: true, defer: true, init: false });
 
-				this.observe('hiddenResponseBody', () => {
+				this.observe('hiddenResponseBodies', () => {
 					this.setResultsBlockHeight();
 					this.recalculateHeaderInfoLayoutStates();
 				}, { deep: true, defer: true, init: false });
@@ -338,13 +338,13 @@
 				return false;
 			}
 
-			let hidden = this.get(`hiddenResponseBody[${activeTargetIdx}]`) ?? [];
+			let hidden = this.get(`hiddenResponseBodies[${activeTargetIdx}]`) ?? [];
 			return hidden.includes(result?.clientSideId);
 		},
 		showResponseBody (resultId) {
 			let activeTargetIdx = this.get('activeTargetIdx');
-			let hidden = this.get(`hiddenResponseBody[${activeTargetIdx}]`) ?? [];
-			this.set(`hiddenResponseBody[${activeTargetIdx}]`, hidden.filter(clientSideId => clientSideId !== resultId));
+			let hidden = this.get(`hiddenResponseBodies[${activeTargetIdx}]`) ?? [];
+			this.set(`hiddenResponseBodies[${activeTargetIdx}]`, hidden.filter(clientSideId => clientSideId !== resultId));
 		},
 		// --- Output list height setter
 		setResultsBlockHeight () {
@@ -705,7 +705,7 @@
 		hideShowTestResult (resultId) {
 			let activeTargetIdx = this.get('activeTargetIdx');
 			let hidden = this.get(`hiddenTestResults[${activeTargetIdx}]`) ?? [];
-			let hiddenContent = this.get(`hiddenResponseBody[${activeTargetIdx}]`) ?? [];
+			let hiddenContent = this.get(`hiddenResponseBodies[${activeTargetIdx}]`) ?? [];
 			let preparedTestResults = this.get('preparedTestResults') || [];
 			let result = preparedTestResults.find(item => item.clientSideId === resultId);
 			let body = result?.statsPerTarget?.[activeTargetIdx]?.responseBody || '';
@@ -718,7 +718,7 @@
 
 			// reset the content state as well
 			if (!hiddenContent.includes(resultId) && _.shouldCollapseResponseBody(body, this.getResponseBodyCharsPerLine())) {
-				this.set(`hiddenResponseBody[${activeTargetIdx}]`, [ ...hiddenContent, resultId ]);
+				this.set(`hiddenResponseBodies[${activeTargetIdx}]`, [ ...hiddenContent, resultId ]);
 			}
 		},
 	};
