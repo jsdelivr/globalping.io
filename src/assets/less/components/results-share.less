@@ -14,6 +14,16 @@
 	-webkit-font-smoothing: antialiased;
 	font-size: 13px;
 
+	button:focus, button:active, button:active:focus {
+		outline: none;
+		box-shadow: none;
+	}
+
+	button:focus-visible {
+		outline: none;
+		box-shadow: 0 0 0 2px #fff, 0 0 0 4px rgba(23, 212, 167, .48);
+	}
+
 	@media (min-width: @screen-sm-min) {
 		padding: 16px 26px;
 		background-color: #fbfbfb;
@@ -110,6 +120,7 @@
 				right: 10px;
 				bottom: 8px;
 				border: none;
+				border-radius: 4px;
 				background: transparent;
 			}
 		}
