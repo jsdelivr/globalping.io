@@ -300,6 +300,12 @@ module.exports = {
 		} else if (lowCaseTestName === 'traceroute') {
 			let { timings } = testResData.result.hops ? testResData.result.hops[testResData.result.hops.length - 1] : {};
 
+			extraValues.hops = {
+				text: 'Hops',
+				value: testResData.result.hops?.length ?? 0,
+				units: '',
+			};
+
 			if (timings && timings.length) {
 				let timingsCalc = timings.reduce((res, timing) => {
 					if (typeof timing.rtt === 'number') {
@@ -328,6 +334,12 @@ module.exports = {
 			}
 		} else if (lowCaseTestName === 'mtr') {
 			let lastHop = testResData.result.hops ? testResData.result.hops[testResData.result.hops.length - 1] : {};
+
+			extraValues.hops = {
+				text: 'Hops',
+				value: testResData.result.hops?.length ?? 0,
+				units: '',
+			};
 
 			if (lastHop) {
 				resTiming = lastHop.stats.avg;
@@ -742,5 +754,19 @@ module.exports = {
 
 	isTouchDevice () {
 		return !!window?.matchMedia('(hover: none), (pointer: coarse)')?.matches;
+	},
+
+	shouldCollapseResponseBody (body, charsPerLine) {
+		if (!body) {
+			return false;
+		}
+
+		let lines = String(body).split('\n');
+
+		if (lines.length > 3) {
+			return true;
+		}
+
+		return lines.slice(0, 3).reduce((acc, line) => acc + Math.ceil(line.length / charsPerLine), 0) > 3;
 	},
 };

@@ -68,8 +68,8 @@
 				type="button"
 				disabled="{{!rawOutputMode}}"
 				{{#if rawOutputMode}}
-					as-tooltip="collapseTooltip"
-					aria-label="{{collapseTooltip}}"
+					as-tooltip="generalCollapseTooltip"
+					aria-label="{{generalCollapseTooltip}}"
 				{{/if}}
 				on-click="allCollapsed ? expandOutput() : collapseOutput()"
 			>
@@ -78,6 +78,26 @@
 					<i class="fa fa-chevron-down"></i>
 				{{else}}
 					<i class="fa fa-chevron-up"></i>
+					<i class="fa fa-chevron-up"></i>
+				{{/if}}
+			</button>
+
+			<button class="content-wrapper_ctrls_collapse"
+				type="button"
+				disabled="{{testType !== 'http' || !anyResponseBodyCollapsible}}"
+				{{#if testType === 'http' && anyResponseBodyCollapsible}}
+					as-tooltip="responseBodyCollapseTooltip"
+					aria-label="{{responseBodyCollapseTooltip}}"
+				{{/if}}
+				on-click="(allCollapsed || allResponseBodiesCollapsed) ? expandOutput({withResponseBody: true}) : collapseOutput({responseBodyOnly: true})"
+			>
+				{{#if (allCollapsed || allResponseBodiesCollapsed) && testType === 'http' && anyResponseBodyCollapsible}}
+					<i class="fa fa-chevron-down"></i>
+					{{#if anyCollapsed}}
+						<i class="fa fa-chevron-down"></i>
+						<i class="fa fa-chevron-down"></i>
+					{{/if}}
+				{{else}}
 					<i class="fa fa-chevron-up"></i>
 				{{/if}}
 			</button>
@@ -97,11 +117,30 @@
 				collapseOutput: () => null,
 				expandOutput: () => null,
 				allCollapsed: false,
+				anyCollapsed: false,
+				allResponseBodiesCollapsed: false,
+				anyResponseBodyCollapsible: false,
 			};
 		},
 		computed: {
-			collapseTooltip () {
-				return this.get('allCollapsed') ? 'Expand all' : 'Collapse all';
+			generalCollapseTooltip () {
+				if (this.get('allCollapsed')) {
+					return this.get('testType') === 'http' && this.get('anyResponseBodyCollapsible') ? 'Expand all headers' : 'Expand all output';
+				}
+
+				return 'Collapse all output';
+			},
+
+			responseBodyCollapseTooltip () {
+				if (this.get('allCollapsed')) {
+					return 'Expand all output';
+				}
+
+				return this.get('allResponseBodiesCollapsed')
+					? this.get('anyCollapsed')
+						? 'Expand all output'
+						: 'Expand response bodies'
+					: 'Collapse response bodies';
 			},
 		},
 		handleTabSwitch (idx) {

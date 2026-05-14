@@ -1,62 +1,78 @@
 <link rel="ractive" href="./tls-details.html" name="c-gp-tls-details">
 
 <div class="c-gp-results-raw-output">
-	<div class="c-gp-results-raw-output_list">
+	<div class="c-gp-results-raw-output_list {{#if testInProgress}}round-bottom{{/if}}" on-scroll="@this.hideSetLocationButton()">
 		{{#each preparedTestResults}}
-			<div class="c-gp-results-raw-output_list_item_top-wrapper item-id-{{this.clientSideId}}">
-				<div class="c-gp-results-raw-output_list_item_inner-wrapper">
-					<div class="c-gp-results-raw-output_list_item">
-						<div class="c-gp-results-raw-output_list_item_header">
-							<div class="c-gp-results-raw-output_list_item_header_info">
-								<span class="c-gp-results-raw-output_list_item_header_info_target">
-									<span
-										class="c-gp-results-raw-output_list_item_status-line"
-										style="background-color: {{_.getGpProbeStatusColor(this.statsPerTarget[activeTargetIdx].avgTiming, testReqParams.type === 'http' ? 1000 : 200) || ''}}">
-									</span>
-									<img width="28"
-										height="20"
-										src="https://cdn.jsdelivr.net/npm/country-flag-icons@1.5.5/3x2/{{this.country}}.svg">
-										{{this.city}}, {{this.country}}, {{this.continent}}
-									<span>&nbsp;-&nbsp;</span>
-									<a class="c-gp-results-raw-output_list_item_header_info_network-link" href="{{@this.getUrlNetworkName('/networks', this.network)}}">
-										{{this.network}} (AS{{this.asn}})
-									</a>
+			<div class="c-gp-results-raw-output_list_item item-id-{{this.clientSideId}}">
+				<div class="c-gp-results-raw-output_list_item_header {{#if (!this.statsPerTarget[activeTargetIdx].rawOutput || isInfiniteModeRes) && testInProgress}}target-data-pending{{/if}}">
+					<div class="c-gp-results-raw-output_list_item_header_info {{#if @this.shouldUseOverflowLayout(this)}}is-overflow-layout{{/if}}"
+						style="border-left: 6px solid {{@this.getStatusColor(this.statsPerTarget[activeTargetIdx])}}; background: linear-gradient(to right, {{@this.getStatusColor(this.statsPerTarget[activeTargetIdx])}}0C, transparent 50%);"
+						on-mouseenter="@this.showSetLocationButton(this.clientSideId)"
+						on-mouseleave="@this.hideSetLocationButton(@event)"
+					>
+						<div class="c-gp-results-raw-output_list_item_header_info_entity">
+							<span class="c-gp-results-raw-output_list_item_header_info_entity_field">
+								<img height="16" width="16" alt="" src="{{@shared.assetsHost}}/img/gp-logo.svg"/>
+								<span>AS{{this.asn}}</span>
+							</span>
+
+							<span class="c-gp-results-raw-output_list_item_header_info_entity_field">
+								<img width="24" height="16" alt="" src="https://cdn.jsdelivr.net/npm/country-flag-icons@1.5.5/3x2/{{this.country}}.svg">
+								<span>{{this.city}}, {{this.country}}, {{this.continent}}</span>
+							</span>
+
+							<span class="c-gp-results-raw-output_list_item_header_info_entity_field">
+								{{#if @this.getNetworkDomainNameByAsn(this.asn)}}
+									<img width="16"
+										height="16"
+										alt=""
+										src="{{@shared.logoHost}}/{{@this.getNetworkDomainNameByAsn(this.asn)}}?v={{@shared.assetsVersion}}">
+								{{/if}}
+								<span>{{this.network}}</span>
+							</span>
+						</div>
+
+						{{#if this.statsPerTarget[activeTargetIdx].ipAddr}}
+							<span class="c-gp-results-raw-output_list_item_header_info_arrow"></span>
+
+							<c-gp-tls-details tls="{{this.statsPerTarget[activeTargetIdx].tls}}" screenWidth="{{screenWidth}}"></c-gp-tls-details>
+
+							<div class="c-gp-results-raw-output_list_item_header_info_entity">
+								<span class="c-gp-results-raw-output_list_item_header_info_entity_field">
+									<img height="13" width="16" alt="" src="{{@shared.assetsHost}}/img/server-rack.svg"/>
+									<span>{{this.statsPerTarget[activeTargetIdx].ipAddr}}</span>
 								</span>
 
-								{{#if this.statsPerTarget[activeTargetIdx].ipAddr}}
-									<span class="c-gp-results-raw-output_list_item_header_address">
-										Resolved address:
-										<span class="c-gp-results-raw-output_list_item_header_address_cell">
-											{{#if @this.getNetworkDomainName(this.statsPerTarget[activeTargetIdx].ipAddr)}}
-												<img
-													class="c-gp-results-raw-output_list_item_header_address_logo"
-													width="28"
-													height="28"
-													as-tooltip="@this.getNetworkName(this.statsPerTarget[activeTargetIdx].ipAddr)"
-													src="{{@shared.logoHost}}/{{@this.getNetworkDomainName(this.statsPerTarget[activeTargetIdx].ipAddr)}}?v={{@shared.assetsVersion}}"
-													alt="{{@this.getNetworkName(this.statsPerTarget[activeTargetIdx].ipAddr)}} logo"
-													on-error="@this.handleLogoLoadError(this.statsPerTarget[activeTargetIdx].ipAddr)">
-											{{/if}}
-											<span class="c-gp-results-raw-output_list_item_header_address_value">
-												{{this.statsPerTarget[activeTargetIdx].ipAddr}}
-											</span>
-										</span>
+								<span class="c-gp-results-raw-output_list_item_header_info_entity_field">
+									{{#if @this.isAnycastIp(this.statsPerTarget[activeTargetIdx].ipAddr)}}
+										<img width="22" height="16" alt="" src="{{@shared.assetsHost}}/img/anycast.svg">
+										Anycast
+									{{elseif @this.getIpLocationLabel(this.statsPerTarget[activeTargetIdx].ipAddr)}}
+										{{#if @this.getIpLocationCountryCode(this.statsPerTarget[activeTargetIdx].ipAddr)}}
+											<img width="24" height="16" alt="" src="https://cdn.jsdelivr.net/npm/country-flag-icons@1.5.5/3x2/{{@this.getIpLocationCountryCode(this.statsPerTarget[activeTargetIdx].ipAddr)}}.svg">
+										{{/if}}
+										<span>{{@this.getIpLocationLabel(this.statsPerTarget[activeTargetIdx].ipAddr)}}</span>
+									{{/if}}
+								</span>
+
+								{{#if @this.shouldRenderTargetNetwork(this.statsPerTarget[activeTargetIdx].ipAddr)}}
+									<span class="c-gp-results-raw-output_list_item_header_info_entity_field">
+										<img width="20"
+											height="20"
+											src="{{@shared.logoHost}}/{{@this.getNetworkDomainNameByIp(this.statsPerTarget[activeTargetIdx].ipAddr)}}"
+											alt="{{@this.getNetworkName(this.statsPerTarget[activeTargetIdx].ipAddr)}} logo">
+										<span>{{@this.getNetworkName(this.statsPerTarget[activeTargetIdx].ipAddr)}}</span>
 									</span>
 								{{/if}}
-
-								<c-gp-tls-details tls="{{this.statsPerTarget[activeTargetIdx].tls}}" screenWidth="{{screenWidth}}"></c-gp-tls-details>
-
-								<button on-click="@this.hideShowTestResult(this.clientSideId)"
-									role="button"
-									aria-label="{{#if hiddenTestResults[activeTargetIdx].includes(this.clientSideId)}}Expand{{else}}Collapse{{/if}} output"
-									class="c-gp-results-raw-output_list_item_header_dropdown-btn">
-									<i class="fa fa-chevron-{{#if hiddenTestResults[activeTargetIdx].includes(this.clientSideId)}}down{{else}}up{{/if}}" aria-hidden="true"/>
-								</button>
 							</div>
+						{{/if}}
+					</div>
 
-							<div class="c-gp-results-raw-output_list_item_header_metrics {{#if testInProgress && !this.statsPerTarget[activeTargetIdx].rawOutput}}in-progress{{/if}}">
+					{{#if this.statsPerTarget[activeTargetIdx].rawOutput}}
+						<div class="c-gp-results-raw-output_list_item_header_metrics-controls">
+							<div class="c-gp-results-raw-output_list_item_header_metrics-controls_metrics">
 								{{#if _.getGpTargetTiming(this.statsPerTarget[activeTargetIdx])}}
-									<span class="c-gp-results-raw-output_list_item_header_time main-value">
+									<span class="c-gp-results-raw-output_list_item_header_metrics-controls_metric">
 										Time
 										<b>
 											{{_.getGpTargetTiming(this.statsPerTarget[activeTargetIdx])}}
@@ -66,7 +82,7 @@
 
 								{{#unless this.statsPerTarget[activeTargetIdx].isFailed || this.statsPerTarget[activeTargetIdx].avgTiming === PROBE_STATUS_OFFLINE}}
 									{{#each this.statsPerTarget[activeTargetIdx].extraValues}}
-										<span class="c-gp-results-raw-output_list_item_header_time">
+										<span class="c-gp-results-raw-output_list_item_header_metrics-controls_metric">
 											{{this.text}}
 											<b>{{this.value}}{{this.units}}</b>
 										</span>
@@ -74,37 +90,69 @@
 								{{/unless}}
 							</div>
 
-							<div class="c-gp-results-raw-output_list_item_top-wrapper_actions">
-								<div class="c-gp-results-raw-output_list_item_top-wrapper_actions_btn"
-									as-tooltip="'Set as location for the next test', 'right'"
-									on-click="@this.setProbeAsLocation(this)">
-									<i class="fa fa-map-marker" aria-hidden="true"></i>
-								</div>
-							</div>
+							<button on-click="@this.hideShowTestResult(this.clientSideId)"
+								role="button"
+								aria-label="{{#if hiddenTestResults[activeTargetIdx].includes(this.clientSideId)}}Expand{{else}}Collapse{{/if}} output"
+								class="c-gp-results-raw-output_list_item_header_metrics-controls_dropdown">
+								<i class="fa fa-chevron-{{#if hiddenTestResults[activeTargetIdx].includes(this.clientSideId)}}down{{else}}up{{/if}}" aria-hidden="true"/>
+							</button>
 						</div>
+					{{/if}}
 
-						<pre class="{{#if hiddenTestResults[activeTargetIdx].includes(this.clientSideId)}}hidden{{/if}}">{{this.statsPerTarget[activeTargetIdx].rawOutput}}</pre>
+				{{#if this.statsPerTarget[activeTargetIdx].rawOutput}}
+					<div class="c-gp-results-raw-output_list_item_output">
+						<pre class="{{#if hiddenTestResults[activeTargetIdx].includes(this.clientSideId)}}hide-code{{/if}}">{{this.statsPerTarget[activeTargetIdx].rawOutput}}</pre>
+						{{#if hiddenTestResults[activeTargetIdx].includes(this.clientSideId)}}
+							<button type="button"
+								class="c-gp-results-raw-output_list_item_content-toggle center-vertically"
+								on-click="@this.hideShowTestResult(this.clientSideId)"
+								aria-label="Click to expand">
+								<i class="fa fa-chevron-down" aria-hidden="true"/>
+								Click to expand
+							</button>
+						{{/if}}
 
-						{{#if testInProgress === false && isInfiniteModeRes}}
+						{{#if this.statsPerTarget[activeTargetIdx].responseBody && !hiddenTestResults[activeTargetIdx].includes(this.clientSideId)}}
+							{{#if @this.isResponseBodyHidden(this)}}
+								<button type="button"
+									class="c-gp-results-raw-output_list_item_content-toggle"
+									on-click="@this.showResponseBody(this.clientSideId)"
+									aria-label="Show response body">
+									<i class="fa fa-chevron-down" aria-hidden="true"/>
+									Show response body
+								</button>
+							{{/if}}
+							<br>
+							<pre class="{{#if @this.isResponseBodyHidden(this)}}hide-code{{/if}} response-body">{{this.statsPerTarget[activeTargetIdx].responseBody}}</pre>
+						{{elseif testInProgress === false && isInfiniteModeRes}}
 							<pre class="{{#if hiddenTestResults[activeTargetIdx].includes(this.clientSideId)}}hidden{{/if}}">{{this.statsPerTarget[activeTargetIdx].rawFooter}}</pre>
 						{{/if}}
 					</div>
-
-					<div style="position: relative;">
-						<div class="c-gp-results-raw-output_list_item_inner-wrapper_bottom-line"></div>
-					</div>
-				</div>
+				{{/if}}
 			</div>
 		{{/each}}
 	</div>
+
+	{{#if floatingSetLocationButton.visible}}
+		<button class="c-gp-results-raw-output_set-location"
+			type="button"
+			style="top: {{floatingSetLocationButton.top}}px; left: {{floatingSetLocationButton.left}}px;"
+			as-tooltip="'Set as location for the next test', 'right'"
+			on-click="@this.setProbeAsLocation(floatingSetLocationButton.probeData)"
+			on-mouseleave="@this.hideSetLocationButton(@event)">
+			<i class="fa fa-map-marker" aria-hidden="true"></i>
+		</button>
+	{{/if}}
 </div>
 
 <script>
 	const _ = require('../../assets/js/_');
 	const http = require('../../assets/js/utils/http');
+	const listeners = require('../../assets/js/utils/listeners');
 	const tooltip = require('../../assets/js/decorators/tooltip');
 	const PROBE_STATUS_FAILED = _.getProbeStatusFailedValue();
 	const PROBE_STATUS_OFFLINE = _.getProbeStatusOfflineValue();
+	let MIN_OUTPUT_HEIGHT = 400;
 
 	component.exports = {
 		decorators: {
@@ -118,17 +166,41 @@
 					0: [],
 					1: [],
 				},
+				hiddenResponseBody: {
+					0: [],
+					1: [],
+				},
 				networkDomainNamesByIp: Object.create(null),
+				networkDomainNamesByAsn: Object.create(null),
 				PROBE_STATUS_FAILED,
 				PROBE_STATUS_OFFLINE,
 				pendingDomainLookups: new Set(),
 				showingNetworkLogos: false,
 				heightSetForCurrentResults: false,
 				skipNextResize: false,
+				headerInfoCharWidths: null,
+				headerInfoFallbackCharWidth: 7,
+				headerInfoListWidth: 0,
+				headerInfoOverflowByResultId: Object.create(null),
+				headerInfoEntityWidthsByKey: Object.create(null),
+				floatingSetLocationButton: {
+					visible: false,
+					top: 0,
+					left: 0,
+					probeData: null,
+				},
 			};
 		},
 		onrender () {
 			if (!Ractive.isServer) {
+				this._resizeHeaderInfoHandler = () => {
+					this.recalculateHeaderInfoLayoutStates();
+				};
+
+				this.initHeaderInfoCharWidths();
+				this.recalculateHeaderInfoLayoutStates();
+				listeners.addManagedListener(this, window, 'resize', this._resizeHeaderInfoHandler);
+
 				// open a specific item if it was scrolled to from the parent component
 				this.observe('scrolledToResId', (clientSideId) => {
 					if (clientSideId === null) { return; }
@@ -145,9 +217,11 @@
 					this.set('scrolledToResId', null);
 				}, { init: false });
 
-				this.observe('preparedTestResults', () => {
+				this.observe('preparedTestResults testInProgress', () => {
+					this.resetHeaderInfoEntityWidthCache();
 					this.set('heightSetForCurrentResults', false);
 					this.setResultsBlockHeight();
+					this.recalculateHeaderInfoLayoutStates();
 				}, { deep: true, defer: true });
 
 				this.observe('hiddenTestResults', () => {
@@ -157,10 +231,18 @@
 					}
 
 					this.setResultsBlockHeight();
+					this.recalculateHeaderInfoLayoutStates();
+				}, { deep: true, defer: true, init: false });
+
+				this.observe('hiddenResponseBody', () => {
+					this.setResultsBlockHeight();
+					this.recalculateHeaderInfoLayoutStates();
 				}, { deep: true, defer: true, init: false });
 
 				this.observe('preparedTestResults activeTargetIdx', () => {
+					this.resetHeaderInfoEntityWidthCache();
 					this.populateNetworkDomains();
+					this.recalculateHeaderInfoLayoutStates();
 				});
 
 				this.observe('sortOrder sortBy activeTargetIdx', () => {
@@ -169,19 +251,102 @@
 					if (listEl) {
 						listEl.scrollTop = 0;
 					}
+
+					this.recalculateHeaderInfoLayoutStates();
 				}, { init: false });
+
+				this.observe('screenWidth', () => {
+					this.setResultsBlockHeight();
+					this.recalculateHeaderInfoLayoutStates();
+				}, { init: false });
+
+				this._onSetLocationViewportChange = () => {
+					this.hideSetLocationButton();
+				};
+
+				this._setLocationListEl = this.find('.c-gp-results-raw-output_list');
+				listeners.addManagedListener(this, window, 'resize', this._onSetLocationViewportChange);
+				listeners.addManagedListener(this, window, 'scroll', this._onSetLocationViewportChange);
+
+				if (this._setLocationListEl) {
+					listeners.addManagedListener(this, this._setLocationListEl, 'scroll', this._onSetLocationViewportChange);
+				}
 			}
 		},
-		hideShowTestResult (resultId) {
-			let activeTargetIdx = this.get('activeTargetIdx');
-			let hidden = this.get(`hiddenTestResults[${activeTargetIdx}]`) ?? [];
+		// --- set location button logic ---
+		showSetLocationButton (clientSideId) {
+			let probeData = this.get('preparedTestResults').find(item => item.clientSideId === clientSideId);
+			let node = document.querySelector(`.item-id-${clientSideId}`);
+			let nodeHeader = node?.querySelector('.c-gp-results-raw-output_list_item_header_info');
+			let container = this.find('.c-gp-results-raw-output');
 
-			let updated = hidden.includes(resultId)
-				? hidden.filter(clientSideId => clientSideId !== resultId)
-				: [ ...hidden, resultId ];
+			if (!node || !nodeHeader || !container) { return; }
 
-			this.set(`hiddenTestResults[${activeTargetIdx}]`, updated);
+			let nodeRect = node.getBoundingClientRect();
+			let containerRect = container.getBoundingClientRect();
+			let nodeHeaderHeight = nodeHeader.getBoundingClientRect().height;
+
+			let relativeTop = nodeRect.top - containerRect.top;
+			let relativeLeft = nodeRect.left - containerRect.left;
+
+			this.set('floatingSetLocationButton', {
+				visible: true,
+				probeData,
+				top: relativeTop + nodeHeaderHeight / 2 - 12,
+				left: relativeLeft - 24,
+			});
 		},
+		hideSetLocationButton (event) {
+			if (event && event.relatedTarget) {
+				let container = event.target.closest('.c-gp-results-raw-output_list_item_header_info');
+				let setLocationButton = this.find('.c-gp-results-raw-output_set-location');
+
+				if ((container && container.contains(event.relatedTarget)) || (setLocationButton && setLocationButton.contains(event.relatedTarget))) {
+					return;
+				}
+			}
+
+			this.set('floatingSetLocationButton.visible', false);
+		},
+		setProbeAsLocation (probeData) {
+			this.set('currSearchLocation', `AS${probeData.asn}+${probeData.city}`);
+			this.set('floatingSetLocationButton.visible', false);
+		},
+		// --- Logic to determine whether to (always) show the HTTP response body ---
+		getResponseBodyCharsPerLine () {
+			let contentWidth = 0;
+			let outputHorizontalPadding = 32 * 2;
+
+			try {
+				let listEl = this.find('.c-gp-results-raw-output_list');
+				let listWidth = listEl?.getBoundingClientRect?.().width || 0;
+				contentWidth = Math.max(1, listWidth - outputHorizontalPadding);
+			} catch {
+				let windowWidth = window.innerWidth;
+				let outputListMargin = 24 * 2;
+				contentWidth = Math.min(1240, windowWidth - outputListMargin - outputHorizontalPadding);
+			}
+
+			let charWidth = this.get('responseBodyCharWidth') || 7;
+			return Math.max(1, Math.floor(contentWidth / charWidth));
+		},
+		isResponseBodyHidden (result) {
+			let activeTargetIdx = this.get('activeTargetIdx');
+			let body = result?.statsPerTarget?.[activeTargetIdx]?.responseBody || '';
+
+			if (!_.shouldCollapseResponseBody(body, this.getResponseBodyCharsPerLine())) {
+				return false;
+			}
+
+			let hidden = this.get(`hiddenResponseBody[${activeTargetIdx}]`) ?? [];
+			return hidden.includes(result?.clientSideId);
+		},
+		showResponseBody (resultId) {
+			let activeTargetIdx = this.get('activeTargetIdx');
+			let hidden = this.get(`hiddenResponseBody[${activeTargetIdx}]`) ?? [];
+			this.set(`hiddenResponseBody[${activeTargetIdx}]`, hidden.filter(clientSideId => clientSideId !== resultId));
+		},
+		// --- Output list height setter
 		setResultsBlockHeight () {
 			requestAnimationFrame(() => {
 				let listEl;
@@ -197,7 +362,7 @@
 					let currentScrollTop = listEl.scrollTop;
 					listEl.style.height = 'auto';
 
-					let items = listEl.querySelectorAll('.c-gp-results-raw-output_list_item_top-wrapper');
+					let items = listEl.querySelectorAll('.c-gp-results-raw-output_list_item');
 					let itemsAmount = items.length;
 
 					if (itemsAmount === 0) {
@@ -221,6 +386,10 @@
 					targetHeight = Math.ceil(targetHeight);
 					totalItemHeight = Math.ceil(totalItemHeight);
 
+					if (MIN_OUTPUT_HEIGHT > targetHeight && MIN_OUTPUT_HEIGHT <= totalItemHeight) {
+						targetHeight = MIN_OUTPUT_HEIGHT;
+					}
+
 					// if the container height has already been set for current results, only shrink the container if it would contain empty space (totalHeight < currentHeight)
 					if (!this.get('heightSetForCurrentResults') || (targetHeight !== currentHeight && (targetHeight > currentHeight || totalItemHeight < currentHeight))) {
 						listEl.style.height = `${targetHeight}px`;
@@ -233,64 +402,324 @@
 				}
 			});
 		},
-		setProbeAsLocation (probeData) {
-			this.set('currSearchLocation', `AS${probeData.asn}+${probeData.city}`);
+		// --- Logic to determine whether to wrap the header info ---
+		// First, calculate current character widths for the font used in the header info
+		// Then, use these widths to calculate the width of the header info text for each entity
+		// If one entity takes up too much space, wrap the header info
+		// Recalculate the overflow states for each entity on window resize
+		initHeaderInfoCharWidths () {
+			let measureNode = document.createElement('span');
+			measureNode.className = 'c-gp-results-raw-output_list_item_header_info_entity_field';
+			measureNode.style.position = 'absolute';
+			measureNode.style.visibility = 'hidden';
+			measureNode.style.whiteSpace = 'pre';
+			measureNode.style.pointerEvents = 'none';
+			measureNode.textContent = 'M';
+			document.body.appendChild(measureNode);
+
+			this.set('headerInfoFallbackCharWidth', measureNode.getBoundingClientRect().width || 7);
+
+			let computed = window.getComputedStyle(measureNode);
+			measureNode.style.fontFamily = computed.fontFamily;
+			measureNode.style.fontSize = computed.fontSize;
+			measureNode.style.fontWeight = computed.fontWeight;
+			measureNode.style.letterSpacing = computed.letterSpacing;
+			measureNode.style.lineHeight = computed.lineHeight;
+			let cacheKey = 'header-char-widths';
+			let cached = null;
+
+			try {
+				cached = JSON.parse(sessionStorage.getItem(cacheKey) || '{}');
+			} catch {
+				cached = {};
+			}
+
+			if (Object.keys(cached).length === 256) {
+				measureNode.remove();
+				this.set('headerInfoCharWidths', cached);
+				return;
+			}
+
+			let charWidths = Object.create(null);
+			let fallbackCharWidth = measureNode.getBoundingClientRect().width || 7;
+
+			for (let charCode = 0; charCode <= 255; charCode++) {
+				measureNode.textContent = String.fromCharCode(charCode);
+				charWidths[charCode] = measureNode.getBoundingClientRect().width || fallbackCharWidth;
+			}
+
+			try {
+				sessionStorage.setItem(cacheKey, JSON.stringify(charWidths));
+			} catch {
+				// ignore storage errors
+			}
+
+			measureNode.remove();
+			this.set('headerInfoCharWidths', charWidths);
 		},
-		populateNetworkDomains () {
-			let preparedTestResults = this.get('preparedTestResults') || [];
+		measureHeaderInfoTextWidth (value = '') {
+			let charWidths = this.get('headerInfoCharWidths');
+			let fallbackCharWidth = this.get('headerInfoFallbackCharWidth');
+			let text = String(value ?? '');
+			let totalWidth = 0;
+
+			for (let i = 0; i < text.length; i++) {
+				let charCode = text.charCodeAt(i);
+				totalWidth += charWidths[charCode] ?? fallbackCharWidth;
+			}
+
+			return totalWidth;
+		},
+		getHeaderInfoSourceEntityWidth (result) {
+			let asnText = `AS${result?.asn ?? ''}`;
+			let locationText = [ result?.city, result?.country, result?.continent ].filter(Boolean).join(', ');
+			let networkText = result?.network || '';
+			let fieldsTextWidth = this.measureHeaderInfoTextWidth(asnText) + this.measureHeaderInfoTextWidth(locationText) + this.measureHeaderInfoTextWidth(networkText);
+			let iconWidths = 16 + 24 + 16;
+			let textIconGaps = 6 * 3;
+			let separators = 2; // 1 * 2
+			let fieldsGap = 16 * 2;
+			let entityHorizontalPadding = 8 * 2;
+
+			return fieldsTextWidth + iconWidths + textIconGaps + separators + fieldsGap + entityHorizontalPadding;
+		},
+		getHeaderInfoTargetEntityWidth (result) {
 			let activeTargetIdx = this.get('activeTargetIdx');
-			let networkDomainNamesByIp = this.get('networkDomainNamesByIp');
-			let pendingDomainLookups = this.get('pendingDomainLookups');
+			let ipAddr = result?.statsPerTarget?.[activeTargetIdx]?.ipAddr;
+
+			if (!ipAddr) {
+				return 0;
+			}
+
+			let ipTextWidth = this.measureHeaderInfoTextWidth(ipAddr);
+			let locationLabel = this.isAnycastIp(ipAddr) ? 'Anycast' : this.getIpLocationLabel(ipAddr) || '';
+			let locationTextWidth = this.measureHeaderInfoTextWidth(locationLabel);
+			let networkName = this.shouldRenderTargetNetwork(ipAddr) ? this.getNetworkName(ipAddr) || '' : '';
+			let networkTextWidth = this.measureHeaderInfoTextWidth(networkName);
+			let fieldCount = 2 + (networkName ? 1 : 0);
+			let hasLocationIcon = this.isAnycastIp(ipAddr) || !!this.getIpLocationCountryCode(ipAddr);
+			let iconCount = 1 + (hasLocationIcon ? 1 : 0) + (networkName ? 1 : 0);
+			let iconWidths = 16 + (this.isAnycastIp(ipAddr) ? 22 : this.getIpLocationCountryCode(ipAddr) ? 24 : 0) + (networkName ? 20 : 0);
+			let textIconGaps = iconCount * 6;
+			let separators = fieldCount - 1;
+			let fieldsGap = 16 * (fieldCount - 1);
+			let entityHorizontalPadding = 8 * 2;
+
+			return ipTextWidth + locationTextWidth + networkTextWidth + iconWidths + textIconGaps + separators + fieldsGap + entityHorizontalPadding;
+		},
+		resetHeaderInfoEntityWidthCache () {
+			this.set('headerInfoEntityWidthsByKey', Object.create(null));
+		},
+		getHeaderInfoEntityWidths (result) {
+			let activeTargetIdx = this.get('activeTargetIdx');
+			let cacheKey = `${activeTargetIdx}:${result?.clientSideId ?? ''}`;
+			let cached = this.get('headerInfoEntityWidthsByKey')[cacheKey];
+
+			if (cached) {
+				return cached;
+			}
+
+			let target = this.getHeaderInfoTargetEntityWidth(result);
+			let source = target ? this.getHeaderInfoSourceEntityWidth(result) : 0;
+			let widths = { target, source };
+
+			this.set('headerInfoEntityWidthsByKey', {
+				...this.get('headerInfoEntityWidthsByKey'),
+				[cacheKey]: widths,
+			});
+
+			return widths;
+		},
+		getHeaderInfoAvailableHalfWidth () {
+			let listWidth = this.get('headerInfoListWidth') || 0;
+			let containerHorizontalPadding = 16 * 2;
+			let borderLeftWidth = 6;
+			let containerWidth = listWidth - containerHorizontalPadding - borderLeftWidth;
+			let arrowMinWidth = 110;
+			let arrowMarginRight = 32;
+			return (containerWidth / 2) - ((arrowMinWidth + arrowMarginRight) / 2);
+		},
+		recalculateHeaderInfoLayoutStates () {
+			let listEl = this.find('.c-gp-results-raw-output_list');
+			let listWidth = listEl?.getBoundingClientRect?.().width || 0;
+			let preparedTestResults = this.get('preparedTestResults') || [];
+			let overflowByResultId = Object.create(null);
+
+			this.set('headerInfoListWidth', listWidth);
+			let availableHalfWidth = this.getHeaderInfoAvailableHalfWidth();
 
 			preparedTestResults.forEach((result) => {
-				let ipAddr = result?.statsPerTarget?.[activeTargetIdx]?.ipAddr;
+				let widths = this.getHeaderInfoEntityWidths(result);
+				let targetEntityWidth = widths.target;
 
-				if (
-					!ipAddr
-					|| Object.hasOwn(networkDomainNamesByIp, ipAddr)
-					|| pendingDomainLookups.has(ipAddr)
-				) {
+				if (!targetEntityWidth) {
 					return;
 				}
 
-				pendingDomainLookups.add(ipAddr);
+				let sourceEntityWidth = widths.source;
 
-				http.getNetworkFromIP(ipAddr)
-					.then((res) => {
-						this.set('showingNetworkLogos', this.get('showingNetworkLogos') || !!res.domain);
-
-						this.set('networkDomainNamesByIp', {
-							...this.get('networkDomainNamesByIp'),
-							[ipAddr]: res,
-						});
-					})
-					.catch(() => {
-						this.set('networkDomainNamesByIp', {
-							...this.get('networkDomainNamesByIp'),
-							[ipAddr]: null,
-						});
-					})
-					.finally(() => {
-						pendingDomainLookups.delete(ipAddr);
-					});
+				overflowByResultId[result.clientSideId] = sourceEntityWidth > availableHalfWidth || targetEntityWidth > availableHalfWidth;
 			});
+
+			this.set('headerInfoOverflowByResultId', overflowByResultId);
 		},
-		getNetworkDomainName (ipAddr) {
-			let network = ipAddr ? this.get('networkDomainNamesByIp')[ipAddr] : null;
+		shouldUseOverflowLayout (result) {
+			let overflowByResultId = this.get('headerInfoOverflowByResultId') || {};
+			return !!overflowByResultId[result?.clientSideId];
+		},
+		// --- Fetching and caching network data + related getters ---
+		populateNetworkDomains () {
+			let preparedTestResults = this.get('preparedTestResults') || [];
+			let activeTargetIdx = this.get('activeTargetIdx');
+			let ipAddresses = new Set();
+			let asns = new Set();
+
+			preparedTestResults.forEach((result) => {
+				// target ip
+				let ipAddr = result?.statsPerTarget?.[activeTargetIdx]?.ipAddr;
+
+				if (ipAddr) {
+					ipAddresses.add(ipAddr);
+				}
+
+				// probe asn
+				let asn = result?.asn;
+
+				if (asn) {
+					asns.add(asn);
+				}
+			});
+
+			for (let ipAddr of ipAddresses) {
+				this.fetchNetworkByIp(ipAddr);
+			}
+
+			for (let asn of asns) {
+				this.fetchDomainByAsn(asn);
+			}
+		},
+		fetchNetworkByIp (ipAddr) {
+			let networkDomainNamesByIp = this.get('networkDomainNamesByIp');
+			let pendingDomainLookups = this.get('pendingDomainLookups');
+
+			if (!ipAddr || Object.hasOwn(networkDomainNamesByIp, ipAddr) || pendingDomainLookups.has(ipAddr)) {
+				return;
+			}
+
+			pendingDomainLookups.add(ipAddr);
+
+			http.getNetworkFromIP(ipAddr)
+				.then((res) => {
+					this.set('showingNetworkLogos', this.get('showingNetworkLogos') || !!res?.domain);
+
+					this.set('networkDomainNamesByIp', {
+						...this.get('networkDomainNamesByIp'),
+						[ipAddr]: res,
+					});
+				})
+				.catch(() => {
+					this.set('networkDomainNamesByIp', {
+						...this.get('networkDomainNamesByIp'),
+						[ipAddr]: null,
+					});
+				})
+				.finally(() => {
+					pendingDomainLookups.delete(ipAddr);
+					this.resetHeaderInfoEntityWidthCache();
+					this.recalculateHeaderInfoLayoutStates();
+				});
+		},
+		fetchDomainByAsn (asn) {
+			let networkDomainNamesByAsn = this.get('networkDomainNamesByAsn');
+			let pendingDomainLookups = this.get('pendingDomainLookups');
+
+			if (!asn || Object.hasOwn(networkDomainNamesByAsn, asn) || pendingDomainLookups.has(asn)) {
+				return;
+			}
+
+			pendingDomainLookups.add(asn);
+
+			http.getDomainFromASN(`AS${asn}`)
+				.then((res) => {
+					this.set('networkDomainNamesByAsn', {
+						...this.get('networkDomainNamesByAsn'),
+						[asn]: res,
+					});
+				})
+				.catch(() => {
+					this.set('networkDomainNamesByAsn', {
+						...this.get('networkDomainNamesByAsn'),
+						[asn]: null,
+					});
+				})
+				.finally(() => {
+					pendingDomainLookups.delete(asn);
+					this.resetHeaderInfoEntityWidthCache();
+					this.recalculateHeaderInfoLayoutStates();
+				});
+		},
+		getNetworkDataByIp (ipAddr) {
+			return ipAddr ? this.get('networkDomainNamesByIp')[ipAddr] : null;
+		},
+		getNetworkDataByAsn (asn) {
+			return asn ? this.get('networkDomainNamesByAsn')[asn] : null;
+		},
+		getNetworkDomainNameByIp (ipAddr) {
+			let network = this.getNetworkDataByIp(ipAddr);
+			return network?.domain || null;
+		},
+		getNetworkDomainNameByAsn (asn) {
+			let network = this.getNetworkDataByAsn(asn);
 			return network?.domain || null;
 		},
 		getNetworkName (ipAddr) {
-			let network = ipAddr ? this.get('networkDomainNamesByIp')[ipAddr] : null;
+			let network = this.getNetworkDataByIp(ipAddr);
 			return network?.name || network?.domain || null;
 		},
-		handleLogoLoadError (ipAddr) {
-			this.set('networkDomainNamesByIp', {
-				...this.get('networkDomainNamesByIp'),
-				[ipAddr]: null,
-			});
+		getLocationByIp (ipAddr) {
+			return this.getNetworkDataByIp(ipAddr)?.location || null;
 		},
-		getUrlNetworkName (base = '', network) {
-			return `${base}/${network.replace(/\./g, '').replace(/[\W]|_/g, ' ').replace(/\s\s+|_/g, ' ').trim().split(' ').join('-').toLowerCase()}`;
+		isAnycastIp (ipAddr) {
+			return this.getLocationByIp(ipAddr)?.isAnycast || false;
+		},
+		getIpLocationCountryCode (ipAddr) {
+			return this.getLocationByIp(ipAddr)?.country || null;
+		},
+		getIpLocationLabel (ipAddr) {
+			let location = this.getLocationByIp(ipAddr);
+
+			if (!location || location.isAnycast) {
+				return null;
+			}
+
+			let values = [ location.city, location.country, location.continent ].filter(Boolean);
+			return values.length ? values.join(', ') : null;
+		},
+		shouldRenderTargetNetwork (ipAddr) {
+			return this.getNetworkDomainNameByIp(ipAddr) && this.getNetworkName(ipAddr);
+		},
+		// --- Other functions ---
+		getStatusColor (targetStats) {
+			return _.getGpProbeStatusColor(targetStats.avgTiming, this.get('testReqParams').type === 'http' ? 1000 : 200);
+		},
+		hideShowTestResult (resultId) {
+			let activeTargetIdx = this.get('activeTargetIdx');
+			let hidden = this.get(`hiddenTestResults[${activeTargetIdx}]`) ?? [];
+			let hiddenContent = this.get(`hiddenResponseBody[${activeTargetIdx}]`) ?? [];
+			let preparedTestResults = this.get('preparedTestResults') || [];
+			let result = preparedTestResults.find(item => item.clientSideId === resultId);
+			let body = result?.statsPerTarget?.[activeTargetIdx]?.responseBody || '';
+
+			let updated = hidden.includes(resultId)
+				? hidden.filter(clientSideId => clientSideId !== resultId)
+				: [ ...hidden, resultId ];
+
+			this.set(`hiddenTestResults[${activeTargetIdx}]`, updated);
+
+			// reset the content state as well
+			if (!hiddenContent.includes(resultId) && _.shouldCollapseResponseBody(body, this.getResponseBodyCharsPerLine())) {
+				this.set(`hiddenResponseBody[${activeTargetIdx}]`, [ ...hiddenContent, resultId ]);
+			}
 		},
 	};
 </script>
