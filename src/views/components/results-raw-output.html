@@ -225,7 +225,6 @@
 				this.observe('preparedTestResults testInProgress', () => {
 					this.resetHeaderInfoEntityWidthCache();
 					this.set('heightSetForCurrentResults', false);
-					this.setResultsBlockHeight();
 					this.recalculateHeaderInfoLayoutStates();
 				}, { deep: true, defer: true });
 
@@ -235,12 +234,10 @@
 						return;
 					}
 
-					this.setResultsBlockHeight();
 					this.recalculateHeaderInfoLayoutStates();
 				}, { deep: true, defer: true, init: false });
 
 				this.observe('hiddenResponseBodies', () => {
-					this.setResultsBlockHeight();
 					this.recalculateHeaderInfoLayoutStates();
 				}, { deep: true, defer: true, init: false });
 
@@ -578,6 +575,7 @@
 			});
 
 			this.set('headerInfoOverflowByResultId', overflowByResultId);
+			this.setResultsBlockHeight();
 		},
 		shouldUseOverflowLayout (result) {
 			let overflowByResultId = this.get('headerInfoOverflowByResultId') || {};
