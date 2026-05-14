@@ -9,14 +9,14 @@
 	position: relative;
 	border-radius: 0 0 8px 8px;
 
-	button:focus-visible {
-		outline: none;
-		box-shadow: 0 0 0 2px #fff, 0 0 0 4px rgba(23, 212, 167, .48);
-	}
-
 	button:focus, button:active, button:active:focus {
 		outline: none;
 		box-shadow: none;
+	}
+
+	button:focus-visible {
+		outline: none;
+		box-shadow: 0 0 0 2px #fff, 0 0 0 4px rgba(23, 212, 167, .48);
 	}
 
 	&_list {
@@ -60,6 +60,10 @@
 					row-gap: 8px;
 					padding: 12px 16px;
 					border-bottom: 1px solid #e7e7ee;
+
+					&:focus-visible {
+						outline: none;
+					}
 
 					@media (max-width: @screen-xs-max) {
 						column-gap: 8px;
@@ -466,6 +470,11 @@
 		width: 24px;
 		height: 24px;
 		background: #f9fafb;
+
+		&.focus-outline {
+			outline: none;
+			box-shadow: 0 0 0 2px #fff, 0 0 0 4px rgba(23, 212, 167, .48);
+		}
 
 		&:hover {
 			background: #f2f2f2;

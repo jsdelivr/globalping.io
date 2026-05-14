@@ -7,6 +7,10 @@
 				<div class="c-gp-results-raw-output_list_item_header {{#if (!this.statsPerTarget[activeTargetIdx].rawOutput || isInfiniteModeRes) && testInProgress}}target-data-pending{{/if}}">
 					<div class="c-gp-results-raw-output_list_item_header_info {{#if @this.shouldUseOverflowLayout(this)}}is-overflow-layout{{/if}}"
 						style="border-left: 6px solid {{@this.getStatusColor(this.statsPerTarget[activeTargetIdx])}}; background: linear-gradient(to right, {{@this.getStatusColor(this.statsPerTarget[activeTargetIdx])}}0C, transparent 50%);"
+						tabindex="0"
+						on-focus="@this.enableHeaderFocused(this.clientSideId)"
+						on-blur="@this.hideSetLocationButton(@event)"
+						on-keydown="@this.headerKeydownHandler(@event)"
 						on-mouseenter="@this.showSetLocationButton(this.clientSideId)"
 						on-mouseleave="@this.hideSetLocationButton(@event)"
 					>
@@ -134,11 +138,11 @@
 	</div>
 
 	{{#if floatingSetLocationButton.visible}}
-		<button class="c-gp-results-raw-output_set-location"
+		<button class="c-gp-results-raw-output_set-location {{#if headerFocused}}focus-outline{{/if}}"
 			type="button"
 			style="top: {{floatingSetLocationButton.top}}px; left: {{floatingSetLocationButton.left}}px;"
 			as-tooltip="'Set as location for the next test', 'right'"
-			on-click="@this.setProbeAsLocation(floatingSetLocationButton.probeData)"
+			on-click="@this.setProbeAsLocation()"
 			on-mouseleave="@this.hideSetLocationButton(@event)">
 			<i class="fa fa-map-marker" aria-hidden="true"></i>
 		</button>
@@ -189,6 +193,7 @@
 					left: 0,
 					probeData: null,
 				},
+				headerFocused: false,
 			};
 		},
 		onrender () {
@@ -306,11 +311,22 @@
 				}
 			}
 
+			this.set('headerFocused', false);
 			this.set('floatingSetLocationButton.visible', false);
 		},
-		setProbeAsLocation (probeData) {
+		setProbeAsLocation () {
+			let probeData = this.get('floatingSetLocationButton.probeData');
 			this.set('currSearchLocation', `AS${probeData.asn}+${probeData.city}`);
 			this.set('floatingSetLocationButton.visible', false);
+		},
+		enableHeaderFocused (clientSideId) {
+			this.showSetLocationButton(clientSideId);
+			this.set('headerFocused', true);
+		},
+		headerKeydownHandler (event) {
+			if (event.key === 'Enter') {
+				this.setProbeAsLocation();
+			}
 		},
 		// --- Logic to determine whether to (always) show the HTTP response body ---
 		getResponseBodyCharsPerLine () {
