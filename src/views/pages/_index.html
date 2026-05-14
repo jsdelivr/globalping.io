@@ -2055,8 +2055,7 @@
 						return;
 					}
 
-					// Respect query-driven collapse first and prevent subsequent partial-result updates
-					// from overriding it with default auto-collapse.
+					// respect query-driven collapse first and prevent subsequent partial-result updates from overriding it with default auto-collapse
 					if (collapse) {
 						if (collapse === 'none') {
 							this.expandAllRawOutput({ withResponseBody: true });
@@ -2073,7 +2072,7 @@
 						return;
 					}
 
-					// Skip default collapsing until all target data is present for the first result row.
+					// skip default collapsing until all target data is present
 					if (targetCount && targetCount !== firstResultTargetCount) {
 						return;
 					}
@@ -2082,8 +2081,7 @@
 						this.collapseAllRawOutput({ responseBodyOnly: true });
 					}
 
-					// During a new HTTP run, response bodies can appear after rows are created.
-					// Re-apply content-only collapse so long bodies default to closed.
+					// close response bodies by default
 					if (!collapse && testType === 'http' && preparedTestResults.length) {
 						this.collapseAllRawOutput({ responseBodyOnly: true });
 					}
@@ -3135,8 +3133,8 @@
 		},
 		expandAllRawOutput ({ withResponseBody } = { withResponseBody: false }) {
 			this.set('hiddenTestResults', {
-				0: [ ],
-				1: [ ],
+				0: [],
+				1: [],
 			});
 
 			if (withResponseBody) {
