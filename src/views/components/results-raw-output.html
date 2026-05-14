@@ -8,7 +8,7 @@
 					<div class="c-gp-results-raw-output_list_item_header_info {{#if @this.shouldUseOverflowLayout(this)}}is-overflow-layout{{/if}}"
 						style="border-left: 6px solid {{@this.getStatusColor(this.statsPerTarget[activeTargetIdx])}}; background: linear-gradient(to right, {{@this.getStatusColor(this.statsPerTarget[activeTargetIdx])}}0C, transparent 50%);"
 						tabindex="0"
-						on-focus="@this.enableHeaderFocused(this.clientSideId)"
+						on-focus="@this.enableHeaderFocused(@event, this.clientSideId)"
 						on-blur="@this.hideSetLocationButton(@event)"
 						on-keydown="@this.headerKeydownHandler(@event)"
 						on-mouseenter="@this.showSetLocationButton(this.clientSideId)"
@@ -260,11 +260,6 @@
 					this.recalculateHeaderInfoLayoutStates();
 				}, { init: false });
 
-				this.observe('screenWidth', () => {
-					this.setResultsBlockHeight();
-					this.recalculateHeaderInfoLayoutStates();
-				}, { init: false });
-
 				this._onSetLocationViewportChange = () => {
 					this.hideSetLocationButton();
 				};
@@ -319,7 +314,12 @@
 			this.set('currSearchLocation', `AS${probeData.asn}+${probeData.city}`);
 			this.set('floatingSetLocationButton.visible', false);
 		},
-		enableHeaderFocused (clientSideId) {
+		enableHeaderFocused (event, clientSideId) {
+			if (!event.target.classList.contains('c-gp-results-raw-output_list_item_header_info')) {
+				this.hideSetLocationButton();
+				return;
+			}
+
 			this.showSetLocationButton(clientSideId);
 			this.set('headerFocused', true);
 		},
