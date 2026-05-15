@@ -9,7 +9,28 @@ const parseIPv4ToBigInt = (ip) => {
 
 const expandIPv6 = (ip) => {
 	if (ip.includes('.')) {
-		return null;
+		let lastColon = ip.lastIndexOf(':');
+
+		if (lastColon === -1) {
+			return null;
+		}
+
+		let ipv4Part = ip.slice(lastColon + 1);
+		let octets = ipv4Part.split('.');
+
+		if (octets.length !== 4) {
+			return null;
+		}
+
+		let bytes = octets.map(part => Number(part));
+
+		if (bytes.some(byte => !Number.isInteger(byte) || byte < 0 || byte > 255)) {
+			return null;
+		}
+
+		let high = (bytes[0] * 256 + bytes[1]).toString(16);
+		let low = (bytes[2] * 256 + bytes[3]).toString(16);
+		ip = `${ip.slice(0, lastColon)}:${high}:${low}`;
 	}
 
 	let [ left, right ] = ip.split('::');
