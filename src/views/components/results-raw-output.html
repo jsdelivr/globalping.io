@@ -23,14 +23,14 @@
 							</span>
 
 							<span class="c-gp-results-raw-output_list_item_header_info_entity_field">
-								<img width="24" height="16" alt="" src="https://cdn.jsdelivr.net/npm/country-flag-icons@1.5.5/3x2/{{this.country}}.svg">
+								<img width="21" height="14" alt="" src="https://cdn.jsdelivr.net/npm/country-flag-icons@1.5.5/3x2/{{this.country}}.svg">
 								<span>{{this.city}}, {{this.country}}, {{this.continent}}</span>
 							</span>
 
 							<span class="c-gp-results-raw-output_list_item_header_info_entity_field">
 								{{#if @this.getNetworkDomainNameByAsn(this.asn)}}
-									<img width="16"
-										height="16"
+									<img width="20"
+										height="20"
 										alt=""
 										src="{{@shared.logoHost}}/{{@this.getNetworkDomainNameByAsn(this.asn)}}?v={{@shared.assetsVersion}}">
 								{{/if}}
@@ -55,7 +55,7 @@
 										Anycast
 									{{elseif @this.getIpLocationLabel(this.statsPerTarget[activeTargetIdx].ipAddr)}}
 										{{#if @this.getIpLocationCountryCode(this.statsPerTarget[activeTargetIdx].ipAddr)}}
-											<img width="24" height="16" alt="" src="https://cdn.jsdelivr.net/npm/country-flag-icons@1.5.5/3x2/{{@this.getIpLocationCountryCode(this.statsPerTarget[activeTargetIdx].ipAddr)}}.svg">
+											<img width="21" height="14" alt="" src="https://cdn.jsdelivr.net/npm/country-flag-icons@1.5.5/3x2/{{@this.getIpLocationCountryCode(this.statsPerTarget[activeTargetIdx].ipAddr)}}.svg">
 										{{/if}}
 										<span>{{@this.getIpLocationLabel(this.statsPerTarget[activeTargetIdx].ipAddr)}}</span>
 									{{/if}}
@@ -292,8 +292,8 @@
 			this.set('floatingSetLocationButton', {
 				visible: true,
 				probeData,
-				top: relativeTop + nodeHeaderHeight / 2 - 12,
-				left: relativeLeft - 24,
+				top: relativeTop + nodeHeaderHeight / 2 - 13,
+				left: relativeLeft - 26,
 			});
 		},
 		hideSetLocationButton (event) {
@@ -494,11 +494,10 @@
 			let fieldsTextWidth = this.measureHeaderInfoTextWidth(asnText) + this.measureHeaderInfoTextWidth(locationText) + this.measureHeaderInfoTextWidth(networkText);
 			let iconWidths = 16 + 24 + 16;
 			let textIconGaps = 6 * 3;
-			let separators = 2; // 1 * 2
 			let fieldsGap = 16 * 2;
 			let entityHorizontalPadding = 8 * 2;
 
-			return fieldsTextWidth + iconWidths + textIconGaps + separators + fieldsGap + entityHorizontalPadding;
+			return fieldsTextWidth + iconWidths + textIconGaps + fieldsGap + entityHorizontalPadding;
 		},
 		getHeaderInfoTargetEntityWidth (result) {
 			let activeTargetIdx = this.get('activeTargetIdx');
@@ -516,13 +515,12 @@
 			let fieldCount = 2 + (networkName ? 1 : 0);
 			let hasLocationIcon = this.isAnycastIp(ipAddr) || !!this.getIpLocationCountryCode(ipAddr);
 			let iconCount = 1 + (hasLocationIcon ? 1 : 0) + (networkName ? 1 : 0);
-			let iconWidths = 16 + (this.isAnycastIp(ipAddr) ? 22 : this.getIpLocationCountryCode(ipAddr) ? 24 : 0) + (networkName ? 20 : 0);
+			let iconWidths = 16 + (this.isAnycastIp(ipAddr) ? 22 : this.getIpLocationCountryCode(ipAddr) ? 21 : 0) + (networkName ? 20 : 0);
 			let textIconGaps = iconCount * 6;
-			let separators = fieldCount - 1;
 			let fieldsGap = 16 * (fieldCount - 1);
 			let entityHorizontalPadding = 8 * 2;
 
-			return ipTextWidth + locationTextWidth + networkTextWidth + iconWidths + textIconGaps + separators + fieldsGap + entityHorizontalPadding;
+			return ipTextWidth + locationTextWidth + networkTextWidth + iconWidths + textIconGaps + fieldsGap + entityHorizontalPadding;
 		},
 		resetHeaderInfoEntityWidthCache () {
 			this.set('headerInfoEntityWidthsByKey', Object.create(null));
