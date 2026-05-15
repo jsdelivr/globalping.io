@@ -3,10 +3,6 @@ const path = require('node:path');
 const net = require('node:net');
 const { parse } = require('csv-parse/sync');
 
-const parseIPv4ToBigInt = (ip) => {
-	return ip.split('.').map(Number).reduce((acc, part) => (acc * 256n) + BigInt(part), 0n);
-};
-
 const expandIPv6 = (ip) => {
 	if (ip.includes('.')) {
 		let lastColon = ip.lastIndexOf(':');
@@ -45,6 +41,10 @@ const expandIPv6 = (ip) => {
 	return [ ...leftParts, ...new Array(missing).fill('0'), ...rightParts ];
 };
 
+const parseIPv4ToBigInt = (ip) => {
+	return ip.split('.').map(Number).reduce((acc, part) => (acc * 256n) + BigInt(part), 0n);
+};
+
 const parseIPv6ToBigInt = (ip) => {
 	let parts = expandIPv6(ip);
 
@@ -63,7 +63,11 @@ const parseIpToBigInt = (ip, ipType) => {
 	return parseIPv6ToBigInt(ip);
 };
 
-const cidrToInterval = (value, ipType) => {
+const parseValueToInterval = (value, ipType) => {
+	if (!value) {
+		return null;
+	}
+
 	let [ network, prefixRaw ] = value.split('/');
 	let bits = ipType === 'ipv4' ? 32 : 128;
 	let prefix = Number(prefixRaw);
@@ -80,39 +84,10 @@ const cidrToInterval = (value, ipType) => {
 
 	let hostBits = BigInt(bits - prefix);
 	let size = 2n ** hostBits;
+
 	// normalize network address to CIDR boundary, then derive [start, end].
 	let start = (address / size) * size;
 	return [ start, start + size - 1n ];
-};
-
-const parseValueToInterval = (value, ipType) => {
-	if (!value) {
-		return null;
-	}
-
-	if (value.includes('/')) {
-		return cidrToInterval(value, ipType);
-	}
-
-	if (value.includes('-')) {
-		let [ startRaw, endRaw ] = value.split('-').map(part => part.trim());
-		let start = parseIpToBigInt(startRaw, ipType);
-		let end = parseIpToBigInt(endRaw, ipType);
-
-		if (start === null || end === null) {
-			return null;
-		}
-
-		return start <= end ? [ start, end ] : [ end, start ];
-	}
-
-	let address = parseIpToBigInt(value, ipType);
-
-	if (address === null) {
-		return null;
-	}
-
-	return [ address, address ];
 };
 
 const mergeIntervals = (intervals) => {
@@ -146,7 +121,7 @@ const loadCsv = (filename) => {
 };
 
 /**
- * Builds an IP address lookup from CSV data by parsing prefixes/ranges into
+ * Builds an IP address lookup from CSV data by parsing CIDR prefixes into
  * numeric intervals, merging adjacent overlaps, and checking candidates via a binary search.
  */
 const createIpLookup = (filename, ipType) => {
