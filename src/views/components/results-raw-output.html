@@ -431,17 +431,20 @@
 			measureNode.style.visibility = 'hidden';
 			measureNode.style.whiteSpace = 'pre';
 			measureNode.style.pointerEvents = 'none';
+			measureNode.style.display = 'inline-block';
+			measureNode.style.margin = '0';
+			measureNode.style.padding = '0';
+			measureNode.style.border = '0';
+			measureNode.style.letterSpacing = 'normal';
+			measureNode.style.fontFamily = 'Lexend, sans-serif';
+			measureNode.style.fontSize = '13px';
+			measureNode.style.fontWeight = '400';
 			measureNode.textContent = 'M';
 			document.body.appendChild(measureNode);
 
-			this.set('headerInfoFallbackCharWidth', measureNode.getBoundingClientRect().width || 7);
+			let fallbackCharWidth = measureNode.getBoundingClientRect().width || 7;
+			this.set('headerInfoFallbackCharWidth', fallbackCharWidth);
 
-			let computed = window.getComputedStyle(measureNode);
-			measureNode.style.fontFamily = computed.fontFamily;
-			measureNode.style.fontSize = computed.fontSize;
-			measureNode.style.fontWeight = computed.fontWeight;
-			measureNode.style.letterSpacing = computed.letterSpacing;
-			measureNode.style.lineHeight = computed.lineHeight;
 			let cacheKey = 'header-char-widths';
 			let cached = null;
 
@@ -458,9 +461,20 @@
 			}
 
 			let charWidths = Object.create(null);
-			let fallbackCharWidth = measureNode.getBoundingClientRect().width || 7;
+			let basePairWidth = 0;
+			let noSpacePairWidth = 0;
+
+			measureNode.textContent = 'a a';
+			basePairWidth = measureNode.getBoundingClientRect().width || 0;
+			measureNode.textContent = 'aa';
+			noSpacePairWidth = measureNode.getBoundingClientRect().width || 0;
 
 			for (let charCode = 0; charCode <= 255; charCode++) {
+				if (charCode === 32) {
+					charWidths[charCode] = (basePairWidth - noSpacePairWidth) || (fallbackCharWidth * 0.5);
+					continue;
+				}
+
 				measureNode.textContent = String.fromCharCode(charCode);
 				charWidths[charCode] = measureNode.getBoundingClientRect().width || fallbackCharWidth;
 			}
