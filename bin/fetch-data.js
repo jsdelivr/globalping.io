@@ -59,11 +59,11 @@ async function fetchAndSaveAsnDomainMap (sourceUrl) {
 		}
 	}
 
+	await parsePromise;
+
 	if (!hasRecords) {
 		throw new Error('No data found in ipinfo-lite CSV file');
 	}
-
-	await parsePromise;
 
 	writeTextFile(ASN_DOMAIN_OUTPUT_PATH, `${JSON.stringify(asnDomainMap, null, '\t')}\n`);
 	console.log(`ASN-domain map saved: ${ASN_DOMAIN_OUTPUT_PATH}`);
@@ -133,6 +133,7 @@ async function extractFileFromTarGz (sourceUrl, targetFileName) {
 
 		if (!isTarget || extractedFileBuffer) {
 			stream.resume();
+			stream.on('error', next);
 			stream.on('end', next);
 			return;
 		}
