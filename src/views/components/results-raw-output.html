@@ -563,9 +563,8 @@
 		},
 		getHeaderInfoAvailableHalfWidth () {
 			let listWidth = this.get('headerInfoListWidth') || 0;
-			let containerHorizontalPadding = 16 * 2;
-			let borderLeftWidth = 6;
-			let containerWidth = listWidth - containerHorizontalPadding - borderLeftWidth;
+			let containerHorizontalPadding = 24 * 2;
+			let containerWidth = listWidth - containerHorizontalPadding;
 			let arrowMinWidth = 110;
 			let arrowMarginRight = 32;
 			return (containerWidth / 2) - ((arrowMinWidth + arrowMarginRight) / 2);
