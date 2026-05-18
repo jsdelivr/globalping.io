@@ -44,12 +44,6 @@
 			&_header {
 				background: #fbfbfb;
 
-				&.target-data-pending {
-					background: linear-gradient(135deg, #fbfbfb 20%, #f0f0f0 50%, #fbfbfb 80%);
-					background-size: 200% 100%;
-					animation: bg-loading 3s linear infinite;
-				}
-
 				&_info {
 					width: 100%;
 					display: flex;
@@ -324,12 +318,18 @@
 				}
 
 				&_metrics-controls {
+					position: relative;
 					display: flex;
 					justify-content: space-between;
 					align-items: start;
 					padding: 8px 16px 8px 22px;
 					border-bottom: 1px solid #e7e7ee;
 					background: #fbfbfb;
+					min-height: 46px;
+
+					& > .c-dot-loader {
+						margin: auto 0;
+					}
 
 					&_metrics {
 						flex-grow: 1;
@@ -483,15 +483,5 @@
 		@media (max-width: @screen-xs-max) {
 			display: none;
 		}
-	}
-}
-
-@keyframes bg-loading {
-	0% {
-		background-position: -200% 0;
-	}
-
-	100% {
-		background-position: 200% 0;
 	}
 }

@@ -1,10 +1,11 @@
 <link rel="ractive" href="./tls-details.html" name="c-gp-tls-details">
+<link rel="ractive" href="./dot-loader.html" name="c-dot-loader">
 
 <div class="c-gp-results-raw-output">
 	<div class="c-gp-results-raw-output_list {{#if testInProgress}}round-bottom{{/if}}" on-scroll="@this.hideSetLocationButton()">
 		{{#each preparedTestResults}}
 			<div class="c-gp-results-raw-output_list_item item-id-{{this.clientSideId}}">
-				<div class="c-gp-results-raw-output_list_item_header {{#if (!this.statsPerTarget[activeTargetIdx].rawOutput || isInfiniteModeRes) && testInProgress}}target-data-pending{{/if}}">
+				<div class="c-gp-results-raw-output_list_item_header">
 					<div class="c-gp-results-raw-output_list_item_header_info {{#if @this.shouldUseOverflowLayout(this)}}is-overflow-layout{{/if}}"
 						style="border-left: 6px solid {{@this.getStatusColor(this.statsPerTarget[activeTargetIdx])}}; background: linear-gradient(to right, {{@this.getStatusColor(this.statsPerTarget[activeTargetIdx])}}0C, transparent 50%);"
 						tabindex="0"
@@ -74,36 +75,38 @@
 						{{/if}}
 					</div>
 
-					{{#if this.statsPerTarget[activeTargetIdx].rawOutput}}
 						<div class="c-gp-results-raw-output_list_item_header_metrics-controls">
-							<div class="c-gp-results-raw-output_list_item_header_metrics-controls_metrics">
-								{{#if _.getGpTargetTiming(this.statsPerTarget[activeTargetIdx])}}
-									<span class="c-gp-results-raw-output_list_item_header_metrics-controls_metric">
-										Time
-										<b>
-											{{_.getGpTargetTiming(this.statsPerTarget[activeTargetIdx])}}
-										</b>
-									</span>
-								{{/if}}
-
-								{{#unless this.statsPerTarget[activeTargetIdx].isFailed || this.statsPerTarget[activeTargetIdx].avgTiming === PROBE_STATUS_OFFLINE}}
-									{{#each this.statsPerTarget[activeTargetIdx].extraValues}}
+							{{#if !this.statsPerTarget[activeTargetIdx].rawOutput}}
+								<c-dot-loader></c-dot-loader>
+							{{else}}
+								<div class="c-gp-results-raw-output_list_item_header_metrics-controls_metrics">
+									{{#if _.getGpTargetTiming(this.statsPerTarget[activeTargetIdx])}}
 										<span class="c-gp-results-raw-output_list_item_header_metrics-controls_metric">
-											{{this.text}}
-											<b>{{this.value}}{{this.units}}</b>
+											Time
+											<b>
+												{{_.getGpTargetTiming(this.statsPerTarget[activeTargetIdx])}}
+											</b>
 										</span>
-									{{/each}}
-								{{/unless}}
-							</div>
+									{{/if}}
 
-							<button on-click="@this.hideShowTestResult(this.clientSideId)"
-								role="button"
-								aria-label="{{#if hiddenTestResults[activeTargetIdx].includes(this.clientSideId)}}Expand{{else}}Collapse{{/if}} output"
-								class="c-gp-results-raw-output_list_item_header_metrics-controls_dropdown">
-								<i class="fa fa-chevron-{{#if hiddenTestResults[activeTargetIdx].includes(this.clientSideId)}}down{{else}}up{{/if}}" aria-hidden="true"/>
-							</button>
+									{{#unless this.statsPerTarget[activeTargetIdx].isFailed || this.statsPerTarget[activeTargetIdx].avgTiming === PROBE_STATUS_OFFLINE}}
+										{{#each this.statsPerTarget[activeTargetIdx].extraValues}}
+											<span class="c-gp-results-raw-output_list_item_header_metrics-controls_metric">
+												{{this.text}}
+												<b>{{this.value}}{{this.units}}</b>
+											</span>
+										{{/each}}
+									{{/unless}}
+								</div>
+
+								<button on-click="@this.hideShowTestResult(this.clientSideId)"
+									role="button"
+									aria-label="{{#if hiddenTestResults[activeTargetIdx].includes(this.clientSideId)}}Expand{{else}}Collapse{{/if}} output"
+									class="c-gp-results-raw-output_list_item_header_metrics-controls_dropdown">
+									<i class="fa fa-chevron-{{#if hiddenTestResults[activeTargetIdx].includes(this.clientSideId)}}down{{else}}up{{/if}}" aria-hidden="true"/>
+								</button>
+							{{/if}}
 						</div>
-					{{/if}}
 
 				{{#if this.statsPerTarget[activeTargetIdx].rawOutput}}
 					<div class="c-gp-results-raw-output_list_item_output">
