@@ -1946,6 +1946,7 @@
 				if (qsMeasurementIdsArr.length) {
 					this.set('qsMeasurementIdsArr', qsMeasurementIdsArr);
 					this.set('shareResFlow', true);
+					this.set('prevProbesMeasId', qsMeasurementIdsArr[0]);
 
 					this.getMultipleTestMeasurementById(qsMeasurementIdsArr, isInfiniteMeas);
 				}
