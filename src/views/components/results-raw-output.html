@@ -113,11 +113,10 @@
 						<pre class="{{#if hiddenTestResults[activeTargetIdx].includes(this.clientSideId)}}hide-code{{/if}}">{{this.statsPerTarget[activeTargetIdx].rawOutput}}</pre>
 						{{#if hiddenTestResults[activeTargetIdx].includes(this.clientSideId)}}
 							<button type="button"
-								class="c-gp-results-raw-output_list_item_content-toggle center-vertically"
+								class="c-gp-results-raw-output_list_item_expand-output"
 								on-click="@this.hideShowTestResult(this.clientSideId)"
 								aria-label="Click to expand">
-								<i class="fa fa-chevron-down" aria-hidden="true"/>
-								Click to expand
+								<span>Click to expand</span>
 							</button>
 						{{/if}}
 
