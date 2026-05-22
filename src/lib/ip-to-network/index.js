@@ -53,6 +53,7 @@ function getLocationByIp (ip) {
 		return {
 			city: null,
 			country: null,
+			state: null,
 			continent: null,
 			isAnycast: true,
 		};
@@ -60,10 +61,16 @@ function getLocationByIp (ip) {
 
 	let locationResult = ipToLocationReader?.get(ip);
 
+	let city = locationResult?.city?.names?.en || null;
+	let country = locationResult?.country?.iso_code || null;
+	let state = country === 'US' ? locationResult.subdivisions?.[0]?.iso_code || null : null;
+	let continent = locationResult?.continent?.code || null;
+
 	return {
-		city: locationResult?.city?.names?.en || null,
-		country: locationResult?.country?.iso_code || null,
-		continent: locationResult?.continent?.code || null,
+		city,
+		country,
+		state,
+		continent,
 		isAnycast: false,
 	};
 }

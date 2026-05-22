@@ -25,7 +25,7 @@
 
 							<span class="c-gp-results-raw-output_list_item_header_info_entity_field">
 								<img width="21" height="14" alt="" src="https://cdn.jsdelivr.net/npm/country-flag-icons@1.5.5/3x2/{{this.country}}.svg">
-								<span>{{this.city}}, {{this.country}}, {{this.continent}}</span>
+								<span>{{this.city}}, {{#if this.state}}{{this.state}}, {{/if}}{{this.country}}</span>
 							</span>
 
 							<span class="c-gp-results-raw-output_list_item_header_info_entity_field">
@@ -723,7 +723,7 @@
 				return null;
 			}
 
-			let values = [ location.city, location.country, location.continent ].filter(Boolean);
+			let values = [ location.city, location.state, location.country ].filter(Boolean);
 			return values.length ? values.join(', ') : null;
 		},
 		shouldRenderTargetNetwork (ipAddr) {
