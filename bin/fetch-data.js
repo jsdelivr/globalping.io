@@ -49,17 +49,19 @@ async function fetchAndSaveAsnDomainMap (sourceUrl) {
 		parser,
 	);
 
-	for await (let row of parser) {
-		hasRecords = true;
-		let asn = row[ASN_COLUMN_INDEX];
-		let domain = row[DOMAIN_COLUMN_INDEX];
+	let consumePromise = (async () => {
+		for await (let row of parser) {
+			hasRecords = true;
+			let asn = row[ASN_COLUMN_INDEX];
+			let domain = row[DOMAIN_COLUMN_INDEX];
 
-		if (asn && domain) {
-			asnDomainMap[asn] = domain;
+			if (asn && domain) {
+				asnDomainMap[asn] = domain;
+			}
 		}
-	}
+	})();
 
-	await parsePromise;
+	await Promise.all([ parsePromise, consumePromise ]);
 
 	if (!hasRecords) {
 		throw new Error('No data found in ipinfo-lite CSV file');
@@ -110,15 +112,17 @@ async function downloadAndFilterAnycastPrefixes (sourceUrl, outputPath) {
 		: pipeline(inputStream, parser);
 	let prefixes = [ 'prefix' ];
 
-	for await (let row of parser) {
-		if (!shouldIncludeAnycastPrefix(row)) {
-			continue;
+	let consumePromise = (async () => {
+		for await (let row of parser) {
+			if (!shouldIncludeAnycastPrefix(row)) {
+				continue;
+			}
+
+			prefixes.push(row[0].trim());
 		}
+	})();
 
-		prefixes.push(row[0].trim());
-	}
-
-	await parsePromise;
+	await Promise.all([ parsePromise, consumePromise ]);
 	writeTextFile(outputPath, `${prefixes.join('\n')}\n`);
 	console.log(`Filtered anycast prefixes saved: ${outputPath}`);
 }
