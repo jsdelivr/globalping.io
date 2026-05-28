@@ -124,10 +124,10 @@
 							{{#if @this.isResponseBodyHidden(this)}}
 								<button type="button"
 									class="c-gp-results-raw-output_list_item_content-toggle"
-									on-click="@this.showResponseBody(this.clientSideId)"
-									aria-label="Show response body">
+									on-click="expandAllRawOutput({ responseBodyOnly: true })"
+									aria-label="Show response bodies">
 									<i class="fa fa-chevron-down" aria-hidden="true"/>
-									Show response body
+									Show response bodies
 								</button>
 							{{/if}}
 							<br>
@@ -359,11 +359,6 @@
 
 			let hidden = this.get(`hiddenResponseBodies[${activeTargetIdx}]`) ?? [];
 			return hidden.includes(result?.clientSideId);
-		},
-		showResponseBody (resultId) {
-			let activeTargetIdx = this.get('activeTargetIdx');
-			let hidden = this.get(`hiddenResponseBodies[${activeTargetIdx}]`) ?? [];
-			this.set(`hiddenResponseBodies[${activeTargetIdx}]`, hidden.filter(clientSideId => clientSideId !== resultId));
 		},
 		// --- Output list height setter
 		setResultsBlockHeight () {
@@ -740,15 +735,16 @@
 			let preparedTestResults = this.get('preparedTestResults') || [];
 			let result = preparedTestResults.find(item => item.clientSideId === resultId);
 			let body = result?.statsPerTarget?.[activeTargetIdx]?.responseBody || '';
+			let isOpening = hidden.includes(resultId);
 
-			let updated = hidden.includes(resultId)
+			let updated = isOpening
 				? hidden.filter(clientSideId => clientSideId !== resultId)
 				: [ ...hidden, resultId ];
 
 			this.set(`hiddenTestResults[${activeTargetIdx}]`, updated);
 
-			// reset the content state as well
-			if (!hiddenContent.includes(resultId) && _.shouldCollapseResponseBody(body, this.getResponseBodyCharsPerLine())) {
+			// Reset the content state when closing output, but keep the current response-body state when opening it.
+			if (!isOpening && !hiddenContent.includes(resultId) && _.shouldCollapseResponseBody(body, this.getResponseBodyCharsPerLine())) {
 				this.set(`hiddenResponseBodies[${activeTargetIdx}]`, [ ...hiddenContent, resultId ]);
 			}
 		},

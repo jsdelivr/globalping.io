@@ -706,9 +706,6 @@
 						collapseOutput="{{@this.collapseAllRawOutput}}"
 						expandOutput="{{@this.expandAllRawOutput}}"
 						allCollapsed="{{allCollapsed}}"
-						anyCollapsed="{{anyCollapsed}}"
-						allResponseBodiesCollapsed="{{allResponseBodiesCollapsed}}"
-						anyResponseBodyCollapsible="{{anyResponseBodyCollapsible}}"
 						testType="{{testReqParams.type}}"
 						sortOrder="{{sortOrder}}"
 						sortBy="{{sortBy}}"
@@ -733,7 +730,8 @@
 								sortOrder="{{sortOrder}}"
 								sortBy="{{sortBy}}"
 								showingNetworkLogos="{{showingNetworkLogos}}"
-								responseBodyCharWidth="{{responseBodyCharWidth}}">
+								responseBodyCharWidth="{{responseBodyCharWidth}}"
+								expandAllRawOutput="{{@this.expandAllRawOutput}}">
 							</c-gp-results-raw-output>
 						</div>
 					{{else}}
@@ -1856,36 +1854,6 @@
 
 				return true;
 			},
-			anyCollapsed () {
-				let targetCount = this.get('targetsArr').length;
-
-				for (let i = 0; i < targetCount; i++) {
-					if (this.get(`hiddenTestResults[${i}]`).length) {
-						return true;
-					}
-				}
-
-				return false;
-			},
-			allResponseBodiesCollapsed () {
-				let targetCount = this.get('targetsArr').length;
-				let preparedTestResults = this.get('preparedTestResults') || [];
-				let hiddenResponseBodies = this.get('hiddenResponseBodies') || {};
-
-				for (let i = 0; i < targetCount; i++) {
-					let collapsibleProbeIds = preparedTestResults
-						.filter(result => _.shouldCollapseResponseBody(result?.statsPerTarget?.[i]?.responseBody || '', this.getRawOutputCharsPerLine()))
-						.map(result => result.clientSideId);
-					let hiddenForTarget = hiddenResponseBodies[i] || [];
-					let hiddenCollapsibleCount = hiddenForTarget.filter(id => collapsibleProbeIds.includes(id)).length;
-
-					if (hiddenCollapsibleCount !== collapsibleProbeIds.length) {
-						return false;
-					}
-				}
-
-				return true;
-			},
 			anyResponseBodyCollapsible () {
 				let preparedTestResults = this.get('preparedTestResults') || [];
 				let targetsArr = this.get('targetsArr') || [];
@@ -2055,6 +2023,10 @@
 				});
 
 				this.observe('preparedTestResults', (preparedTestResults, prevPreparedTestResults) => {
+					if (_.isEqual(preparedTestResults, prevPreparedTestResults)) {
+						return;
+					}
+
 					let collapse = this.get('collapseFromQuery');
 					let testType = (this.get('testReqParams.type') || '').toLowerCase();
 					let targetCount = this.get('targetsArr')?.length || 0;
@@ -3118,20 +3090,12 @@
 			let charWidth = this.get('responseBodyCharWidth') || 7;
 			return Math.max(1, Math.floor(contentWidth / charWidth));
 		},
-		collapseAllRawOutput ({ responseBodyOnly } = { responseBodyOnly: false }) {
+		collapseAllRawOutput ({ responseBodyOnly = false } = {}) {
 			let ids = this.get('preparedTestResults').map(result => result.clientSideId);
-			let hiddenResponseBodyByTarget = { 0: [], 1: [] };
-			let targets = this.get('targetsArr') || [];
-
-			for (let targetIdx = 0; targetIdx < targets.length; targetIdx++) {
-				hiddenResponseBodyByTarget[targetIdx] = this.get('preparedTestResults')
-					.filter(result => _.shouldCollapseResponseBody(result?.statsPerTarget?.[targetIdx]?.responseBody || '', this.getRawOutputCharsPerLine()))
-					.map(result => result.clientSideId);
-			}
 
 			this.set('hiddenResponseBodies', {
-				0: [ ...hiddenResponseBodyByTarget[0] || [] ],
-				1: [ ...hiddenResponseBodyByTarget[1] || [] ],
+				0: [ ...ids ],
+				1: [ ...ids ],
 			});
 
 			if (!responseBodyOnly) {
@@ -3141,14 +3105,18 @@
 				});
 			}
 		},
-		expandAllRawOutput ({ withResponseBody } = { withResponseBody: false }) {
-			this.set('hiddenTestResults', {
-				0: [],
-				1: [],
-			});
-
-			if (withResponseBody) {
+		expandAllRawOutput ({ withResponseBody = false, responseBodyOnly = false } = {}) {
+			if (withResponseBody || responseBodyOnly) {
 				this.set(`hiddenResponseBodies`, {
+					0: [],
+					1: [],
+				});
+			} else {
+				this.collapseAllRawOutput({ responseBodyOnly: true });
+			}
+
+			if (!responseBodyOnly) {
+				this.set('hiddenTestResults', {
 					0: [],
 					1: [],
 				});
