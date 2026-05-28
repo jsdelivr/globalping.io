@@ -5,3 +5,39 @@
 		}
 	}
 }
+
+.tls-error {
+	color: #eb3333;
+	border: 1px solid #eb3333;
+	transition: color 200ms, background 200ms;
+
+	&:active, &:hover, &:focus {
+		color: #ec4c4c;
+	}
+}
+
+.popover-danger {
+	&.right {
+		& > .arrow {
+			border-right-color: #eb3333;
+		}
+	}
+
+	&.left {
+		& > .arrow {
+			border-left-color: #eb3333;
+		}
+	}
+
+	&.top {
+		& > .arrow {
+			border-top-color: #eb3333;
+		}
+	}
+
+	&.bottom {
+		& > .arrow {
+			border-bottom-color: #eb3333;
+		}
+	}
+}

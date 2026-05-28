@@ -1,6 +1,6 @@
 {{#if tls}}
-	<button type="button" on-click="@this.togglePopover()" class="btn gp-tls-details {{#unless tls.authorized}}btn-outline-danger{{/unless}}" aria-label="TLS Details" title="{{tls.protocol}} - {{tls.cipherName}}" data-content="{{@this.getTlsString(tls)}}" data-html="true" data-container=".c-gp-results-raw-output">
-		<i class="fa {{#if tls.authorized}}fa-lock{{else}}fa-exclamation-triangle{{/if}}" aria-hidden="true"></i> TLS
+	<button type="button" on-click="@this.togglePopover()" class="btn gp-tls-details {{#unless tls.authorized}}tls-error{{/unless}}" aria-label="TLS Details" title="{{tls.protocol}} - {{tls.cipherName}}" data-content="{{@this.getTlsString(tls)}}" data-html="true" data-container=".c-gp-results-raw-output">
+		<i class="fa {{#if tls.authorized}}fa-lock{{else}}fa-unlock-alt{{/if}}" aria-hidden="true"></i> TLS
 	</button>
 {{/if}}
 
