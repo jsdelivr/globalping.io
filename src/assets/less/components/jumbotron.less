@@ -19,6 +19,10 @@
 		&_grid {
 			margin: 0 auto;
 			z-index: -1;
+
+			@media (min-width: @screen-sm-min) {
+				max-width: 120vw;
+			}
 		}
 
 		&_blur {
@@ -51,31 +55,46 @@
 
 	// styles for a specific GP pages
 	&.main {
-		height: 456px;
-		background: linear-gradient(180deg, #17233a 0, #0a206f 100%);
+		overflow: clip visible;
+		height: 532px;
+		background: linear-gradient(180deg, #17233a 0, #17233a 50%, #0a206f 70%, #fff 100%);
 
 		@media (min-width: @screen-sm-min) {
-			height: 584px;
+			height: 680px;
 		}
 
 		.jumbotron_blur {
-			top: 160px;
-			height: 296px;
+			top: 210px;
+			height: 360px;
+			overflow: visible;
+			z-index: -1;
+			filter: blur(30px);
 
 			@media (min-width: @screen-sm-min) {
-				top: 288px;
+				top: 360px;
 			}
 
 			&_circle-one {
-				height: 500px;
-				top: -14%;
-				left: -30%;
+				height: 340px;
+				width: 1800px;
+				top: 50%;
+				left: 50%;
+				margin: 0;
+				z-index: 2;
+				transform: translate(-60%, -50%);
+				background: radial-gradient(44% 44% at 49.81% 37.55%, rgba(23, 212, 167, .82) 0%, rgba(23, 212, 167, .52) 56%, rgba(23, 212, 167, 0) 100%);
 			}
 
 			&_circle-two {
-				height: 522px;
-				top: -49%;
-				left: -1.5%;
+				height: 260px;
+				width: 150%;
+				top: 50%;
+				left: 50%;
+				margin: 0;
+				z-index: 1;
+				filter: blur(2px);
+				transform: translate(-50%, -55%) rotate(-180deg);
+				background: radial-gradient(50% 52% at 50% 50%, rgba(48, 90, 171, .28) 0%, rgba(48, 90, 171, .75) 64%, rgba(48, 90, 171, .5) 82%, rgba(48, 90, 171, 0) 100%);
 			}
 		}
 	}
