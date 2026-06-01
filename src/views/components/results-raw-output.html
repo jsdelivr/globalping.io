@@ -4,18 +4,19 @@
 <div class="c-gp-results-raw-output">
 	<div class="c-gp-results-raw-output_list {{#if testInProgress}}round-bottom{{/if}}" on-scroll="@this.hideSetLocationButton()">
 		{{#each preparedTestResults}}
-			<div class="c-gp-results-raw-output_list_item item-id-{{this.clientSideId}}">
+			<div class="c-gp-results-raw-output_list_item item-id-{{this.clientSideId}}"
+				tabindex="0"
+				role="button"
+				aria-label="Set as location for the next test"
+				on-focus="@this.enableItemFocused(@event, this.clientSideId)"
+				on-blur="@this.hideSetLocationButton(@event)"
+				on-keydown="@this.headerKeydownHandler(@event)"
+				on-mouseenter="@this.showSetLocationButton(this.clientSideId)"
+				on-mouseleave="@this.hideSetLocationButton(@event)"
+			>
 				<div class="c-gp-results-raw-output_list_item_header">
 					<div class="c-gp-results-raw-output_list_item_header_info {{#if @this.shouldUseOverflowLayout(this)}}is-overflow-layout{{/if}}"
 						style="border-left: 6px solid {{@this.getStatusColor(this.statsPerTarget[activeTargetIdx])}}; background: linear-gradient(to right, {{@this.getStatusColor(this.statsPerTarget[activeTargetIdx])}}0C, transparent 50%);"
-						tabindex="0"
-						role="button"
-						aria-label="Set as location for the next test"
-						on-focus="@this.enableHeaderFocused(@event, this.clientSideId)"
-						on-blur="@this.hideSetLocationButton(@event)"
-						on-keydown="@this.headerKeydownHandler(@event)"
-						on-mouseenter="@this.showSetLocationButton(this.clientSideId)"
-						on-mouseleave="@this.hideSetLocationButton(@event)"
 					>
 						<div class="c-gp-results-raw-output_list_item_header_info_entity">
 							<span class="c-gp-results-raw-output_list_item_header_info_entity_field">
@@ -113,6 +114,7 @@
 						<pre class="{{#if hiddenTestResults[activeTargetIdx].includes(this.clientSideId)}}hide-code{{/if}}">{{this.statsPerTarget[activeTargetIdx].rawOutput}}</pre>
 						{{#if hiddenTestResults[activeTargetIdx].includes(this.clientSideId)}}
 							<button type="button"
+								tabindex="-1"
 								class="c-gp-results-raw-output_list_item_expand-output"
 								on-click="@this.hideShowTestResult(this.clientSideId)"
 								aria-label="Click to expand">
@@ -142,7 +144,7 @@
 	</div>
 
 	{{#if floatingSetLocationButton.visible}}
-		<button class="c-gp-results-raw-output_set-location {{#if headerFocused}}focus-outline{{/if}}"
+		<button class="c-gp-results-raw-output_set-location {{#if itemFocused}}focus-outline{{/if}}"
 			type="button"
 			style="top: {{floatingSetLocationButton.top}}px; left: {{floatingSetLocationButton.left}}px;"
 			as-tooltip="'Set as location for the next test', 'right'"
@@ -198,7 +200,8 @@
 					left: 0,
 					probeData: null,
 				},
-				headerFocused: false,
+				itemFocused: false,
+				justFocusedItem: false,
 			};
 		},
 		onrender () {
@@ -281,6 +284,7 @@
 			let node = document.querySelector(`.item-id-${clientSideId}`);
 			let nodeHeader = node?.querySelector('.c-gp-results-raw-output_list_item_header_info');
 			let container = this.find('.c-gp-results-raw-output');
+			this.set('itemFocused', false);
 
 			if (!node || !nodeHeader || !container) { return; }
 
@@ -299,16 +303,22 @@
 			});
 		},
 		hideSetLocationButton (event) {
-			if (event && event.relatedTarget) {
-				let container = event.target.closest('.c-gp-results-raw-output_list_item_header_info');
+			if (this.get('justFocusedItem')) {
+				this.set('justFocusedItem', false);
+				return;
+			}
+
+			if (event && event.relatedTarget && event.type !== 'blur') {
+				let container = event.target.closest('.c-gp-results-raw-output_list_item');
+				let relatedContainer = event.relatedTarget.closest?.('.c-gp-results-raw-output_list_item');
 				let setLocationButton = this.find('.c-gp-results-raw-output_set-location');
 
-				if ((container && container.contains(event.relatedTarget)) || (setLocationButton && setLocationButton.contains(event.relatedTarget))) {
+				if ((container && container.contains(event.relatedTarget)) || relatedContainer || (setLocationButton && setLocationButton.contains(event.relatedTarget))) {
 					return;
 				}
 			}
 
-			this.set('headerFocused', false);
+			this.set('itemFocused', false);
 			this.set('floatingSetLocationButton.visible', false);
 		},
 		setProbeAsLocation () {
@@ -316,14 +326,18 @@
 			this.set('currSearchLocation', `AS${probeData.asn}+${probeData.city}`);
 			this.set('floatingSetLocationButton.visible', false);
 		},
-		enableHeaderFocused (event, clientSideId) {
-			if (!event.target.classList.contains('c-gp-results-raw-output_list_item_header_info')) {
-				this.hideSetLocationButton();
+		enableItemFocused (event, clientSideId) {
+			if (!event.target?.classList.contains('c-gp-results-raw-output_list_item')) {
 				return;
 			}
 
 			this.showSetLocationButton(clientSideId);
-			this.set('headerFocused', true);
+			this.set('itemFocused', true);
+			this.set('justFocusedItem', true);
+
+			requestAnimationFrame(() => {
+				this.set('justFocusedItem', false);
+			});
 		},
 		headerKeydownHandler (event) {
 			if (event.key === 'Enter' || event.key === ' ') {
