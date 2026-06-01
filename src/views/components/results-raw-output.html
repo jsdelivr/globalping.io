@@ -284,13 +284,25 @@
 			let node = document.querySelector(`.item-id-${clientSideId}`);
 			let nodeHeader = node?.querySelector('.c-gp-results-raw-output_list_item_header_info');
 			let container = this.find('.c-gp-results-raw-output');
+			let listContainer = this.find('.c-gp-results-raw-output_list');
 			this.set('itemFocused', false);
 
-			if (!node || !nodeHeader || !container) { return; }
+			if (!node || !nodeHeader || !container || !listContainer) { return; }
+
+			let listRect = listContainer.getBoundingClientRect();
+			let nodeHeaderRect = nodeHeader.getBoundingClientRect();
+			let visibilityOverflowTolerancePx = 15;
+			let isNodeHeaderFullyVisible = nodeHeaderRect.top >= (listRect.top - visibilityOverflowTolerancePx)
+				&& nodeHeaderRect.bottom <= (listRect.bottom + visibilityOverflowTolerancePx);
+
+			if (!isNodeHeaderFullyVisible) {
+				this.set('floatingSetLocationButton.visible', false);
+				return;
+			}
 
 			let nodeRect = node.getBoundingClientRect();
 			let containerRect = container.getBoundingClientRect();
-			let nodeHeaderHeight = nodeHeader.getBoundingClientRect().height;
+			let nodeHeaderHeight = nodeHeaderRect.height;
 
 			let relativeTop = nodeRect.top - containerRect.top;
 			let relativeLeft = nodeRect.left - containerRect.left;
