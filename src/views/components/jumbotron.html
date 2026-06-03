@@ -1,5 +1,14 @@
+<link rel="ractive" href="./globe.html" name="c-gp-globe">
+
 <div class="c-gp-jumbotron {{className}}">
-	{{#if gridType === 'type1'}}
+	{{#if gridType === 'globe'}}
+		<c-gp-globe className="jumbotron_globe desktop-only"></c-gp-globe>
+		<img class="jumbotron_grid mobile-only"
+			alt=""
+			width="2016"
+			height="745"
+			src="{{@shared.assetsHost}}/img/globalping-grid-type-1.svg">
+	{{elseif gridType === 'type1'}}
 		<img class="jumbotron_grid"
 			width="2016"
 			height="745"

@@ -56,15 +56,15 @@
 	// styles for a specific GP pages
 	&.main {
 		overflow: clip visible;
-		height: 532px;
-		background: linear-gradient(180deg, #17233a 0, #17233a 50%, #0a206f 70%, #fff 100%);
+		height: 800px;
+		background: linear-gradient(180deg, #17233a 0%, #17233a 44%, #24345a 58%, #4d659f 73%, #97a7d8 84%, #d7ddef 92%, #f3f5fb 97%, #fff 100%);
 
 		@media (min-width: @screen-sm-min) {
 			height: 680px;
 		}
 
 		.jumbotron_blur {
-			top: 380px;
+			top: 320px;
 			height: 360px;
 			overflow: visible;
 			z-index: -1;
@@ -91,6 +91,27 @@
 				filter: blur(2px);
 				transform: translate(-50%, -55%) rotate(-180deg);
 				background: radial-gradient(50% 52% at 50% 50%, rgba(48, 90, 171, .28) 0%, rgba(48, 90, 171, .75) 64%, rgba(48, 90, 171, .5) 82%, rgba(48, 90, 171, 0) 100%);
+			}
+
+			@media (min-width: @screen-sm-min) {
+				display: none;
+			}
+		}
+
+		.jumbotron_globe {
+			display: none;
+			--globe-size: min(900px, calc(100vw - 64px));
+			left: 50%;
+			bottom: calc(var(--globe-size) * -.35);
+			width: var(--globe-size);
+			transform: translateX(-50%);
+
+			@media (min-width: @screen-sm-min) {
+				display: block;
+			}
+
+			@media (min-width: @screen-md-min) {
+				bottom: calc(var(--globe-size) * -.5);
 			}
 		}
 	}

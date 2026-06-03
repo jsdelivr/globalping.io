@@ -1,0 +1,272 @@
+<div class="c-gp-globe {{className}}" aria-hidden="true">
+	<svg viewBox="0 0 1200 1200" role="presentation" focusable="false">
+		<defs>
+			<clipPath id="{{clipPathId}}">
+				<circle cx="600" cy="600" r="560"></circle>
+			</clipPath>
+
+			<filter id="{{pulseFilterId}}" x="-200%" y="-200%" width="400%" height="400%">
+				<feGaussianBlur in="SourceGraphic" stdDeviation="6" result="blur"></feGaussianBlur>
+				<feMerge>
+					<feMergeNode in="blur"></feMergeNode>
+					<feMergeNode in="SourceGraphic"></feMergeNode>
+				</feMerge>
+			</filter>
+		</defs>
+
+		<circle class="c-gp-globe_shell" cx="600" cy="600" r="560"></circle>
+		<g class="c-gp-globe_base-dots" clip-path="url(#{{clipPathId}})"></g>
+		<g class="c-gp-globe_pulse-dots" clip-path="url(#{{clipPathId}})" filter="url(#{{pulseFilterId}})"></g>
+		<circle class="c-gp-globe_outline" cx="600" cy="600" r="560"></circle>
+	</svg>
+</div>
+
+<script>
+	const packedGlobeDots = require('../../assets/json/globe-dots.json');
+
+	const SVG_NS = 'http://www.w3.org/2000/svg';
+	const DEG_TO_RAD = Math.PI / 180;
+	const TAU = Math.PI * 2;
+	const GLOBE_CENTER = 600;
+	const GLOBE_RADIUS = 560;
+	const GLOBE_TILT = -4 * DEG_TO_RAD;
+	const GLOBE_TILT_SIN = Math.sin(GLOBE_TILT);
+	const GLOBE_TILT_COS = Math.cos(GLOBE_TILT);
+	const INITIAL_ROTATION = -18 * DEG_TO_RAD;
+	const ROTATION_SPEED = -.00004;
+	const MIN_DOT_OPACITY = .35;
+	const MAX_DOT_OPACITY = .95;
+	const MIN_DOT_RADIUS = 1.22;
+	const MAX_DOT_RADIUS = 2.92;
+	const PULSE_COUNT = 5;
+	const PULSE_DURATION_MIN = 1400;
+	const PULSE_DURATION_MAX = 2600;
+
+	const unpackGlobeDots = ({ lat0, lon0, step, rows }) => {
+		let dots = [];
+		let longitudeBase = lon0 * DEG_TO_RAD;
+		let longitudeStep = step * DEG_TO_RAD;
+
+		for (let rowIndex = 0; rowIndex < rows.length; rowIndex++) {
+			let runs = rows[rowIndex];
+			let latitude = (lat0 + (rowIndex * step)) * DEG_TO_RAD;
+			let sinLatitude = Math.sin(latitude);
+			let cosLatitude = Math.cos(latitude);
+
+			for (let runIndex = 0; runIndex < runs.length; runIndex += 2) {
+				let start = runs[runIndex];
+				let length = runs[runIndex + 1];
+
+				for (let column = start; column < start + length; column++) {
+					dots.push({
+						longitude: longitudeBase + (column * longitudeStep),
+						sinLatitude,
+						cosLatitude,
+					});
+				}
+			}
+		}
+
+		return dots;
+	};
+
+	const globeDots = unpackGlobeDots(packedGlobeDots);
+
+	const createCircleNode = (className) => {
+		let circle = document.createElementNS(SVG_NS, 'circle');
+		circle.setAttribute('class', className);
+		circle.setAttribute('display', 'none');
+		return circle;
+	};
+
+	const randomBetween = (min, max) => min + (Math.random() * (max - min));
+
+	const getProjection = (dot, rotation) => {
+		let longitude = dot.longitude + rotation;
+		let sinLongitude = Math.sin(longitude);
+		let cosLongitude = Math.cos(longitude);
+		let x = dot.cosLatitude * sinLongitude;
+		let y = (dot.sinLatitude * GLOBE_TILT_COS) - (dot.cosLatitude * cosLongitude * GLOBE_TILT_SIN);
+		let z = (dot.sinLatitude * GLOBE_TILT_SIN) + (dot.cosLatitude * cosLongitude * GLOBE_TILT_COS);
+
+		if (z <= 0) {
+			return null;
+		}
+
+		return {
+			x: GLOBE_CENTER + (GLOBE_RADIUS * x),
+			y: GLOBE_CENTER - (GLOBE_RADIUS * y),
+			depth: z,
+			radius: MIN_DOT_RADIUS + ((MAX_DOT_RADIUS - MIN_DOT_RADIUS) * z),
+			opacity: MIN_DOT_OPACITY + ((MAX_DOT_OPACITY - MIN_DOT_OPACITY) * z),
+		};
+	};
+
+	component.exports = {
+		data () {
+			let instanceId = `gp-globe-${Math.random().toString(36).slice(2, 10)}`;
+
+			return {
+				clipPathId: `${instanceId}-clip`,
+				pulseFilterId: `${instanceId}-pulse`,
+			};
+		},
+		onrender () {
+			if (Ractive.isServer) {
+				return;
+			}
+
+			this._baseDotsGroup = this.find('.c-gp-globe_base-dots');
+			this._pulseDotsGroup = this.find('.c-gp-globe_pulse-dots');
+			this._prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+			this._globeRotation = INITIAL_ROTATION;
+			this._globePulseStates = Array.from({ length: PULSE_COUNT }, () => null);
+			this._projectedDots = Array.from({ length: globeDots.length }, () => null);
+			this._animateGlobe = this.animateGlobe.bind(this);
+
+			this._baseDotNodes = globeDots.map(() => {
+				let circle = createCircleNode('c-gp-globe_dot');
+				this._baseDotsGroup.appendChild(circle);
+				return circle;
+			});
+
+			this._pulseDotNodes = Array.from({ length: PULSE_COUNT }, () => {
+				let circle = createCircleNode('c-gp-globe_pulse-dot');
+				this._pulseDotsGroup.appendChild(circle);
+				return circle;
+			});
+
+			this._handleVisibilityChange = () => {
+				if (document.hidden) {
+					this.stopAnimation();
+					return;
+				}
+
+				if (!this._prefersReducedMotion) {
+					this.startAnimation();
+				}
+			};
+
+			document.addEventListener('visibilitychange', this._handleVisibilityChange);
+			this.renderFrame(performance.now());
+
+			if (!this._prefersReducedMotion) {
+				this.startAnimation();
+			}
+		},
+		onunrender () {
+			this.stopAnimation();
+			document.removeEventListener('visibilitychange', this._handleVisibilityChange);
+		},
+		startAnimation () {
+			if (this._globeAnimationFrame) {
+				return;
+			}
+
+			this._lastAnimationFrameAt = null;
+			this._globeAnimationFrame = requestAnimationFrame(this._animateGlobe);
+		},
+		stopAnimation () {
+			if (!this._globeAnimationFrame) {
+				return;
+			}
+
+			cancelAnimationFrame(this._globeAnimationFrame);
+			this._globeAnimationFrame = null;
+			this._lastAnimationFrameAt = null;
+		},
+		animateGlobe (now) {
+			if (!this._lastAnimationFrameAt) {
+				this._lastAnimationFrameAt = now;
+			}
+
+			let elapsed = Math.min(now - this._lastAnimationFrameAt, 32);
+			this._lastAnimationFrameAt = now;
+			this._globeRotation = (this._globeRotation + (elapsed * ROTATION_SPEED) + TAU) % TAU;
+			this.renderFrame(now);
+			this._globeAnimationFrame = requestAnimationFrame(this._animateGlobe);
+		},
+		createPulseState (now, visibleDots, activePulseIndices) {
+			if (!visibleDots.length) {
+				return null;
+			}
+
+			let eligibleDots = visibleDots.filter(dot => dot.depth > .16 && !activePulseIndices.has(dot.index));
+			let pulseDot = eligibleDots[Math.floor(Math.random() * eligibleDots.length)] || visibleDots[Math.floor(Math.random() * visibleDots.length)];
+
+			if (!pulseDot) {
+				return null;
+			}
+
+			activePulseIndices.add(pulseDot.index);
+
+			return {
+				dotIndex: pulseDot.index,
+				startAt: now,
+				duration: randomBetween(PULSE_DURATION_MIN, PULSE_DURATION_MAX),
+			};
+		},
+		renderFrame (now) {
+			let visibleDots = [];
+
+			for (let index = 0; index < globeDots.length; index++) {
+				let projection = getProjection(globeDots[index], this._globeRotation);
+				let circle = this._baseDotNodes[index];
+
+				this._projectedDots[index] = projection;
+
+				if (!projection) {
+					circle.setAttribute('display', 'none');
+					continue;
+				}
+
+				visibleDots.push({
+					index,
+					depth: projection.depth,
+				});
+
+				circle.removeAttribute('display');
+				circle.setAttribute('cx', projection.x.toFixed(2));
+				circle.setAttribute('cy', projection.y.toFixed(2));
+				circle.setAttribute('r', projection.radius.toFixed(2));
+				circle.setAttribute('fill-opacity', projection.opacity.toFixed(3));
+			}
+
+			this.renderPulseDots(now, visibleDots);
+		},
+		renderPulseDots (now, visibleDots) {
+			let activePulseIndices = new Set();
+
+			for (let index = 0; index < this._pulseDotNodes.length; index++) {
+				let circle = this._pulseDotNodes[index];
+				let pulseState = this._globePulseStates[index];
+				let projection = pulseState ? this._projectedDots[pulseState.dotIndex] : null;
+				let pulseEnded = pulseState ? (now - pulseState.startAt) >= pulseState.duration : true;
+
+				if (!pulseState || !projection || pulseEnded) {
+					pulseState = this.createPulseState(now, visibleDots, activePulseIndices);
+					this._globePulseStates[index] = pulseState;
+					projection = pulseState ? this._projectedDots[pulseState.dotIndex] : null;
+				} else {
+					activePulseIndices.add(pulseState.dotIndex);
+				}
+
+				if (!pulseState || !projection) {
+					circle.setAttribute('display', 'none');
+					continue;
+				}
+
+				let progress = Math.min((now - pulseState.startAt) / pulseState.duration, 1);
+				let intensity = Math.sin(progress * Math.PI);
+				let radius = projection.radius + 1.92 + (intensity * 2.56);
+				let opacity = Math.min(.25 + (intensity * .8), 1);
+
+				circle.removeAttribute('display');
+				circle.setAttribute('cx', projection.x.toFixed(2));
+				circle.setAttribute('cy', projection.y.toFixed(2));
+				circle.setAttribute('r', radius.toFixed(2));
+				circle.setAttribute('fill-opacity', opacity.toFixed(3));
+			}
+		},
+	};
+</script>

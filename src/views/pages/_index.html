@@ -53,7 +53,7 @@
 	<c-gp-header additionalClasses="header-with-globalping-bg no-border"></c-gp-header>
 
 	<div class="p-globalping">
-		<c-gp-jumbotron className="main" gridType="type1"></c-gp-jumbotron>
+		<c-gp-jumbotron className="main" gridType="globe"></c-gp-jumbotron>
 
 		<div class="gp_main-info">
 			<div class="gp_main-info_descr">
@@ -88,17 +88,13 @@
 					</a>
 				</div>
 
-				<div class="gp_main-info_video">
-					<button type="button"
-						class="gp_main-info_video_button"
-						on-click="@this.openVideoModal()"
-						aria-label="Watch the What is Globalping video">
-						<img alt="" width="12" height="15" src="{{@shared.assetsHost}}/img/play-triangle.svg">
-						<span>What is Globalping</span>
-					</button>
-
-					<span class="gp_main-info_video_text">1 minute video</span>
-				</div>
+				<button type="button"
+					class="gp_main-info_video"
+					on-click="@this.openVideoModal()"
+					aria-label="Watch the What is Globalping video">
+					<img alt="" width="12" height="15" src="{{@shared.assetsHost}}/img/play-triangle.svg">
+					<span>What is Globalping</span>
+				</button>
 			</div>
 		</div>
 
