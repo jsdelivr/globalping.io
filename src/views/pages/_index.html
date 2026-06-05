@@ -2511,6 +2511,8 @@
 
 				let handleError = () => {
 					this._videoModalPlayerApiPromise = null;
+					this._videoModalPlayerPromise = null;
+					script?.remove();
 					resolve(null);
 				};
 
@@ -2544,6 +2546,7 @@
 
 			this._videoModalPlayerPromise = this.loadVideoModalPlayerApi().then((playerjs) => {
 				if (!playerjs?.Player) {
+					this._videoModalPlayerPromise = null;
 					return null;
 				}
 
@@ -2564,7 +2567,10 @@
 
 					readyTimeout = setTimeout(markReady, 3000);
 				});
-			}).catch(() => null);
+			}).catch(() => {
+				this._videoModalPlayerPromise = null;
+				return null;
+			});
 
 			return this._videoModalPlayerPromise;
 		},
