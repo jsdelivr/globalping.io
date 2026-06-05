@@ -62,15 +62,20 @@ html.gp-video-modal-scroll-stable {
 
 			&_row {
 				display: flex;
+				position: relative;
 				flex-direction: column-reverse;
 				align-items: flex-start;
 				justify-content: space-between;
-				row-gap: 32px;
+				gap: 32px;
 
 				@media (min-width: @screen-sm-min) {
 					flex-direction: column;
 					align-items: center;
-					row-gap: 48px;
+					gap: 48px;
+				}
+
+				@media (min-width: @screen-lg-min) {
+					gap: 0;
 				}
 			}
 
@@ -199,30 +204,56 @@ html.gp-video-modal-scroll-stable {
 
 			&_video {
 				display: flex;
+				flex-direction: column;
 				align-items: center;
-				gap: 10px;
+				row-gap: 8px;
 				color: #fff;
 				flex-shrink: 0;
-				border: none;
-				border-radius: 8px;
-				background: #17d4a7;
-				padding: 10px 16px;
-				font-weight: 400;
-				font-size: 16px;
-				line-height: 20px;
-				white-space: nowrap;
-				transition: background .15s ease-out;
 
-				&:hover {
-					background: #46e1bc;
+				@media (min-width: @screen-lg-min) {
+					position: absolute;
+					top: 8px;
+					bottom: 0;
+					margin: auto 0;
+					right: -112px;
 				}
 
-				&:focus {
-					outline: none;
+				&_button {
+					display: inline-flex;
+					align-items: center;
+					column-gap: 10px;
+					border: none;
+					border-radius: 8px;
+					background: #17d4a7;
+					padding: 10px 16px;
+					font-weight: 400;
+					font-size: 16px;
+					line-height: 20px;
+					color: #fff;
+					white-space: nowrap;
+					transition: background .15s ease-out;
+
+					&:hover {
+						background: #46e1bc;
+					}
+
+					&:focus {
+						outline: none;
+					}
+
+					&:focus-visible {
+						box-shadow: 0 0 0 3px rgba(23, 212, 167, .8);
+					}
 				}
 
-				&:focus-visible {
-					box-shadow: 0 0 0 3px rgba(23, 212, 167, .8);
+				&_text {
+					font-size: 14px;
+					line-height: 20px;
+					text-align: center;
+
+					@media (max-width: @screen-md-max) {
+						display: none;
+					}
 				}
 			}
 
