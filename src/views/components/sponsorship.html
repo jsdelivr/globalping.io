@@ -320,7 +320,7 @@
 			event.preventDefault();
 		},
 		handlePaymentTypeInputKeyDown (event) {
-			if (event.key === ' ') {
+			if (event.key === ' ' || event.key === 'Enter') {
 				event.preventDefault();
 				this.handlePaymentTypeSwitch(!this.get('oneTimeChecked'));
 			}
