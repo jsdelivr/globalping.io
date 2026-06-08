@@ -163,7 +163,14 @@
 			return this._videoModalPlayerPromise;
 		},
 		resetVideoModalPlayback () {
-			this.getVideoModalPlayer().then((player) => {
+			let videoFrame = this._videoModalHandlers?.videoFrame;
+			let hasVideoSrc = !!videoFrame?.getAttribute('src');
+
+			if (!hasVideoSrc && !this._videoModalPlayerPromise) {
+				return;
+			}
+
+			this.getVideoModalPlayer(videoFrame).then((player) => {
 				if (!player || this._isVideoModalFrameActive) {
 					return;
 				}
