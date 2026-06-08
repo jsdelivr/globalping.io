@@ -664,10 +664,6 @@
 			</div>
 
 			{{#if showCreditsData}}
-				{{#unless showMap}}
-					<div class="gp_map-block_line"></div>
-				{{/unless}}
-
 				<c-gp-credits
 					mapOpened="{{showMap}}"
 					testInProgress="{{testInProgress}}"
@@ -675,15 +671,7 @@
 					rateCreditsData="{{rateCreditsData}}"
 					testResults="{{testResults}}">
 				</c-gp-credits>
-
-				{{#if showMap}}
-					<div class="gp_map-block_line"></div>
-				{{/if}}
 			{{/if}}
-
-			{{#unless showMap}}
-				<div class="gp_map-block_line"></div>
-			{{/unless}}
 
 			{{#if measurementErrMsg && !showCreditsErrorBar}}
 				<div class="gp_map-block_test-output with-padding">
