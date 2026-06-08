@@ -1,0 +1,136 @@
+@import "../variables.less";
+
+html.gp-video-modal-scroll-stable {
+	scrollbar-gutter: stable;
+
+	@supports (scrollbar-gutter: stable) {
+		body.modal-open[style] {
+			padding-right: 0 !important;
+		}
+	}
+}
+
+.c-gp-video-modal {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	row-gap: 8px;
+	color: #fff;
+	flex-shrink: 0;
+
+	&_trigger {
+		display: flex;
+		flex-direction: column;
+		gap: 8px;
+	}
+
+	&_button {
+		display: inline-flex;
+		align-items: center;
+		height: fit-content;
+		column-gap: 10px;
+		border: none;
+		border-radius: 8px;
+		background: #17d4a7;
+		padding: 10px 16px;
+		font-weight: 400;
+		font-size: 16px;
+		line-height: 20px;
+		color: #fff;
+		white-space: nowrap;
+		transition: background .15s ease-out;
+
+		&:hover {
+			background: #46e1bc;
+		}
+
+		&:focus {
+			outline: none;
+		}
+
+		&:focus-visible {
+			box-shadow: 0 0 0 3px rgba(23, 212, 167, .8);
+		}
+	}
+
+	&_text {
+		font-size: 14px;
+		line-height: 20px;
+		text-align: center;
+
+		@media (max-width: @screen-md-max) {
+			display: none;
+		}
+	}
+
+	&_modal {
+		&[style*="display: block"], &[style*="display:block"] {
+			display: flex !important;
+			align-items: center;
+			justify-content: center;
+		}
+
+		.modal-dialog {
+			width: calc(100% - 32px);
+			max-width: 960px;
+			margin: 0;
+		}
+
+		.modal-content {
+			position: relative;
+			background: transparent;
+			border: none;
+			box-shadow: none;
+		}
+	}
+
+	&_close {
+		position: absolute;
+		top: -40px;
+		right: 0;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: 32px;
+		height: 32px;
+		border: none;
+		background: none;
+		color: #fff;
+		font-size: 32px;
+		line-height: 1;
+		opacity: .9;
+
+		@media (min-width: @screen-sm-min) {
+			right: -8px;
+		}
+
+		&:hover, &:focus, &:focus-visible {
+			opacity: 1;
+			color: #fff;
+			outline: none;
+		}
+	}
+
+	&_player {
+		position: relative;
+		width: 100%;
+		padding-top: 56.25%;
+		overflow: hidden;
+		border-radius: 8px;
+		background: #000;
+	}
+
+	&_iframe {
+		position: absolute;
+		inset: 0;
+		width: 100%;
+		height: 100%;
+		border: 0;
+		opacity: 0;
+		transition: opacity .3s ease-in-out;
+
+		&.video-loaded {
+			opacity: 1;
+		}
+	}
+}

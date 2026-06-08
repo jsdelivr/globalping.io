@@ -14,6 +14,7 @@
 <link rel="ractive" href="../components/credits.html" name="c-gp-credits">
 <link rel="ractive" href="../components/jumbotron.html" name="c-gp-jumbotron">
 <link rel="ractive" href="../components/test-examples.html" name="c-test-examples">
+<link rel="ractive" href="../components/video-modal.html" name="c-gp-video-modal">
 
 <r-page
 	noYield="{{noYield}}"
@@ -88,45 +89,7 @@
 					</a>
 				</div>
 
-				<div class="gp_main-info_video">
-					<button type="button"
-						class="gp_main-info_video_button"
-						on-click="@this.openVideoModal()"
-						aria-label="Watch the What is Globalping video">
-						<img alt="" width="12" height="15" src="{{@shared.assetsHost}}/img/play-triangle.svg">
-						<span>What is Globalping</span>
-					</button>
-
-					<span class="gp_main-info_video_text">1 minute video</span>
-				</div>
-			</div>
-		</div>
-
-		<div id="gp-main-info-video-modal"
-			class="modal fade gp_main-info_video-modal"
-			tabindex="-1"
-			role="dialog"
-			aria-labelledby="gp-main-info-video-modal-title"
-			aria-hidden="true">
-			<div class="modal-dialog" role="document">
-				<div class="modal-content">
-					<h2 id="gp-main-info-video-modal-title" class="sr-only">What is Globalping video</h2>
-					<button type="button"
-						class="gp_main-info_video-modal_close"
-						data-dismiss="modal"
-						aria-label="Close video player">
-						<span aria-hidden="true">&times;</span>
-					</button>
-
-					<div class="gp_main-info_video-modal_player">
-						<iframe id="gp-main-info-video-iframe"
-							title="What is Globalping video"
-							loading="lazy"
-							allow="accelerometer;gyroscope;autoplay;encrypted-media;picture-in-picture;"
-							allowfullscreen="allowfullscreen">
-						</iframe>
-					</div>
-				</div>
+				<c-gp-video-modal></c-gp-video-modal>
 			</div>
 		</div>
 
@@ -1664,10 +1627,6 @@
 	const DEFAULT_TARGET_VALUE = 'cdn.jsdelivr.net';
 	const INFINITE_MEASUREMENT_PACKETS = 16;
 	const INFINITE_MEASUREMENT_LIMIT = 5;
-	const VIDEO_MODAL_HASH = '#video';
-	const VIDEO_MODAL_IFRAME_SRC = 'https://player.mediadelivery.net/embed/628851/9446ae1d-4d0a-436c-9b0d-e84b2e9fe2af?autoplay=false&loop=false&muted=false&preload=true&responsive=true';
-	const VIDEO_MODAL_PLAYERJS_SRC = 'https://assets.mediadelivery.net/playerjs/playerjs-latest.min.js';
-	const VIDEO_MODAL_SCROLL_STABLE_CLASS = 'gp-video-modal-scroll-stable';
 	const RATE_LIMIT_HEADERS = [
 		'x-ratelimit-limit',
 		'x-ratelimit-consumed',
@@ -2432,7 +2391,6 @@
 
 				targetInput.addEventListener('keypress', handleEnterBtn);
 				limitInput.addEventListener('keypress', handleEnterBtn);
-				this.setupVideoModal();
 
 				let measurement = this.get('measurement');
 				let selectedLocation = this.get('location');
@@ -2454,14 +2412,9 @@
 						}
 					}, 10);
 				}
-
-				if (window.location.hash === VIDEO_MODAL_HASH) {
-					this.openVideoModal({ updateHash: false });
-				}
 			}
 		},
 		onunrender () {
-			this.teardownVideoModal();
 			this.set('activeTestRunId', this.get('activeTestRunId') + 1);
 			let gmapsIdleListener = this.get('gmapsIdleListener');
 
@@ -2473,268 +2426,6 @@
 			clearTimeout(this.get('runTestBtnDelayTimeout'));
 			this.get('testReqCancelFn')?.forEach(cancel => cancel?.());
 			this.set('testReqCancelFn', []);
-		},
-		openVideoModal ({ updateHash = true } = {}) {
-			let modal = this.find('#gp-main-info-video-modal');
-
-			if (!modal) {
-				return false;
-			}
-
-			if (!$(modal).hasClass('in') && document.activeElement instanceof HTMLElement) {
-				this._videoModalReturnFocusEl = document.activeElement;
-			}
-
-			if (updateHash && location.hash !== VIDEO_MODAL_HASH) {
-				history.replaceState(history.state, document.title, `${location.pathname}${location.search}${VIDEO_MODAL_HASH}`);
-			}
-
-			$(modal).modal('show');
-
-			return false;
-		},
-		loadVideoModalPlayerApi () {
-			if (window.playerjs?.Player) {
-				return Promise.resolve(window.playerjs);
-			}
-
-			if (this._videoModalPlayerApiPromise) {
-				return this._videoModalPlayerApiPromise;
-			}
-
-			this._videoModalPlayerApiPromise = new Promise((resolve) => {
-				let script = document.querySelector('script[data-gp-video-modal-playerjs]');
-
-				let handleLoad = () => {
-					script?.setAttribute('data-loaded', 'true');
-					resolve(window.playerjs ?? null);
-				};
-
-				let handleError = () => {
-					this._videoModalPlayerApiPromise = null;
-					this._videoModalPlayerPromise = null;
-					script?.remove();
-					resolve(null);
-				};
-
-				if (script?.getAttribute('data-loaded') === 'true') {
-					handleLoad();
-					return;
-				}
-
-				if (!script) {
-					script = document.createElement('script');
-					script.src = VIDEO_MODAL_PLAYERJS_SRC;
-					script.async = true;
-					script.dataset.gpVideoModalPlayerjs = 'true';
-					document.head.appendChild(script);
-				}
-
-				script.addEventListener('load', handleLoad, { once: true });
-				script.addEventListener('error', handleError, { once: true });
-			});
-
-			return this._videoModalPlayerApiPromise;
-		},
-		getVideoModalPlayer (videoFrame = this._videoModalHandlers?.videoFrame) {
-			if (!videoFrame) {
-				return Promise.resolve(null);
-			}
-
-			if (this._videoModalPlayerPromise) {
-				return this._videoModalPlayerPromise;
-			}
-
-			this._videoModalPlayerPromise = this.loadVideoModalPlayerApi().then((playerjs) => {
-				if (!playerjs?.Player) {
-					this._videoModalPlayerPromise = null;
-					return null;
-				}
-
-				return new Promise((resolve) => {
-					let player = new playerjs.Player(videoFrame);
-					let readyTimeout = null;
-
-					let markReady = () => {
-						clearTimeout(readyTimeout);
-						resolve(player);
-					};
-
-					try {
-						player.on('ready', markReady);
-					} catch {
-						markReady();
-						return;
-					}
-
-					readyTimeout = setTimeout(markReady, 3000);
-				});
-			}).catch(() => {
-				this._videoModalPlayerPromise = null;
-				return null;
-			});
-
-			return this._videoModalPlayerPromise;
-		},
-		resetVideoModalPlayback () {
-			this.getVideoModalPlayer().then((player) => {
-				if (!player || this._isVideoModalFrameActive) {
-					return;
-				}
-
-				player.pause?.();
-				player.setCurrentTime?.(0);
-			}).catch(() => null);
-		},
-		activateVideoModalFrame (videoFrame = this._videoModalHandlers?.videoFrame) {
-			this._isVideoModalFrameActive = true;
-
-			if (!videoFrame) {
-				return;
-			}
-
-			if (videoFrame.getAttribute('src') !== VIDEO_MODAL_IFRAME_SRC) {
-				videoFrame.setAttribute('src', VIDEO_MODAL_IFRAME_SRC);
-			}
-
-			this.getVideoModalPlayer(videoFrame);
-		},
-		moveVideoModalFocusOut (modal = this._videoModalHandlers?.modal) {
-			let activeElement = document.activeElement;
-			let hasReturnFocusEl = this._videoModalReturnFocusEl instanceof HTMLElement && document.contains(this._videoModalReturnFocusEl);
-
-			if (!(modal instanceof HTMLElement) || !(activeElement instanceof HTMLElement) || !modal.contains(activeElement)) {
-				return;
-			}
-
-			if (hasReturnFocusEl) {
-				this._videoModalReturnFocusEl.focus();
-				return;
-			}
-
-			activeElement.blur();
-		},
-		resetVideoModalState ({ restoreFocus = false } = {}) {
-			let hasReturnFocusEl = this._videoModalReturnFocusEl instanceof HTMLElement;
-			let shouldClearReturnFocusEl = !hasReturnFocusEl || !document.contains(this._videoModalReturnFocusEl);
-
-			this._isVideoModalFrameActive = false;
-			this.resetVideoModalPlayback();
-
-			if (location.hash === VIDEO_MODAL_HASH) {
-				history.replaceState(history.state, document.title, `${location.pathname}${location.search}`);
-			}
-
-			if (restoreFocus && hasReturnFocusEl && !shouldClearReturnFocusEl) {
-				this._videoModalReturnFocusEl.focus();
-			}
-
-			if (restoreFocus || shouldClearReturnFocusEl) {
-				this._videoModalReturnFocusEl = null;
-			}
-		},
-		forceHideVideoModal (modal = this._videoModalHandlers?.modal) {
-			if (modal) {
-				this.moveVideoModalFocusOut(modal);
-				modal.style.display = 'none';
-				modal.setAttribute('aria-hidden', 'true');
-				$(modal).removeClass('in');
-				$(modal).removeData('bs.modal');
-			}
-
-			document.body.classList.remove('modal-open');
-			document.body.style.removeProperty('padding-right');
-			document.querySelectorAll('.modal-backdrop').forEach(backdrop => backdrop.remove());
-		},
-		setupVideoModal () {
-			if (this._videoModalHandlers) {
-				return;
-			}
-
-			let modal = this.find('#gp-main-info-video-modal');
-			let videoFrame = this.find('#gp-main-info-video-iframe');
-
-			if (!modal) {
-				return;
-			}
-
-			document.documentElement.classList.add(VIDEO_MODAL_SCROLL_STABLE_CLASS);
-
-			let $modal = $(modal);
-
-			let hashChangeHandler = () => {
-				if (location.hash === VIDEO_MODAL_HASH) {
-					this.openVideoModal({ updateHash: false });
-				}
-
-				if (location.hash !== VIDEO_MODAL_HASH && $modal.hasClass('in')) {
-					$modal.modal('hide');
-				}
-			};
-
-			let showHandler = () => {
-				this.activateVideoModalFrame();
-			};
-
-			let hideHandler = () => {
-				this.moveVideoModalFocusOut(modal);
-			};
-
-			let loadHandler = (event) => {
-				let currentVideoFrame = event.currentTarget;
-
-				if (!currentVideoFrame) {
-					return;
-				}
-
-				if (currentVideoFrame.getAttribute('src')) {
-					currentVideoFrame.classList.add('video-loaded');
-					this.getVideoModalPlayer(currentVideoFrame);
-					return;
-				}
-
-				currentVideoFrame.classList.remove('video-loaded');
-			};
-
-			let hiddenHandler = () => {
-				this.resetVideoModalState({ restoreFocus: true });
-			};
-
-			$modal.on('show.bs.modal', showHandler);
-			$modal.on('hide.bs.modal', hideHandler);
-			$modal.on('hidden.bs.modal', hiddenHandler);
-			videoFrame?.addEventListener('load', loadHandler);
-			window.addEventListener('hashchange', hashChangeHandler);
-
-			this._videoModalHandlers = {
-				modal,
-				$modal,
-				videoFrame,
-				hashChangeHandler,
-				loadHandler,
-				hideHandler,
-				showHandler,
-				hiddenHandler,
-			};
-		},
-		teardownVideoModal () {
-			if (!this._videoModalHandlers) {
-				return;
-			}
-
-			let { modal, $modal, videoFrame, hashChangeHandler, loadHandler, hideHandler, showHandler, hiddenHandler } = this._videoModalHandlers;
-			this.resetVideoModalState();
-			window.removeEventListener('hashchange', hashChangeHandler);
-			$modal.off('show.bs.modal', showHandler);
-			$modal.off('hide.bs.modal', hideHandler);
-			$modal.off('hidden.bs.modal', hiddenHandler);
-			videoFrame?.removeEventListener('load', loadHandler);
-			this.forceHideVideoModal(modal);
-			document.documentElement.classList.remove(VIDEO_MODAL_SCROLL_STABLE_CLASS);
-			this._videoModalPlayerPromise = null;
-			this._videoModalPlayerApiPromise = null;
-			this._videoModalReturnFocusEl = null;
-			this._videoModalHandlers = null;
 		},
 		isActiveTestRun (testRunId) {
 			return testRunId === null || testRunId === undefined || testRunId === this.get('activeTestRunId');
