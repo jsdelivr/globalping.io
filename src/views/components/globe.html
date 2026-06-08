@@ -23,6 +23,7 @@
 
 <script>
 	const packedGlobeDots = require('../../assets/json/globe-dots.json');
+	const { addManagedListener } = require('../../assets/js/utils/listeners');
 
 	const SVG_NS = 'http://www.w3.org/2000/svg';
 	const DEG_TO_RAD = Math.PI / 180;
@@ -184,9 +185,9 @@
 
 			this._pulseDotsGroup.appendChild(pulseDotsFragment);
 
-			document.addEventListener('visibilitychange', this._handleVisibilityChange);
-			window.addEventListener('resize', this._handleResize);
-			this._prefersReducedMotionQuery.addEventListener('change', this._handleReducedMotionChange);
+			addManagedListener(this, document, 'visibilitychange', this._handleVisibilityChange);
+			addManagedListener(this, window, 'resize', this._handleResize);
+			addManagedListener(this, this._prefersReducedMotionQuery, 'change', this._handleReducedMotionChange);
 
 			if ('IntersectionObserver' in window) {
 				this._intersectionObserver = new IntersectionObserver(this.handleIntersection.bind(this), {
@@ -204,9 +205,6 @@
 		},
 		onunrender () {
 			this.stopAnimation();
-			document.removeEventListener('visibilitychange', this._handleVisibilityChange);
-			window.removeEventListener('resize', this._handleResize);
-			this._prefersReducedMotionQuery?.removeEventListener('change', this._handleReducedMotionChange);
 			this._intersectionObserver?.disconnect();
 		},
 		isRenderable () {
