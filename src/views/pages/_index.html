@@ -2504,6 +2504,7 @@
 
 			this._videoModalPlayerApiPromise = new Promise((resolve) => {
 				let script = document.querySelector('script[data-gp-video-modal-playerjs]');
+
 				let handleLoad = () => {
 					script?.setAttribute('data-loaded', 'true');
 					resolve(window.playerjs ?? null);
@@ -2553,6 +2554,7 @@
 				return new Promise((resolve) => {
 					let player = new playerjs.Player(videoFrame);
 					let readyTimeout = null;
+
 					let markReady = () => {
 						clearTimeout(readyTimeout);
 						resolve(player);
@@ -2612,14 +2614,14 @@
 
 			activeElement.blur();
 		},
-		resetVideoModalState ({ clearHash = true, restoreFocus = false } = {}) {
+		resetVideoModalState ({ restoreFocus = false } = {}) {
 			let hasReturnFocusEl = this._videoModalReturnFocusEl instanceof HTMLElement;
 			let shouldClearReturnFocusEl = !hasReturnFocusEl || !document.contains(this._videoModalReturnFocusEl);
 
 			this._isVideoModalFrameActive = false;
 			this.resetVideoModalPlayback();
 
-			if (clearHash && location.hash === VIDEO_MODAL_HASH) {
+			if (location.hash === VIDEO_MODAL_HASH) {
 				history.replaceState(history.state, document.title, `${location.pathname}${location.search}`);
 			}
 
