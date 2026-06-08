@@ -12,6 +12,7 @@ test('Credits page', async ({ page }) => {
 
 	// test donation type switch
 	let donationSwitch = page.locator('.payment-type-select');
+	let donationSwitchInput = page.locator('#switch-payment-type');
 	await expect(donationSwitch).toBeVisible();
 
 	let oneTimeDonation = page.locator('.one-time-donation');
@@ -20,7 +21,8 @@ test('Credits page', async ({ page }) => {
 	await expect(oneTimeDonation).not.toBeVisible();
 	await expect(monthlyDonation).toBeVisible();
 
-	await donationSwitch.click();
+	await donationSwitch.getByText('One-time').click();
+	await expect(donationSwitchInput).toBeFocused();
 
 	await expect(oneTimeDonation).toBeVisible();
 	await expect(monthlyDonation).not.toBeVisible();

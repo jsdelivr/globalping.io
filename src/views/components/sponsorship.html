@@ -1,10 +1,17 @@
 <div class="c-gp-sponsorship">
 	<div class="payment-type-select">
-		<input id="switch-payment-type" type="checkbox" aria-checked="{{oneTimeChecked}}" checked="{{oneTimeChecked}}" class="switch-input {{#if oneTimeChecked}} checked {{/if}}">
+		<input id="switch-payment-type"
+			type="checkbox"
+			aria-checked="{{oneTimeChecked}}"
+			checked="{{oneTimeChecked}}"
+			twoway="false"
+			class="switch-input {{#if oneTimeChecked}} checked {{/if}}"
+			on-click="@this.handlePaymentTypeInputClick(@event)"
+			on-keydown="@this.handlePaymentTypeInputKeyDown(@event)">
 
-		<label for="switch-payment-type">
-			<span class="prevent-select">Monthly</span>
-			<span class="prevent-select">One-time</span>
+		<label for="switch-payment-type" on-click="@this.handlePaymentTypeLabelClick(@event)">
+			<span class="prevent-select" on-click="@this.handlePaymentTypeSwitch(false)">Monthly</span>
+			<span class="prevent-select" on-click="@this.handlePaymentTypeSwitch(true)">One-time</span>
 		</label>
 	</div>
 
@@ -308,6 +315,22 @@
 		roundSliderValue () {
 			let roundedDonation = Math.round(Math.pow(this.get('sliderValue'), 2) / 5) * 5;
 			this.set('sliderValue', Math.sqrt(roundedDonation));
+		},
+		handlePaymentTypeInputClick (event) {
+			event.preventDefault();
+		},
+		handlePaymentTypeInputKeyDown (event) {
+			if (event.key === ' ') {
+				event.preventDefault();
+				this.handlePaymentTypeSwitch(!this.get('oneTimeChecked'));
+			}
+		},
+		handlePaymentTypeLabelClick (event) {
+			event.preventDefault();
+		},
+		handlePaymentTypeSwitch (oneTimeChecked) {
+			this.set('oneTimeChecked', oneTimeChecked);
+			this.find('#switch-payment-type')?.focus();
 		},
 	};
 </script>

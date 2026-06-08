@@ -86,7 +86,7 @@ test('Homepage', async ({ page, context }) => {
 	await expect(pageUrl).not.toContain('display=');
 
 	await mapSwitch.click();
-	await displayControls.click();
+	await displayControls.getByText('Table').click();
 
 	await expect(rawResults).not.toBeVisible();
 	await expect(tableResults).toBeVisible();
