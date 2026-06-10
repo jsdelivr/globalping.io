@@ -17,7 +17,6 @@ COPY bin ./bin
 COPY config ./config
 COPY data ./data
 COPY fonts ./fonts
-COPY public ./public
 COPY server ./server
 COPY src ./src
 
