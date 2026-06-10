@@ -4,6 +4,7 @@ const { version: assetsVersion } = require('../src/lib/assets');
 module.exports = {
 	server: {
 		port: 13000,
+		processes: 1,
 		host: 'https://globalping.io',
 		blogHost: 'https://jsdelivr-blog.ghost.io',
 		assetsHost: `/assets/${assetsVersion}`,
