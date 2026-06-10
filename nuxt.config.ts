@@ -4,7 +4,7 @@ import assets from './src/lib/assets/index';
 
 const version = assets.version;
 
-const coolifyUrl = (process.env.COOLIFY_URL || '').split(/[\s,]+/)[0].replace(/\/+$/, '');
+const coolifyUrl = (process.env.COOLIFY_URL || '').split(/[\s,]+/)[0]?.replace(/\/+$/, '');
 
 const serverConfig: ServerConfig = config.get('server');
 
