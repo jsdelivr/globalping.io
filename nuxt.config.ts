@@ -4,7 +4,6 @@ import assets from './src/lib/assets/index';
 
 const version = assets.version;
 
-const isRenderPreview = process.env.IS_PULL_REQUEST === 'true' && process.env.RENDER_EXTERNAL_URL;
 const coolifyUrl = (process.env.COOLIFY_URL || '').split(/[\s,]+/)[0].replace(/\/+$/, '');
 
 const serverConfig: ServerConfig = config.get('server');
@@ -13,8 +12,8 @@ let serverHost = '';
 let assetsHost = `/assets/${version}`;
 
 if (process.env.NODE_ENV === 'production') {
-	serverHost = coolifyUrl || (isRenderPreview ? process.env.RENDER_EXTERNAL_URL : serverConfig.host);
-	assetsHost = coolifyUrl ? `${coolifyUrl}/assets/${version}` : isRenderPreview ? `${process.env.RENDER_EXTERNAL_URL}/assets/${version}` : serverConfig.assetsHost;
+	serverHost = coolifyUrl || serverConfig.host;
+	assetsHost = coolifyUrl ? `${coolifyUrl}/assets/${version}` : serverConfig.assetsHost;
 }
 
 // https://nuxt.com/docs/api/configuration/nuxt-config

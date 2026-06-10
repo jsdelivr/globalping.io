@@ -35,7 +35,6 @@ const stripTrailingSlash = require('./middleware/strip-trailing-slash');
 const render = require('./middleware/render');
 const debugHandler = require('./routes/debug');
 const globalpingRouter = require('./routes');
-const isRenderPreview = process.env.IS_PULL_REQUEST === 'true' && process.env.RENDER_EXTERNAL_URL;
 const coolifyUrl = (process.env.COOLIFY_URL || '').split(/[\s,]+/)[0].replace(/\/+$/, '');
 const isDev = process.env.NODE_ENV === 'development';
 
@@ -47,18 +46,16 @@ const shouldLogRenderError = (ctx, error) => {
 };
 
 const serverHost = app.env === 'production'
-	? coolifyUrl || (isRenderPreview ? process.env.RENDER_EXTERNAL_URL : serverConfig.host)
+	? coolifyUrl || serverConfig.host
 	: '';
 
 const assetsHost = app.env === 'production'
-	? coolifyUrl ? `${coolifyUrl}/assets/${assetsVersion}` : isRenderPreview ? `${process.env.RENDER_EXTERNAL_URL}/assets/${assetsVersion}` : serverConfig.assetsHost
+	? coolifyUrl ? `${coolifyUrl}/assets/${assetsVersion}` : serverConfig.assetsHost
 	: `/assets/${assetsVersion}`;
 
 const logoHost = coolifyUrl
 	? `${coolifyUrl}/domain-logo`
-	: isRenderPreview
-		? `${process.env.RENDER_EXTERNAL_URL}/domain-logo`
-		: serverConfig.logoHost;
+	: serverConfig.logoHost;
 
 const nuxtRouteHandlerPromise = initializeNuxt().catch((err) => {
 	console.error(err);
