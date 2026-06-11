@@ -61,7 +61,7 @@ const initApp = () => {
 
 	app.getSignInLink = () => {
 		let url = new URL('https://dash-directus.globalping.io/auth/login/github');
-		url.searchParams.set('redirect', `${Ractive.sharedGet('serverHost')}/auth/callback?redirect=${encodeURIComponent(location.href)}`);
+		url.searchParams.set('redirect', `https://globalping.io/auth/callback?redirect=${encodeURIComponent(location.href)}`);
 		return url.toString();
 	};
 
