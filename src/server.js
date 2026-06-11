@@ -259,8 +259,12 @@ router.get('/auth/callback', '/auth/callback', async (ctx) => {
 	let url = new URL(serverConfig.host);
 	let redirect = ctx.query.redirect || '/';
 	let redirectUrl = new URL(redirect, serverConfig.host);
+	let trustedOrigins = [
+		/^https:\/\/(?:[\w-]+\.)*globalping\.io$/,
+		/^http:\/\/localhost:(?:13000|13010)$/,
+	];
 
-	if (redirectUrl.origin !== url.origin) {
+	if (!trustedOrigins.some(origin => origin.test(redirectUrl.origin))) {
 		redirectUrl = url;
 	}
 
