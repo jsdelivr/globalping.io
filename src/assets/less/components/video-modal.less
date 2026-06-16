@@ -22,13 +22,17 @@ html.gp-video-modal-scroll-stable {
 		display: flex;
 		flex-direction: column;
 		gap: 8px;
+
+		@media (min-width: @screen-lg-min) {
+			width: 208px;
+		}
 	}
 
 	&_button {
 		display: inline-flex;
 		align-items: center;
 		height: fit-content;
-		column-gap: 10px;
+		column-gap: 8px;
 		border: none;
 		border-radius: 8px;
 		background: #17d4a7;
@@ -39,6 +43,11 @@ html.gp-video-modal-scroll-stable {
 		color: #fff;
 		white-space: nowrap;
 		transition: background .15s ease-out;
+
+		@media (min-width: @screen-lg-min) {
+			justify-content: center;
+			width: 208px;
+		}
 
 		&:hover {
 			background: #46e1bc;
