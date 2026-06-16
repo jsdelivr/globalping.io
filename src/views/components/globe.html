@@ -34,14 +34,16 @@
 	const GLOBE_TILT_SIN = Math.sin(GLOBE_TILT);
 	const GLOBE_TILT_COS = Math.cos(GLOBE_TILT);
 	const INITIAL_ROTATION = 90 * DEG_TO_RAD;
-	const ROTATION_SPEED = -.00004;
+	const ROTATION_SPEED = -.000025;
+	const TARGET_RENDER_INTERVAL = 1000 / 60;
+	const MAX_RENDER_ELAPSED = 64;
 	const MIN_DOT_OPACITY = .35;
 	const MAX_DOT_OPACITY = .95;
 	const DOT_OPACITY_RANGE = MAX_DOT_OPACITY - MIN_DOT_OPACITY;
 	const MIN_DOT_RADIUS = 1.22;
 	const MAX_DOT_RADIUS = 2.22;
 	const DOT_RADIUS_RANGE = MAX_DOT_RADIUS - MIN_DOT_RADIUS;
-	const PULSE_COUNT = 5;
+	const PULSE_COUNT = 2;
 	const PULSE_DURATION_MIN = 1400;
 	const PULSE_DURATION_MAX = 2600;
 	const PULSE_DEPTH_THRESHOLD = .16;
@@ -158,7 +160,8 @@
 			this._projectedDepth = new Float32Array(this._globeDots.count);
 			this._projectedRadius = new Float32Array(this._globeDots.count);
 			this._visibleDotIndices = new Uint32Array(this._globeDots.count);
-			this._baseDotVisible = new Array(this._globeDots.count).fill(false);
+			this._baseDotNodes = [];
+			this._renderedBaseDotCount = 0;
 			this._pulseDotVisible = new Array(PULSE_COUNT).fill(false);
 			this._isInViewport = true;
 			this._isRenderedVisible = this.isRenderable();
@@ -166,15 +169,6 @@
 			this._handleVisibilityChange = this.handleVisibilityChange.bind(this);
 			this._handleResize = this.handleResize.bind(this);
 			this._handleReducedMotionChange = this.handleReducedMotionChange.bind(this);
-
-			let baseDotsFragment = document.createDocumentFragment();
-			this._baseDotNodes = Array.from({ length: this._globeDots.count }, () => {
-				let circle = createCircleNode('c-gp-globe_dot');
-				baseDotsFragment.appendChild(circle);
-				return circle;
-			});
-
-			this._baseDotsGroup.appendChild(baseDotsFragment);
 
 			let pulseDotsFragment = document.createDocumentFragment();
 			this._pulseDotNodes = Array.from({ length: PULSE_COUNT }, () => {
@@ -239,7 +233,7 @@
 				return;
 			}
 
-			this._lastAnimationFrameAt = null;
+			this._lastRenderedAt = null;
 			this._globeAnimationFrame = requestAnimationFrame(this._animateGlobe);
 		},
 		stopAnimation () {
@@ -249,18 +243,91 @@
 
 			cancelAnimationFrame(this._globeAnimationFrame);
 			this._globeAnimationFrame = null;
-			this._lastAnimationFrameAt = null;
+			this._lastRenderedAt = null;
 		},
 		animateGlobe (now) {
-			if (!this._lastAnimationFrameAt) {
-				this._lastAnimationFrameAt = now;
+			if (!this._lastRenderedAt) {
+				this._lastRenderedAt = now;
 			}
 
-			let elapsed = Math.min(now - this._lastAnimationFrameAt, 32);
-			this._lastAnimationFrameAt = now;
+			let elapsed = now - this._lastRenderedAt;
+
+			if (elapsed < TARGET_RENDER_INTERVAL) {
+				this._globeAnimationFrame = requestAnimationFrame(this._animateGlobe);
+				return;
+			}
+
+			this._lastRenderedAt = now;
+			elapsed = Math.min(elapsed, MAX_RENDER_ELAPSED);
 			this._globeRotation = (this._globeRotation + (elapsed * ROTATION_SPEED) + TAU) % TAU;
 			this.renderFrame(now);
 			this._globeAnimationFrame = requestAnimationFrame(this._animateGlobe);
+		},
+		ensureBaseDotNodeCapacity (visibleDotCount) {
+			let missingNodeCount = visibleDotCount - this._baseDotNodes.length;
+
+			if (missingNodeCount <= 0) {
+				return;
+			}
+
+			let baseDotsFragment = document.createDocumentFragment();
+
+			for (let index = 0; index < missingNodeCount; index++) {
+				let circle = createCircleNode('c-gp-globe_dot');
+				this._baseDotNodes.push(circle);
+				baseDotsFragment.appendChild(circle);
+			}
+
+			this._baseDotsGroup.appendChild(baseDotsFragment);
+		},
+		projectDots () {
+			let { sinLongitudes, cosLongitudes, sinLatitudes, cosLatitudes, count } = this._globeDots;
+			let sinRotation = Math.sin(this._globeRotation);
+			let cosRotation = Math.cos(this._globeRotation);
+			let visibleDotCount = 0;
+
+			for (let index = 0; index < count; index++) {
+				let sinLongitude = (sinLongitudes[index] * cosRotation) + (cosLongitudes[index] * sinRotation);
+				let cosLongitude = (cosLongitudes[index] * cosRotation) - (sinLongitudes[index] * sinRotation);
+				let x = cosLatitudes[index] * sinLongitude;
+				let y = (sinLatitudes[index] * GLOBE_TILT_COS) - (cosLatitudes[index] * cosLongitude * GLOBE_TILT_SIN);
+				let depth = (sinLatitudes[index] * GLOBE_TILT_SIN) + (cosLatitudes[index] * cosLongitude * GLOBE_TILT_COS);
+
+				if (depth <= 0) {
+					this._projectedDepth[index] = 0;
+					continue;
+				}
+
+				this._projectedX[index] = GLOBE_CENTER + (GLOBE_RADIUS * x);
+				this._projectedY[index] = GLOBE_CENTER - (GLOBE_RADIUS * y);
+				this._projectedDepth[index] = depth;
+				this._projectedRadius[index] = MIN_DOT_RADIUS + (DOT_RADIUS_RANGE * depth);
+				this._visibleDotIndices[visibleDotCount] = index;
+				visibleDotCount++;
+			}
+
+			return visibleDotCount;
+		},
+		renderBaseDots (visibleDotCount) {
+			for (let visibleIndex = 0; visibleIndex < visibleDotCount; visibleIndex++) {
+				let dotIndex = this._visibleDotIndices[visibleIndex];
+				let circle = this._baseDotNodes[visibleIndex];
+
+				if (visibleIndex >= this._renderedBaseDotCount) {
+					circle.style.display = '';
+				}
+
+				circle.cx.baseVal.value = this._projectedX[dotIndex];
+				circle.cy.baseVal.value = this._projectedY[dotIndex];
+				circle.r.baseVal.value = this._projectedRadius[dotIndex];
+				circle.style.fillOpacity = MIN_DOT_OPACITY + (DOT_OPACITY_RANGE * this._projectedDepth[dotIndex]);
+			}
+
+			for (let hiddenIndex = visibleDotCount; hiddenIndex < this._renderedBaseDotCount; hiddenIndex++) {
+				this._baseDotNodes[hiddenIndex].style.display = 'none';
+			}
+
+			this._renderedBaseDotCount = visibleDotCount;
 		},
 		createPulseState (now, visibleDotCount, activePulseIndices) {
 			if (!visibleDotCount) {
@@ -288,47 +355,10 @@
 			return null;
 		},
 		renderFrame (now) {
-			let { sinLongitudes, cosLongitudes, sinLatitudes, cosLatitudes, count } = this._globeDots;
-			let sinRotation = Math.sin(this._globeRotation);
-			let cosRotation = Math.cos(this._globeRotation);
-			let visibleDotCount = 0;
+			let visibleDotCount = this.projectDots();
 
-			for (let index = 0; index < count; index++) {
-				let sinLongitude = (sinLongitudes[index] * cosRotation) + (cosLongitudes[index] * sinRotation);
-				let cosLongitude = (cosLongitudes[index] * cosRotation) - (sinLongitudes[index] * sinRotation);
-				let x = cosLatitudes[index] * sinLongitude;
-				let y = (sinLatitudes[index] * GLOBE_TILT_COS) - (cosLatitudes[index] * cosLongitude * GLOBE_TILT_SIN);
-				let depth = (sinLatitudes[index] * GLOBE_TILT_SIN) + (cosLatitudes[index] * cosLongitude * GLOBE_TILT_COS);
-				let circle = this._baseDotNodes[index];
-
-				if (depth <= 0) {
-					this._projectedDepth[index] = 0;
-
-					if (this._baseDotVisible[index]) {
-						circle.style.display = 'none';
-						this._baseDotVisible[index] = false;
-					}
-
-					continue;
-				}
-
-				this._projectedX[index] = GLOBE_CENTER + (GLOBE_RADIUS * x);
-				this._projectedY[index] = GLOBE_CENTER - (GLOBE_RADIUS * y);
-				this._projectedDepth[index] = depth;
-				this._projectedRadius[index] = MIN_DOT_RADIUS + (DOT_RADIUS_RANGE * depth);
-				this._visibleDotIndices[visibleDotCount] = index;
-				visibleDotCount++;
-
-				if (!this._baseDotVisible[index]) {
-					circle.style.display = '';
-					this._baseDotVisible[index] = true;
-				}
-
-				circle.cx.baseVal.value = this._projectedX[index];
-				circle.cy.baseVal.value = this._projectedY[index];
-				circle.r.baseVal.value = this._projectedRadius[index];
-				circle.style.fillOpacity = MIN_DOT_OPACITY + (DOT_OPACITY_RANGE * depth);
-			}
+			this.ensureBaseDotNodeCapacity(visibleDotCount);
+			this.renderBaseDots(visibleDotCount);
 
 			this.renderPulseDots(now, visibleDotCount);
 		},
