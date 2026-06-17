@@ -318,6 +318,7 @@
 		},
 		handlePaymentTypeInputClick (event) {
 			event.preventDefault();
+			this.handlePaymentTypeSwitch(!this.get('oneTimeChecked'));
 		},
 		handlePaymentTypeInputKeyDown (event) {
 			if (event.key === ' ' || event.key === 'Enter') {

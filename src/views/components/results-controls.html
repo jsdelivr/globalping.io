@@ -118,6 +118,7 @@
 		},
 		handleDisplayTypeInputClick (event) {
 			event.preventDefault();
+			this.handleDisplayTypeSwitch(!this.get('rawOutputMode'));
 		},
 		handleDisplayTypeInputKeyDown (event) {
 			if (event.key === ' ' || event.key === 'Enter') {
