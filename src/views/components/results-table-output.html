@@ -50,7 +50,7 @@
 					aria-label="Set as location for the next test"
 					on-focus="@this.enableItemFocused(@event, this.clientSideId)"
 					on-blur="@this.hideSetLocationButton(@event)"
-					on-keydown="@this.headerKeydownHandler(@event)"
+					on-keydown="@this.headerKeydownHandler(@event, this.clientSideId)"
 					on-mouseenter="@this.showSetLocationButton(this.clientSideId)"
 					on-mouseleave="@this.hideSetLocationButton(@event)"
 				>
@@ -394,9 +394,7 @@
 			this.set('floatingSetLocationButton.visible', false);
 			this.set('itemFocused', false);
 		},
-		setProbeAsLocation () {
-			let probeData = this.get('floatingSetLocationButton.probeData');
-
+		setProbeAsLocation (probeData = this.get('floatingSetLocationButton.probeData')) {
 			if (!probeData) { return; }
 
 			this.set('currSearchLocation', `AS${probeData.asn}+${probeData.city}`);
@@ -415,10 +413,15 @@
 				this.set('justFocusedItem', false);
 			});
 		},
-		headerKeydownHandler (event) {
+		headerKeydownHandler (event, clientSideId) {
+			if (!event.target?.classList.contains('results-table_row')) {
+				return;
+			}
+
 			if (event.key === 'Enter' || event.key === ' ') {
 				event.preventDefault();
-				this.setProbeAsLocation();
+				let probeData = this.get('preparedTestResults').find(item => item.clientSideId === clientSideId);
+				this.setProbeAsLocation(probeData);
 			}
 		},
 		setChartMaxHeight (results) {
