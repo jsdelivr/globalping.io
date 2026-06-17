@@ -12,26 +12,14 @@ let anycastIpv6Lookup = null;
 let nameNormalizationAvailable = false;
 let nameNormalizationInited = false;
 
-try {
-	let mmdb = fs.readFileSync(path.join(__dirname, '/../../../data/IPINFO_LITE_ASN.mmdb'));
-	ipToDomainReader = new maxmind.Reader(mmdb);
-} catch {
-	console.error('IP to domain MMDB data not downloaded.');
-}
+let ipInfoMmdb = fs.readFileSync(path.join(__dirname, '/../../../data/IPINFO_LITE_ASN.mmdb'));
+ipToDomainReader = new maxmind.Reader(ipInfoMmdb);
 
-try {
-	let mmdb = fs.readFileSync(path.join(__dirname, '/../../../data/MAXMIND_GEO_LITE2_CITY.mmdb'));
-	ipToLocationReader = new maxmind.Reader(mmdb);
-} catch {
-	console.error('IP to location MMDB data not downloaded.');
-}
+let maxmindMmdb = fs.readFileSync(path.join(__dirname, '/../../../data/MAXMIND_GEO_LITE2_CITY.mmdb'));
+ipToLocationReader = new maxmind.Reader(maxmindMmdb);
 
-try {
-	anycastIpv4Lookup = createIpLookup('LACES_ANYCAST_IPV4.csv', 'ipv4');
-	anycastIpv6Lookup = createIpLookup('LACES_ANYCAST_IPV6.csv', 'ipv6');
-} catch {
-	console.error('Anycast range data not downloaded or invalid.');
-}
+anycastIpv4Lookup = createIpLookup('LACES_ANYCAST_IPV4.csv', 'ipv4');
+anycastIpv6Lookup = createIpLookup('LACES_ANYCAST_IPV6.csv', 'ipv6');
 
 void legalNameNormalization.populateLegalNames().then(() => {
 	nameNormalizationAvailable = true;
