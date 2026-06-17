@@ -146,8 +146,11 @@
 	{{#if floatingSetLocationButton.visible}}
 		<button class="c-gp-results-raw-output_set-location {{#if itemFocused}}focus-outline{{/if}}"
 			type="button"
+			tabindex="-1"
 			style="top: {{floatingSetLocationButton.top}}px; left: {{floatingSetLocationButton.left}}px;"
 			as-tooltip="'Set as location for the next test', 'right'"
+			on-focus="@this.set('itemFocused', true)"
+			on-blur="@this.hideSetLocationButton(@event)"
 			on-click="@this.setProbeAsLocation()"
 			on-mouseleave="@this.hideSetLocationButton(@event)"
 			aria-label="Set as location for the next test">
@@ -265,8 +268,8 @@
 					this.recalculateHeaderInfoLayoutStates();
 				}, { init: false });
 
-				this._onSetLocationViewportChange = () => {
-					this.hideSetLocationButton();
+				this._onSetLocationViewportChange = (event) => {
+					this.hideSetLocationButton(event);
 				};
 
 				this._setLocationListEl = this.find('.c-gp-results-raw-output_list');
@@ -279,12 +282,19 @@
 			}
 		},
 		// --- set location button logic ---
+		isSetLocationFocusActive (setLocationButton) {
+			let activeElement = document.activeElement;
+
+			return (setLocationButton && setLocationButton.contains(activeElement))
+				|| activeElement?.classList.contains('c-gp-results-raw-output_list_item');
+		},
 		showSetLocationButton (clientSideId) {
 			let probeData = this.get('preparedTestResults').find(item => item.clientSideId === clientSideId);
 			let node = document.querySelector(`.item-id-${clientSideId}`);
 			let nodeHeader = node?.querySelector('.c-gp-results-raw-output_list_item_header_info');
 			let container = this.find('.c-gp-results-raw-output');
 			let listContainer = this.find('.c-gp-results-raw-output_list');
+
 			this.set('itemFocused', false);
 
 			if (!node || !nodeHeader || !container || !listContainer) { return; }
@@ -320,10 +330,27 @@
 				return;
 			}
 
+			let setLocationButton = this.find('.c-gp-results-raw-output_set-location');
+
+			if (event?.type === 'blur' && !event.relatedTarget) {
+				requestAnimationFrame(() => {
+					this.hideSetLocationButton();
+				});
+
+				return;
+			}
+
+			if (this.isSetLocationFocusActive(setLocationButton)) {
+				return;
+			}
+
+			if (event?.type === 'blur' && setLocationButton?.contains(event.relatedTarget)) {
+				return;
+			}
+
 			if (event && event.relatedTarget && event.type !== 'blur') {
 				let container = event.target.closest('.c-gp-results-raw-output_list_item');
 				let relatedContainer = event.relatedTarget.closest?.('.c-gp-results-raw-output_list_item');
-				let setLocationButton = this.find('.c-gp-results-raw-output_set-location');
 
 				if ((container && container.contains(event.relatedTarget)) || relatedContainer || (setLocationButton && setLocationButton.contains(event.relatedTarget))) {
 					return;
