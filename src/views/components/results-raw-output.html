@@ -526,7 +526,7 @@
 		},
 		getHeaderInfoSourceEntityWidth (result) {
 			let asnText = `AS${result?.asn ?? ''}`;
-			let locationText = [ result?.city, result?.country, result?.continent ].filter(Boolean).join(', ');
+			let locationText = [ result?.city, result?.state, result?.country ].filter(Boolean).join(', ');
 			let networkText = result?.network || '';
 			let fieldsTextWidth = this.measureHeaderInfoTextWidth(asnText) + this.measureHeaderInfoTextWidth(locationText) + this.measureHeaderInfoTextWidth(networkText);
 			let iconWidths = 16 + 24 + 16;
