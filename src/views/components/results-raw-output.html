@@ -699,6 +699,8 @@
 
 			http.getDomainFromASN(`AS${asn}`)
 				.then((res) => {
+					this.set('showingNetworkLogos', this.get('showingNetworkLogos') || !!res?.domain);
+
 					this.set('networkDomainNamesByAsn', {
 						...this.get('networkDomainNamesByAsn'),
 						[asn]: res,
