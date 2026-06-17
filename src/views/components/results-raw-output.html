@@ -242,11 +242,11 @@
 						return;
 					}
 
-					this.recalculateHeaderInfoLayoutStates();
+					this.recalculateHeaderInfoLayoutStates({ allowShrink: false });
 				}, { deep: true, defer: true, init: false });
 
 				this.observe('hiddenResponseBodies', () => {
-					this.recalculateHeaderInfoLayoutStates();
+					this.recalculateHeaderInfoLayoutStates({ allowShrink: false });
 				}, { deep: true, defer: true, init: false });
 
 				this.observe('preparedTestResults activeTargetIdx', () => {
@@ -393,7 +393,7 @@
 			return hidden.includes(result?.clientSideId);
 		},
 		// --- Output list height setter
-		setResultsBlockHeight () {
+		setResultsBlockHeight ({ allowShrink = true } = {}) {
 			requestAnimationFrame(() => {
 				let listEl;
 
@@ -436,8 +436,12 @@
 						targetHeight = MIN_OUTPUT_HEIGHT;
 					}
 
-					// if the container height has already been set for current results, only shrink the container if it would contain empty space (totalHeight < currentHeight)
-					if (!this.get('heightSetForCurrentResults') || (targetHeight !== currentHeight && (targetHeight > currentHeight || totalItemHeight < currentHeight))) {
+					// Collapse-only updates keep the current height; structural updates may shrink empty space.
+					let shouldUpdateHeight = !this.get('heightSetForCurrentResults')
+						|| targetHeight > currentHeight
+						|| (allowShrink && targetHeight !== currentHeight && totalItemHeight < currentHeight);
+
+					if (shouldUpdateHeight) {
 						listEl.style.height = `${targetHeight}px`;
 					} else {
 						listEl.style.height = `${currentHeight}px`;
@@ -596,7 +600,7 @@
 			let arrowMarginRight = 32;
 			return (containerWidth / 2) - ((arrowMinWidth + arrowMarginRight) / 2);
 		},
-		recalculateHeaderInfoLayoutStates () {
+		recalculateHeaderInfoLayoutStates ({ allowShrink = true } = {}) {
 			let listEl = this.find('.c-gp-results-raw-output_list');
 			let listWidth = listEl?.getBoundingClientRect?.().width || 0;
 			let preparedTestResults = this.get('preparedTestResults') || [];
@@ -619,7 +623,7 @@
 			});
 
 			this.set('headerInfoOverflowByResultId', overflowByResultId);
-			this.setResultsBlockHeight();
+			this.setResultsBlockHeight({ allowShrink });
 		},
 		shouldUseOverflowLayout (result) {
 			let overflowByResultId = this.get('headerInfoOverflowByResultId') || {};
