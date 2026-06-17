@@ -3935,6 +3935,8 @@
 				let minTiming = stats.min || PROBE_NO_TIMING_VALUE;
 				let maxTiming = stats.max || PROBE_NO_TIMING_VALUE;
 
+				let responseBodyDelimiter = /(?:\r?\n){2}/;
+
 				return {
 					...baseStat,
 					ipAddr: res.result.resolvedAddress,
@@ -3949,8 +3951,8 @@
 					packetsRtt,
 					extraValues,
 					failureRawOutput: this.getFailureProbeRawOutput(res),
-					rawOutput: res.type === 'http' ? res.result.rawOutput.split('\n\n')[0] : res.result.rawOutput,
-					responseBody: res.type === 'http' ? res.result.rawOutput.split('\n\n').slice(1).join('\n\n') : null,
+					rawOutput: res.type === 'http' ? res.result.rawOutput.split(responseBodyDelimiter)[0] : res.result.rawOutput,
+					responseBody: res.type === 'http' ? res.result.rawOutput.split(responseBodyDelimiter).slice(1).join(responseBodyDelimiter) : null,
 					qualityStr: this.createQualityString(isOffline, stats.total, stats.drop),
 					areTimingsReady: this.checkAreTimingsReady(lastTiming, maxTiming, minTiming, avgTiming, packetsTotal),
 					tls: res.result.tls,
