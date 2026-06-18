@@ -40,7 +40,7 @@
 </div>
 
 <script>
-	const VIDEO_MODAL_HASH = '#video';
+	const VIDEO_MODAL_VIEW = 'video';
 	const VIDEO_MODAL_IFRAME_SRC = 'https://player.mediadelivery.net/embed/628851/9446ae1d-4d0a-436c-9b0d-e84b2e9fe2af?autoplay=false&loop=false&muted=false&preload=true&responsive=true';
 	const VIDEO_MODAL_PLAYERJS_SRC = 'https://assets.mediadelivery.net/playerjs/playerjs-latest.min.js';
 	const VIDEO_MODAL_SCROLL_STABLE_CLASS = 'gp-video-modal-scroll-stable';
@@ -53,29 +53,29 @@
 
 			this.setupVideoModal();
 
-			if (window.location.hash === VIDEO_MODAL_HASH) {
-				this.openVideoModal({ updateHash: false });
+			if (this.get('view') === VIDEO_MODAL_VIEW) {
+				this.openVideoModal();
 			}
 		},
-		onunrender () {
+		onteardown () {
 			this.teardownVideoModal();
 		},
-		openVideoModal ({ updateHash = true } = {}) {
-			let modal = this.find('.c-gp-video-modal_modal');
+		openVideoModal () {
+			let { modal, $modal } = this._videoModalHandlers || {};
 
 			if (!modal) {
 				return false;
 			}
 
-			if (!$(modal).hasClass('in') && document.activeElement instanceof HTMLElement) {
+			if (!$modal.hasClass('in') && document.activeElement instanceof HTMLElement) {
 				this._videoModalReturnFocusEl = document.activeElement;
 			}
 
-			if (updateHash && location.hash !== VIDEO_MODAL_HASH) {
-				history.replaceState(history.state, document.title, `${location.pathname}${location.search}${VIDEO_MODAL_HASH}`);
+			if (this.get('view') !== VIDEO_MODAL_VIEW) {
+				app.router.replaceQueryParam('view', VIDEO_MODAL_VIEW);
 			}
 
-			$(modal).modal('show');
+			$modal.modal('show');
 
 			return false;
 		},
@@ -116,8 +116,8 @@
 					document.head.appendChild(script);
 				}
 
-				script.addEventListener('load', handleLoad, { once: true });
-				script.addEventListener('error', handleError, { once: true });
+				script.addEventListener('load', handleLoad);
+				script.addEventListener('error', handleError);
 			});
 
 			return this._videoModalPlayerApiPromise;
@@ -179,7 +179,9 @@
 				player.setCurrentTime?.(0);
 			}).catch(() => null);
 		},
-		activateVideoModalFrame (videoFrame = this._videoModalHandlers?.videoFrame) {
+		activateVideoModalFrame () {
+			let videoFrame = this._videoModalHandlers?.videoFrame;
+
 			this._isVideoModalFrameActive = true;
 
 			if (!videoFrame) {
@@ -196,7 +198,7 @@
 			let activeElement = document.activeElement;
 			let hasReturnFocusEl = this._videoModalReturnFocusEl instanceof HTMLElement && document.contains(this._videoModalReturnFocusEl);
 
-			if (!(modal instanceof HTMLElement) || !(activeElement instanceof HTMLElement) || !modal.contains(activeElement)) {
+			if (!(activeElement instanceof HTMLElement) || !modal?.contains(activeElement)) {
 				return;
 			}
 
@@ -214,8 +216,8 @@
 			this._isVideoModalFrameActive = false;
 			this.resetVideoModalPlayback();
 
-			if (location.hash === VIDEO_MODAL_HASH) {
-				history.replaceState(history.state, document.title, `${location.pathname}${location.search}`);
+			if (this.get('view') === VIDEO_MODAL_VIEW) {
+				app.router.replaceQueryParam('view', null);
 			}
 
 			if (restoreFocus && hasReturnFocusEl && !shouldClearReturnFocusEl) {
@@ -255,15 +257,13 @@
 
 			let $modal = $(modal);
 
-			let hashChangeHandler = () => {
-				if (location.hash === VIDEO_MODAL_HASH) {
-					this.openVideoModal({ updateHash: false });
-				}
-
-				if (location.hash !== VIDEO_MODAL_HASH && $modal.hasClass('in')) {
+			this.observe('view', (view) => {
+				if (view === VIDEO_MODAL_VIEW) {
+					this.openVideoModal();
+				} else if ($modal.hasClass('in')) {
 					$modal.modal('hide');
 				}
-			};
+			}, { init: false });
 
 			let showHandler = () => {
 				this.activateVideoModalFrame();
@@ -273,20 +273,14 @@
 				this.moveVideoModalFocusOut(modal);
 			};
 
-			let loadHandler = (event) => {
-				let currentVideoFrame = event.currentTarget;
-
-				if (!currentVideoFrame) {
+			let loadHandler = () => {
+				if (videoFrame.getAttribute('src')) {
+					videoFrame.classList.add('video-loaded');
+					this.getVideoModalPlayer(videoFrame);
 					return;
 				}
 
-				if (currentVideoFrame.getAttribute('src')) {
-					currentVideoFrame.classList.add('video-loaded');
-					this.getVideoModalPlayer(currentVideoFrame);
-					return;
-				}
-
-				currentVideoFrame.classList.remove('video-loaded');
+				videoFrame.classList.remove('video-loaded');
 			};
 
 			let hiddenHandler = () => {
@@ -297,13 +291,11 @@
 			$modal.on('hide.bs.modal', hideHandler);
 			$modal.on('hidden.bs.modal', hiddenHandler);
 			videoFrame?.addEventListener('load', loadHandler);
-			window.addEventListener('hashchange', hashChangeHandler);
 
 			this._videoModalHandlers = {
 				modal,
 				$modal,
 				videoFrame,
-				hashChangeHandler,
 				loadHandler,
 				hideHandler,
 				showHandler,
@@ -315,10 +307,9 @@
 				return;
 			}
 
-			let { modal, $modal, videoFrame, hashChangeHandler, loadHandler, hideHandler, showHandler, hiddenHandler } = this._videoModalHandlers;
+			let { modal, $modal, videoFrame, loadHandler, hideHandler, showHandler, hiddenHandler } = this._videoModalHandlers;
 
 			this.resetVideoModalState();
-			window.removeEventListener('hashchange', hashChangeHandler);
 			$modal.off('show.bs.modal', showHandler);
 			$modal.off('hide.bs.modal', hideHandler);
 			$modal.off('hidden.bs.modal', hiddenHandler);
