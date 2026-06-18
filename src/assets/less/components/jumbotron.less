@@ -56,58 +56,27 @@
 	// styles for a specific GP pages
 	&.main {
 		overflow: clip visible;
-		height: 800px;
+		height: 680px;
 		background: linear-gradient(180deg, #17233a 0%, #17233a 44%, #24345a 58%, #4d659f 73%, #97a7d8 84%, #d7ddef 92%, #f3f5fb 97%, #fff 100%);
 
-		@media (min-width: @screen-sm-min) {
-			height: 680px;
-		}
-
 		.jumbotron_blur {
-			top: 320px;
-			height: 360px;
-			overflow: visible;
-			z-index: -1;
-			filter: blur(30px);
-
-			&_circle-one {
-				height: 340px;
-				width: 1800px;
-				top: 50%;
-				left: 50%;
-				margin: 0;
-				z-index: 2;
-				transform: translate(-60%, -50%);
-				background: radial-gradient(44% 44% at 49.81% 37.55%, rgba(23, 212, 167, .82) 0%, rgba(23, 212, 167, .52) 56%, rgba(23, 212, 167, 0) 100%);
-			}
-
-			&_circle-two {
-				height: 260px;
-				width: 150%;
-				top: 50%;
-				left: 50%;
-				margin: 0;
-				z-index: 1;
-				filter: blur(2px);
-				transform: translate(-50%, -55%) rotate(-180deg);
-				background: radial-gradient(50% 52% at 50% 50%, rgba(48, 90, 171, .28) 0%, rgba(48, 90, 171, .75) 64%, rgba(48, 90, 171, .5) 82%, rgba(48, 90, 171, 0) 100%);
-			}
-
-			@media (min-width: @screen-sm-min) {
-				display: none;
-			}
+			display: none;
 		}
 
 		.jumbotron_globe {
-			display: none;
 			--globe-size: min(900px, calc(100vw - 64px));
-			left: 50%;
-			bottom: calc(var(--globe-size) * -.35);
-			width: var(--globe-size);
-			transform: translateX(-50%);
+			right: 0;
+			top: 184px;
+			width: 500px;
+			transform: translateX(40%);
 
 			@media (min-width: @screen-sm-min) {
-				display: block;
+				right: initial;
+				top: initial;
+				left: 50%;
+				bottom: calc(var(--globe-size) * -.35);
+				width: var(--globe-size);
+				transform: translateX(-50%);
 			}
 
 			@media (min-width: @screen-md-min) {
