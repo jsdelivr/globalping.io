@@ -5,9 +5,11 @@
 	<div class="c-gp-results-raw-output_list {{#if testInProgress}}round-bottom{{/if}}" on-scroll="@this.hideSetLocationButton()">
 		{{#each preparedTestResults}}
 			<div class="c-gp-results-raw-output_list_item item-id-{{this.clientSideId}}"
-				tabindex="0"
-				role="button"
-				aria-label="Set as location for the next test"
+				{{#if showSetLocationButton}}
+					tabindex="0"
+					role="button"
+					aria-label="Set as location for the next test"
+				{{/if}}
 				on-focus="@this.enableItemFocused(@event, this.clientSideId)"
 				on-blur="@this.hideSetLocationButton(@event)"
 				on-keydown="@this.headerKeydownHandler(@event, this.clientSideId)"
@@ -40,7 +42,7 @@
 							</span>
 						</div>
 
-						{{#if this.statsPerTarget[activeTargetIdx].ipAddr}}
+						{{#if this.statsPerTarget[activeTargetIdx].ipAddr || this.statsPerTarget[activeTargetIdx].target}}
 							<span class="c-gp-results-raw-output_list_item_header_info_arrow"></span>
 
 							<c-gp-tls-details tls="{{this.statsPerTarget[activeTargetIdx].tls}}" screenWidth="{{screenWidth}}"></c-gp-tls-details>
@@ -48,29 +50,38 @@
 							<div class="c-gp-results-raw-output_list_item_header_info_entity">
 								<span class="c-gp-results-raw-output_list_item_header_info_entity_field">
 									<i class="fa fa-server" aria-hidden="true"></i>
-									<span>{{this.statsPerTarget[activeTargetIdx].ipAddr}}</span>
+									<span>{{this.statsPerTarget[activeTargetIdx].target || this.statsPerTarget[activeTargetIdx].ipAddr}}</span>
 								</span>
 
-								<span class="c-gp-results-raw-output_list_item_header_info_entity_field">
-									{{#if @this.isAnycastIp(this.statsPerTarget[activeTargetIdx].ipAddr)}}
-										<img width="22" height="16" alt="" src="{{@shared.assetsHost}}/img/anycast.svg">
-										Anycast
-									{{elseif @this.getIpLocationLabel(this.statsPerTarget[activeTargetIdx].ipAddr)}}
-										{{#if @this.getIpLocationCountryCode(this.statsPerTarget[activeTargetIdx].ipAddr)}}
-											<img width="21" height="14" alt="" src="https://cdn.jsdelivr.net/npm/country-flag-icons@1.5.5/3x2/{{@this.getIpLocationCountryCode(this.statsPerTarget[activeTargetIdx].ipAddr)}}.svg">
-										{{/if}}
-										<span>{{@this.getIpLocationLabel(this.statsPerTarget[activeTargetIdx].ipAddr)}}</span>
+								{{#if this.statsPerTarget[activeTargetIdx].ipAddr}}
+									{{#if this.statsPerTarget[activeTargetIdx].target && this.statsPerTarget[activeTargetIdx].target !== this.statsPerTarget[activeTargetIdx].ipAddr}}
+										<span class="c-gp-results-raw-output_list_item_header_info_entity_field">
+											<i class="fa fa-globe" aria-hidden="true"></i>
+											<span>{{this.statsPerTarget[activeTargetIdx].ipAddr}}</span>
+										</span>
 									{{/if}}
-								</span>
 
-								{{#if @this.shouldRenderTargetNetwork(this.statsPerTarget[activeTargetIdx].ipAddr)}}
 									<span class="c-gp-results-raw-output_list_item_header_info_entity_field">
-										<img width="18"
-											height="18"
-											src="{{@shared.logoHost}}/{{@this.getNetworkDomainNameByIp(this.statsPerTarget[activeTargetIdx].ipAddr)}}?v={{@shared.assetsVersion}}&padding=0"
-											alt="{{@this.getNetworkName(this.statsPerTarget[activeTargetIdx].ipAddr)}} logo">
-										<span>{{@this.getNetworkName(this.statsPerTarget[activeTargetIdx].ipAddr)}}</span>
+										{{#if @this.isAnycastIp(this.statsPerTarget[activeTargetIdx].ipAddr)}}
+											<img width="22" height="16" alt="" src="{{@shared.assetsHost}}/img/anycast.svg">
+											Anycast
+										{{elseif @this.getIpLocationLabel(this.statsPerTarget[activeTargetIdx].ipAddr)}}
+											{{#if @this.getIpLocationCountryCode(this.statsPerTarget[activeTargetIdx].ipAddr)}}
+												<img width="21" height="14" alt="" src="https://cdn.jsdelivr.net/npm/country-flag-icons@1.5.5/3x2/{{@this.getIpLocationCountryCode(this.statsPerTarget[activeTargetIdx].ipAddr)}}.svg">
+											{{/if}}
+											<span>{{@this.getIpLocationLabel(this.statsPerTarget[activeTargetIdx].ipAddr)}}</span>
+										{{/if}}
 									</span>
+
+									{{#if @this.shouldRenderTargetNetwork(this.statsPerTarget[activeTargetIdx].ipAddr)}}
+										<span class="c-gp-results-raw-output_list_item_header_info_entity_field">
+											<img width="18"
+												height="18"
+												src="{{@shared.logoHost}}/{{@this.getNetworkDomainNameByIp(this.statsPerTarget[activeTargetIdx].ipAddr)}}?v={{@shared.assetsVersion}}&padding=0"
+												alt="{{@this.getNetworkName(this.statsPerTarget[activeTargetIdx].ipAddr)}} logo">
+											<span>{{@this.getNetworkName(this.statsPerTarget[activeTargetIdx].ipAddr)}}</span>
+										</span>
+									{{/if}}
 								{{/if}}
 							</div>
 						{{/if}}
@@ -143,19 +154,21 @@
 		{{/each}}
 	</div>
 
-	{{#if floatingSetLocationButton.visible}}
-		<button class="c-gp-results-raw-output_set-location {{#if itemFocused}}focus-outline{{/if}}"
-			type="button"
-			tabindex="-1"
-			style="top: {{floatingSetLocationButton.top}}px; left: {{floatingSetLocationButton.left}}px;"
-			as-tooltip="'Set as location for the next test', 'right'"
-			on-focus="@this.set('itemFocused', true)"
-			on-blur="@this.hideSetLocationButton(@event)"
-			on-click="@this.setProbeAsLocation()"
-			on-mouseleave="@this.hideSetLocationButton(@event)"
-			aria-label="Set as location for the next test">
-			<i class="fa fa-map-marker" aria-hidden="true"></i>
-		</button>
+	{{#if showSetLocationButton}}
+		{{#if floatingSetLocationButton.visible}}
+			<button class="c-gp-results-raw-output_set-location {{#if itemFocused}}focus-outline{{/if}}"
+				type="button"
+				tabindex="-1"
+				style="top: {{floatingSetLocationButton.top}}px; left: {{floatingSetLocationButton.left}}px;"
+				as-tooltip="'Set as location for the next test', 'right'"
+				on-focus="@this.set('itemFocused', true)"
+				on-blur="@this.hideSetLocationButton(@event)"
+				on-click="@this.setProbeAsLocation()"
+				on-mouseleave="@this.hideSetLocationButton(@event)"
+				aria-label="Set as location for the next test">
+				<i class="fa fa-map-marker" aria-hidden="true"></i>
+			</button>
+		{{/if}}
 	{{/if}}
 </div>
 
@@ -190,6 +203,7 @@
 				PROBE_STATUS_OFFLINE,
 				pendingDomainLookups: new Set(),
 				showingNetworkLogos: false,
+				showSetLocationButton: true,
 				resultsBlockHeightShapeSignature: null,
 				skipNextResize: false,
 				headerInfoCharWidths: null,
@@ -291,6 +305,8 @@
 				|| activeElement?.classList.contains('c-gp-results-raw-output_list_item');
 		},
 		showSetLocationButton (clientSideId) {
+			if (!this.get('showSetLocationButton')) { return; }
+
 			let probeData = this.get('preparedTestResults').find(item => item.clientSideId === clientSideId);
 			let node = document.querySelector(`.item-id-${clientSideId}`);
 			let nodeHeader = node?.querySelector('.c-gp-results-raw-output_list_item_header_info');
@@ -363,12 +379,16 @@
 			this.set('floatingSetLocationButton.visible', false);
 		},
 		setProbeAsLocation (probeData = this.get('floatingSetLocationButton.probeData')) {
+			if (!this.get('showSetLocationButton')) { return; }
+
 			if (!probeData) { return; }
 
 			this.set('currSearchLocation', `AS${probeData.asn}+${probeData.city}`);
 			this.set('floatingSetLocationButton.visible', false);
 		},
 		enableItemFocused (event, clientSideId) {
+			if (!this.get('showSetLocationButton')) { return; }
+
 			if (!event.target?.classList.contains('c-gp-results-raw-output_list_item')) {
 				return;
 			}
@@ -382,6 +402,8 @@
 			});
 		},
 		headerKeydownHandler (event, clientSideId) {
+			if (!this.get('showSetLocationButton')) { return; }
+
 			if (!event.target?.classList.contains('c-gp-results-raw-output_list_item')) {
 				return;
 			}
@@ -593,26 +615,30 @@
 		},
 		getHeaderInfoTargetEntityWidth (result) {
 			let activeTargetIdx = this.get('activeTargetIdx');
-			let ipAddr = result?.statsPerTarget?.[activeTargetIdx]?.ipAddr;
+			let targetStats = result?.statsPerTarget?.[activeTargetIdx];
+			let ipAddr = targetStats?.ipAddr;
+			let target = targetStats?.target;
+			let targetLabel = target || ipAddr;
 
-			if (!ipAddr) {
+			if (!targetLabel) {
 				return 0;
 			}
 
-			let ipTextWidth = this.measureHeaderInfoTextWidth(ipAddr);
+			let targetTextWidth = this.measureHeaderInfoTextWidth(targetLabel);
+			let ipTextWidth = ipAddr && target && target !== ipAddr ? this.measureHeaderInfoTextWidth(ipAddr) : 0;
 			let locationLabel = this.isAnycastIp(ipAddr) ? 'Anycast' : this.getIpLocationLabel(ipAddr) || '';
 			let locationTextWidth = this.measureHeaderInfoTextWidth(locationLabel);
 			let networkName = this.shouldRenderTargetNetwork(ipAddr) ? this.getNetworkName(ipAddr) || '' : '';
 			let networkTextWidth = this.measureHeaderInfoTextWidth(networkName);
-			let fieldCount = 2 + (networkName ? 1 : 0);
+			let fieldCount = 1 + (ipTextWidth ? 1 : 0) + (ipAddr ? 1 : 0) + (networkName ? 1 : 0);
 			let hasLocationIcon = this.isAnycastIp(ipAddr) || !!this.getIpLocationCountryCode(ipAddr);
-			let iconCount = 1 + (hasLocationIcon ? 1 : 0) + (networkName ? 1 : 0);
-			let iconWidths = 16 + (this.isAnycastIp(ipAddr) ? 22 : this.getIpLocationCountryCode(ipAddr) ? 21 : 0) + (networkName ? 18 : 0);
+			let iconCount = 1 + (ipTextWidth ? 1 : 0) + (ipAddr && hasLocationIcon ? 1 : 0) + (networkName ? 1 : 0);
+			let iconWidths = 16 + (ipTextWidth ? 16 : 0) + (ipAddr && this.isAnycastIp(ipAddr) ? 22 : ipAddr && this.getIpLocationCountryCode(ipAddr) ? 21 : 0) + (networkName ? 18 : 0);
 			let textIconGaps = iconCount * 6;
 			let fieldsGap = 16 * (fieldCount - 1);
 			let entityHorizontalPadding = 8 * 2;
 
-			return ipTextWidth + locationTextWidth + networkTextWidth + iconWidths + textIconGaps + fieldsGap + entityHorizontalPadding;
+			return targetTextWidth + ipTextWidth + locationTextWidth + networkTextWidth + iconWidths + textIconGaps + fieldsGap + entityHorizontalPadding;
 		},
 		resetHeaderInfoEntityWidthCache () {
 			this.set('headerInfoEntityWidthsByKey', Object.create(null));
