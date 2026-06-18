@@ -190,7 +190,7 @@
 				PROBE_STATUS_OFFLINE,
 				pendingDomainLookups: new Set(),
 				showingNetworkLogos: false,
-				heightSetForCurrentResults: false,
+				resultsBlockHeightShapeSignature: null,
 				skipNextResize: false,
 				headerInfoCharWidths: null,
 				headerInfoFallbackCharWidth: 7,
@@ -235,8 +235,10 @@
 
 				this.observe('preparedTestResults testInProgress', () => {
 					this.resetHeaderInfoEntityWidthCache();
-					this.set('heightSetForCurrentResults', false);
-					this.recalculateHeaderInfoLayoutStates();
+
+					this.recalculateHeaderInfoLayoutStates({
+						allowShrink: this.shouldAllowResultsBlockShrink(),
+					});
 				}, { deep: true, defer: true });
 
 				this.observe('hiddenTestResults', () => {
@@ -255,7 +257,7 @@
 				this.observe('preparedTestResults activeTargetIdx', () => {
 					this.resetHeaderInfoEntityWidthCache();
 					this.populateNetworkDomains();
-					this.recalculateHeaderInfoLayoutStates();
+					this.recalculateHeaderInfoLayoutStates({ allowShrink: false });
 				});
 
 				this.observe('sortOrder sortBy activeTargetIdx', () => {
@@ -420,6 +422,25 @@
 			return hidden.includes(result?.clientSideId);
 		},
 		// --- Output list height setter
+		getResultsBlockHeightShapeSignature () {
+			let preparedTestResults = this.get('preparedTestResults') || [];
+			let measurementsMetadata = this.get('measurementsMetadata') || {};
+			let measurementIds = Object.keys(measurementsMetadata)
+				.sort()
+				.map(key => measurementsMetadata[key]?.measurementId || '')
+				.join(',');
+			let expectedTargetsCnt = this.get('targetsCnt') || preparedTestResults[0]?.statsPerTarget?.length || 0;
+
+			return `${measurementIds}:${expectedTargetsCnt}:${preparedTestResults.length}`;
+		},
+		shouldAllowResultsBlockShrink () {
+			let currentSignature = this.getResultsBlockHeightShapeSignature();
+			let previousSignature = this.get('resultsBlockHeightShapeSignature');
+
+			this.set('resultsBlockHeightShapeSignature', currentSignature);
+
+			return currentSignature !== previousSignature;
+		},
 		setResultsBlockHeight ({ allowShrink = true } = {}) {
 			requestAnimationFrame(() => {
 				let listEl;
@@ -439,7 +460,6 @@
 					let itemsAmount = items.length;
 
 					if (itemsAmount === 0) {
-						this.set('heightSetForCurrentResults', true);
 						return;
 					}
 
@@ -464,8 +484,7 @@
 					}
 
 					// Collapse-only updates keep the current height; structural updates may shrink empty space.
-					let shouldUpdateHeight = !this.get('heightSetForCurrentResults')
-						|| targetHeight > currentHeight
+					let shouldUpdateHeight = targetHeight > currentHeight
 						|| (allowShrink && targetHeight !== currentHeight && totalItemHeight < currentHeight);
 
 					if (shouldUpdateHeight) {
@@ -475,7 +494,6 @@
 					}
 
 					listEl.scrollTop = currentScrollTop;
-					this.set('heightSetForCurrentResults', true);
 				}
 			});
 		},
