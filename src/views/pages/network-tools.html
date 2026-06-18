@@ -177,9 +177,9 @@
 						measurementsMetadata="{{measurementsMetadata}}"
 						preparedTestResults="{{preparedTestResults}}"
 						hiddenTestResults="{{hiddenTestResults}}"
-						targetsCnt="1"
+						targetsCnt="{{1}}"
 						showSetLocationButton="{{false}}"
-						activeTargetIdx="0">
+						activeTargetIdx="{{0}}">
 					</c-gp-results-raw-output>
 				</div>
 			{{else}}
@@ -306,7 +306,7 @@
 				probesParsed: false,
 				testReqParams: null,
 				preparedTestResults: [],
-				hiddenTestResults: { 0: [], 1: [] },
+				hiddenTestResults: { 0: [] },
 				rawLocation: null,
 				rawLocationToDisplay: null,
 				allRequiredDataReady: false,
@@ -478,7 +478,6 @@
 		expandAllRawOutput () {
 			this.set('hiddenTestResults', {
 				0: [],
-				1: [],
 			});
 		},
 		proceedToTest () {
