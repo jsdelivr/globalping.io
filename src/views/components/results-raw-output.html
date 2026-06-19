@@ -5,14 +5,16 @@
 	<div class="c-gp-results-raw-output_list {{#if testInProgress}}round-bottom{{/if}}" on-scroll="@this.hideSetLocationButton()">
 		{{#each preparedTestResults}}
 			<div class="c-gp-results-raw-output_list_item item-id-{{this.clientSideId}}"
-				tabindex="0"
-				role="button"
-				aria-label="Set as location for the next test"
-				on-focus="@this.enableItemFocused(@event, this.clientSideId)"
-				on-blur="@this.hideSetLocationButton(@event)"
-				on-keydown="@this.headerKeydownHandler(@event, this.clientSideId)"
-				on-mouseenter="@this.showSetLocationButton(this.clientSideId)"
-				on-mouseleave="@this.hideSetLocationButton(@event)"
+				{{#if showSetLocationButton}}
+					tabindex="0"
+					role="button"
+					aria-label="Set as location for the next test"
+					on-focus="@this.enableItemFocused(@event, this.clientSideId)"
+					on-blur="@this.hideSetLocationButton(@event)"
+					on-keydown="@this.headerKeydownHandler(@event, this.clientSideId)"
+					on-mouseenter="@this.showSetLocationButton(this.clientSideId)"
+					on-mouseleave="@this.hideSetLocationButton(@event)"
+				{{/if}}
 			>
 				<div class="c-gp-results-raw-output_list_item_header">
 					<div class="c-gp-results-raw-output_list_item_header_info {{#if @this.shouldUseOverflowLayout(this)}}is-overflow-layout{{/if}}"
@@ -143,7 +145,7 @@
 		{{/each}}
 	</div>
 
-	{{#if floatingSetLocationButton.visible}}
+	{{#if showSetLocationButton && floatingSetLocationButton.visible}}
 		<button class="c-gp-results-raw-output_set-location {{#if itemFocused}}focus-outline{{/if}}"
 			type="button"
 			tabindex="-1"
@@ -203,6 +205,7 @@
 					left: 0,
 					probeData: null,
 				},
+				showSetLocationButton: true,
 				itemFocused: false,
 				justFocusedItem: false,
 			};
@@ -291,6 +294,8 @@
 				|| activeElement?.classList.contains('c-gp-results-raw-output_list_item');
 		},
 		showSetLocationButton (clientSideId) {
+			if (!this.get('showSetLocationButton')) { return; }
+
 			let probeData = this.get('preparedTestResults').find(item => item.clientSideId === clientSideId);
 			let node = document.querySelector(`.item-id-${clientSideId}`);
 			let nodeHeader = node?.querySelector('.c-gp-results-raw-output_list_item_header_info');
@@ -327,6 +332,8 @@
 			});
 		},
 		hideSetLocationButton (event) {
+			if (!this.get('showSetLocationButton')) { return; }
+
 			if (this.get('justFocusedItem')) {
 				this.set('justFocusedItem', false);
 				return;
@@ -363,12 +370,14 @@
 			this.set('floatingSetLocationButton.visible', false);
 		},
 		setProbeAsLocation (probeData = this.get('floatingSetLocationButton.probeData')) {
-			if (!probeData) { return; }
+			if (!this.get('showSetLocationButton') || !probeData) { return; }
 
 			this.set('currSearchLocation', `AS${probeData.asn}+${probeData.city}`);
 			this.set('floatingSetLocationButton.visible', false);
 		},
 		enableItemFocused (event, clientSideId) {
+			if (!this.get('showSetLocationButton')) { return; }
+
 			if (!event.target?.classList.contains('c-gp-results-raw-output_list_item')) {
 				return;
 			}
@@ -382,6 +391,8 @@
 			});
 		},
 		headerKeydownHandler (event, clientSideId) {
+			if (!this.get('showSetLocationButton')) { return; }
+
 			if (!event.target?.classList.contains('c-gp-results-raw-output_list_item')) {
 				return;
 			}

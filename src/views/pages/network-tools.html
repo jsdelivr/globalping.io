@@ -170,13 +170,18 @@
 					</p>
 				</div>
 			{{elseif testResults}}
-				<c-gp-results-raw-output
-					testReqParams="{{testReqParams}}"
-					testInProgress="{{testInProgress}}"
-					measurementsMetadata="{{measurementsMetadata}}"
-					preparedTestResults="{{preparedTestResults}}"
-					activeTargetIdx="0">
-				</c-gp-results-raw-output>
+				<div class="gp-nettools_demo-tools_raw-output">
+					<c-gp-results-raw-output
+						testReqParams="{{testReqParams}}"
+						testInProgress="{{testInProgress}}"
+						measurementsMetadata="{{measurementsMetadata}}"
+						preparedTestResults="{{preparedTestResults}}"
+						hiddenTestResults="{{hiddenTestResults}}"
+						targetsCnt="{{1}}"
+						showSetLocationButton="{{false}}"
+						activeTargetIdx="{{0}}">
+					</c-gp-results-raw-output>
+				</div>
 			{{else}}
 				<div class="gp-nettools_demo-tools_descr">
 					<img width="56"
@@ -300,6 +305,8 @@
 				highLevelLocationHref: null,
 				probesParsed: false,
 				testReqParams: null,
+				preparedTestResults: [],
+				hiddenTestResults: { 0: [] },
 				rawLocation: null,
 				rawLocationToDisplay: null,
 				allRequiredDataReady: false,
@@ -349,6 +356,7 @@
 
 					this.set('inputErrors', {});
 					this.set('testResults', null);
+					this.expandAllRawOutput();
 				});
 
 				this.observe('realTimeTestResResponse', (realTimeTestResResponse) => {
@@ -358,19 +366,17 @@
 					}
 
 					let prevTestResults = this.get('testResults') || [];
-					let updTestResults = realTimeTestResResponse.results.filter((res) => {
-						// if it is no in-progress then it is already finished or failed and we could draw a marker
-						if (res.result.status !== 'in-progress') { return true; }
-
-						return false;
-					});
+					let updTestResults = realTimeTestResResponse.results.map((res, resIdx) => ({
+						...res,
+						clientSideId: res.clientSideId ?? resIdx,
+					}));
 
 					// filter out results that have already been drawn
-					let newTestResults = updTestResults.filter((updRes) => {
-						return !prevTestResults.some(prevRes => JSON.stringify(prevRes) === JSON.stringify(updRes));
+					prevTestResults = prevTestResults.filter((prevRes) => {
+						return !updTestResults.some(updRes => updRes.clientSideId === prevRes.clientSideId);
 					});
 
-					this.set('testResults', [ ...prevTestResults, ...newTestResults ]);
+					this.set('testResults', [ ...prevTestResults, ...updTestResults ]);
 				}, { init: false });
 
 				// check if everything is already set and we can get LocationData etc.
@@ -464,6 +470,11 @@
 		onunrender () {
 			this.get('testReqCancelFn')?.();
 		},
+		expandAllRawOutput () {
+			this.set('hiddenTestResults', {
+				0: [],
+			});
+		},
 		proceedToTest () {
 			let type = this.get('selectedTestType');
 			let testOpts = this.get('testOpts');
@@ -483,6 +494,8 @@
 			this.set('testInProgress', true);
 			this.set('testReqParams', null);
 			this.set('errorMessage', null);
+			this.set('preparedTestResults', []);
+			this.expandAllRawOutput();
 
 			http.postGlobalpingMeasurement(reqParams, RATE_LIMIT_HEADERS).then((res) => {
 				this.getTestMeasurementById(res.response.id);
@@ -867,9 +880,10 @@
 			let dnsTraceEnabled = this.get('testReqParams.measurementOptions.trace');
 			let selectedTestType = this.get('selectedTestType');
 
-			return testResults.map((res) => {
+			return testResults.map((res, resIdx) => {
 				let preparedRes = {
 					...res.probe,
+					clientSideId: res.clientSideId ?? resIdx,
 					statsPerTarget: [{
 						target: res.target,
 					}],
@@ -884,6 +898,7 @@
 
 					preparedRes.statsPerTarget = [{
 						...preparedRes.statsPerTarget[0],
+						ipAddr: res.result.resolvedAddress,
 						avgTiming,
 						isFailed,
 						isOffline,
