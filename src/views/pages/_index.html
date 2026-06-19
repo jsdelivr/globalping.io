@@ -3953,7 +3953,7 @@
 					extraValues,
 					failureRawOutput: this.getFailureProbeRawOutput(res),
 					rawOutput: res.type === 'http' ? res.result.rawOutput.split(responseBodyDelimiter)[0] : res.result.rawOutput,
-					responseBody: res.type === 'http' ? res.result.rawOutput.split(responseBodyDelimiter).slice(1).join(responseBodyDelimiter) : null,
+					responseBody: res.type === 'http' ? res.result.rawOutput.split(responseBodyDelimiter).slice(1).join('\n\n') : null,
 					qualityStr: this.createQualityString(isOffline, stats.total, stats.drop),
 					areTimingsReady: this.checkAreTimingsReady(lastTiming, maxTiming, minTiming, avgTiming, packetsTotal),
 					tls: res.result.tls,
