@@ -360,8 +360,6 @@
 				});
 
 				this.observe('realTimeTestResResponse', (realTimeTestResResponse) => {
-					console.log('realTimeTestResResponse', realTimeTestResResponse);
-
 					if (realTimeTestResResponse.status === 'finished') {
 						this.get('testReqCancelFn')?.();
 						this.set('testInProgress', false);
