@@ -664,10 +664,6 @@
 			</div>
 
 			{{#if showCreditsData}}
-				{{#unless showMap}}
-					<div class="gp_map-block_line"></div>
-				{{/unless}}
-
 				<c-gp-credits
 					mapOpened="{{showMap}}"
 					testInProgress="{{testInProgress}}"
@@ -675,15 +671,7 @@
 					rateCreditsData="{{rateCreditsData}}"
 					testResults="{{testResults}}">
 				</c-gp-credits>
-
-				{{#if showMap}}
-					<div class="gp_map-block_line"></div>
-				{{/if}}
 			{{/if}}
-
-			{{#unless showMap}}
-				<div class="gp_map-block_line"></div>
-			{{/unless}}
 
 			{{#if measurementErrMsg && !showCreditsErrorBar}}
 				<div class="gp_map-block_test-output with-padding">
@@ -719,16 +707,20 @@
 								testReqParams="{{testReqParams}}"
 								preparedTestResults="{{preparedTestResults}}"
 								hiddenTestResults="{{hiddenTestResults}}"
+								hiddenResponseBodies="{{hiddenResponseBodies}}"
 								testInProgress="{{testInProgress}}"
 								scrolledToResId="{{scrolledToResId}}"
 								currSearchLocation="{{mainOptions.location}}"
 								measurementsMetadata="{{measurementsMetadata}}"
 								activeTargetIdx="{{activeTargetIdx}}"
+								targetsCnt="{{targetsArr.length}}"
 								isInfiniteModeRes="{{isInfiniteModeRes}}"
 								screenWidth="{{screenWidth}}"
 								sortOrder="{{sortOrder}}"
 								sortBy="{{sortBy}}"
-								showingNetworkLogos="{{showingNetworkLogos}}">
+								showingNetworkLogos="{{showingNetworkLogos}}"
+								responseBodyCharWidth="{{responseBodyCharWidth}}"
+								expandAllRawOutput="{{@this.expandAllRawOutput}}">
 							</c-gp-results-raw-output>
 						</div>
 					{{else}}
@@ -1663,6 +1655,7 @@
 			name: 'Rtt max',
 		},
 	];
+	const ALLOWED_COLLAPSE_OPTS = [ 'all', 'none' ]; // default would be "response bodies"
 
 	const getMarkerSize = (probeCount, zoom) => {
 		let size = {
@@ -1771,6 +1764,7 @@
 				measurementsMetadata: null,
 				targetsArr: [],
 				hiddenTestResults: { 0: [], 1: [] },
+				hiddenResponseBodies: { 0: [], 1: [] },
 				qsMeasurementIdsArr: [],
 				showCreditsErrorBar: false,
 				infiniteMeasIds: [],
@@ -1788,7 +1782,8 @@
 				sortByOpts: SORT_BY_OPTS,
 				locationAutofilled: false,
 				showingNetworkLogos: false,
-				collapseFromQuery: false,
+				collapseFromQuery: null,
+				skipDefaultAutoCollapseFromQuery: false,
 				integrationExamples: [
 					{
 						name: 'n8n',
@@ -1854,6 +1849,22 @@
 
 				return true;
 			},
+			anyResponseBodyCollapsible () {
+				let preparedTestResults = this.get('preparedTestResults') || [];
+				let targetsArr = this.get('targetsArr') || [];
+
+				for (let targetIdx = 0; targetIdx < targetsArr.length; targetIdx++) {
+					for (let i = 0; i < preparedTestResults.length; i++) {
+						let body = preparedTestResults[i]?.statsPerTarget?.[targetIdx]?.responseBody || '';
+
+						if (_.shouldCollapseResponseBody(body, this.getRawOutputCharsPerLine())) {
+							return true;
+						}
+					}
+				}
+
+				return false;
+			},
 		},
 		onrender () {
 			if (!Ractive.isServer) {
@@ -1898,6 +1909,7 @@
 				if (qsMeasurementIdsArr.length) {
 					this.set('qsMeasurementIdsArr', qsMeasurementIdsArr);
 					this.set('shareResFlow', true);
+					this.set('prevProbesMeasId', qsMeasurementIdsArr[0]);
 
 					this.getMultipleTestMeasurementById(qsMeasurementIdsArr, isInfiniteMeas);
 				}
@@ -1938,8 +1950,8 @@
 				// read the collapse URL param and apply it once results are available
 				let collapse = this.get('collapse');
 
-				if (collapse === true) {
-					this.set('collapseFromQuery', true);
+				if (ALLOWED_COLLAPSE_OPTS.includes(collapse)) {
+					this.set('collapseFromQuery', collapse);
 				}
 
 				// get probes from sessionStorage or fetch them and handle
@@ -1949,6 +1961,8 @@
 				if (location && !measurement) {
 					this.set('locationAutofilled', true);
 				}
+
+				this.initResponseBodyCharWidth();
 
 				this.observe('sortBy', (sortBy) => {
 					app.router.replaceQueryParam('by', sortBy === DEFAULT_SORT_BY ? null : sortBy, this);
@@ -2003,43 +2017,113 @@
 					app.router.replaceQueryParam('map', showMap ? null : 'hidden', this);
 				});
 
-				this.observe('preparedTestResults', (preparedTestResults) => {
-					let collapse = this.get('collapseFromQuery');
-
-					if (!collapse || !preparedTestResults.length) {
+				this.observe('preparedTestResults', (preparedTestResults, prevPreparedTestResults) => {
+					if (_.isEqual(preparedTestResults, prevPreparedTestResults)) {
 						return;
 					}
 
-					this.collapseAllRawOutput();
-					this.set('collapseFromQuery', false);
-				}, { defer: true });
+					let collapse = this.get('collapseFromQuery');
+					let testType = (this.get('testReqParams.type') || '').toLowerCase();
+					let targetCount = this.get('targetsArr')?.length || 0;
+					let firstResultTargetCount = preparedTestResults?.[0]?.statsPerTarget?.length || 0;
 
-				this.observe('hiddenTestResults preparedTestResults targetsArr collapseFromQuery', () => {
+					if (!preparedTestResults.length) {
+						this.set('skipDefaultAutoCollapseFromQuery', false);
+						return;
+					}
+
+					// respect query-driven collapse first and prevent subsequent partial-result updates from overriding it with default auto-collapse
+					if (collapse) {
+						if (collapse === 'none') {
+							this.expandAllRawOutput({ withResponseBody: true });
+						} else { // === 'all'
+							this.collapseAllRawOutput();
+						}
+
+						this.set('collapseFromQuery', null);
+						this.set('skipDefaultAutoCollapseFromQuery', true);
+						return;
+					}
+
+					if (this.get('skipDefaultAutoCollapseFromQuery')) {
+						return;
+					}
+
+					// skip default collapsing until all target data is present
+					if (targetCount && targetCount !== firstResultTargetCount) {
+						return;
+					}
+
+					if (prevPreparedTestResults.length === 0 && preparedTestResults.length > 0 && !collapse) {
+						this.collapseAllRawOutput({ responseBodyOnly: true });
+					}
+
+					// close response bodies by default
+					if (!collapse && testType === 'http' && preparedTestResults.length) {
+						this.collapseAllRawOutput({ responseBodyOnly: true });
+					}
+				}, { deep: true, defer: true });
+
+				this.observe('hiddenTestResults hiddenResponseBodies preparedTestResults targetsArr collapseFromQuery', () => {
 					if (this.get('collapseFromQuery')) {
 						return;
 					}
 
 					let preparedTestResults = this.get('preparedTestResults');
+					let targetCount = this.get('targetsArr')?.length || 0;
+					let firstResultTargetCount = preparedTestResults?.[0]?.statsPerTarget?.length || 0;
 
 					if (!preparedTestResults.length) {
 						app.router.replaceQueryParam('collapse', null, this);
 						return;
 					}
 
+					// Avoid transient URL updates while multi-target results are still partially populated.
+					if (targetCount && targetCount !== firstResultTargetCount) {
+						return;
+					}
+
 					let hiddenTestResults = this.get('hiddenTestResults') || {};
-					let availableTargets = this.get('targetsArr').length;
+					let hiddenResponseBodies = this.get('hiddenResponseBodies') || {};
+					let testType = this.get('testReqParams.type');
+					let isHttpTest = testType.toLowerCase() === 'http';
+					let anyResponseBodyCollapsible = this.get('anyResponseBodyCollapsible');
+					let availableTargets = targetCount;
+
+					if (!availableTargets) {
+						return;
+					}
 
 					let allCollapsed = true;
+					let allExpanded = true;
+					let allResponseBodiesExpanded = isHttpTest;
 
 					for (let targetIdx = 0; targetIdx < availableTargets; targetIdx++) {
 						let hidden = hiddenTestResults[targetIdx] || [];
+						let hiddenContent = hiddenResponseBodies[targetIdx] || [];
 
 						if (hidden.length !== preparedTestResults.length) {
 							allCollapsed = false;
 						}
+
+						if (hiddenContent.length) {
+							allResponseBodiesExpanded = false;
+						}
+
+						if (hidden.length) {
+							allExpanded = false;
+						}
 					}
 
-					app.router.replaceQueryParam('collapse', allCollapsed ? 'true' : null, this);
+					let collapsedValue = null;
+
+					if (allCollapsed) {
+						collapsedValue = 'all';
+					} else if (allExpanded && allResponseBodiesExpanded && (!isHttpTest || anyResponseBodyCollapsible)) {
+						collapsedValue = 'none';
+					}
+
+					app.router.replaceQueryParam('collapse', collapsedValue, this);
 				}, { defer: true, init: false });
 
 				// handle test type switch
@@ -2958,7 +3042,7 @@
 			let el;
 
 			if (this.get('rawOutputMode')) {
-				el = this.find(`.c-gp-results-raw-output_list .c-gp-results-raw-output_list_item_top-wrapper.item-id-${clientSideId}`);
+				el = this.find(`.c-gp-results-raw-output_list_item.item-id-${clientSideId}`);
 			} else {
 				el = this.find(`.c-gp-results-table-output .results-table_row.row-num-${clientSideId}`);
 			}
@@ -2970,19 +3054,68 @@
 				el.scrollIntoView({ behavior: 'smooth' });
 			}
 		},
-		collapseAllRawOutput () {
+		initResponseBodyCharWidth () {
+			let measureNode = document.createElement('span');
+			measureNode.style.position = 'absolute';
+			measureNode.style.visibility = 'hidden';
+			measureNode.style.whiteSpace = 'pre';
+			measureNode.style.pointerEvents = 'none';
+			measureNode.style.fontFamily = '"Source Code Pro", monospace';
+			measureNode.style.fontSize = '13px';
+			measureNode.style.lineHeight = '21px';
+			measureNode.textContent = 'M';
+			document.body.appendChild(measureNode);
+
+			let width = measureNode.getBoundingClientRect().width;
+			measureNode.remove();
+			this.set('responseBodyCharWidth', width > 0 ? width : 7);
+		},
+		getRawOutputCharsPerLine () {
+			let listEl = this.find('.c-gp-results-raw-output_list');
+			let listWidth = listEl?.getBoundingClientRect?.().width || 0;
+			let outputHorizontalPadding = 32 * 2;
+			let outputListMargin = 24 * 2;
+			let contentWidth = Math.max(1, listWidth - outputHorizontalPadding);
+
+			if (!listWidth) {
+				let windowWidth = window.innerWidth;
+				contentWidth = Math.min(1240, windowWidth - outputListMargin - outputHorizontalPadding);
+			}
+
+			let charWidth = this.get('responseBodyCharWidth') || 7;
+			return Math.max(1, Math.floor(contentWidth / charWidth));
+		},
+		collapseAllRawOutput ({ responseBodyOnly = false } = {}) {
 			let ids = this.get('preparedTestResults').map(result => result.clientSideId);
 
-			this.set(`hiddenTestResults`, {
+			this.set('hiddenResponseBodies', {
 				0: [ ...ids ],
 				1: [ ...ids ],
 			});
+
+			if (!responseBodyOnly) {
+				this.set(`hiddenTestResults`, {
+					0: [ ...ids ],
+					1: [ ...ids ],
+				});
+			}
 		},
-		expandAllRawOutput () {
-			this.set('hiddenTestResults', {
-				0: [],
-				1: [],
-			});
+		expandAllRawOutput ({ withResponseBody = false, responseBodyOnly = false } = {}) {
+			if (withResponseBody || responseBodyOnly) {
+				this.set(`hiddenResponseBodies`, {
+					0: [],
+					1: [],
+				});
+			} else {
+				this.collapseAllRawOutput({ responseBodyOnly: true });
+			}
+
+			if (!responseBodyOnly) {
+				this.set('hiddenTestResults', {
+					0: [],
+					1: [],
+				});
+			}
 		},
 		getTestMeasurementById ({
 			measurementId,
@@ -3803,6 +3936,8 @@
 				let minTiming = stats.min || PROBE_NO_TIMING_VALUE;
 				let maxTiming = stats.max || PROBE_NO_TIMING_VALUE;
 
+				let responseBodyDelimiter = /(?:\r?\n){2}/;
+
 				return {
 					...baseStat,
 					ipAddr: res.result.resolvedAddress,
@@ -3817,7 +3952,9 @@
 					packetsRtt,
 					extraValues,
 					failureRawOutput: this.getFailureProbeRawOutput(res),
-					rawOutput: res.result.rawOutput,
+					rawOutput: res.type === 'http' ? res.result.rawOutput.split(responseBodyDelimiter)[0] : res.result.rawOutput,
+					responseBody: res.type === 'http' ? res.result.rawOutput.split(responseBodyDelimiter).slice(1).join('\n\n') : null,
+					qualityStr: this.createQualityString(isOffline, stats.total, stats.drop),
 					areTimingsReady: this.checkAreTimingsReady(lastTiming, maxTiming, minTiming, avgTiming, packetsTotal),
 					tls: res.result.tls,
 				};

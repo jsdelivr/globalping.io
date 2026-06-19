@@ -1,7 +1,7 @@
 <link rel="ractive" href="../components/placeholder-skeleton.html" name="c-placeholder-skeleton">
 
 <div class="c-gp-results-table-output">
-	<div class="results-table-wrapper">
+	<div class="results-table-wrapper" on-scroll="@this.hideSetLocationButton()">
 		<div class="results-table {{#if targetsCnt === 1}}single-target{{/if}}">
 			<div class="results-table_header">
 				<button class="results-table_header_cell location" on-click="@this.onSortClick('location')">
@@ -44,7 +44,16 @@
 			</div>
 
 			{{#each preparedTestResults}}
-				<div class="results-table_row row-num-{{this.clientSideId}}">
+				<div class="results-table_row row-num-{{this.clientSideId}} item-id-{{this.clientSideId}}"
+					tabindex="0"
+					role="button"
+					aria-label="Set as location for the next test"
+					on-focus="@this.enableItemFocused(@event, this.clientSideId)"
+					on-blur="@this.hideSetLocationButton(@event)"
+					on-keydown="@this.headerKeydownHandler(@event, this.clientSideId)"
+					on-mouseenter="@this.showSetLocationButton(this.clientSideId)"
+					on-mouseleave="@this.hideSetLocationButton(@event)"
+				>
 					<div class="results-table_row_location">
 						<span class="results-table_row_location_status-line">
 							<span
@@ -64,13 +73,6 @@
 							<span>{{this.network}}</span>
 						</div>
 
-						<div class="results-table_row_location_actions">
-							<div class="results-table_row_location_actions_btn"
-								as-tooltip="'Set as location for the next test', 'right'"
-								on-click="@this.setProbeAsLocation(this)">
-								<i class="fa fa-map-marker" aria-hidden="true"></i>
-							</div>
-						</div>
 					</div>
 
 					<div class="results-table_row_stats">
@@ -251,6 +253,21 @@
 			{{/each}}
 		</div>
 	</div>
+
+	{{#if floatingSetLocationButton.visible}}
+		<button class="c-gp-results-table-output_set-location {{#if itemFocused}}focus-outline{{/if}}"
+			type="button"
+			tabindex="-1"
+			style="top: {{floatingSetLocationButton.top}}px; left: {{floatingSetLocationButton.left}}px;"
+			as-tooltip="'Set as location for the next test', 'right'"
+			on-focus="@this.set('itemFocused', true)"
+			on-blur="@this.hideSetLocationButton(@event)"
+			on-click="@this.setProbeAsLocation()"
+			on-mouseleave="@this.hideSetLocationButton(@event)"
+			aria-label="Set as location for the next test">
+			<i class="fa fa-map-marker" aria-hidden="true"></i>
+		</button>
+	{{/if}}
 </div>
 
 <script>
@@ -287,6 +304,14 @@
 				chartMaxHeight: 0,
 				sortBy: 'location',
 				sortOrder: 'asc',
+				floatingSetLocationButton: {
+					visible: false,
+					top: 0,
+					left: 0,
+					probeData: null,
+				},
+				itemFocused: false,
+				justFocusedItem: false,
 			};
 		},
 		onrender () {
@@ -311,20 +336,120 @@
 						listWrapperEl.scrollTop = 0;
 					}
 				}, { init: false });
-			}
-		},
-		oncomplete () {
-			if (!Ractive.isServer) {
-				let tableEl = this.find('.c-gp-results-table-output .results-table');
-				let allActionBtnsElements = tableEl.querySelectorAll('.results-table_column_location .results-table_column_location_actions_btn');
 
-				tableEl.addEventListener('mouseleave', () => {
-					allActionBtnsElements.forEach(el => el.style.visibility = 'hidden');
-				});
+				this._onSetLocationViewportChange = (event) => {
+					this.hideSetLocationButton(event);
+				};
+
+				listeners.addManagedListener(this, window, 'resize', this._onSetLocationViewportChange);
+				listeners.addManagedListener(this, window, 'scroll', this._onSetLocationViewportChange);
 			}
 		},
-		setProbeAsLocation (probeData) {
+		// --- set location button logic ---
+		isSetLocationFocusActive (setLocationButton) {
+			let activeElement = document.activeElement;
+
+			return (setLocationButton && setLocationButton.contains(activeElement))
+				|| activeElement?.classList.contains('results-table_row');
+		},
+		showSetLocationButton (clientSideId) {
+			let probeData = this.get('preparedTestResults').find(item => item.clientSideId === clientSideId);
+			let rowNode = document.querySelector(`.item-id-${clientSideId}`);
+			let rowLocation = rowNode?.querySelector('.results-table_row_location');
+			let container = this.find('.c-gp-results-table-output');
+			let listContainer = this.find('.results-table-wrapper');
+
+			this.set('itemFocused', false);
+
+			if (!rowNode || !rowLocation || !container || !listContainer) { return; }
+
+			let listRect = listContainer.getBoundingClientRect();
+			let rowLocationRect = rowLocation.getBoundingClientRect();
+			let visibilityOverflowTolerancePx = 15;
+			let isRowLocationVisible = rowLocationRect.top >= (listRect.top - visibilityOverflowTolerancePx)
+				&& rowLocationRect.bottom <= (listRect.bottom + visibilityOverflowTolerancePx);
+
+			if (!isRowLocationVisible) {
+				this.set('floatingSetLocationButton.visible', false);
+				return;
+			}
+
+			let containerRect = container.getBoundingClientRect();
+			let relativeTop = rowLocationRect.top - containerRect.top;
+			let relativeLeft = rowLocationRect.left - containerRect.left;
+
+			this.set('floatingSetLocationButton', {
+				visible: true,
+				probeData,
+				top: relativeTop + rowLocationRect.height / 2 - 13,
+				left: relativeLeft - 26,
+			});
+		},
+		hideSetLocationButton (event) {
+			if (this.get('justFocusedItem')) {
+				this.set('justFocusedItem', false);
+				return;
+			}
+
+			let setLocationButton = this.find('.c-gp-results-table-output_set-location');
+
+			if (event?.type === 'blur' && !event.relatedTarget) {
+				requestAnimationFrame(() => {
+					this.hideSetLocationButton();
+				});
+
+				return;
+			}
+
+			if (this.isSetLocationFocusActive(setLocationButton)) {
+				return;
+			}
+
+			if (event?.type === 'blur' && setLocationButton?.contains(event.relatedTarget)) {
+				return;
+			}
+
+			if (event && event.relatedTarget && event.type !== 'blur') {
+				let container = event.target.closest('.results-table_row');
+				let relatedContainer = event.relatedTarget.closest?.('.results-table_row');
+
+				if ((container && container.contains(event.relatedTarget)) || relatedContainer || (setLocationButton && setLocationButton.contains(event.relatedTarget))) {
+					return;
+				}
+			}
+
+			this.set('floatingSetLocationButton.visible', false);
+			this.set('itemFocused', false);
+		},
+		setProbeAsLocation (probeData = this.get('floatingSetLocationButton.probeData')) {
+			if (!probeData) { return; }
+
 			this.set('currSearchLocation', `AS${probeData.asn}+${probeData.city}`);
+			this.set('floatingSetLocationButton.visible', false);
+		},
+		enableItemFocused (event, clientSideId) {
+			if (!event.target?.classList.contains('results-table_row')) {
+				return;
+			}
+
+			this.showSetLocationButton(clientSideId);
+			this.set('itemFocused', true);
+			this.set('justFocusedItem', true);
+
+			requestAnimationFrame(() => {
+				this.set('justFocusedItem', false);
+			});
+		},
+		headerKeydownHandler (event, clientSideId) {
+			if (!event.target?.classList.contains('results-table_row')) {
+				return;
+			}
+
+			if (event.key === 'Enter' || event.key === ' ') {
+				event.preventDefault();
+				let probeData = this.get('preparedTestResults').find(item => item.clientSideId === clientSideId);
+				this.setProbeAsLocation(probeData);
+			}
 		},
 		setChartMaxHeight (results) {
 			let allPacketRtt = results

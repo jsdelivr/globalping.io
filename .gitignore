@@ -6,7 +6,8 @@ LOCAL_APPDATA_FONTCONFIG_CACHE/
 node_modules/
 config/local*
 data/asn-domain.json
-data/IPINFO_LITE_ASN.mmdb
+data/*.mmdb
+data/*.csv*
 test/screenshots
 yarn.lock
 .eslintcache

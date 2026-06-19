@@ -295,7 +295,7 @@
 				padding: 24px;
 
 				@media (min-width: @screen-sm-min) {
-					padding: 32px 32px 24px;
+					padding: 32px 24px 24px;
 				}
 
 				@media (min-width: @screen-lg-min) {
@@ -819,7 +819,6 @@
 				align-items: center;
 				justify-content: center;
 				width: 100%;
-				overflow: hidden;
 
 				&.with-padding {
 					padding: 24px;
@@ -902,22 +901,6 @@
 
 				&_raw-output, &_table-output {
 					width: 100%;
-				}
-
-				&_raw-output {
-					padding: 24px;
-
-					@media (min-width: @screen-sm-min) {
-						padding: 0 32px 32px 4px;
-					}
-				}
-			}
-
-			.gp_map-block_map-wrapper_hidden + .gp_map-block_test-output {
-				margin-top: -24px;
-
-				@media (min-width: @screen-sm-min) {
-					margin-top: -32px;
 				}
 			}
 

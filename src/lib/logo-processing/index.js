@@ -1,7 +1,7 @@
 const sharp = require('sharp');
 
 const LUMINANCE_THRESHOLD = 230;
-const ALPHA_THRESHOLD = 255 - LUMINANCE_THRESHOLD;
+const ALPHA_THRESHOLD = 0.1;
 const TRIM_TOLERANCE = 10;
 
 /**

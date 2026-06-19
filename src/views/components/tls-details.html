@@ -1,6 +1,6 @@
 {{#if tls}}
-	<button type="button" on-click="@this.togglePopover()" class="btn gp-tls-details {{#unless tls.authorized}}btn-outline-danger{{/unless}}" title="{{tls.protocol}} - {{tls.cipherName}}" data-content="{{@this.getTlsString(tls)}}" data-html="true" data-container=".c-gp-results-raw-output_list">
-		<i class="fa {{#if tls.authorized}}fa-lock{{else}}fa-exclamation-triangle{{/if}}" aria-hidden="true"></i> TLS details
+	<button type="button" on-click="@this.togglePopover()" class="btn gp-tls-details {{#unless tls.authorized}}tls-error{{/unless}}" aria-label="TLS Details" title="{{tls.protocol}} - {{tls.cipherName}}" data-content="{{@this.getTlsString(tls)}}" data-html="true" data-container=".c-gp-results-raw-output">
+		<i class="fa {{#if tls.authorized}}fa-lock{{else}}fa-unlock-alt{{/if}}" aria-hidden="true"></i> TLS
 	</button>
 {{/if}}
 
@@ -63,19 +63,23 @@
 			$(this.find('button')).popover({ placement: this.get('placement'), template: this.get('template') }).popover('toggle');
 		},
 		getTlsString (tls) {
+			let esc = value => this.get('@shared.escape')(String(value ?? ''));
+			let subject = tls.subject || {};
+			let issuer = tls.issuer || {};
+
 			return `
 				<table class="table tls-table" style="margin-bottom: 0; overflow-wrap: anywhere;">
 					${tls.authorized ? '' : `<tr style="color: #eb3333;">
 						<th>Error</th>
-						<td>${tls.error}</td>
+						<td>${esc(tls.error)}</td>
 					</tr>`}
 					<tr>
 						<th style="min-width: 86px;">Subject</th>
-						<td>${tls.subject.CN}; ${tls.subject.alt}</td>
+						<td>${esc(subject.CN)}; ${esc(subject.alt)}</td>
 					</tr>
 					<tr>
 						<th>Issuer</th>
-						<td>${tls.issuer.CN}; ${tls.issuer.O}; ${tls.issuer.C}</td>
+						<td>${esc(issuer.CN)}; ${esc(issuer.O)}; ${esc(issuer.C)}</td>
 					</tr>
 					<tr>
 						<th>Validity</th>
@@ -83,15 +87,15 @@
 					</tr>
 					<tr>
 						<th>Serial number</th>
-						<td>${tls.serialNumber}</td>
+						<td>${esc(tls.serialNumber)}</td>
 					</tr>
 					<tr>
 						<th>Fingerprint</th>
-						<td>${tls.fingerprint256}</td>
+						<td>${esc(tls.fingerprint256)}</td>
 					</tr>
 					<tr>
 						<th>Key type</th>
-						<td>${tls.keyType}${tls.keyBits}</td>
+						<td>${esc(tls.keyType)}${esc(tls.keyBits)}</td>
 					</tr>
 				</table>
 			`;

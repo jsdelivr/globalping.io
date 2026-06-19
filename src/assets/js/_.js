@@ -300,6 +300,12 @@ module.exports = {
 		} else if (lowCaseTestName === 'traceroute') {
 			let { timings } = testResData.result.hops ? testResData.result.hops[testResData.result.hops.length - 1] : {};
 
+			extraValues.hops = {
+				text: 'Hops',
+				value: testResData.result.hops?.length ?? 0,
+				units: '',
+			};
+
 			if (timings && timings.length) {
 				let timingsCalc = timings.reduce((res, timing) => {
 					if (typeof timing.rtt === 'number') {
@@ -328,6 +334,12 @@ module.exports = {
 			}
 		} else if (lowCaseTestName === 'mtr') {
 			let lastHop = testResData.result.hops ? testResData.result.hops[testResData.result.hops.length - 1] : {};
+
+			extraValues.hops = {
+				text: 'Hops',
+				value: testResData.result.hops?.length ?? 0,
+				units: '',
+			};
 
 			if (lastHop) {
 				resTiming = lastHop.stats.avg;
@@ -742,5 +754,61 @@ module.exports = {
 
 	isTouchDevice () {
 		return !!window?.matchMedia('(hover: none), (pointer: coarse)')?.matches;
+	},
+
+	shouldCollapseResponseBody (body, charsPerLine) {
+		if (!body) {
+			return false;
+		}
+
+		let lines = String(body).split('\n');
+
+		if (lines.length > 3) {
+			return true;
+		}
+
+		return lines.slice(0, 3).reduce((acc, line) => acc + Math.ceil(line.length / charsPerLine), 0) > 3;
+	},
+
+	isEqual (obj1, obj2) {
+		if (Object.is(obj1, obj2)) {
+			return true;
+		}
+
+		if (obj1 === null || obj2 === null || typeof obj1 !== 'object' || typeof obj2 !== 'object') {
+			return false;
+		}
+
+		let isArray1 = Array.isArray(obj1);
+		let isArray2 = Array.isArray(obj2);
+
+		if (isArray1 || isArray2) {
+			if (!isArray1 || !isArray2 || obj1.length !== obj2.length) {
+				return false;
+			}
+
+			for (let i = 0; i < obj1.length; i++) {
+				if (!this.isEqual(obj1[i], obj2[i])) {
+					return false;
+				}
+			}
+
+			return true;
+		}
+
+		let keys1 = Object.keys(obj1);
+		let keys2 = Object.keys(obj2);
+
+		if (keys1.length !== keys2.length) {
+			return false;
+		}
+
+		for (let key of keys1) {
+			if (!Object.hasOwn(obj2, key) || !this.isEqual(obj1[key], obj2[key])) {
+				return false;
+			}
+		}
+
+		return true;
 	},
 };

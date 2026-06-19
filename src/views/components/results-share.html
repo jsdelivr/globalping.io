@@ -279,7 +279,8 @@
 					}
 
 					// RAW OUTPUT
-					let rawOutputContent = targetStats.rawOutput?.trim() ?? '';
+					let responseBody = targetStats.responseBody ? `\n\n${targetStats.responseBody}` : '';
+					let rawOutputContent = ((targetStats.rawOutput ?? '') + responseBody).trim();
 					let tickCount = 3;
 
 					for (let tickSequence of rawOutputContent.matchAll(/`+/g)) {

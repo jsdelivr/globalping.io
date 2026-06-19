@@ -10,9 +10,18 @@
 	align-items: center;
 	width: 100%;
 	background: #fff;
+	border-top: 1px solid #e7e7ee;
+
+	button {
+		transition: background-color .1s ease-in-out;
+
+		&:hover {
+			background-color: #f9fafb;
+		}
+	}
 
 	@media (min-width: @screen-sm-min) {
-		padding: 0 32px;
+		padding: 0 24px;
 		border-bottom: 1px solid #e7e7ee;
 	}
 
@@ -37,7 +46,6 @@
 		flex-direction: column;
 		justify-content: flex-end;
 		width: 100%;
-		max-width: 1238px;
 
 		@media (min-width: @screen-sm-min) {
 			flex-direction: row;
@@ -49,6 +57,7 @@
 			order: 2;
 			width: 100%;
 			padding: 0 24px;
+			gap: 24px;
 			border-bottom: 1px solid #e7e7ee;
 			margin-right: auto;
 
@@ -74,7 +83,7 @@
 				justify-content: center;
 				height: 100%;
 				width: 50%;
-				padding: 0 16px;
+				padding: 0;
 				cursor: pointer;
 				user-select: none;
 
@@ -106,8 +115,8 @@
 						display: inline-flex;
 						position: absolute;
 						bottom: 0;
-						left: 0;
-						width: 100%;
+						left: -4px;
+						width: calc(100% + 8px);
 						height: 2px;
 						background: #17d4a7;
 					}

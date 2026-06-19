@@ -12,13 +12,20 @@
 
 		<div class="content-wrapper_ctrls">
 			<div class="content-wrapper_ctrls_switch {{#if testType !== 'ping'}}content-wrapper_ctrls_switch--disabled{{/if}}" data-testid="results-display-switch">
-				<input id="display-type" type="checkbox" checked="{{rawOutputMode}}" disabled="{{testType !== 'ping'}}" class="switch-input {{#if !rawOutputMode}}table{{/if}}">
-				<label for="display-type">
-					<span>
+				<input id="display-type"
+					type="checkbox"
+					checked="{{rawOutputMode}}"
+					twoway="false"
+					disabled="{{testType !== 'ping'}}"
+					class="switch-input {{#unless rawOutputMode}}table{{/unless}}"
+					on-click="@this.handleDisplayTypeInputClick(@event)"
+					on-keydown="@this.handleDisplayTypeInputKeyDown(@event)">
+				<label for="display-type" on-click="@this.handleDisplayTypeLabelClick(@event)">
+					<span on-click="@this.handleDisplayTypeSwitch(true)">
 						<img width="16" height="16" alt="" src="{{@shared.assetsHost}}/img/raw-output-icon{{#if rawOutputMode}}.active{{/if}}.svg">
 						List
 					</span>
-					<span>
+					<span on-click="@this.handleDisplayTypeSwitch(false)">
 						<img width="16" height="16" alt="" src="{{@shared.assetsHost}}/img/table-output-icon{{#unless rawOutputMode}}.active{{/unless}}.svg">
 						Table
 					</span>
@@ -101,13 +108,31 @@
 		},
 		computed: {
 			collapseTooltip () {
-				return this.get('allCollapsed') ? 'Expand all' : 'Collapse all';
+				return this.get('allCollapsed') ? 'Expand all output' : 'Collapse all output';
 			},
 		},
 		handleTabSwitch (idx) {
 			if (this.get('rawOutputMode')) {
 				this.set('activeTargetIdx', idx);
 			}
+		},
+		handleDisplayTypeInputClick (event) {
+			event.preventDefault();
+			this.handleDisplayTypeSwitch(!this.get('rawOutputMode'));
+		},
+		handleDisplayTypeInputKeyDown (event) {
+			if (event.key === ' ' || event.key === 'Enter') {
+				event.preventDefault();
+				this.handleDisplayTypeSwitch(!this.get('rawOutputMode'));
+			}
+		},
+		handleDisplayTypeLabelClick (event) {
+			event.preventDefault();
+		},
+		handleDisplayTypeSwitch (rawOutputMode) {
+			if (this.get('testType') !== 'ping') { return; }
+
+			this.set('rawOutputMode', rawOutputMode);
 		},
 		onSortOptionSelect (field) {
 			if (this.get('sortBy') === field) {
