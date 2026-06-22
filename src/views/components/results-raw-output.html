@@ -2,7 +2,7 @@
 <link rel="ractive" href="./dot-loader.html" name="c-dot-loader">
 
 <div class="c-gp-results-raw-output">
-	<div class="c-gp-results-raw-output_list {{#if testInProgress}}round-bottom{{/if}}" on-scroll="@this.hideSetLocationButton()">
+	<div class="c-gp-results-raw-output_list {{#if testInProgress}}round-bottom{{/if}}" on-scroll="@this.hideSetLocationButton(@event)">
 		{{#each preparedTestResults}}
 			<div class="c-gp-results-raw-output_list_item item-id-{{this.clientSideId}}"
 				{{#if showSetLocationButton}}
@@ -390,7 +390,16 @@
 			if (!this.get('showSetLocationButton')) { return; }
 
 			if (this.get('justFocusedItem')) {
-				this.set('justFocusedItem', false);
+				if (event?.type !== 'scroll') {
+					this.set('justFocusedItem', false);
+				}
+
+				return;
+			}
+
+			if (event?.type === 'scroll') {
+				this.set('itemFocused', false);
+				this.set('floatingSetLocationButton.visible', false);
 				return;
 			}
 

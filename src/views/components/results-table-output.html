@@ -1,7 +1,7 @@
 <link rel="ractive" href="../components/placeholder-skeleton.html" name="c-placeholder-skeleton">
 
 <div class="c-gp-results-table-output">
-	<div class="results-table-wrapper" on-scroll="@this.hideSetLocationButton()">
+	<div class="results-table-wrapper" on-scroll="@this.hideSetLocationButton(@event)">
 		<div class="results-table {{#if targetsCnt === 1}}single-target{{/if}}">
 			<div class="results-table_header">
 				<button class="results-table_header_cell location" on-click="@this.onSortClick('location')">
@@ -387,7 +387,16 @@
 		},
 		hideSetLocationButton (event) {
 			if (this.get('justFocusedItem')) {
-				this.set('justFocusedItem', false);
+				if (event?.type !== 'scroll') {
+					this.set('justFocusedItem', false);
+				}
+
+				return;
+			}
+
+			if (event?.type === 'scroll') {
+				this.set('floatingSetLocationButton.visible', false);
+				this.set('itemFocused', false);
 				return;
 			}
 
