@@ -3,28 +3,11 @@
 	z-index: -1;
 	pointer-events: none;
 
-	svg {
+	&_video {
 		display: block;
 		width: 100%;
 		height: auto;
-		overflow: visible;
-	}
-
-	&_outline {
-		fill: none;
-		stroke: #365590;
-		stroke-width: 1.5;
-	}
-
-	&_shell {
-		fill: #17233a;
-	}
-
-	&_dot {
-		fill: #5074b8;
-	}
-
-	&_pulse-dot {
-		fill: #17d4a7;
+		clip-path: circle(46.75% at 50% 50%);
+		object-fit: contain;
 	}
 }

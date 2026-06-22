@@ -341,7 +341,7 @@ app.use(router.routes()).use(router.allowedMethods());
  * Koa error handling.
  */
 app.on('error', (error, ctx) => {
-	let ignore = [ 'ECONNABORTED', 'ECONNRESET', 'EPIPE' ];
+	let ignore = [ 'ECONNABORTED', 'ECONNRESET', 'EPIPE', 'ERR_STREAM_PREMATURE_CLOSE' ];
 
 	if ((error.status && error.status < 500) || ignore.includes(error.code)) {
 		return;
