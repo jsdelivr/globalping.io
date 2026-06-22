@@ -1,5 +1,11 @@
 @import "../variables.less";
 
+@keyframes raw-output-skeleton {
+	to {
+		background-position: -200% 0;
+	}
+}
+
 .c-gp-results-raw-output {
 	display: flex;
 	flex-direction: column;
@@ -74,6 +80,7 @@
 						column-gap: 8px;
 						flex-wrap: nowrap;
 						overflow: hidden;
+						align-items: stretch;
 					}
 
 					&_arrow {
@@ -275,11 +282,39 @@
 
 						@media (max-width: @screen-xs-max) {
 							flex-grow: 1;
-							height: fit-content;
+							height: initial;
 							align-items: start;
 							flex-direction: column;
 							overflow: hidden;
 							gap: 4px;
+						}
+
+						&_logo-placeholder {
+							width: 18px !important;
+							height: 18px;
+							display: flex !important;
+							border-radius: 4px;
+							font-size: 10px;
+							color: #2d3c59;
+							border: 1px solid #e7e7ee;
+							justify-content: center;
+							align-items: center;
+						}
+
+						&_loading-placeholder {
+							display: block;
+							width: 77px !important;
+							height: 18px;
+							border-radius: 4px;
+							background: linear-gradient(90deg, #f1f1f4 25%, #e7e7ee 50%, #f1f1f4 75%);
+							background-size: 200% 100%;
+							animation: raw-output-skeleton 1.2s linear infinite;
+
+							@media (max-width: @screen-xs-max) {
+								height: 20px;
+								margin: 2px 0;
+								justify-self: start !important;
+							}
 						}
 
 						&_field {

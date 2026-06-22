@@ -1,5 +1,7 @@
 const { isTouchDevice } = require('../_');
 
+let activeTooltip = null;
+
 let tooltipDecorator = (
 	node,
 	content,
@@ -19,9 +21,11 @@ let tooltipDecorator = (
 	};
 
 	let createTooltip = () => {
-		if (document.querySelector('#ractive-tooltip-instance') !== null) {
+		if (tooltip) {
 			return;
 		}
+
+		activeTooltip?.remove();
 
 		initialNodeTop = Math.round(node.getBoundingClientRect().top);
 
@@ -47,6 +51,11 @@ let tooltipDecorator = (
 
 		tooltip.id = 'ractive-tooltip-instance';
 		document.body.appendChild(tooltip);
+
+		activeTooltip = {
+			node,
+			remove: removeTooltip,
+		};
 
 		document.addEventListener('click', handleOutsideClick, true);
 		document.addEventListener('touchstart', handleOutsideClick, true);
@@ -79,6 +88,10 @@ let tooltipDecorator = (
 	};
 
 	let removeTooltip = () => {
+		if (!tooltip) {
+			return;
+		}
+
 		if (typeof rafId === 'number') {
 			cancelAnimationFrame(rafId);
 			rafId = null;
@@ -89,13 +102,14 @@ let tooltipDecorator = (
 		document.removeEventListener('click', handleOutsideClick, true);
 		document.removeEventListener('touchstart', handleOutsideClick, true);
 
-		let tooltipInstance = document.querySelector('#ractive-tooltip-instance');
-
-		if (!tooltipInstance) {
-			return;
+		if (tooltip.parentElement) {
+			tooltip.parentElement.removeChild(tooltip);
 		}
 
-		tooltipInstance.parentElement.removeChild(tooltipInstance);
+		if (activeTooltip?.node === node) {
+			activeTooltip = null;
+		}
+
 		tooltip = null;
 	};
 
