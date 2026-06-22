@@ -69,6 +69,10 @@
 											<span>{{@this.getIpLocationLabel(this.statsPerTarget[activeTargetIdx].ipAddr)}}</span>
 										{{/if}}
 									</span>
+								{{elseif @this.isTargetNetworkInfoLoading(this.statsPerTarget[activeTargetIdx].ipAddr)}}
+									<span class="c-gp-results-raw-output_list_item_header_info_entity_field">
+										<span class="c-gp-results-raw-output_list_item_header_info_entity_loading-placeholder"></span>
+									</span>
 								{{/if}}
 
 								{{#if @this.getNetworkName(this.statsPerTarget[activeTargetIdx].ipAddr)}}
@@ -84,6 +88,10 @@
 											</span>
 										{{/if}}
 										<span>{{@this.getNetworkName(this.statsPerTarget[activeTargetIdx].ipAddr)}}</span>
+									</span>
+								{{elseif @this.isTargetNetworkInfoLoading(this.statsPerTarget[activeTargetIdx].ipAddr)}}
+									<span class="c-gp-results-raw-output_list_item_header_info_entity_field">
+										<span class="c-gp-results-raw-output_list_item_header_info_entity_loading-placeholder"></span>
 									</span>
 								{{/if}}
 							</div>
@@ -201,6 +209,7 @@
 				},
 				networkDomainNamesByIp: Object.create(null),
 				networkDomainNamesByAsn: Object.create(null),
+				loadingNetworkIps: Object.create(null),
 				PROBE_STATUS_FAILED,
 				PROBE_STATUS_OFFLINE,
 				pendingDomainLookups: new Set(),
@@ -629,7 +638,11 @@
 			let locationTextWidth = hasLocationField ? this.measureHeaderInfoTextWidth(locationLabel) : 0;
 			let networkName = this.getNetworkName(ipAddr) || '';
 			let networkTextWidth = this.measureHeaderInfoTextWidth(networkName);
-			let fieldCount = 1 + (hasLocationField ? 1 : 0) + (networkName ? 1 : 0);
+			let isNetworkInfoLoading = this.isTargetNetworkInfoLoading(ipAddr);
+			let hasLocationPlaceholder = !hasLocationField && isNetworkInfoLoading;
+			let hasNetworkPlaceholder = !networkName && isNetworkInfoLoading;
+			let loadingPlaceholderWidth = 77 * ((hasLocationPlaceholder ? 1 : 0) + (hasNetworkPlaceholder ? 1 : 0));
+			let fieldCount = 1 + (hasLocationField ? 1 : 0) + (networkName ? 1 : 0) + (hasLocationPlaceholder ? 1 : 0) + (hasNetworkPlaceholder ? 1 : 0);
 			let hasLocationIcon = this.isAnycastIp(ipAddr) || !!this.getIpLocationCountryCode(ipAddr);
 			let locationIconWidth = hasLocationField ? this.isAnycastIp(ipAddr) ? 22 : this.getIpLocationCountryCode(ipAddr) ? 21 : 0 : 0;
 			let iconCount = 1 + (hasLocationIcon ? 1 : 0) + (networkName ? 1 : 0);
@@ -638,7 +651,7 @@
 			let fieldsGap = 16 * Math.max(fieldCount - 1, 0);
 			let entityHorizontalPadding = 8 * 2;
 
-			return ipTextWidth + locationTextWidth + networkTextWidth + iconWidths + textIconGaps + fieldsGap + entityHorizontalPadding;
+			return ipTextWidth + locationTextWidth + networkTextWidth + loadingPlaceholderWidth + iconWidths + textIconGaps + fieldsGap + entityHorizontalPadding;
 		},
 		resetHeaderInfoEntityWidthCache () {
 			this.set('headerInfoEntityWidthsByKey', Object.create(null));
@@ -741,6 +754,11 @@
 
 			pendingDomainLookups.add(ipAddr);
 
+			this.set(`loadingNetworkIps.${Ractive.escapeKey(ipAddr)}`, true);
+
+			this.resetHeaderInfoEntityWidthCache();
+			this.recalculateHeaderInfoLayoutStates();
+
 			http.getNetworkFromIP(ipAddr)
 				.then((res) => {
 					this.set('showingNetworkLogos', this.get('showingNetworkLogos') || !!res?.domain);
@@ -758,6 +776,7 @@
 				})
 				.finally(() => {
 					pendingDomainLookups.delete(ipAddr);
+					this.set(`loadingNetworkIps.${Ractive.escapeKey(ipAddr)}`, false);
 					this.resetHeaderInfoEntityWidthCache();
 					this.recalculateHeaderInfoLayoutStates();
 				});
@@ -810,6 +829,9 @@
 		getNetworkName (ipAddr) {
 			let network = this.getNetworkDataByIp(ipAddr);
 			return network?.name || network?.domain || null;
+		},
+		isTargetNetworkInfoLoading (ipAddr) {
+			return !!this.get('loadingNetworkIps')[ipAddr];
 		},
 		getLocationByIp (ipAddr) {
 			return this.getNetworkDataByIp(ipAddr)?.location || null;

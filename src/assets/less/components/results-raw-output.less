@@ -1,5 +1,11 @@
 @import "../variables.less";
 
+@keyframes raw-output-skeleton {
+	to {
+		background-position: -200% 0;
+	}
+}
+
 .c-gp-results-raw-output {
 	display: flex;
 	flex-direction: column;
@@ -293,6 +299,22 @@
 							border: 1px solid #e7e7ee;
 							justify-content: center;
 							align-items: center;
+						}
+
+						&_loading-placeholder {
+							display: block;
+							width: 77px !important;
+							height: 18px;
+							border-radius: 4px;
+							background: linear-gradient(90deg, #f1f1f4 25%, #e7e7ee 50%, #f1f1f4 75%);
+							background-size: 200% 100%;
+							animation: raw-output-skeleton 1.2s linear infinite;
+
+							@media (max-width: @screen-xs-max) {
+								height: 20px;
+								margin: 2px 0;
+								justify-self: start !important;
+							}
 						}
 
 						&_field {
