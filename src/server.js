@@ -188,40 +188,6 @@ app.use(render({
  */
 router.use(koaElasticUtils.middleware(global.apmClient));
 
-/**
- * Static files.
- */
-router.use(
-	'/assets/:v',
-	async (ctx, next) => {
-		ctx.set('X-Robots-Tag', 'noindex');
-
-		ctx.originalPath = ctx.path;
-		ctx.path = ctx.path.replace(/^\/[^/]+\/[^/]+/, '') || '/';
-
-		if (app.env === 'production' && ctx.params.v === assetsVersion) {
-			ctx.res.allowCaching = true;
-		}
-
-		return next();
-	},
-	koaStatic(__dirname + '/../dist/assets', {
-		index: false,
-		maxage: 365 * 24 * 60 * 60 * 1000,
-		setHeaders (res) {
-			if (res.allowCaching) {
-				res.set('Cache-Control', 'public, max-age=31536000');
-			} else {
-				res.set('Cache-Control', 'no-cache, no-store, must-revalidate');
-			}
-		},
-	}),
-	async (ctx) => {
-		ctx.path = ctx.originalPath;
-		// return next();
-	},
-);
-
 router.use(koaStatic(__dirname + '/../dist', {
 	index: false,
 	maxage: 60 * 60 * 1000,
@@ -373,6 +339,33 @@ server.use((req, res, next) => {
 
 	next();
 });
+
+/**
+ * Static files.
+ */
+server.use(
+	'/assets/:v',
+	(req, res, next) => {
+		res.set(serverConfig.headers);
+		res.set('X-Robots-Tag', 'noindex');
+		res.allowCaching = app.env === 'production' && req.params.v === assetsVersion;
+		next();
+	},
+	express.static(resolve(__dirname, '../dist/assets'), {
+		index: false,
+		maxAge: 365 * 24 * 60 * 60 * 1000,
+		setHeaders (res) {
+			if (res.allowCaching) {
+				res.set('Cache-Control', 'public, max-age=31536000');
+			} else {
+				res.set('Cache-Control', 'no-cache, no-store, must-revalidate');
+			}
+		},
+	}),
+	(req, res) => {
+		res.status(404).end();
+	},
+);
 
 /**
  * Forward everything else to Koa (main website).
