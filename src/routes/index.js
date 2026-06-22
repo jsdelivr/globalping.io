@@ -245,15 +245,15 @@ koaElasticUtils.addRoutes(router, [
 		return;
 	}
 
-	let { domain, name } = ipToNetwork.getNetworkByIp(ip);
+	let { domain, name, location } = ipToNetwork.getNetworkByIp(ip);
 
-	if (!domain && !name) {
+	if (!domain && !name && !location?.isAnycast && !location?.city && !location?.country && !location?.continent) {
 		ctx.status = 404;
 		return;
 	}
 
-	ctx.body = { domain, name };
-	ctx.maxAge = 7 * 24 * 60 * 60;
+	ctx.body = { domain, name, location };
+	ctx.maxAge = 24 * 60 * 60;
 });
 
 koaElasticUtils.addRoutes(router, [
