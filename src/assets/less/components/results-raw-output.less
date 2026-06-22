@@ -74,6 +74,7 @@
 						column-gap: 8px;
 						flex-wrap: nowrap;
 						overflow: hidden;
+						align-items: stretch;
 					}
 
 					&_arrow {
@@ -275,11 +276,23 @@
 
 						@media (max-width: @screen-xs-max) {
 							flex-grow: 1;
-							height: fit-content;
+							height: initial;
 							align-items: start;
 							flex-direction: column;
 							overflow: hidden;
 							gap: 4px;
+						}
+
+						&_logo-placeholder {
+							width: 18px !important;
+							height: 18px;
+							display: flex !important;
+							border-radius: 4px;
+							font-size: 10px;
+							color: #2d3c59;
+							border: 1px solid #e7e7ee;
+							justify-content: center;
+							align-items: center;
 						}
 
 						&_field {

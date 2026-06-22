@@ -37,6 +37,10 @@
 										height="18"
 										alt=""
 										src="{{@shared.logoHost}}/{{@this.getNetworkDomainNameByAsn(this.asn)}}?v={{@shared.assetsVersion}}&padding=0">
+								{{else}}
+									<span class="c-gp-results-raw-output_list_item_header_info_entity_logo-placeholder">
+										{{this.network[0]}}
+									</span>
 								{{/if}}
 								<span>{{this.network}}</span>
 							</span>
@@ -53,24 +57,32 @@
 									<span>{{this.statsPerTarget[activeTargetIdx].ipAddr}}</span>
 								</span>
 
-								<span class="c-gp-results-raw-output_list_item_header_info_entity_field">
-									{{#if @this.isAnycastIp(this.statsPerTarget[activeTargetIdx].ipAddr)}}
-										<img width="22" height="16" alt="" src="{{@shared.assetsHost}}/img/anycast.svg">
-										Anycast
-									{{elseif @this.getIpLocationLabel(this.statsPerTarget[activeTargetIdx].ipAddr)}}
-										{{#if @this.getIpLocationCountryCode(this.statsPerTarget[activeTargetIdx].ipAddr)}}
-											<img width="21" height="14" alt="" src="https://cdn.jsdelivr.net/npm/country-flag-icons@1.5.5/3x2/{{@this.getIpLocationCountryCode(this.statsPerTarget[activeTargetIdx].ipAddr)}}.svg">
-										{{/if}}
-										<span>{{@this.getIpLocationLabel(this.statsPerTarget[activeTargetIdx].ipAddr)}}</span>
-									{{/if}}
-								</span>
-
-								{{#if @this.shouldRenderTargetNetwork(this.statsPerTarget[activeTargetIdx].ipAddr)}}
+								{{#if @this.isAnycastIp(this.statsPerTarget[activeTargetIdx].ipAddr) || @this.getIpLocationLabel(this.statsPerTarget[activeTargetIdx].ipAddr)}}
 									<span class="c-gp-results-raw-output_list_item_header_info_entity_field">
-										<img width="18"
-											height="18"
-											src="{{@shared.logoHost}}/{{@this.getNetworkDomainNameByIp(this.statsPerTarget[activeTargetIdx].ipAddr)}}?v={{@shared.assetsVersion}}&padding=0"
-											alt="{{@this.getNetworkName(this.statsPerTarget[activeTargetIdx].ipAddr)}} logo">
+										{{#if @this.isAnycastIp(this.statsPerTarget[activeTargetIdx].ipAddr)}}
+											<img width="22" height="16" alt="" src="{{@shared.assetsHost}}/img/anycast.svg">
+											Anycast
+										{{else}}
+											{{#if @this.getIpLocationCountryCode(this.statsPerTarget[activeTargetIdx].ipAddr)}}
+												<img width="21" height="14" alt="" src="https://cdn.jsdelivr.net/npm/country-flag-icons@1.5.5/3x2/{{@this.getIpLocationCountryCode(this.statsPerTarget[activeTargetIdx].ipAddr)}}.svg">
+											{{/if}}
+											<span>{{@this.getIpLocationLabel(this.statsPerTarget[activeTargetIdx].ipAddr)}}</span>
+										{{/if}}
+									</span>
+								{{/if}}
+
+								{{#if @this.getNetworkName(this.statsPerTarget[activeTargetIdx].ipAddr)}}
+									<span class="c-gp-results-raw-output_list_item_header_info_entity_field">
+										{{#if @this.getNetworkDomainNameByIp(this.statsPerTarget[activeTargetIdx].ipAddr)}}
+											<img width="18"
+												height="18"
+												src="{{@shared.logoHost}}/{{@this.getNetworkDomainNameByIp(this.statsPerTarget[activeTargetIdx].ipAddr)}}?v={{@shared.assetsVersion}}&padding=0"
+												alt="{{@this.getNetworkName(this.statsPerTarget[activeTargetIdx].ipAddr)}} logo">
+										{{else}}
+											<span class="c-gp-results-raw-output_list_item_header_info_entity_logo-placeholder">
+												{{@this.getNetworkName(this.statsPerTarget[activeTargetIdx].ipAddr)[0]}}
+											</span>
+										{{/if}}
 										<span>{{@this.getNetworkName(this.statsPerTarget[activeTargetIdx].ipAddr)}}</span>
 									</span>
 								{{/if}}
@@ -78,38 +90,39 @@
 						{{/if}}
 					</div>
 
-						<div class="c-gp-results-raw-output_list_item_header_metrics-controls">
-							{{#if !this.statsPerTarget[activeTargetIdx].rawOutput}}
-								<c-dot-loader></c-dot-loader>
-							{{else}}
-								<div class="c-gp-results-raw-output_list_item_header_metrics-controls_metrics">
-									{{#if _.getGpTargetTiming(this.statsPerTarget[activeTargetIdx])}}
+					<div class="c-gp-results-raw-output_list_item_header_metrics-controls">
+						{{#if !this.statsPerTarget[activeTargetIdx].rawOutput}}
+							<c-dot-loader></c-dot-loader>
+						{{else}}
+							<div class="c-gp-results-raw-output_list_item_header_metrics-controls_metrics">
+								{{#if _.getGpTargetTiming(this.statsPerTarget[activeTargetIdx])}}
+									<span class="c-gp-results-raw-output_list_item_header_metrics-controls_metric">
+										Time
+										<b>
+											{{_.getGpTargetTiming(this.statsPerTarget[activeTargetIdx])}}
+										</b>
+									</span>
+								{{/if}}
+
+								{{#unless this.statsPerTarget[activeTargetIdx].isFailed || this.statsPerTarget[activeTargetIdx].avgTiming === PROBE_STATUS_OFFLINE}}
+									{{#each this.statsPerTarget[activeTargetIdx].extraValues}}
 										<span class="c-gp-results-raw-output_list_item_header_metrics-controls_metric">
-											Time
-											<b>
-												{{_.getGpTargetTiming(this.statsPerTarget[activeTargetIdx])}}
-											</b>
+											{{this.text}}
+											<b>{{this.value}}{{this.units}}</b>
 										</span>
-									{{/if}}
+									{{/each}}
+								{{/unless}}
+							</div>
 
-									{{#unless this.statsPerTarget[activeTargetIdx].isFailed || this.statsPerTarget[activeTargetIdx].avgTiming === PROBE_STATUS_OFFLINE}}
-										{{#each this.statsPerTarget[activeTargetIdx].extraValues}}
-											<span class="c-gp-results-raw-output_list_item_header_metrics-controls_metric">
-												{{this.text}}
-												<b>{{this.value}}{{this.units}}</b>
-											</span>
-										{{/each}}
-									{{/unless}}
-								</div>
-
-								<button on-click="@this.hideShowTestResult(this.clientSideId)"
-									role="button"
-									aria-label="{{#if hiddenTestResults[activeTargetIdx].includes(this.clientSideId)}}Expand{{else}}Collapse{{/if}} output"
-									class="c-gp-results-raw-output_list_item_header_metrics-controls_dropdown">
-									<i class="fa fa-chevron-{{#if hiddenTestResults[activeTargetIdx].includes(this.clientSideId)}}down{{else}}up{{/if}}" aria-hidden="true"/>
-								</button>
-							{{/if}}
-						</div>
+							<button on-click="@this.hideShowTestResult(this.clientSideId)"
+								role="button"
+								aria-label="{{#if hiddenTestResults[activeTargetIdx].includes(this.clientSideId)}}Expand{{else}}Collapse{{/if}} output"
+								class="c-gp-results-raw-output_list_item_header_metrics-controls_dropdown">
+								<i class="fa fa-chevron-{{#if hiddenTestResults[activeTargetIdx].includes(this.clientSideId)}}down{{else}}up{{/if}}" aria-hidden="true"/>
+							</button>
+						{{/if}}
+					</div>
+				</div>
 
 				{{#if this.statsPerTarget[activeTargetIdx].rawOutput}}
 					<div class="c-gp-results-raw-output_list_item_output">
@@ -595,7 +608,7 @@
 			let locationText = [ result?.city, result?.state, result?.country ].filter(Boolean).join(', ');
 			let networkText = result?.network || '';
 			let fieldsTextWidth = this.measureHeaderInfoTextWidth(asnText) + this.measureHeaderInfoTextWidth(locationText) + this.measureHeaderInfoTextWidth(networkText);
-			let iconWidths = 16 + 24 + 16;
+			let iconWidths = 16 + 21 + 18;
 			let textIconGaps = 6 * 3;
 			let fieldsGap = 16 * 2;
 			let entityHorizontalPadding = 8 * 2;
@@ -612,15 +625,17 @@
 
 			let ipTextWidth = this.measureHeaderInfoTextWidth(ipAddr);
 			let locationLabel = this.isAnycastIp(ipAddr) ? 'Anycast' : this.getIpLocationLabel(ipAddr) || '';
-			let locationTextWidth = this.measureHeaderInfoTextWidth(locationLabel);
-			let networkName = this.shouldRenderTargetNetwork(ipAddr) ? this.getNetworkName(ipAddr) || '' : '';
+			let hasLocationField = !!locationLabel;
+			let locationTextWidth = hasLocationField ? this.measureHeaderInfoTextWidth(locationLabel) : 0;
+			let networkName = this.getNetworkName(ipAddr) || '';
 			let networkTextWidth = this.measureHeaderInfoTextWidth(networkName);
-			let fieldCount = 2 + (networkName ? 1 : 0);
+			let fieldCount = 1 + (hasLocationField ? 1 : 0) + (networkName ? 1 : 0);
 			let hasLocationIcon = this.isAnycastIp(ipAddr) || !!this.getIpLocationCountryCode(ipAddr);
+			let locationIconWidth = hasLocationField ? this.isAnycastIp(ipAddr) ? 22 : this.getIpLocationCountryCode(ipAddr) ? 21 : 0 : 0;
 			let iconCount = 1 + (hasLocationIcon ? 1 : 0) + (networkName ? 1 : 0);
-			let iconWidths = 16 + (this.isAnycastIp(ipAddr) ? 22 : this.getIpLocationCountryCode(ipAddr) ? 21 : 0) + (networkName ? 18 : 0);
+			let iconWidths = 16 + locationIconWidth + (networkName ? 18 : 0);
 			let textIconGaps = iconCount * 6;
-			let fieldsGap = 16 * (fieldCount - 1);
+			let fieldsGap = 16 * Math.max(fieldCount - 1, 0);
 			let entityHorizontalPadding = 8 * 2;
 
 			return ipTextWidth + locationTextWidth + networkTextWidth + iconWidths + textIconGaps + fieldsGap + entityHorizontalPadding;
