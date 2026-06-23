@@ -5,8 +5,9 @@
 		muted
 		playsinline
 		preload="metadata"
-		style="background: center / contain no-repeat url('{{@shared.assetsHost}}/img/globe-poster.webp')"
-		poster="{{@shared.assetsHost}}/img/globe-poster.webp">
+		style="--globe-poster: url('{{@shared.assetsHost}}/img/globe-poster@2x.webp')"
+		poster="{{@shared.assetsHost}}/img/globe-poster@2x.webp">
+		<source media="(min-width: 768px)" src="{{@shared.assetsHost}}/img/globe-video@2x.webm" type="video/webm">
 		<source src="{{@shared.assetsHost}}/img/globe-video.webm" type="video/webm">
 	</video>
 </div>
