@@ -222,11 +222,11 @@
 			},
 			twelveMonthCredits () {
 				let rawCredits = this.get('toDonate') * 12 * CREDITS_PER_DOLLAR;
-				return Math.floor((1 + this.get('maxTwelveMonthBonus') / 100) * rawCredits);
+				return Math.round((1 + this.get('maxTwelveMonthBonus') / 100) * rawCredits / 1000) * 1000;
 			},
 			lastMonthlyDonationCredits () {
 				let rawCredits = this.get('toDonate') * CREDITS_PER_DOLLAR;
-				return Math.floor((1 + this.get('maxTwelveMonthBonus') / 100) * rawCredits);
+				return Math.round((1 + this.get('maxTwelveMonthBonus') / 100) * rawCredits / 1000) * 1000;
 			},
 			showHighVolumeDiscount () {
 				return this.get('toDonate') >= 3000;
