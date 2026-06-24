@@ -1,18 +1,26 @@
 <div class="c-gp-globe {{className}}" aria-hidden="true">
-	<video class="c-gp-globe_video"
-		autoplay
+	<picture class="c-gp-globe_poster">
+		<source media="(min-width: 768px)" srcset="{{@shared.assetsHost}}/img/globe-poster@2x.webp">
+		<img src="{{@shared.assetsHost}}/img/globe-poster.webp" alt="" fetchpriority="high">
+	</picture>
+	<video class="c-gp-globe_video c-gp-globe_video--default"
 		loop
 		muted
 		playsinline
 		preload="metadata"
-		style="--globe-poster: url('{{@shared.assetsHost}}/img/globe-poster@2x.webp')"
-		poster="{{@shared.assetsHost}}/img/globe-poster@2x.webp">
-		<source media="(min-width: 768px)" src="{{@shared.assetsHost}}/img/globe-video@2x.webm" type="video/webm">
-		<source src="{{@shared.assetsHost}}/img/globe-video.webm" type="video/webm">
-	</video>
+		data-src="{{@shared.assetsHost}}/img/globe-video.webm"></video>
+	<video class="c-gp-globe_video c-gp-globe_video--high-resolution"
+		loop
+		muted
+		playsinline
+		preload="metadata"
+		data-src="{{@shared.assetsHost}}/img/globe-video@2x.webm"></video>
 </div>
 
 <script>
+	/** This component renders a spinning globe video with a fallback poster in variable resolutions.
+	* This behavior is not achievable natively, hence the need for custom js.
+	* */
 	const { addManagedListener } = require('../../assets/js/utils/listeners');
 
 	component.exports = {
@@ -21,16 +29,97 @@
 				return;
 			}
 
-			let globeVideo = this.find('.c-gp-globe_video');
+			let defaultVideo = this.find('.c-gp-globe_video--default');
+			let highResolutionVideo = this.find('.c-gp-globe_video--high-resolution');
+			let desktopQuery = window.matchMedia('(min-width: 768px)');
 			let prefersReducedMotionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+			let activeVideo = desktopQuery.matches ? highResolutionVideo : defaultVideo;
+			let pendingVideo;
+			let highResolutionVideoLoaded = desktopQuery.matches;
 
-			let handleReducedMotionChange = (event) => {
-				if (event.matches) {
-					globeVideo.pause();
+			let playVideo = (video) => {
+				if (!prefersReducedMotionQuery.matches) {
+					video.play().catch(() => {});
+				}
+			};
+
+			let waitForVideoFrame = (video, onFrame) => {
+				// do not expose the video until it has a real frame to paint over the poster
+				if (video.requestVideoFrameCallback) {
+					video.requestVideoFrameCallback(onFrame);
 					return;
 				}
 
-				globeVideo.play().catch(() => {});
+				if (video.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA) {
+					onFrame();
+					return;
+				}
+
+				addManagedListener(this, video, 'loadeddata', onFrame);
+			};
+
+			let loadVideo = (video, startTime, onFrame) => {
+				// load and seek the inactive video before placing it above the active one
+				let startVideo = () => {
+					let showVideo = () => {
+						onFrame();
+					};
+
+					if (startTime > 0) {
+						addManagedListener(this, video, 'seeked', () => {
+							waitForVideoFrame(video, showVideo);
+							playVideo(video);
+						});
+
+						video.currentTime = startTime;
+						return;
+					}
+
+					waitForVideoFrame(video, showVideo);
+					playVideo(video);
+				};
+
+				addManagedListener(this, video, 'loadedmetadata', startVideo);
+				video.src = video.dataset.src;
+				video.load();
+			};
+
+			loadVideo(activeVideo, 0, () => {});
+
+			// when the client window resolution exceeds the desktop threshold, upgrade to a higher-res video
+			// never reduce the video resolution
+			addManagedListener(this, desktopQuery, 'change', (event) => {
+				if (!event.matches || highResolutionVideoLoaded) {
+					return;
+				}
+
+				highResolutionVideoLoaded = true;
+				pendingVideo = highResolutionVideo;
+
+				loadVideo(highResolutionVideo, defaultVideo.currentTime, () => {
+					defaultVideo.pause();
+					activeVideo = highResolutionVideo;
+					pendingVideo = undefined;
+				});
+			});
+
+			// handle prefers reduced motion
+			let handleReducedMotionChange = (event) => {
+				if (event.matches) {
+					activeVideo.pause();
+
+					if (pendingVideo) {
+						pendingVideo.pause();
+					}
+
+					return;
+				}
+
+				playVideo(activeVideo);
+
+				if (pendingVideo) {
+					playVideo(pendingVideo);
+				}
 			};
 
 			handleReducedMotionChange(prefersReducedMotionQuery);
