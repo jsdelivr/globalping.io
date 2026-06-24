@@ -196,6 +196,27 @@
 		}
 	}
 
+	.volume-discount {
+		display: flex;
+		align-items: flex-start;
+		column-gap: 22px;
+		padding: 12px 24px;
+		background-color: #e8fff9;
+		border: 1px solid #17d4a7;
+		border-radius: 8px;
+		line-height: 24px;
+
+		img {
+			flex: 0 0 auto;
+			margin: auto 0;
+		}
+
+		a {
+			color: #17d4a7;
+			font-weight: 600;
+		}
+	}
+
 	.monthly-donation {
 		display: flex;
 		flex-direction: column;
@@ -215,12 +236,12 @@
 
 			&_footer {
 				color: #9b9ba6;
-				line-height: 20px;
+				line-height: 36px;
 			}
 
 			@media (min-width: @screen-sm-min) {
 				row-gap: 0;
-				line-height: 32px;
+				line-height: 28px;
 			}
 		}
 
