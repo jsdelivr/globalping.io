@@ -59,14 +59,29 @@
 			};
 
 			let loadVideo = (video, startTime, onFrame) => {
+				let isCurrentVideo = () => video === activeVideo || video === pendingVideo;
+
 				// load and seek the inactive video before placing it above the active one
 				let startVideo = () => {
+					if (!isCurrentVideo()) {
+						return;
+					}
+
 					let showVideo = () => {
+						if (!isCurrentVideo()) {
+							return;
+						}
+
+						video.classList.add('is-ready');
 						onFrame();
 					};
 
 					if (startTime > 0) {
 						addManagedListener(this, video, 'seeked', () => {
+							if (!isCurrentVideo()) {
+								return;
+							}
+
 							waitForVideoFrame(video, showVideo);
 							playVideo(video);
 						});
