@@ -4,7 +4,7 @@ const LUMINANCE_THRESHOLD = 230;
 const ALPHA_THRESHOLD = 0.1;
 const TRIM_TOLERANCE = 10;
 const DEFAULT_PADDING = 10;
-const FALLBACK_PADDING = 20;
+const FALLBACK_PADDING_RATIO = .175;
 
 /**
  * Extracts and calculates the average RGBA color from the 4 corners of the image.
@@ -88,13 +88,14 @@ module.exports.processDomainLogo = async (domain, padding, size = null) => {
 	let defaultUrl = `https://img.jsdelivr.com/img.logo.dev/${domain}?format=png`;
 	let strictUrl = `${defaultUrl}&fallback=404`; // forces a 404 response if the logo is unavailable
 	let hasCustomPadding = padding !== null;
+	let addProportionalPadding = false;
 
 	try {
 		let response = await fetch(strictUrl, { headers: { Accept: 'image/png' } });
 
 		if (response.status === 404) {
 			response = await fetch(defaultUrl, { headers: { Accept: 'image/png' } });
-			padding = (padding ?? DEFAULT_PADDING) + FALLBACK_PADDING;
+			addProportionalPadding = true;
 		}
 
 		if (!response.ok) {
@@ -161,6 +162,10 @@ module.exports.processDomainLogo = async (domain, padding, size = null) => {
 					height: metadata.height - (finalTrimY * 2),
 				};
 			}
+		}
+
+		if (addProportionalPadding) {
+			padding = (padding ?? DEFAULT_PADDING) + Math.round(metadata.width * FALLBACK_PADDING_RATIO);
 		}
 
 		if (size) {
