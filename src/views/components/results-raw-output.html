@@ -32,13 +32,13 @@
 							</span>
 
 							<span class="c-gp-results-raw-output_list_item_header_info_entity_field">
-								{{#if !@this.logoError(this.network)}}
+								{{#if !@this.logoError(this.asn)}}
 									<img width="18"
 										height="18"
 										alt=""
 										src="/asn-logo/AS{{this.asn}}?v={{@shared.assetsVersion}}&size=36&padding=0"
 										on-load="@this.set('showingNetworkLogos', true)"
-										on-error="@this.setLogoError(this.network)">
+										on-error="@this.setLogoError(this.asn)">
 								{{else}}
 									<span class="c-gp-results-raw-output_list_item_header_info_entity_logo-placeholder">
 										{{this.network[0]}}
@@ -901,13 +901,13 @@
 		shouldRenderTargetNetwork (ipAddr) {
 			return this.getNetworkDomainNameByIp(ipAddr) && this.getNetworkName(ipAddr);
 		},
-		logoError (networkName) {
-			return !!this.get('logoErrors')[networkName];
+		logoError (logoKey) {
+			return !!this.get('logoErrors')[logoKey];
 		},
-		setLogoError (networkName) {
+		setLogoError (logoKey) {
 			this.set('logoErrors', {
 				...this.get('logoErrors'),
-				[networkName]: true,
+				[logoKey]: true,
 			});
 		},
 		// --- Other functions ---
