@@ -228,6 +228,51 @@ koaElasticUtils.addRoutes(router, [
 });
 
 /**
+ * Translate ASN to domain logo (AS prefix expected)
+ */
+koaElasticUtils.addRoutes(router, [
+	[ '/asn-logo/:asn' ],
+], async (ctx) => {
+	let { asn = '' } = ctx.params;
+
+	if (!asn) {
+		ctx.status = 400;
+		return;
+	}
+
+	if (!asnDomains) {
+		ctx.status = 503;
+		return;
+	}
+
+	let domain = asnDomains[asn];
+
+	if (!domain) {
+		ctx.status = 404;
+		return;
+	}
+
+	let { padding, size } = ctx.query;
+
+	padding = Number.parseInt(padding);
+	padding = Number.isNaN(padding) ? null : Math.min(Math.abs(padding), 48);
+	size = Number.parseInt(size);
+	size = Number.isNaN(size) ? null : Math.min(Math.max(Math.abs(size), 1), 512);
+
+	let { image, error } = await processDomainLogo(domain, padding, size);
+
+	if (error) {
+		ctx.status = error.status;
+		ctx.body = { error: error.message };
+		return;
+	}
+
+	ctx.type = 'image/png';
+	ctx.maxAge = 31536000;
+	ctx.body = image;
+});
+
+/**
  * Translate IP to network name and domain via MMDB ASN lookup
  */
 koaElasticUtils.addRoutes(router, [
@@ -245,42 +290,15 @@ koaElasticUtils.addRoutes(router, [
 		return;
 	}
 
-	let { domain, name, location } = ipToNetwork.getNetworkByIp(ip);
+	let { asn, domain, name, location } = ipToNetwork.getNetworkByIp(ip);
 
-	if (!domain && !name && !location?.isAnycast && !location?.city && !location?.country && !location?.continent) {
+	if (!asn && !domain && !name && !location?.isAnycast && !location?.city && !location?.country && !location?.continent) {
 		ctx.status = 404;
 		return;
 	}
 
-	ctx.body = { domain, name, location };
+	ctx.body = { asn, domain, name, location };
 	ctx.maxAge = 24 * 60 * 60;
-});
-
-koaElasticUtils.addRoutes(router, [
-	[ '/domain-logo/:domain' ],
-], async (ctx) => {
-	let { domain = '' } = ctx.params;
-	let { padding } = ctx.query;
-
-	padding = Number.parseInt(padding);
-	padding = Number.isNaN(padding) ? 10 : Math.min(Math.abs(padding), 48);
-
-	if (!domain) {
-		ctx.status = 400;
-		return;
-	}
-
-	let { image, error } = await processDomainLogo(domain, padding);
-
-	if (error) {
-		ctx.status = error.status;
-		ctx.body = { error: error.message };
-		return;
-	}
-
-	ctx.type = 'image/png';
-	ctx.maxAge = 31536000;
-	ctx.body = image;
 });
 
 /**

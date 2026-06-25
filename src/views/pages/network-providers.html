@@ -68,13 +68,14 @@
 										as-popover="@this.getPopoverContent(this.name, null, false, false)"
 									>
 										<span class="p-providers_provider_logo p-providers_logo">
-											{{#if @this.getDomainForNetwork(this.key)}}
+											{{#if this.logoAsn}}
 												<img width="36"
 													height="36"
-													src="{{@shared.logoHost}}/{{@this.getDomainForNetwork(this.key)}}?v={{@shared.assetsVersion}}"
+													src="/asn-logo/AS{{this.logoAsn}}?v={{@shared.assetsVersion}}&size=72"
 													loading="lazy"
 													alt=""
 													aria-hidden="true"
+													on-error="@this.onLogoError(this, 'topProviders')"
 												>
 											{{else}}
 												{{this.name[0]}}
@@ -137,13 +138,14 @@
 								as-popover="@this.getPopoverContent(this.name)"
 							>
 								<span class="p-providers_all_network_logo p-providers_logo">
-									{{#if @this.getDomainForNetwork(this.key)}}
+									{{#if this.logoAsn}}
 										<img width="20"
 											height="20"
-											src="{{@shared.logoHost}}/{{@this.getDomainForNetwork(this.key)}}?v={{@shared.assetsVersion}}"
+											src="/asn-logo/AS{{this.logoAsn}}?v={{@shared.assetsVersion}}&size=40"
 											loading="lazy"
 											alt=""
 											aria-hidden="true"
+											on-error="@this.onLogoError(this, 'allProviders')"
 										>
 									{{else}}
 										{{this.name[0]}}
@@ -166,7 +168,6 @@
 </r-page>
 
 <script>
-	const { getNetworkDomainMap } = require('../../assets/js/utils/http');
 	const popover = require('../../assets/js/decorators/popover');
 	const _ = require('../../assets/js/_');
 	const http = require('../../assets/js/utils/http');
@@ -213,7 +214,6 @@
 				getTopProviderLocationText: n => `${_.pluralize('location', n)} worldwide`,
 				allProviders: [],
 				sortOrder: DEFAULT_SORT_ORDER,
-				networkDomainMap: Object.create(null),
 				networkStats: Object.create(null),
 				uniqueLocations: [],
 				allLocationsPopoverListKey: 'countries',
@@ -248,10 +248,6 @@
 		},
 		oninit () {
 			if (!Ractive.isServer) {
-				getNetworkDomainMap()
-					.then(networkDomainMap => this.set('networkDomainMap', networkDomainMap))
-					.catch(err => console.error(err));
-
 				this.getProbeData();
 
 				this.observe('locationProbes', (probes) => {
@@ -327,6 +323,7 @@
 						continents: {},
 						cities: {},
 						key: networkKey,
+						logoAsn: loc.location.asn,
 					};
 				}
 
@@ -412,6 +409,7 @@
 						name: networkName,
 						key: networkKey,
 						count: 0,
+						logoAsn: loc.location.asn,
 					};
 				}
 
@@ -440,9 +438,6 @@
 
 			return 'cities';
 		},
-		getDomainForNetwork (key) {
-			return this.get('networkDomainMap')[key];
-		},
 		getFieldName (code) {
 			let topProvidersDisplayedField = this.get('topProvidersDisplayedField');
 
@@ -454,6 +449,10 @@
 				default:
 					return code;
 			}
+		},
+		onLogoError (network, source) {
+			network.logoAsn = null;
+			this.update(source);
 		},
 		getPopoverContent (network, groupCode, targetOnly = false, showBreakdown = true) {
 			let groupName = CONTINENT_MAP[groupCode] || COUNTRIES_MAP[groupCode] || groupCode;

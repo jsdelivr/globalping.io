@@ -32,11 +32,13 @@
 							</span>
 
 							<span class="c-gp-results-raw-output_list_item_header_info_entity_field">
-								{{#if @this.getNetworkDomainNameByAsn(this.asn)}}
+								{{#if !@this.logoError(this.asn)}}
 									<img width="18"
 										height="18"
 										alt=""
-										src="{{@shared.logoHost}}/{{@this.getNetworkDomainNameByAsn(this.asn)}}?v={{@shared.assetsVersion}}&padding=0">
+										src="/asn-logo/AS{{this.asn}}?v={{@shared.assetsVersion}}&size=36&padding=0"
+										on-load="@this.set('showingNetworkLogos', true)"
+										on-error="@this.setLogoError(this.asn)">
 								{{else}}
 									<span class="c-gp-results-raw-output_list_item_header_info_entity_logo-placeholder">
 										{{this.network[0]}}
@@ -77,11 +79,12 @@
 
 								{{#if @this.getNetworkName(this.statsPerTarget[activeTargetIdx].ipAddr)}}
 									<span class="c-gp-results-raw-output_list_item_header_info_entity_field">
-										{{#if @this.getNetworkDomainNameByIp(this.statsPerTarget[activeTargetIdx].ipAddr)}}
+										{{#if @this.getNetworkAsnByIp(this.statsPerTarget[activeTargetIdx].ipAddr) && !@this.logoError(@this.getNetworkAsnByIp(this.statsPerTarget[activeTargetIdx].ipAddr))}}
 											<img width="18"
 												height="18"
-												src="{{@shared.logoHost}}/{{@this.getNetworkDomainNameByIp(this.statsPerTarget[activeTargetIdx].ipAddr)}}?v={{@shared.assetsVersion}}&padding=0"
-												alt="{{@this.getNetworkName(this.statsPerTarget[activeTargetIdx].ipAddr)}} logo">
+												src="/asn-logo/{{@this.getNetworkAsnByIp(this.statsPerTarget[activeTargetIdx].ipAddr)}}?v={{@shared.assetsVersion}}&size=36&padding=0"
+												alt="{{@this.getNetworkName(this.statsPerTarget[activeTargetIdx].ipAddr)}} logo"
+												on-error="@this.setLogoError(@this.getNetworkAsnByIp(this.statsPerTarget[activeTargetIdx].ipAddr))">
 										{{else}}
 											<span class="c-gp-results-raw-output_list_item_header_info_entity_logo-placeholder">
 												{{@this.getNetworkName(this.statsPerTarget[activeTargetIdx].ipAddr)[0]}}
@@ -207,12 +210,12 @@
 					0: [],
 					1: [],
 				},
-				networkDomainNamesByIp: Object.create(null),
-				networkDomainNamesByAsn: Object.create(null),
-				loadingNetworkIps: Object.create(null),
+				networkDataByIp: Object.create(null),
+				logoErrors: Object.create(null),
+				networkLookupsActive: false,
 				PROBE_STATUS_FAILED,
 				PROBE_STATUS_OFFLINE,
-				pendingDomainLookups: new Set(),
+				pendingNetworkLookups: new Set(),
 				showingNetworkLogos: false,
 				resultsBlockHeightShapeSignature: null,
 				skipNextResize: false,
@@ -235,6 +238,8 @@
 		},
 		onrender () {
 			if (!Ractive.isServer) {
+				this.set('networkLookupsActive', true);
+
 				this._resizeHeaderInfoHandler = () => {
 					this.recalculateHeaderInfoLayoutStates();
 				};
@@ -286,7 +291,7 @@
 
 				this.observe('preparedTestResults activeTargetIdx', () => {
 					this.resetHeaderInfoEntityWidthCache();
-					this.populateNetworkDomains();
+					this.populateNetworkData();
 					this.recalculateHeaderInfoLayoutStates({ allowShrink: false });
 				});
 
@@ -311,6 +316,14 @@
 				if (this._setLocationListEl) {
 					listeners.addManagedListener(this, this._setLocationListEl, 'scroll', this._onSetLocationViewportChange);
 				}
+			}
+		},
+		onunrender () {
+			this.set('networkLookupsActive', false);
+
+			if (this.pendingNetworkDataUpdatesFlushTimeout) {
+				clearTimeout(this.pendingNetworkDataUpdatesFlushTimeout);
+				this.pendingNetworkDataUpdatesFlushTimeout = null;
 			}
 		},
 		// --- set location button logic ---
@@ -517,7 +530,19 @@
 			return currentSignature !== previousSignature;
 		},
 		setResultsBlockHeight ({ allowShrink = true } = {}) {
+			this.pendingResultsBlockHeightAllowShrink = this.pendingResultsBlockHeightFrame
+				? this.pendingResultsBlockHeightAllowShrink && allowShrink
+				: allowShrink;
+
+			if (this.pendingResultsBlockHeightFrame) {
+				return;
+			}
+
 			requestAnimationFrame(() => {
+				let pendingAllowShrink = this.pendingResultsBlockHeightAllowShrink;
+				this.pendingResultsBlockHeightAllowShrink = false;
+				this.pendingResultsBlockHeightFrame = null;
+
 				let listEl;
 
 				try {
@@ -529,7 +554,6 @@
 				if (listEl) {
 					let currentHeight = parseFloat(listEl.style.height) || 0;
 					let currentScrollTop = listEl.scrollTop;
-					listEl.style.height = 'auto';
 
 					let items = listEl.querySelectorAll('.c-gp-results-raw-output_list_item');
 					let itemsAmount = items.length;
@@ -560,17 +584,19 @@
 
 					// Collapse-only updates keep the current height; structural updates may shrink empty space.
 					let shouldUpdateHeight = targetHeight > currentHeight
-						|| (allowShrink && targetHeight !== currentHeight && totalItemHeight < currentHeight);
+						|| (pendingAllowShrink && targetHeight !== currentHeight && totalItemHeight < currentHeight);
 
 					if (shouldUpdateHeight) {
 						listEl.style.height = `${targetHeight}px`;
-					} else {
-						listEl.style.height = `${currentHeight}px`;
 					}
 
-					listEl.scrollTop = currentScrollTop;
+					if (listEl.scrollTop !== currentScrollTop) {
+						listEl.scrollTop = currentScrollTop;
+					}
 				}
 			});
+
+			this.pendingResultsBlockHeightFrame = true;
 		},
 		// --- Logic to determine whether to wrap the header info ---
 		// First, calculate current character widths for the font used in the header info
@@ -726,7 +752,7 @@
 			let arrowMarginRight = 32;
 			return (containerWidth / 2) - ((arrowMinWidth + arrowMarginRight) / 2);
 		},
-		recalculateHeaderInfoLayoutStates ({ allowShrink = true } = {}) {
+		recalculateHeaderInfoLayoutStates ({ allowShrink = true, updateHeight = true } = {}) {
 			let listEl = this.find('.c-gp-results-raw-output_list');
 			let listWidth = listEl?.getBoundingClientRect?.().width || 0;
 			let preparedTestResults = this.get('preparedTestResults') || [];
@@ -749,131 +775,141 @@
 			});
 
 			this.set('headerInfoOverflowByResultId', overflowByResultId);
-			this.setResultsBlockHeight({ allowShrink });
+
+			if (updateHeight) {
+				this.setResultsBlockHeight({ allowShrink });
+			}
 		},
 		shouldUseOverflowLayout (result) {
 			let overflowByResultId = this.get('headerInfoOverflowByResultId') || {};
 			return !!overflowByResultId[result?.clientSideId];
 		},
+		recalculateHeaderInfoLayoutStatesAfterNetworkLookup () {
+			if (this.get('pendingNetworkLookups').size > 0) {
+				return;
+			}
+
+			if (this.pendingNetworkDataUpdatesFlushTimeout) {
+				clearTimeout(this.pendingNetworkDataUpdatesFlushTimeout);
+				this.pendingNetworkDataUpdatesFlushTimeout = null;
+			}
+
+			this.flushNetworkDataUpdates();
+			this.resetHeaderInfoEntityWidthCache();
+			this.recalculateHeaderInfoLayoutStates({ allowShrink: false });
+		},
 		// --- Fetching and caching network data + related getters ---
-		populateNetworkDomains () {
+		queueNetworkDataByIp (ipAddr, networkData) {
+			if (!this.get('networkLookupsActive')) {
+				return;
+			}
+
+			this.pendingNetworkDataUpdatesByIp = this.pendingNetworkDataUpdatesByIp || Object.create(null);
+			this.pendingNetworkDataUpdatesByIp[ipAddr] = networkData;
+			this.scheduleNetworkDataUpdatesFlush();
+		},
+		scheduleNetworkDataUpdatesFlush () {
+			if (!this.get('networkLookupsActive')) {
+				return;
+			}
+
+			if (this.pendingNetworkDataUpdatesFlushTimeout) {
+				return;
+			}
+
+			this.pendingNetworkDataUpdatesFlushTimeout = setTimeout(() => {
+				if (!this.get('networkLookupsActive')) {
+					return;
+				}
+
+				this.pendingNetworkDataUpdatesFlushTimeout = null;
+				this.flushNetworkDataUpdates();
+				this.resetHeaderInfoEntityWidthCache();
+				this.recalculateHeaderInfoLayoutStates({ allowShrink: false });
+			}, 500);
+		},
+		flushNetworkDataUpdates () {
+			let networkDataUpdatesByIp = this.pendingNetworkDataUpdatesByIp || Object.create(null);
+			let hasIpUpdates = Object.keys(networkDataUpdatesByIp).length > 0;
+
+			if (hasIpUpdates) {
+				this.set('networkDataByIp', {
+					...this.get('networkDataByIp'),
+					...networkDataUpdatesByIp,
+				});
+
+				this.pendingNetworkDataUpdatesByIp = Object.create(null);
+			}
+
+			if (hasIpUpdates) {
+				this.set('showingNetworkLogos', this.get('showingNetworkLogos') || Object.values(networkDataUpdatesByIp).some(networkData => !!networkData?.asn));
+			}
+		},
+		populateNetworkData () {
 			let preparedTestResults = this.get('preparedTestResults') || [];
 			let activeTargetIdx = this.get('activeTargetIdx');
 			let ipAddresses = new Set();
-			let asns = new Set();
 
 			preparedTestResults.forEach((result) => {
-				// target ip
 				let ipAddr = result?.statsPerTarget?.[activeTargetIdx]?.ipAddr;
 
 				if (ipAddr) {
 					ipAddresses.add(ipAddr);
-				}
-
-				// probe asn
-				let asn = result?.asn;
-
-				if (asn) {
-					asns.add(asn);
 				}
 			});
 
 			for (let ipAddr of ipAddresses) {
 				this.fetchNetworkByIp(ipAddr);
 			}
-
-			for (let asn of asns) {
-				this.fetchDomainByAsn(asn);
-			}
 		},
 		fetchNetworkByIp (ipAddr) {
-			let networkDomainNamesByIp = this.get('networkDomainNamesByIp');
-			let pendingDomainLookups = this.get('pendingDomainLookups');
+			let networkDataByIp = this.get('networkDataByIp');
+			let pendingNetworkLookups = this.get('pendingNetworkLookups');
 
-			if (!ipAddr || Object.hasOwn(networkDomainNamesByIp, ipAddr) || pendingDomainLookups.has(ipAddr)) {
+			if (!ipAddr || Object.hasOwn(networkDataByIp, ipAddr) || pendingNetworkLookups.has(ipAddr)) {
 				return;
 			}
 
-			pendingDomainLookups.add(ipAddr);
-
-			this.set(`loadingNetworkIps.${Ractive.escapeKey(ipAddr)}`, true);
-
-			this.resetHeaderInfoEntityWidthCache();
-			this.recalculateHeaderInfoLayoutStates();
+			pendingNetworkLookups.add(ipAddr);
+			this.update('pendingNetworkLookups');
 
 			http.getNetworkFromIP(ipAddr)
 				.then((res) => {
-					this.set('showingNetworkLogos', this.get('showingNetworkLogos') || !!res?.domain);
+					if (!this.get('networkLookupsActive')) {
+						return;
+					}
 
-					this.set('networkDomainNamesByIp', {
-						...this.get('networkDomainNamesByIp'),
-						[ipAddr]: res,
-					});
+					this.queueNetworkDataByIp(ipAddr, res);
 				})
 				.catch(() => {
-					this.set('networkDomainNamesByIp', {
-						...this.get('networkDomainNamesByIp'),
-						[ipAddr]: null,
-					});
+					if (!this.get('networkLookupsActive')) {
+						return;
+					}
+
+					this.queueNetworkDataByIp(ipAddr, null);
 				})
 				.finally(() => {
-					pendingDomainLookups.delete(ipAddr);
-					this.set(`loadingNetworkIps.${Ractive.escapeKey(ipAddr)}`, false);
-					this.resetHeaderInfoEntityWidthCache();
-					this.recalculateHeaderInfoLayoutStates();
-				});
-		},
-		fetchDomainByAsn (asn) {
-			let networkDomainNamesByAsn = this.get('networkDomainNamesByAsn');
-			let pendingDomainLookups = this.get('pendingDomainLookups');
+					if (!this.get('networkLookupsActive')) {
+						return;
+					}
 
-			if (!asn || Object.hasOwn(networkDomainNamesByAsn, asn) || pendingDomainLookups.has(asn)) {
-				return;
-			}
-
-			pendingDomainLookups.add(asn);
-
-			http.getDomainFromASN(`AS${asn}`)
-				.then((res) => {
-					this.set('showingNetworkLogos', this.get('showingNetworkLogos') || !!res?.domain);
-
-					this.set('networkDomainNamesByAsn', {
-						...this.get('networkDomainNamesByAsn'),
-						[asn]: res,
-					});
-				})
-				.catch(() => {
-					this.set('networkDomainNamesByAsn', {
-						...this.get('networkDomainNamesByAsn'),
-						[asn]: null,
-					});
-				})
-				.finally(() => {
-					pendingDomainLookups.delete(asn);
-					this.resetHeaderInfoEntityWidthCache();
-					this.recalculateHeaderInfoLayoutStates();
+					pendingNetworkLookups.delete(ipAddr);
+					this.recalculateHeaderInfoLayoutStatesAfterNetworkLookup();
 				});
 		},
 		getNetworkDataByIp (ipAddr) {
-			return ipAddr ? this.get('networkDomainNamesByIp')[ipAddr] : null;
+			return ipAddr ? this.get('networkDataByIp')[ipAddr] : null;
 		},
-		getNetworkDataByAsn (asn) {
-			return asn ? this.get('networkDomainNamesByAsn')[asn] : null;
-		},
-		getNetworkDomainNameByIp (ipAddr) {
+		getNetworkAsnByIp (ipAddr) {
 			let network = this.getNetworkDataByIp(ipAddr);
-			return network?.domain || null;
-		},
-		getNetworkDomainNameByAsn (asn) {
-			let network = this.getNetworkDataByAsn(asn);
-			return network?.domain || null;
+			return network?.asn || null;
 		},
 		getNetworkName (ipAddr) {
 			let network = this.getNetworkDataByIp(ipAddr);
 			return network?.name || network?.domain || null;
 		},
 		isTargetNetworkInfoLoading (ipAddr) {
-			return !!this.get('loadingNetworkIps')[ipAddr];
+			return this.get('pendingNetworkLookups').has(ipAddr);
 		},
 		getLocationByIp (ipAddr) {
 			return this.getNetworkDataByIp(ipAddr)?.location || null;
@@ -895,7 +931,16 @@
 			return values.length ? values.join(', ') : null;
 		},
 		shouldRenderTargetNetwork (ipAddr) {
-			return this.getNetworkDomainNameByIp(ipAddr) && this.getNetworkName(ipAddr);
+			return this.getNetworkAsnByIp(ipAddr) && this.getNetworkName(ipAddr);
+		},
+		logoError (logoKey) {
+			return !!this.get('logoErrors')[logoKey];
+		},
+		setLogoError (logoKey) {
+			this.set('logoErrors', {
+				...this.get('logoErrors'),
+				[logoKey]: true,
+			});
 		},
 		// --- Other functions ---
 		getStatusColor (targetStats) {

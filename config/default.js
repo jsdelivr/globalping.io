@@ -8,7 +8,6 @@ module.exports = {
 		host: 'https://globalping.io',
 		blogHost: 'https://jsdelivr-blog.ghost.io',
 		assetsHost: `/assets/${assetsVersion}`,
-		logoHost: '/domain-logo',
 		apiHost: 'https://api.globalping.io',
 		dashboardHost: 'https://dash-directus.globalping.io',
 		apiDocsHost: 'https://api.globalping.io',
