@@ -228,7 +228,7 @@ koaElasticUtils.addRoutes(router, [
 });
 
 /**
- * Redirect ASN to domain logo (AS prefix expected)
+ * Translate ASN to domain logo (AS prefix expected)
  */
 koaElasticUtils.addRoutes(router, [
 	[ '/asn-logo/:asn' ],
@@ -252,11 +252,25 @@ koaElasticUtils.addRoutes(router, [
 		return;
 	}
 
-	let queryString = ctx.querystring ? `?${ctx.querystring}` : '';
+	let { padding, size } = ctx.query;
+	let hasPadding = padding !== undefined;
 
-	ctx.status = 302;
-	ctx.maxAge = 7 * 24 * 60 * 60;
-	return ctx.redirect(`/domain-logo/${encodeURIComponent(domain)}${queryString}`);
+	padding = Number.parseInt(padding);
+	padding = Number.isNaN(padding) ? null : Math.min(Math.abs(padding), 48);
+	size = Number.parseInt(size);
+	size = Number.isNaN(size) ? null : Math.min(Math.max(Math.abs(size), 1), 512);
+
+	let { image, error } = await processDomainLogo(domain, hasPadding ? padding : null, size);
+
+	if (error) {
+		ctx.status = error.status;
+		ctx.body = { error: error.message };
+		return;
+	}
+
+	ctx.type = 'image/png';
+	ctx.maxAge = 31536000;
+	ctx.body = image;
 });
 
 /**
@@ -277,45 +291,15 @@ koaElasticUtils.addRoutes(router, [
 		return;
 	}
 
-	let { domain, name, location } = ipToNetwork.getNetworkByIp(ip);
+	let { asn, domain, name, location } = ipToNetwork.getNetworkByIp(ip);
 
-	if (!domain && !name && !location?.isAnycast && !location?.city && !location?.country && !location?.continent) {
+	if (!asn && !domain && !name && !location?.isAnycast && !location?.city && !location?.country && !location?.continent) {
 		ctx.status = 404;
 		return;
 	}
 
-	ctx.body = { domain, name, location };
+	ctx.body = { asn, domain, name, location };
 	ctx.maxAge = 24 * 60 * 60;
-});
-
-koaElasticUtils.addRoutes(router, [
-	[ '/domain-logo/:domain' ],
-], async (ctx) => {
-	let { domain = '' } = ctx.params;
-	let { padding, size } = ctx.query;
-	let hasPadding = padding !== undefined;
-
-	padding = Number.parseInt(padding);
-	padding = Number.isNaN(padding) ? null : Math.min(Math.abs(padding), 48);
-	size = Number.parseInt(size);
-	size = Number.isNaN(size) ? null : Math.min(Math.max(Math.abs(size), 1), 512);
-
-	if (!domain) {
-		ctx.status = 400;
-		return;
-	}
-
-	let { image, error } = await processDomainLogo(domain, hasPadding ? padding : null, size);
-
-	if (error) {
-		ctx.status = error.status;
-		ctx.body = { error: error.message };
-		return;
-	}
-
-	ctx.type = 'image/png';
-	ctx.maxAge = 31536000;
-	ctx.body = image;
 });
 
 /**

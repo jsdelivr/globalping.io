@@ -53,10 +53,6 @@ const assetsHost = app.env === 'production'
 	? coolifyUrl ? `${coolifyUrl}/assets/${assetsVersion}` : serverConfig.assetsHost
 	: `/assets/${assetsVersion}`;
 
-const logoHost = coolifyUrl
-	? `${coolifyUrl}/domain-logo`
-	: serverConfig.logoHost;
-
 const nuxtRouteHandlerPromise = initializeNuxt().catch((err) => {
 	console.error(err);
 	return null;
@@ -178,7 +174,6 @@ app.use(render({
 	cache: app.env !== 'development',
 	serverHost,
 	assetsHost,
-	logoHost,
 	apiDocsHost: serverConfig.apiDocsHost,
 	assetsVersion,
 }, app));

@@ -76,5 +76,6 @@ module.exports.getNetworkByIp = (ip) => {
 		domain: result?.domain || null,
 		name: networkName,
 		location: getLocationByIp(ip),
+		asn: result?.asn || null,
 	};
 };
