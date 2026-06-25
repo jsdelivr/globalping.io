@@ -75,6 +75,7 @@
 													loading="lazy"
 													alt=""
 													aria-hidden="true"
+													on-error="@this.onLogoError(this, 'topProviders')"
 												>
 											{{else}}
 												{{this.name[0]}}
@@ -144,6 +145,7 @@
 											loading="lazy"
 											alt=""
 											aria-hidden="true"
+											on-error="@this.onLogoError(this, 'allProviders')"
 										>
 									{{else}}
 										{{this.name[0]}}
@@ -447,6 +449,10 @@
 				default:
 					return code;
 			}
+		},
+		onLogoError (network, source) {
+			network.logoAsn = null;
+			this.update(source);
 		},
 		getPopoverContent (network, groupCode, targetOnly = false, showBreakdown = true) {
 			let groupName = CONTINENT_MAP[groupCode] || COUNTRIES_MAP[groupCode] || groupCode;

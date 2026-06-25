@@ -138,13 +138,14 @@
 												src="https://cdn.jsdelivr.net/npm/country-flag-icons@1.5.5/3x2/{{item.location.split(', ')[0]}}.svg">
 										{{elseif groupBy === 'network'}}
 											<span class="gp-filtered-list_network-logo">
-												{{#if item.probes[0].location.asn}}
+												{{#if item.logoAsn}}
 													<img width="20"
 														height="20"
-														src="/asn-logo/AS{{item.probes[0].location.asn}}?v={{@shared.assetsVersion}}&size=40"
+														src="/asn-logo/AS{{item.logoAsn}}?v={{@shared.assetsVersion}}&size=40"
 														loading="lazy"
 														alt=""
 														aria-hidden="true"
+														on-error="@this.onLogoError(item)"
 													>
 												{{else}}
 													{{item.name[0]}}
@@ -612,6 +613,10 @@
 		getCountryName (code) {
 			return COUNTRIES_MAP[code] || code;
 		},
+		onLogoError (item) {
+			item.logoAsn = null;
+			this.update('preparedProbeBlocks');
+		},
 		sortAndGroup (obj) {
 			let groupBy = this.get('groupBy');
 			let sortOrder = this.get('sortOrder');
@@ -659,6 +664,7 @@
 					name: allNetworks[network].name,
 					from: allNetworks[network].name,
 					location: allNetworks[network].name,
+					logoAsn: allNetworks[network].probes[0].location.asn,
 					probes: allNetworks[network].probes,
 					networks: [],
 					showFlag: false,
