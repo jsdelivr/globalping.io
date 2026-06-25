@@ -211,6 +211,7 @@
 				},
 				networkDomainNamesByIp: Object.create(null),
 				logoErrors: Object.create(null),
+				networkLookupsActive: false,
 				PROBE_STATUS_FAILED,
 				PROBE_STATUS_OFFLINE,
 				pendingDomainLookups: new Set(),
@@ -236,6 +237,8 @@
 		},
 		onrender () {
 			if (!Ractive.isServer) {
+				this.set('networkLookupsActive', true);
+
 				this._resizeHeaderInfoHandler = () => {
 					this.recalculateHeaderInfoLayoutStates();
 				};
@@ -315,6 +318,8 @@
 			}
 		},
 		onunrender () {
+			this.set('networkLookupsActive', false);
+
 			if (this.pendingNetworkDataUpdatesFlushTimeout) {
 				clearTimeout(this.pendingNetworkDataUpdatesFlushTimeout);
 				this.pendingNetworkDataUpdatesFlushTimeout = null;
@@ -792,16 +797,28 @@
 		},
 		// --- Fetching and caching network data + related getters ---
 		queueNetworkDataByIp (ipAddr, networkData) {
+			if (!this.get('networkLookupsActive')) {
+				return;
+			}
+
 			this.pendingNetworkDomainNameUpdatesByIp = this.pendingNetworkDomainNameUpdatesByIp || Object.create(null);
 			this.pendingNetworkDomainNameUpdatesByIp[ipAddr] = networkData;
 			this.scheduleNetworkDataUpdatesFlush();
 		},
 		scheduleNetworkDataUpdatesFlush () {
+			if (!this.get('networkLookupsActive')) {
+				return;
+			}
+
 			if (this.pendingNetworkDataUpdatesFlushTimeout) {
 				return;
 			}
 
 			this.pendingNetworkDataUpdatesFlushTimeout = setTimeout(() => {
+				if (!this.get('networkLookupsActive')) {
+					return;
+				}
+
 				this.pendingNetworkDataUpdatesFlushTimeout = null;
 				this.flushNetworkDataUpdates();
 				this.resetHeaderInfoEntityWidthCache();
@@ -855,12 +872,24 @@
 
 			http.getNetworkFromIP(ipAddr)
 				.then((res) => {
+					if (!this.get('networkLookupsActive')) {
+						return;
+					}
+
 					this.queueNetworkDataByIp(ipAddr, res);
 				})
 				.catch(() => {
+					if (!this.get('networkLookupsActive')) {
+						return;
+					}
+
 					this.queueNetworkDataByIp(ipAddr, null);
 				})
 				.finally(() => {
+					if (!this.get('networkLookupsActive')) {
+						return;
+					}
+
 					pendingDomainLookups.delete(ipAddr);
 					this.recalculateHeaderInfoLayoutStatesAfterNetworkLookup();
 				});
