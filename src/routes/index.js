@@ -253,14 +253,13 @@ koaElasticUtils.addRoutes(router, [
 	}
 
 	let { padding, size } = ctx.query;
-	let hasPadding = padding !== undefined;
 
 	padding = Number.parseInt(padding);
 	padding = Number.isNaN(padding) ? null : Math.min(Math.abs(padding), 48);
 	size = Number.parseInt(size);
 	size = Number.isNaN(size) ? null : Math.min(Math.max(Math.abs(size), 1), 512);
 
-	let { image, error } = await processDomainLogo(domain, hasPadding ? padding : null, size);
+	let { image, error } = await processDomainLogo(domain, padding, size);
 
 	if (error) {
 		ctx.status = error.status;
