@@ -529,7 +529,9 @@
 			return currentSignature !== previousSignature;
 		},
 		setResultsBlockHeight ({ allowShrink = true } = {}) {
-			this.pendingResultsBlockHeightAllowShrink = this.pendingResultsBlockHeightAllowShrink || allowShrink;
+			this.pendingResultsBlockHeightAllowShrink = this.pendingResultsBlockHeightFrame
+				? this.pendingResultsBlockHeightAllowShrink && allowShrink
+				: allowShrink;
 
 			if (this.pendingResultsBlockHeightFrame) {
 				return;
