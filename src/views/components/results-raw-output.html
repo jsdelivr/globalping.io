@@ -77,12 +77,18 @@
 									</span>
 								{{/if}}
 
-								{{#if @this.shouldRenderTargetNetwork(this.statsPerTarget[activeTargetIdx].ipAddr)}}
+								{{#if @this.getNetworkName(this.statsPerTarget[activeTargetIdx].ipAddr)}}
 									<span class="c-gp-results-raw-output_list_item_header_info_entity_field">
-										<img width="18"
-											height="18"
-											src="{{@shared.logoHost}}/{{@this.getNetworkDomainNameByIp(this.statsPerTarget[activeTargetIdx].ipAddr)}}?v={{@shared.assetsVersion}}&size=36&padding=0"
-											alt="{{@this.getNetworkName(this.statsPerTarget[activeTargetIdx].ipAddr)}} logo">
+										{{#if @this.getNetworkDomainNameByIp(this.statsPerTarget[activeTargetIdx].ipAddr)}}
+											<img width="18"
+												height="18"
+												src="{{@shared.logoHost}}/{{@this.getNetworkDomainNameByIp(this.statsPerTarget[activeTargetIdx].ipAddr)}}?v={{@shared.assetsVersion}}&size=36&padding=0"
+												alt="{{@this.getNetworkName(this.statsPerTarget[activeTargetIdx].ipAddr)}} logo">
+										{{else}}
+											<span class="c-gp-results-raw-output_list_item_header_info_entity_logo-placeholder">
+												{{@this.getNetworkName(this.statsPerTarget[activeTargetIdx].ipAddr)[0]}}
+											</span>
+										{{/if}}
 										<span>{{@this.getNetworkName(this.statsPerTarget[activeTargetIdx].ipAddr)}}</span>
 									</span>
 								{{elseif @this.isTargetNetworkInfoLoading(this.statsPerTarget[activeTargetIdx].ipAddr)}}
