@@ -138,10 +138,10 @@
 												src="https://cdn.jsdelivr.net/npm/country-flag-icons@1.5.5/3x2/{{item.location.split(', ')[0]}}.svg">
 										{{elseif groupBy === 'network'}}
 											<span class="gp-filtered-list_network-logo">
-												{{#if @this.getDomainForNetwork(item.name)}}
+												{{#if item.probes[0].location.asn}}
 													<img width="20"
 														height="20"
-														src="{{@shared.logoHost}}/{{@this.getDomainForNetwork(item.name)}}?v={{@shared.assetsVersion}}&size=40"
+														src="/asn-logo/AS{{item.probes[0].location.asn}}?v={{@shared.assetsVersion}}&size=40"
 														loading="lazy"
 														alt=""
 														aria-hidden="true"
@@ -173,7 +173,6 @@
 </div>
 
 <script>
-	const { getNetworkDomainMap } = require('../../assets/js/utils/http');
 	const popover = require('../../assets/js/decorators/popover');
 	const _ = require('../../assets/js/_');
 	const listeners = require('../../assets/js/utils/listeners');
@@ -243,7 +242,6 @@
 				preparedProbeBlocks: null,
 				filteredMarkersData: null,
 				selectedContinent: null,
-				networkDomainMap: Object.create(null),
 				justClickedLocationFocus: false,
 				skipNextSplit: false,
 				hasManualSortBy: false,
@@ -319,10 +317,6 @@
 		},
 		oninit () {
 			if (!Ractive.isServer) {
-				getNetworkDomainMap()
-					.then(networkDomainMap => this.set('networkDomainMap', networkDomainMap))
-					.catch(err => console.error(err));
-
 				// set initial screenWidth value
 				this.observe('screenWidth', (screenWidth) => {
 					if (!screenWidth) {
@@ -855,10 +849,6 @@
 			if (continentElement) {
 				continentElement.scrollIntoView({ behavior: 'smooth' });
 			}
-		},
-		getDomainForNetwork (network) {
-			let key = _.networkNameToKey(network);
-			return this.get('networkDomainMap')[key];
 		},
 		resetFilters () {
 			this.set('location', 'World');
