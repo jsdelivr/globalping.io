@@ -228,6 +228,38 @@ koaElasticUtils.addRoutes(router, [
 });
 
 /**
+ * Redirect ASN to domain logo (AS prefix expected)
+ */
+koaElasticUtils.addRoutes(router, [
+	[ '/asn-logo/:asn' ],
+], async (ctx) => {
+	let { asn = '' } = ctx.params;
+
+	if (!asn) {
+		ctx.status = 400;
+		return;
+	}
+
+	if (!asnDomains) {
+		ctx.status = 503;
+		return;
+	}
+
+	let domain = asnDomains[asn];
+
+	if (!domain) {
+		ctx.status = 404;
+		return;
+	}
+
+	let queryString = ctx.querystring ? `?${ctx.querystring}` : '';
+
+	ctx.status = 302;
+	ctx.maxAge = 7 * 24 * 60 * 60;
+	return ctx.redirect(`/domain-logo/${encodeURIComponent(domain)}${queryString}`);
+});
+
+/**
  * Translate IP to network name and domain via MMDB ASN lookup
  */
 koaElasticUtils.addRoutes(router, [
@@ -260,17 +292,20 @@ koaElasticUtils.addRoutes(router, [
 	[ '/domain-logo/:domain' ],
 ], async (ctx) => {
 	let { domain = '' } = ctx.params;
-	let { padding } = ctx.query;
+	let { padding, size } = ctx.query;
+	let hasPadding = padding !== undefined;
 
 	padding = Number.parseInt(padding);
-	padding = Number.isNaN(padding) ? 10 : Math.min(Math.abs(padding), 48);
+	padding = Number.isNaN(padding) ? null : Math.min(Math.abs(padding), 48);
+	size = Number.parseInt(size);
+	size = Number.isNaN(size) ? null : Math.min(Math.max(Math.abs(size), 1), 512);
 
 	if (!domain) {
 		ctx.status = 400;
 		return;
 	}
 
-	let { image, error } = await processDomainLogo(domain, padding);
+	let { image, error } = await processDomainLogo(domain, hasPadding ? padding : null, size);
 
 	if (error) {
 		ctx.status = error.status;

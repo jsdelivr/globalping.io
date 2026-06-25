@@ -32,12 +32,12 @@
 							</span>
 
 							<span class="c-gp-results-raw-output_list_item_header_info_entity_field">
-								{{#if @this.getNetworkDomainNameByAsn(this.asn)}}
-									<img width="18"
-										height="18"
-										alt=""
-										src="{{@shared.logoHost}}/{{@this.getNetworkDomainNameByAsn(this.asn)}}?v={{@shared.assetsVersion}}&padding=0">
-								{{/if}}
+								<img width="18"
+									height="18"
+									alt=""
+									src="/asn-logo/AS{{this.asn}}?v={{@shared.assetsVersion}}&size=36&padding=0"
+									on-load="@this.set('showingNetworkLogos', true)"
+									on-error="@this.hideFailedLogo(@event)">
 								<span>{{this.network}}</span>
 							</span>
 						</div>
@@ -69,7 +69,7 @@
 									<span class="c-gp-results-raw-output_list_item_header_info_entity_field">
 										<img width="18"
 											height="18"
-											src="{{@shared.logoHost}}/{{@this.getNetworkDomainNameByIp(this.statsPerTarget[activeTargetIdx].ipAddr)}}?v={{@shared.assetsVersion}}&padding=0"
+											src="{{@shared.logoHost}}/{{@this.getNetworkDomainNameByIp(this.statsPerTarget[activeTargetIdx].ipAddr)}}?v={{@shared.assetsVersion}}&size=36&padding=0"
 											alt="{{@this.getNetworkName(this.statsPerTarget[activeTargetIdx].ipAddr)}} logo">
 										<span>{{@this.getNetworkName(this.statsPerTarget[activeTargetIdx].ipAddr)}}</span>
 									</span>
@@ -187,7 +187,6 @@
 					1: [],
 				},
 				networkDomainNamesByIp: Object.create(null),
-				networkDomainNamesByAsn: Object.create(null),
 				PROBE_STATUS_FAILED,
 				PROBE_STATUS_OFFLINE,
 				pendingDomainLookups: new Set(),
@@ -284,6 +283,12 @@
 				if (this._setLocationListEl) {
 					listeners.addManagedListener(this, this._setLocationListEl, 'scroll', this._onSetLocationViewportChange);
 				}
+			}
+		},
+		onunrender () {
+			if (this.pendingNetworkDataUpdatesFlushTimeout) {
+				clearTimeout(this.pendingNetworkDataUpdatesFlushTimeout);
+				this.pendingNetworkDataUpdatesFlushTimeout = null;
 			}
 		},
 		// --- set location button logic ---
@@ -453,7 +458,17 @@
 			return currentSignature !== previousSignature;
 		},
 		setResultsBlockHeight ({ allowShrink = true } = {}) {
+			this.pendingResultsBlockHeightAllowShrink = this.pendingResultsBlockHeightAllowShrink || allowShrink;
+
+			if (this.pendingResultsBlockHeightFrame) {
+				return;
+			}
+
 			requestAnimationFrame(() => {
+				let pendingAllowShrink = this.pendingResultsBlockHeightAllowShrink;
+				this.pendingResultsBlockHeightAllowShrink = false;
+				this.pendingResultsBlockHeightFrame = null;
+
 				let listEl;
 
 				try {
@@ -465,7 +480,6 @@
 				if (listEl) {
 					let currentHeight = parseFloat(listEl.style.height) || 0;
 					let currentScrollTop = listEl.scrollTop;
-					listEl.style.height = 'auto';
 
 					let items = listEl.querySelectorAll('.c-gp-results-raw-output_list_item');
 					let itemsAmount = items.length;
@@ -496,17 +510,19 @@
 
 					// Collapse-only updates keep the current height; structural updates may shrink empty space.
 					let shouldUpdateHeight = targetHeight > currentHeight
-						|| (allowShrink && targetHeight !== currentHeight && totalItemHeight < currentHeight);
+						|| (pendingAllowShrink && targetHeight !== currentHeight && totalItemHeight < currentHeight);
 
 					if (shouldUpdateHeight) {
 						listEl.style.height = `${targetHeight}px`;
-					} else {
-						listEl.style.height = `${currentHeight}px`;
 					}
 
-					listEl.scrollTop = currentScrollTop;
+					if (listEl.scrollTop !== currentScrollTop) {
+						listEl.scrollTop = currentScrollTop;
+					}
 				}
 			});
+
+			this.pendingResultsBlockHeightFrame = true;
 		},
 		// --- Logic to determine whether to wrap the header info ---
 		// First, calculate current character widths for the font used in the header info
@@ -656,7 +672,7 @@
 			let arrowMarginRight = 32;
 			return (containerWidth / 2) - ((arrowMinWidth + arrowMarginRight) / 2);
 		},
-		recalculateHeaderInfoLayoutStates ({ allowShrink = true } = {}) {
+		recalculateHeaderInfoLayoutStates ({ allowShrink = true, updateHeight = true } = {}) {
 			let listEl = this.find('.c-gp-results-raw-output_list');
 			let listWidth = listEl?.getBoundingClientRect?.().width || 0;
 			let preparedTestResults = this.get('preparedTestResults') || [];
@@ -679,41 +695,79 @@
 			});
 
 			this.set('headerInfoOverflowByResultId', overflowByResultId);
-			this.setResultsBlockHeight({ allowShrink });
+
+			if (updateHeight) {
+				this.setResultsBlockHeight({ allowShrink });
+			}
 		},
 		shouldUseOverflowLayout (result) {
 			let overflowByResultId = this.get('headerInfoOverflowByResultId') || {};
 			return !!overflowByResultId[result?.clientSideId];
 		},
+		recalculateHeaderInfoLayoutStatesAfterNetworkLookup () {
+			if (this.get('pendingDomainLookups').size > 0) {
+				return;
+			}
+
+			if (this.pendingNetworkDataUpdatesFlushTimeout) {
+				clearTimeout(this.pendingNetworkDataUpdatesFlushTimeout);
+				this.pendingNetworkDataUpdatesFlushTimeout = null;
+			}
+
+			this.flushNetworkDataUpdates();
+			this.resetHeaderInfoEntityWidthCache();
+			this.recalculateHeaderInfoLayoutStates({ allowShrink: false });
+		},
 		// --- Fetching and caching network data + related getters ---
+		queueNetworkDataByIp (ipAddr, networkData) {
+			this.pendingNetworkDomainNameUpdatesByIp = this.pendingNetworkDomainNameUpdatesByIp || Object.create(null);
+			this.pendingNetworkDomainNameUpdatesByIp[ipAddr] = networkData;
+			this.scheduleNetworkDataUpdatesFlush();
+		},
+		scheduleNetworkDataUpdatesFlush () {
+			if (this.pendingNetworkDataUpdatesFlushTimeout) {
+				return;
+			}
+
+			this.pendingNetworkDataUpdatesFlushTimeout = setTimeout(() => {
+				this.pendingNetworkDataUpdatesFlushTimeout = null;
+				this.flushNetworkDataUpdates();
+				this.resetHeaderInfoEntityWidthCache();
+				this.recalculateHeaderInfoLayoutStates({ allowShrink: false });
+			}, 500);
+		},
+		flushNetworkDataUpdates () {
+			let networkDomainNameUpdatesByIp = this.pendingNetworkDomainNameUpdatesByIp || Object.create(null);
+			let hasIpUpdates = Object.keys(networkDomainNameUpdatesByIp).length > 0;
+
+			if (hasIpUpdates) {
+				this.set('networkDomainNamesByIp', {
+					...this.get('networkDomainNamesByIp'),
+					...networkDomainNameUpdatesByIp,
+				});
+
+				this.pendingNetworkDomainNameUpdatesByIp = Object.create(null);
+			}
+
+			if (hasIpUpdates) {
+				this.set('showingNetworkLogos', this.get('showingNetworkLogos') || Object.values(networkDomainNameUpdatesByIp).some(networkData => !!networkData?.domain));
+			}
+		},
 		populateNetworkDomains () {
 			let preparedTestResults = this.get('preparedTestResults') || [];
 			let activeTargetIdx = this.get('activeTargetIdx');
 			let ipAddresses = new Set();
-			let asns = new Set();
 
 			preparedTestResults.forEach((result) => {
-				// target ip
 				let ipAddr = result?.statsPerTarget?.[activeTargetIdx]?.ipAddr;
 
 				if (ipAddr) {
 					ipAddresses.add(ipAddr);
 				}
-
-				// probe asn
-				let asn = result?.asn;
-
-				if (asn) {
-					asns.add(asn);
-				}
 			});
 
 			for (let ipAddr of ipAddresses) {
 				this.fetchNetworkByIp(ipAddr);
-			}
-
-			for (let asn of asns) {
-				this.fetchDomainByAsn(asn);
 			}
 		},
 		fetchNetworkByIp (ipAddr) {
@@ -728,68 +782,21 @@
 
 			http.getNetworkFromIP(ipAddr)
 				.then((res) => {
-					this.set('showingNetworkLogos', this.get('showingNetworkLogos') || !!res?.domain);
-
-					this.set('networkDomainNamesByIp', {
-						...this.get('networkDomainNamesByIp'),
-						[ipAddr]: res,
-					});
+					this.queueNetworkDataByIp(ipAddr, res);
 				})
 				.catch(() => {
-					this.set('networkDomainNamesByIp', {
-						...this.get('networkDomainNamesByIp'),
-						[ipAddr]: null,
-					});
+					this.queueNetworkDataByIp(ipAddr, null);
 				})
 				.finally(() => {
 					pendingDomainLookups.delete(ipAddr);
-					this.resetHeaderInfoEntityWidthCache();
-					this.recalculateHeaderInfoLayoutStates();
-				});
-		},
-		fetchDomainByAsn (asn) {
-			let networkDomainNamesByAsn = this.get('networkDomainNamesByAsn');
-			let pendingDomainLookups = this.get('pendingDomainLookups');
-
-			if (!asn || Object.hasOwn(networkDomainNamesByAsn, asn) || pendingDomainLookups.has(asn)) {
-				return;
-			}
-
-			pendingDomainLookups.add(asn);
-
-			http.getDomainFromASN(`AS${asn}`)
-				.then((res) => {
-					this.set('showingNetworkLogos', this.get('showingNetworkLogos') || !!res?.domain);
-
-					this.set('networkDomainNamesByAsn', {
-						...this.get('networkDomainNamesByAsn'),
-						[asn]: res,
-					});
-				})
-				.catch(() => {
-					this.set('networkDomainNamesByAsn', {
-						...this.get('networkDomainNamesByAsn'),
-						[asn]: null,
-					});
-				})
-				.finally(() => {
-					pendingDomainLookups.delete(asn);
-					this.resetHeaderInfoEntityWidthCache();
-					this.recalculateHeaderInfoLayoutStates();
+					this.recalculateHeaderInfoLayoutStatesAfterNetworkLookup();
 				});
 		},
 		getNetworkDataByIp (ipAddr) {
 			return ipAddr ? this.get('networkDomainNamesByIp')[ipAddr] : null;
 		},
-		getNetworkDataByAsn (asn) {
-			return asn ? this.get('networkDomainNamesByAsn')[asn] : null;
-		},
 		getNetworkDomainNameByIp (ipAddr) {
 			let network = this.getNetworkDataByIp(ipAddr);
-			return network?.domain || null;
-		},
-		getNetworkDomainNameByAsn (asn) {
-			let network = this.getNetworkDataByAsn(asn);
 			return network?.domain || null;
 		},
 		getNetworkName (ipAddr) {
@@ -817,6 +824,9 @@
 		},
 		shouldRenderTargetNetwork (ipAddr) {
 			return this.getNetworkDomainNameByIp(ipAddr) && this.getNetworkName(ipAddr);
+		},
+		hideFailedLogo (event) {
+			event.node.style.display = 'none';
 		},
 		// --- Other functions ---
 		getStatusColor (targetStats) {

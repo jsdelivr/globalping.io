@@ -3,6 +3,8 @@ const sharp = require('sharp');
 const LUMINANCE_THRESHOLD = 230;
 const ALPHA_THRESHOLD = 0.1;
 const TRIM_TOLERANCE = 10;
+const DEFAULT_PADDING = 10;
+const FALLBACK_PADDING = 20;
 
 /**
  * Extracts and calculates the average RGBA color from the 4 corners of the image.
@@ -51,7 +53,7 @@ const calculateLuminance = (r, g, b) => {
 /**
  * Applies padding while maintaining the dimensions of the image
  */
-const applyPaddingAndResize = (sharpInstance, metadata, padding, bgColor) => {
+const applyPadding = (sharpInstance, metadata, padding, bgColor) => {
 	let aspectRatio = metadata.width / metadata.height;
 	let horizontalPadding = Math.round(padding * aspectRatio);
 
@@ -82,16 +84,17 @@ const applyPaddingAndResize = (sharpInstance, metadata, padding, bgColor) => {
 		});
 };
 
-module.exports.processDomainLogo = async (domain, padding) => {
+module.exports.processDomainLogo = async (domain, padding, size = null) => {
 	let defaultUrl = `https://img.jsdelivr.com/img.logo.dev/${domain}?format=png`;
 	let strictUrl = `${defaultUrl}&fallback=404`; // forces a 404 response if the logo is unavailable
+	let hasCustomPadding = padding !== null;
 
 	try {
 		let response = await fetch(strictUrl, { headers: { Accept: 'image/png' } });
 
 		if (response.status === 404) {
 			response = await fetch(defaultUrl, { headers: { Accept: 'image/png' } });
-			padding += 20;
+			padding = (padding ?? DEFAULT_PADDING) + FALLBACK_PADDING;
 		}
 
 		if (!response.ok) {
@@ -109,7 +112,9 @@ module.exports.processDomainLogo = async (domain, padding) => {
 		let sharpInstance = sharp(imageBuffer);
 
 		let metadata = await sharpInstance.metadata();
+		let originalWidth = metadata.width;
 		let aspectRatio = metadata.width / metadata.height;
+		padding = padding ?? DEFAULT_PADDING;
 
 		let bgColor = await getCornerAverageColor(imageBuffer, metadata.width, metadata.height);
 		let luminance = calculateLuminance(bgColor.r, bgColor.g, bgColor.b);
@@ -149,9 +154,37 @@ module.exports.processDomainLogo = async (domain, padding) => {
 					width: metadata.width - (finalTrimX * 2),
 					height: metadata.height - (finalTrimY * 2),
 				});
+
+				metadata = {
+					...metadata,
+					width: metadata.width - (finalTrimX * 2),
+					height: metadata.height - (finalTrimY * 2),
+				};
+			}
+		}
+
+		if (size) {
+			let aspectRatio = metadata.width / metadata.height;
+
+			if (!hasCustomPadding) {
+				padding = Math.round(padding * size / originalWidth);
 			}
 
-			sharpInstance = await applyPaddingAndResize(sharpInstance, metadata, padding, bgColor);
+			sharpInstance = sharpInstance.resize({
+				width: size,
+				fit: 'inside',
+				withoutEnlargement: false,
+			});
+
+			metadata = {
+				...metadata,
+				width: size,
+				height: Math.round(size / aspectRatio),
+			};
+		}
+
+		if (padding) {
+			sharpInstance = applyPadding(sharpInstance, metadata, padding, bgColor);
 		}
 
 		return { image: await sharpInstance.png().toBuffer() };
