@@ -231,7 +231,7 @@ router.use(koaStatic(__dirname + '/../dist', {
 }));
 
 router.use(async (ctx, next) => {
-	ctx.res.allowCaching = ctx.res.allowCaching || (app.env === 'production' && !ctx.query.v);
+	ctx.res.allowCaching = ctx.res.allowCaching || (app.env === 'production' && (!ctx.query.v || ctx.query.v === assetsVersion));
 	return next();
 });
 
