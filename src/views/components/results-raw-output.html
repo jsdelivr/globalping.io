@@ -696,7 +696,7 @@
 			let locationLabel = this.isAnycastIp(ipAddr) ? 'Anycast' : this.getIpLocationLabel(ipAddr) || '';
 			let hasLocationField = !!locationLabel;
 			let locationTextWidth = hasLocationField ? this.measureHeaderInfoTextWidth(locationLabel) : 0;
-			let networkName = this.shouldRenderTargetNetwork(ipAddr) ? this.getNetworkName(ipAddr) || '' : '';
+			let networkName = this.getNetworkName(ipAddr) || '';
 			let networkTextWidth = this.measureHeaderInfoTextWidth(networkName);
 			let isNetworkInfoLoading = this.isTargetNetworkInfoLoading(ipAddr);
 			let hasLocationPlaceholder = !hasLocationField && isNetworkInfoLoading;
