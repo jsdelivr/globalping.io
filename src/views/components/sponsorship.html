@@ -24,6 +24,13 @@
 		</div>
 	</div>
 
+	{{#if showHighVolumeDiscount}}
+		<div class="volume-discount">
+			<img width="22" height="22" src="{{@shared.assetsHost}}/img/mail-icon.svg" alt="">
+			<p>Higher volume discounts available! If you expect to spend more than $3000 per month, please <a href="mailto:d@globalping.io">get in touch</a> to discuss individual pricing.</p>
+		</div>
+	{{/if}}
+
 	{{#if oneTimeChecked}}
 		<div class="one-time-donation">
 			<div class="donation-information">
@@ -66,6 +73,7 @@
 					<p>At ${{toDonate}}/month, your bonus stabilizes at {{maxTwelveMonthBonus}}% in month {{monthMaximumReached}}.</p>
 				{{/if}}
 
+				<p>From month {{monthMaximumReached}} onward, each monthly donation earns {{@this.formatNumber(lastMonthlyDonationCredits)}} credits.</p>
 
 				{{#if isLoggedIn}}
 					{{#if donatedLastYear && estimatedBonus > 0}}
@@ -214,7 +222,14 @@
 			},
 			twelveMonthCredits () {
 				let rawCredits = this.get('toDonate') * 12 * CREDITS_PER_DOLLAR;
-				return Math.floor((1 + this.get('maxTwelveMonthBonus') / 100) * rawCredits);
+				return Math.round((1 + this.get('maxTwelveMonthBonus') / 100) * rawCredits / 1000) * 1000;
+			},
+			lastMonthlyDonationCredits () {
+				let rawCredits = this.get('toDonate') * CREDITS_PER_DOLLAR;
+				return Math.round((1 + this.get('maxTwelveMonthBonus') / 100) * rawCredits / 1000) * 1000;
+			},
+			showHighVolumeDiscount () {
+				return this.get('toDonate') >= 3000;
 			},
 			isLoggedIn () {
 				return !!this.get('@shared.user');

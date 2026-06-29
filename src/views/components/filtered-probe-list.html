@@ -138,13 +138,14 @@
 												src="https://cdn.jsdelivr.net/npm/country-flag-icons@1.5.5/3x2/{{item.location.split(', ')[0]}}.svg">
 										{{elseif groupBy === 'network'}}
 											<span class="gp-filtered-list_network-logo">
-												{{#if @this.getDomainForNetwork(item.name)}}
+												{{#if item.logoAsn}}
 													<img width="20"
 														height="20"
-														src="{{@shared.logoHost}}/{{@this.getDomainForNetwork(item.name)}}?v={{@shared.assetsVersion}}"
+														src="/asn-logo/AS{{item.logoAsn}}?v={{@shared.assetsVersion}}&size=40"
 														loading="lazy"
 														alt=""
 														aria-hidden="true"
+														on-error="@this.onLogoError(item)"
 													>
 												{{else}}
 													{{item.name[0]}}
@@ -173,7 +174,6 @@
 </div>
 
 <script>
-	const { getNetworkDomainMap } = require('../../assets/js/utils/http');
 	const popover = require('../../assets/js/decorators/popover');
 	const _ = require('../../assets/js/_');
 	const listeners = require('../../assets/js/utils/listeners');
@@ -243,7 +243,6 @@
 				preparedProbeBlocks: null,
 				filteredMarkersData: null,
 				selectedContinent: null,
-				networkDomainMap: Object.create(null),
 				justClickedLocationFocus: false,
 				skipNextSplit: false,
 				hasManualSortBy: false,
@@ -319,10 +318,6 @@
 		},
 		oninit () {
 			if (!Ractive.isServer) {
-				getNetworkDomainMap()
-					.then(networkDomainMap => this.set('networkDomainMap', networkDomainMap))
-					.catch(err => console.error(err));
-
 				// set initial screenWidth value
 				this.observe('screenWidth', (screenWidth) => {
 					if (!screenWidth) {
@@ -618,6 +613,10 @@
 		getCountryName (code) {
 			return COUNTRIES_MAP[code] || code;
 		},
+		onLogoError (item) {
+			item.logoAsn = null;
+			this.update('preparedProbeBlocks');
+		},
 		sortAndGroup (obj) {
 			let groupBy = this.get('groupBy');
 			let sortOrder = this.get('sortOrder');
@@ -665,6 +664,7 @@
 					name: allNetworks[network].name,
 					from: allNetworks[network].name,
 					location: allNetworks[network].name,
+					logoAsn: allNetworks[network].probes[0].location.asn,
 					probes: allNetworks[network].probes,
 					networks: [],
 					showFlag: false,
@@ -855,10 +855,6 @@
 			if (continentElement) {
 				continentElement.scrollIntoView({ behavior: 'smooth' });
 			}
-		},
-		getDomainForNetwork (network) {
-			let key = _.networkNameToKey(network);
-			return this.get('networkDomainMap')[key];
 		},
 		resetFilters () {
 			this.set('location', 'World');

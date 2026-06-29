@@ -29,14 +29,14 @@
 			<div class="p-globalping-networks_network_head">
 				<span>Network</span>
 
-				{{#if networkDomainName}}
+				{{#if networkLogoAsn}}
 					<img width="32"
 						height="32"
-						src="{{@shared.logoHost}}/{{networkDomainName}}?v={{@shared.assetsVersion}}"
+						src="/asn-logo/AS{{networkLogoAsn}}?v={{@shared.assetsVersion}}&size=64"
 						loading="lazy"
 						alt="{{networkFullName}} logo"
 						as-tooltip="networkFullName"
-						on-error="@this.set('networkDomainName', null)"
+						on-error="@this.set('networkLogoAsn', null)"
 						>
 				{{else}}
 					<div class="p-globalping-networks_img-placeholder">{{networkFullName[0]}}</div>
@@ -216,10 +216,10 @@
 				<div class="p-globalping-networks_explore_body">
 					{{#each otherNetworks}}
 						<a href="/networks/{{this.name}}" class="p-globalping-networks_explore_network" data-testid="other-network">
-							{{#if this.networkDomainName}}
+							{{#if this.networkLogoAsn}}
 								<img width="24"
 									height="24"
-									src="{{@shared.logoHost}}/{{this.networkDomainName}}?v={{@shared.assetsVersion}}"
+									src="/asn-logo/AS{{this.networkLogoAsn}}?v={{@shared.assetsVersion}}&size=48"
 									loading="lazy"
 									on-error="@this.onLogoError(this)"
 									alt="{{this.fullName}} logo">
@@ -281,7 +281,7 @@
 				probesParsed: false,
 				userIP: null,
 				asnList: [],
-				networkDomainName: null,
+				networkLogoAsn: null,
 				testResults: null,
 				testInProgress: false,
 				testReqCancelFn: null,
@@ -301,7 +301,7 @@
 		computed: {
 			shouldDisplayLogoDevLink () {
 				let otherNetworks = this.get('otherNetworks');
-				return this.get('networkDomainName') || (otherNetworks && otherNetworks.filter(n => n.networkDomainName).length);
+				return this.get('networkLogoAsn') || (otherNetworks && otherNetworks.filter(n => n.networkLogoAsn).length);
 			},
 			measurementLocationText () {
 				let testResults = this.get('testResults');
@@ -357,6 +357,7 @@
 						.sort((lhs, rhs) => lhs.country.localeCompare(rhs.country) || lhs.city.localeCompare(rhs.city));
 
 					this.set('asnList', asnList);
+					this.set('networkLogoAsn', asnList[0] || null);
 					this.set('locationsList', locationsList);
 					this.set('probesByCoords', probesByCoords);
 
@@ -400,12 +401,6 @@
 					};
 
 					this.set('measurementsMetadata', measurementsMetadata);
-				});
-
-				// get network domain name to get the icon
-				this.observe('asnList', async (asnList) => {
-					let domain = await this.fetchLocationDomain({ asnList });
-					domain && this.set('networkDomainName', domain);
 				});
 			}
 		},
@@ -467,26 +462,11 @@
 			let lowerNetworks = sortedNetworks.slice(lowerIndex, currentNetworkIndex);
 			let upperNetworks = sortedNetworks.slice(currentNetworkIndex + 1, upperIndex + 1);
 
-			// fetch network domain names used to get their icons
-			return Promise.all([ ...lowerNetworks, ...upperNetworks ].map(async ([ key, { name, asnList }]) => {
-				let networkDomainName = await this.fetchLocationDomain({ asnList });
-				return { name: key, fullName: name, networkDomainName };
+			return [ ...lowerNetworks, ...upperNetworks ].map(([ key, { name, asnList }]) => ({
+				name: key,
+				fullName: name,
+				networkLogoAsn: asnList?.[0] || null,
 			}));
-		},
-		async fetchLocationDomain ({ asnList }) {
-			if (asnList && asnList.length) {
-				try {
-					let res = await http.getDomainFromASN(`AS${asnList[0]}`);
-
-					if (res && res.domain) {
-						return res.domain;
-					}
-				} catch (e) {
-					console.error(`ASN to domain failed for AS${asnList[0]}`, e);
-				}
-			}
-
-			return null;
 		},
 		parseProbesResponse (data) {
 			let extractLocationInfo = (location) => {
@@ -715,7 +695,7 @@
 				});
 		},
 		onLogoError (network) {
-			network.networkDomainName = null;
+			network.networkLogoAsn = null;
 			// trigger re-render
 			this.update('otherNetworks');
 		},
