@@ -2478,9 +2478,9 @@
 				limitInput.addEventListener('keypress', handleEnterBtn);
 
 				let measurement = this.get('measurement');
-				let selectedLocation = this.get('location');
+				let location = this.get('location');
 
-				if (selectedLocation && !measurement) {
+				if (location && !measurement) {
 					// Wait for location-input's onrender to finish (setting swapInputs)
 					setTimeout(() => {
 						let input = document.querySelector('.location-input-hp .aa-Input');

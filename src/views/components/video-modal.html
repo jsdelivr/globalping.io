@@ -43,7 +43,6 @@
 	const VIDEO_MODAL_VIEW = 'video';
 	const VIDEO_MODAL_IFRAME_SRC = 'https://player.mediadelivery.net/embed/628851/9446ae1d-4d0a-436c-9b0d-e84b2e9fe2af?autoplay=false&loop=false&muted=false&preload=true&responsive=true';
 	const VIDEO_MODAL_PLAYERJS_SRC = 'https://assets.mediadelivery.net/playerjs/playerjs-latest.min.js';
-	const VIDEO_MODAL_SCROLL_STABLE_CLASS = 'gp-video-modal-scroll-stable';
 
 	component.exports = {
 		oncomplete () {
@@ -253,7 +252,7 @@
 				return;
 			}
 
-			document.documentElement.classList.add(VIDEO_MODAL_SCROLL_STABLE_CLASS);
+			document.documentElement.classList.add('scrollbar-stable');
 
 			let $modal = $(modal);
 
@@ -315,7 +314,7 @@
 			$modal.off('hidden.bs.modal', hiddenHandler);
 			videoFrame?.removeEventListener('load', loadHandler);
 			this.forceHideVideoModal(modal);
-			document.documentElement.classList.remove(VIDEO_MODAL_SCROLL_STABLE_CLASS);
+			document.documentElement.classList.remove('scrollbar-stable');
 			this._videoModalPlayerPromise = null;
 			this._videoModalPlayerApiPromise = null;
 			this._videoModalReturnFocusEl = null;

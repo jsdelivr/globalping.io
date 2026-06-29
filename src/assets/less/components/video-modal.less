@@ -1,15 +1,5 @@
 @import "../variables.less";
 
-html.gp-video-modal-scroll-stable {
-	scrollbar-gutter: stable;
-
-	@supports (scrollbar-gutter: stable) {
-		body.modal-open[style] {
-			padding-right: 0 !important;
-		}
-	}
-}
-
 .c-gp-video-modal {
 	display: flex;
 	flex-direction: column;
