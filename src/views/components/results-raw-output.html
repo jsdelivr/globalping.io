@@ -418,7 +418,7 @@
 
 			let nodeRect = node.getBoundingClientRect();
 			let containerRect = container.getBoundingClientRect();
-			let top = nodeRect.top - containerRect.top + nodeHeader.getBoundingClientRect().height / 2 - 13;
+			let top = nodeRect.top - containerRect.top + nodeHeader.offsetHeight / 2 - 13;
 			let left = nodeRect.left - containerRect.left - 26;
 
 			if (top !== floatingSetLocationButton.top || left !== floatingSetLocationButton.left) {
@@ -576,13 +576,13 @@
 					let limit = Math.min(itemsAmount, 3);
 
 					for (let i = 0; i < limit; i++) {
-						targetHeight += items[i].getBoundingClientRect().height;
+						targetHeight += items[i].offsetHeight;
 					}
 
 					let totalItemHeight = targetHeight;
 
 					for (let i = limit; i < itemsAmount; i++) {
-						totalItemHeight += items[i].getBoundingClientRect().height;
+						totalItemHeight += items[i].offsetHeight;
 					}
 
 					targetHeight = Math.ceil(targetHeight);
@@ -776,7 +776,7 @@
 		},
 		recalculateHeaderInfoLayoutStates ({ allowShrink = true, updateHeight = true } = {}) {
 			let listEl = this.find('.c-gp-results-raw-output_list');
-			let listWidth = listEl?.getBoundingClientRect?.().width || 0;
+			let listWidth = listEl?.offsetWidth || 0;
 			let preparedTestResults = this.get('preparedTestResults') || [];
 			let previousListWidth = this.get('headerInfoListWidth') || 0;
 			let headerInfoEntityWidthsByKey = this.get('headerInfoEntityWidthsByKey');
