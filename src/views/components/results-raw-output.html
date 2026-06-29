@@ -236,6 +236,33 @@
 				justFocusedItem: false,
 			};
 		},
+		computed: {
+			responseBodyCharsPerLine () {
+				let contentWidth = 0;
+				let outputHorizontalPadding = 32 * 2;
+
+				try {
+					let listEl = this.find('.c-gp-results-raw-output_list');
+					let listWidth = listEl?.getBoundingClientRect?.().width || 0;
+					contentWidth = Math.max(1, listWidth - outputHorizontalPadding);
+				} catch {
+					let windowWidth = window.innerWidth;
+					let outputListMargin = 24 * 2;
+					contentWidth = Math.min(1240, windowWidth - outputListMargin - outputHorizontalPadding);
+				}
+
+				let charWidth = this.get('responseBodyCharWidth') || 7;
+				return Math.max(1, Math.floor(contentWidth / charWidth));
+			},
+			headerInfoAvailableHalfWidth () {
+				let listWidth = this.get('headerInfoListWidth') || 0;
+				let containerHorizontalPadding = 24 * 2;
+				let containerWidth = listWidth - containerHorizontalPadding;
+				let arrowMinWidth = 110;
+				let arrowMarginRight = 32;
+				return (containerWidth / 2) - ((arrowMinWidth + arrowMarginRight) / 2);
+			},
+		},
 		onrender () {
 			if (!Ractive.isServer) {
 				this.set('networkLookupsActive', true);
@@ -481,28 +508,11 @@
 			}
 		},
 		// --- Logic to determine whether to (always) show the HTTP response body ---
-		getResponseBodyCharsPerLine () {
-			let contentWidth = 0;
-			let outputHorizontalPadding = 32 * 2;
-
-			try {
-				let listEl = this.find('.c-gp-results-raw-output_list');
-				let listWidth = listEl?.getBoundingClientRect?.().width || 0;
-				contentWidth = Math.max(1, listWidth - outputHorizontalPadding);
-			} catch {
-				let windowWidth = window.innerWidth;
-				let outputListMargin = 24 * 2;
-				contentWidth = Math.min(1240, windowWidth - outputListMargin - outputHorizontalPadding);
-			}
-
-			let charWidth = this.get('responseBodyCharWidth') || 7;
-			return Math.max(1, Math.floor(contentWidth / charWidth));
-		},
 		isResponseBodyHidden (result) {
 			let activeTargetIdx = this.get('activeTargetIdx');
 			let body = result?.statsPerTarget?.[activeTargetIdx]?.responseBody || '';
 
-			if (!_.shouldCollapseResponseBody(body, this.getResponseBodyCharsPerLine())) {
+			if (!_.shouldCollapseResponseBody(body, this.get('responseBodyCharsPerLine'))) {
 				return false;
 			}
 
@@ -766,14 +776,6 @@
 
 			return widths;
 		},
-		getHeaderInfoAvailableHalfWidth () {
-			let listWidth = this.get('headerInfoListWidth') || 0;
-			let containerHorizontalPadding = 24 * 2;
-			let containerWidth = listWidth - containerHorizontalPadding;
-			let arrowMinWidth = 110;
-			let arrowMarginRight = 32;
-			return (containerWidth / 2) - ((arrowMinWidth + arrowMarginRight) / 2);
-		},
 		recalculateHeaderInfoLayoutStates ({ allowShrink = true, updateHeight = true } = {}) {
 			let listEl = this.find('.c-gp-results-raw-output_list');
 			let listWidth = listEl?.getBoundingClientRect?.().width || 0;
@@ -793,7 +795,7 @@
 				this.set('headerInfoListWidth', listWidth);
 			}
 
-			let availableHalfWidth = this.getHeaderInfoAvailableHalfWidth();
+			let availableHalfWidth = this.get('headerInfoAvailableHalfWidth');
 
 			preparedTestResults.forEach((result) => {
 				let resultId = result.clientSideId;
@@ -1014,7 +1016,7 @@
 			this.set(`hiddenTestResults[${activeTargetIdx}]`, updated);
 
 			// Reset the content state when closing output, but keep the current response-body state when opening it.
-			if (!isOpening && !hiddenContent.includes(resultId) && _.shouldCollapseResponseBody(body, this.getResponseBodyCharsPerLine())) {
+			if (!isOpening && !hiddenContent.includes(resultId) && _.shouldCollapseResponseBody(body, this.get('responseBodyCharsPerLine'))) {
 				this.set(`hiddenResponseBodies[${activeTargetIdx}]`, [ ...hiddenContent, resultId ]);
 			}
 		},
