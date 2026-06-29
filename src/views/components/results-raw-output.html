@@ -721,12 +721,34 @@
 
 			return ipTextWidth + locationTextWidth + networkTextWidth + loadingPlaceholderWidth + iconWidths + textIconGaps + fieldsGap + entityHorizontalPadding;
 		},
-		resetHeaderInfoEntityWidthCache () {
-			this.set('headerInfoEntityWidthsByKey', Object.create(null));
+		getHeaderInfoEntityWidthCacheKey (result, activeTargetIdx = this.get('activeTargetIdx')) {
+			return `${activeTargetIdx}:${result?.clientSideId ?? ''}`;
+		},
+		resetHeaderInfoEntityWidthCache (ipAddresses = null) {
+			if (ipAddresses === null) {
+				this.set('headerInfoEntityWidthsByKey', Object.create(null));
+				return;
+			}
+
+			if (ipAddresses.length === 0) {
+				return;
+			}
+
+			let activeTargetIdx = this.get('activeTargetIdx');
+			let ipAddressSet = new Set(ipAddresses);
+			let preparedTestResults = this.get('preparedTestResults') || [];
+			let headerInfoEntityWidthsByKey = this.get('headerInfoEntityWidthsByKey');
+
+			preparedTestResults.forEach((result) => {
+				let ipAddr = result?.statsPerTarget?.[activeTargetIdx]?.ipAddr;
+
+				if (ipAddressSet.has(ipAddr)) {
+					delete headerInfoEntityWidthsByKey[this.getHeaderInfoEntityWidthCacheKey(result)];
+				}
+			});
 		},
 		getHeaderInfoEntityWidths (result) {
-			let activeTargetIdx = this.get('activeTargetIdx');
-			let cacheKey = `${activeTargetIdx}:${result?.clientSideId ?? ''}`;
+			let cacheKey = this.getHeaderInfoEntityWidthCacheKey(result);
 			let cached = this.get('headerInfoEntityWidthsByKey')[cacheKey];
 
 			if (cached) {
@@ -756,25 +778,55 @@
 			let listEl = this.find('.c-gp-results-raw-output_list');
 			let listWidth = listEl?.getBoundingClientRect?.().width || 0;
 			let preparedTestResults = this.get('preparedTestResults') || [];
-			let overflowByResultId = Object.create(null);
+			let previousListWidth = this.get('headerInfoListWidth') || 0;
+			let headerInfoEntityWidthsByKey = this.get('headerInfoEntityWidthsByKey');
+			let shouldRecalculateCachedOverflow = listWidth !== previousListWidth || Object.keys(headerInfoEntityWidthsByKey).length === 0;
 
-			this.set('headerInfoListWidth', listWidth);
+			let previousOverflowByResultId = this.get('headerInfoOverflowByResultId') || Object.create(null);
+			let overflowByResultId = shouldRecalculateCachedOverflow
+				? Object.create(null)
+				: { ...previousOverflowByResultId };
+
+			let didUpdateOverflow = shouldRecalculateCachedOverflow;
+
+			if (shouldRecalculateCachedOverflow) {
+				this.set('headerInfoListWidth', listWidth);
+			}
+
 			let availableHalfWidth = this.getHeaderInfoAvailableHalfWidth();
 
 			preparedTestResults.forEach((result) => {
+				let resultId = result.clientSideId;
+				let wasWidthCached = !!headerInfoEntityWidthsByKey[this.getHeaderInfoEntityWidthCacheKey(result)];
 				let widths = this.getHeaderInfoEntityWidths(result);
 				let targetEntityWidth = widths.target;
 
 				if (!targetEntityWidth) {
+					if (Object.hasOwn(overflowByResultId, resultId)) {
+						delete overflowByResultId[resultId];
+						didUpdateOverflow = true;
+					}
+
+					return;
+				}
+
+				if (wasWidthCached && !shouldRecalculateCachedOverflow) {
 					return;
 				}
 
 				let sourceEntityWidth = widths.source;
+				let shouldUseOverflowLayout = sourceEntityWidth > availableHalfWidth || targetEntityWidth > availableHalfWidth;
 
-				overflowByResultId[result.clientSideId] = sourceEntityWidth > availableHalfWidth || targetEntityWidth > availableHalfWidth;
+				if (overflowByResultId[resultId] !== shouldUseOverflowLayout) {
+					didUpdateOverflow = true;
+				}
+
+				overflowByResultId[resultId] = shouldUseOverflowLayout;
 			});
 
-			this.set('headerInfoOverflowByResultId', overflowByResultId);
+			if (didUpdateOverflow) {
+				this.set('headerInfoOverflowByResultId', overflowByResultId);
+			}
 
 			if (updateHeight) {
 				this.setResultsBlockHeight({ allowShrink });
@@ -794,8 +846,7 @@
 				this.pendingNetworkDataUpdatesFlushTimeout = null;
 			}
 
-			this.flushNetworkDataUpdates();
-			this.resetHeaderInfoEntityWidthCache();
+			this.resetHeaderInfoEntityWidthCache(this.flushNetworkDataUpdates());
 			this.recalculateHeaderInfoLayoutStates({ allowShrink: false });
 		},
 		// --- Fetching and caching network data + related getters ---
@@ -823,8 +874,7 @@
 				}
 
 				this.pendingNetworkDataUpdatesFlushTimeout = null;
-				this.flushNetworkDataUpdates();
-				this.resetHeaderInfoEntityWidthCache();
+				this.resetHeaderInfoEntityWidthCache(this.flushNetworkDataUpdates());
 				this.recalculateHeaderInfoLayoutStates({ allowShrink: false });
 			}, 500);
 		},
@@ -844,6 +894,8 @@
 			if (hasIpUpdates) {
 				this.set('showingNetworkLogos', this.get('showingNetworkLogos') || Object.values(networkDataUpdatesByIp).some(networkData => !!networkData?.asn));
 			}
+
+			return Object.keys(networkDataUpdatesByIp);
 		},
 		populateNetworkData () {
 			let preparedTestResults = this.get('preparedTestResults') || [];
