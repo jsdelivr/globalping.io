@@ -211,7 +211,7 @@
 					1: [],
 				},
 				networkDataByIp: Object.create(null),
-				logoErrors: Object.create(null),
+				logoErrors: new Set(),
 				networkLookupsActive: false,
 				PROBE_STATUS_FAILED,
 				PROBE_STATUS_OFFLINE,
@@ -222,8 +222,8 @@
 				headerInfoCharWidths: null,
 				headerInfoFallbackCharWidth: 7,
 				headerInfoListWidth: 0,
-				headerInfoOverflowByResultId: Object.create(null),
-				headerInfoEntityWidthsByKey: Object.create(null),
+				headerInfoOverflowByResultId: new Set(),
+				headerInfoEntityWidthsByKey: new Map(),
 				floatingSetLocationButton: {
 					visible: false,
 					top: 0,
@@ -736,7 +736,7 @@
 		},
 		resetHeaderInfoEntityWidthCache (ipAddresses = null) {
 			if (ipAddresses === null) {
-				this.set('headerInfoEntityWidthsByKey', Object.create(null));
+				this.set('headerInfoEntityWidthsByKey', new Map());
 				return;
 			}
 
@@ -747,19 +747,20 @@
 			let activeTargetIdx = this.get('activeTargetIdx');
 			let ipAddressSet = new Set(ipAddresses);
 			let preparedTestResults = this.get('preparedTestResults') || [];
-			let headerInfoEntityWidthsByKey = this.get('headerInfoEntityWidthsByKey');
+			let headerInfoEntityWidthsByKey = new Map(this.get('headerInfoEntityWidthsByKey'));
 
 			preparedTestResults.forEach((result) => {
 				let ipAddr = result?.statsPerTarget?.[activeTargetIdx]?.ipAddr;
 
 				if (ipAddressSet.has(ipAddr)) {
-					delete headerInfoEntityWidthsByKey[this.getHeaderInfoEntityWidthCacheKey(result)];
+					headerInfoEntityWidthsByKey.delete(this.getHeaderInfoEntityWidthCacheKey(result));
 				}
 			});
 		},
 		getHeaderInfoEntityWidths (result) {
 			let cacheKey = this.getHeaderInfoEntityWidthCacheKey(result);
-			let cached = this.get('headerInfoEntityWidthsByKey')[cacheKey];
+			let headerInfoEntityWidthsByKey = this.get('headerInfoEntityWidthsByKey');
+			let cached = headerInfoEntityWidthsByKey.get(cacheKey);
 
 			if (cached) {
 				return cached;
@@ -769,10 +770,7 @@
 			let source = target ? this.getHeaderInfoSourceEntityWidth(result) : 0;
 			let widths = { target, source };
 
-			this.set('headerInfoEntityWidthsByKey', {
-				...this.get('headerInfoEntityWidthsByKey'),
-				[cacheKey]: widths,
-			});
+			headerInfoEntityWidthsByKey.set(cacheKey, widths);
 
 			return widths;
 		},
@@ -782,12 +780,12 @@
 			let preparedTestResults = this.get('preparedTestResults') || [];
 			let previousListWidth = this.get('headerInfoListWidth') || 0;
 			let headerInfoEntityWidthsByKey = this.get('headerInfoEntityWidthsByKey');
-			let shouldRecalculateCachedOverflow = listWidth !== previousListWidth || Object.keys(headerInfoEntityWidthsByKey).length === 0;
+			let shouldRecalculateCachedOverflow = listWidth !== previousListWidth || headerInfoEntityWidthsByKey.size === 0;
 
-			let previousOverflowByResultId = this.get('headerInfoOverflowByResultId') || Object.create(null);
+			let previousOverflowByResultId = this.get('headerInfoOverflowByResultId') || new Set();
 			let overflowByResultId = shouldRecalculateCachedOverflow
-				? Object.create(null)
-				: { ...previousOverflowByResultId };
+				? new Set()
+				: new Set(previousOverflowByResultId);
 
 			let didUpdateOverflow = shouldRecalculateCachedOverflow;
 
@@ -799,13 +797,13 @@
 
 			preparedTestResults.forEach((result) => {
 				let resultId = result.clientSideId;
-				let wasWidthCached = !!headerInfoEntityWidthsByKey[this.getHeaderInfoEntityWidthCacheKey(result)];
+				let wasWidthCached = headerInfoEntityWidthsByKey.has(this.getHeaderInfoEntityWidthCacheKey(result));
 				let widths = this.getHeaderInfoEntityWidths(result);
 				let targetEntityWidth = widths.target;
 
 				if (!targetEntityWidth) {
-					if (Object.hasOwn(overflowByResultId, resultId)) {
-						delete overflowByResultId[resultId];
+					if (overflowByResultId.has(resultId)) {
+						overflowByResultId.delete(resultId);
 						didUpdateOverflow = true;
 					}
 
@@ -819,11 +817,15 @@
 				let sourceEntityWidth = widths.source;
 				let shouldUseOverflowLayout = sourceEntityWidth > availableHalfWidth || targetEntityWidth > availableHalfWidth;
 
-				if (overflowByResultId[resultId] !== shouldUseOverflowLayout) {
+				if (overflowByResultId.has(resultId) !== shouldUseOverflowLayout) {
 					didUpdateOverflow = true;
 				}
 
-				overflowByResultId[resultId] = shouldUseOverflowLayout;
+				if (shouldUseOverflowLayout) {
+					overflowByResultId.add(resultId);
+				} else {
+					overflowByResultId.delete(resultId);
+				}
 			});
 
 			if (didUpdateOverflow) {
@@ -835,8 +837,8 @@
 			}
 		},
 		shouldUseOverflowLayout (result) {
-			let overflowByResultId = this.get('headerInfoOverflowByResultId') || {};
-			return !!overflowByResultId[result?.clientSideId];
+			let overflowByResultId = this.get('headerInfoOverflowByResultId') || new Set();
+			return overflowByResultId.has(result?.clientSideId);
 		},
 		recalculateHeaderInfoLayoutStatesAfterNetworkLookup () {
 			if (this.get('pendingNetworkLookups').size > 0) {
@@ -857,8 +859,8 @@
 				return;
 			}
 
-			this.pendingNetworkDataUpdatesByIp = this.pendingNetworkDataUpdatesByIp || Object.create(null);
-			this.pendingNetworkDataUpdatesByIp[ipAddr] = networkData;
+			this.pendingNetworkDataUpdatesByIp = this.pendingNetworkDataUpdatesByIp || new Map();
+			this.pendingNetworkDataUpdatesByIp.set(ipAddr, networkData);
 			this.scheduleNetworkDataUpdatesFlush();
 		},
 		scheduleNetworkDataUpdatesFlush () {
@@ -881,23 +883,23 @@
 			}, 500);
 		},
 		flushNetworkDataUpdates () {
-			let networkDataUpdatesByIp = this.pendingNetworkDataUpdatesByIp || Object.create(null);
-			let hasIpUpdates = Object.keys(networkDataUpdatesByIp).length > 0;
+			let networkDataUpdatesByIp = this.pendingNetworkDataUpdatesByIp || new Map();
+			let hasIpUpdates = networkDataUpdatesByIp.size > 0;
 
 			if (hasIpUpdates) {
 				this.set('networkDataByIp', {
 					...this.get('networkDataByIp'),
-					...networkDataUpdatesByIp,
+					...Object.fromEntries(networkDataUpdatesByIp),
 				});
 
-				this.pendingNetworkDataUpdatesByIp = Object.create(null);
+				this.pendingNetworkDataUpdatesByIp = new Map();
 			}
 
 			if (hasIpUpdates) {
-				this.set('showingNetworkLogos', this.get('showingNetworkLogos') || Object.values(networkDataUpdatesByIp).some(networkData => !!networkData?.asn));
+				this.set('showingNetworkLogos', this.get('showingNetworkLogos') || Array.from(networkDataUpdatesByIp.values()).some(networkData => !!networkData?.asn));
 			}
 
-			return Object.keys(networkDataUpdatesByIp);
+			return Array.from(networkDataUpdatesByIp.keys());
 		},
 		populateNetworkData () {
 			let preparedTestResults = this.get('preparedTestResults') || [];
@@ -988,13 +990,11 @@
 			return this.getNetworkAsnByIp(ipAddr) && this.getNetworkName(ipAddr);
 		},
 		logoError (logoKey) {
-			return !!this.get('logoErrors')[logoKey];
+			return this.get('logoErrors').has(logoKey);
 		},
 		setLogoError (logoKey) {
-			this.set('logoErrors', {
-				...this.get('logoErrors'),
-				[logoKey]: true,
-			});
+			this.get('logoErrors').add(logoKey);
+			this.update('logoErrors');
 		},
 		// --- Other functions ---
 		getStatusColor (targetStats) {
