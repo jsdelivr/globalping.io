@@ -309,11 +309,11 @@
 						return;
 					}
 
-					this.recalculateHeaderInfoLayoutStates({ allowShrink: false });
+					this.setResultsBlockHeight({ allowShrink: false });
 				}, { deep: true, defer: true, init: false });
 
 				this.observe('hiddenResponseBodies', () => {
-					this.recalculateHeaderInfoLayoutStates({ allowShrink: false });
+					this.setResultsBlockHeight({ allowShrink: false });
 				}, { deep: true, defer: true, init: false });
 
 				this.observe('preparedTestResults activeTargetIdx', () => {
