@@ -747,7 +747,7 @@
 			let activeTargetIdx = this.get('activeTargetIdx');
 			let ipAddressSet = new Set(ipAddresses);
 			let preparedTestResults = this.get('preparedTestResults') || [];
-			let headerInfoEntityWidthsByKey = new Map(this.get('headerInfoEntityWidthsByKey'));
+			let headerInfoEntityWidthsByKey = this.get('headerInfoEntityWidthsByKey');
 
 			preparedTestResults.forEach((result) => {
 				let ipAddr = result?.statsPerTarget?.[activeTargetIdx]?.ipAddr;
