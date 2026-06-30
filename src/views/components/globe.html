@@ -139,6 +139,21 @@
 
 			handleReducedMotionChange(prefersReducedMotionQuery);
 			addManagedListener(this, prefersReducedMotionQuery, 'change', handleReducedMotionChange);
+
+			let resumeVideoPlayback = () => {
+				if (document.hidden || prefersReducedMotionQuery.matches) {
+					return;
+				}
+
+				playVideo(activeVideo);
+
+				if (pendingVideo) {
+					playVideo(pendingVideo);
+				}
+			};
+
+			addManagedListener(this, document, 'visibilitychange', resumeVideoPlayback);
+			addManagedListener(this, window, 'focus', resumeVideoPlayback);
 		},
 	};
 </script>
