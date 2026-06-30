@@ -238,18 +238,13 @@
 		},
 		computed: {
 			responseBodyCharsPerLine () {
-				let contentWidth = 0;
+				let listWidth = this.get('headerInfoListWidth') || 0;
 				let outputHorizontalPadding = 32 * 2;
+				let outputListMargin = 24 * 2;
 
-				try {
-					let listEl = this.find('.c-gp-results-raw-output_list');
-					let listWidth = listEl?.getBoundingClientRect?.().width || 0;
-					contentWidth = Math.max(1, listWidth - outputHorizontalPadding);
-				} catch {
-					let windowWidth = window.innerWidth;
-					let outputListMargin = 24 * 2;
-					contentWidth = Math.min(1240, windowWidth - outputListMargin - outputHorizontalPadding);
-				}
+				let contentWidth = listWidth
+					? Math.max(1, listWidth - outputHorizontalPadding)
+					: Math.min(1240, window.innerWidth - outputListMargin - outputHorizontalPadding);
 
 				let charWidth = this.get('responseBodyCharWidth') || 7;
 				return Math.max(1, Math.floor(contentWidth / charWidth));
