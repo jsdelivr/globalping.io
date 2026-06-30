@@ -8,8 +8,7 @@ const { parseArgs } = require('node:util');
 const ffmpegPath = require('ffmpeg-static');
 const sharp = require('sharp');
 
-const packedGlobeDots = require('./globe-dots.json');
-
+const DEFAULT_INPUT_PATH = path.resolve(__dirname, './globe-dots.json');
 const DEFAULT_OUTPUT_PATH = path.resolve(__dirname, '../src/assets/img/globe-video.webm');
 const DEFAULT_POSTER_OUTPUT_PATH = path.resolve(__dirname, '../src/assets/img/globe-poster.webp');
 const DEFAULT_SIZE = 1200;
@@ -50,6 +49,7 @@ Usage:
 	node bin/generate-globe-video.js [options]
 
 Options:
+	--input <path>                   Globe dots json data. Default: ${DEFAULT_INPUT_PATH}
 	--output <path>                  WebM output path. Default: ${DEFAULT_OUTPUT_PATH}
 	--poster-output <path>           Poster output path. Default: ${DEFAULT_POSTER_OUTPUT_PATH}
 	--size <number>                  Square output size in pixels. Default: ${DEFAULT_SIZE}
@@ -420,6 +420,7 @@ const removeDirectory = (directoryPath) => {
 const parseOptions = () => {
 	let { values } = parseArgs({
 		options: {
+			'input': { type: 'string' },
 			'output': { type: 'string' },
 			'poster-output': { type: 'string' },
 			'size': { type: 'string' },
@@ -444,6 +445,7 @@ const parseOptions = () => {
 	}
 
 	return {
+		inputPath: path.resolve(process.cwd(), values.input ?? DEFAULT_INPUT_PATH),
 		outputPath: path.resolve(process.cwd(), values.output ?? DEFAULT_OUTPUT_PATH),
 		posterOutputPath: path.resolve(process.cwd(), values['poster-output'] ?? DEFAULT_POSTER_OUTPUT_PATH),
 		size: parseNumber('size', values.size ?? DEFAULT_SIZE, { integer: true, min: 2 }),
@@ -463,6 +465,7 @@ const parseOptions = () => {
 
 async function main () {
 	let options = parseOptions();
+	let packedGlobeDots = require(options.inputPath);
 	let dots = unpackGlobeDots(getVisiblePackedRows(packedGlobeDots, options.visibleRowsPercent));
 	let pulseWindows = buildPulseWindows({
 		dots,
