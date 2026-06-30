@@ -14,6 +14,7 @@
 <link rel="ractive" href="../components/credits.html" name="c-gp-credits">
 <link rel="ractive" href="../components/jumbotron.html" name="c-gp-jumbotron">
 <link rel="ractive" href="../components/test-examples.html" name="c-test-examples">
+<link rel="ractive" href="../components/video-modal.html" name="c-gp-video-modal">
 
 <r-page
 	noYield="{{noYield}}"
@@ -50,10 +51,10 @@
 
 	<c-notification></c-notification>
 
-	<c-gp-header additionalClasses="header-with-globalping-bg"></c-gp-header>
+	<c-gp-header additionalClasses="header-with-globalping-bg no-border"></c-gp-header>
 
 	<div class="p-globalping">
-		<c-gp-jumbotron className="main" gridType="type1"></c-gp-jumbotron>
+		<c-gp-jumbotron className="main" gridType="globe"></c-gp-jumbotron>
 
 		<div class="gp_main-info">
 			<div class="gp_main-info_descr">
@@ -61,30 +62,34 @@
 				<span>your internet infrastructure from a globally distributed network of probes.</span>
 			</div>
 
-			<div class="gp_main-info_stats">
-				<a href="/network?group=disabled" class="gp_main-info_stats_item" aria-label="Explore the network">
+			<div class="gp_main-info_row">
+				<div class="gp_main-info_stats">
+					<a href="/network?group=disabled" class="gp_main-info_stats_item" aria-label="Explore the network">
 					<span class="gp_main-info_stats_item_number">
 						{{ Math.floor(totalProbes) }}
 						<span></span>
 					</span>
-					<span class="gp_main-info_stats_item_text">connected probes</span>
-				</a>
+						<span class="gp_main-info_stats_item_text">connected probes</span>
+					</a>
 
-				<a href="/network" class="gp_main-info_stats_item" aria-label="Explore the network">
+					<a href="/network" class="gp_main-info_stats_item" aria-label="Explore the network">
 					<span class="gp_main-info_stats_item_number">
 						{{ Math.floor(totalCities) }}
 						<span></span>
 					</span>
-					<span class="gp_main-info_stats_item_text">different cities</span>
-				</a>
+						<span class="gp_main-info_stats_item_text">different cities</span>
+					</a>
 
-				<a href="/network?group=country" class="gp_main-info_stats_item" aria-label="Explore the network">
-					<span href="/network" class="gp_main-info_stats_item_number">
+					<a href="/network?group=country" class="gp_main-info_stats_item" aria-label="Explore the network">
+					<span class="gp_main-info_stats_item_number">
 						{{ Math.floor(totalCountries) }}
 						<span></span>
 					</span>
-					<span class="gp_main-info_stats_item_text">different countries</span>
-				</a>
+						<span class="gp_main-info_stats_item_text">different countries</span>
+					</a>
+				</div>
+
+				<c-gp-video-modal view="{{view}}"></c-gp-video-modal>
 			</div>
 		</div>
 
@@ -786,13 +791,14 @@
 				<img class="gp_details_platform_img"
 					width="363"
 					height="288"
+					alt=""
 					src="{{@shared.assetsHost}}/img/polygons_1.svg">
 			</div>
 
 			<div class="gp_details_magic">
 				<div class="gp_details_magic_title">Test from anywhere with <span class="text-magic-color">magic</span></div>
 				<div class="gp_details_magic_descr">
-					All Globalping integrations and tools including the CLI <a target="_blank" href="https://github.com/jsdelivr/globalping#best-practices-and-tips">use the magic API field</a> to set the location of a test.
+					All Globalping integrations and tools including the CLI <a target="_blank" rel="noreferrer" href="https://github.com/jsdelivr/globalping#best-practices-and-tips">use the magic API field</a> to set the location of a test.
 					This means that you can write anything that makes sense to you as the input and we will do our best to select the
 					most appropriate probes. Valid inputs include countries, continents, cities, US states, regions
 					(Western Europe), ASNs, ISP names, eyeball or datacenter tags and cloud region names (us-east-2).
@@ -800,6 +806,7 @@
 				<img class="gp_details_magic_img"
 					width="510"
 					height="289"
+					alt=""
 					src="{{@shared.assetsHost}}/img/polygons_2.svg">
 			</div>
 		</div>
@@ -1704,6 +1711,7 @@
 				_,
 				map: null,
 				display: null,
+				view: null,
 				rawProbes: '',
 				PROBE_NO_TIMING_VALUE,
 				PROBE_STATUS_FAILED,

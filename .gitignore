@@ -14,6 +14,7 @@ yarn.lock
 .eslintcache-html
 .output
 .nuxt
+globe-dots.json
 
 # Playwright
 /test/e2e/results/

@@ -1,11 +1,17 @@
+<link rel="ractive" href="./globe.html" name="c-gp-globe">
+
 <div class="c-gp-jumbotron {{className}}">
-	{{#if gridType === 'type1'}}
+	{{#if gridType === 'globe'}}
+		<c-gp-globe className="jumbotron_globe" visibleRowsPercent="75"></c-gp-globe>
+	{{elseif gridType === 'type1'}}
 		<img class="jumbotron_grid"
-			width="1440"
-			height="532"
+			alt=""
+			width="2016"
+			height="745"
 			src="{{@shared.assetsHost}}/img/globalping-grid-type-1.svg">
 	{{elseif gridType === 'type2'}}
 		<img class="jumbotron_grid"
+			alt=""
 			width="1440"
 			height="600"
 			src="{{@shared.assetsHost}}/img/globalping-grid-type-2.svg">
@@ -15,6 +21,7 @@
 
 			<div class="grid-type-3_grid-wrapper">
 				<img class="jumbotron_grid"
+					alt=""
 					width="1150"
 					height="689"
 					src="{{@shared.assetsHost}}/img/globalping-grid-type-3.svg">
@@ -24,6 +31,7 @@
 		</div>
 	{{elseif gridType === 'type4'}}
 		<img class="jumbotron_grid"
+			alt=""
 			width="1150"
 			height="625"
 			src="{{@shared.assetsHost}}/img/globalping-grid-type-4.svg">
