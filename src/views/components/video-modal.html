@@ -2,7 +2,7 @@
 	<div class="c-gp-video-modal_trigger">
 		<button type="button"
 				class="c-gp-video-modal_button"
-				on-click="@this.openVideoModal()"
+				on-click="@this.openVideoModal({ autoplay: true })"
 				aria-label="Watch the What is Globalping video">
 			<img alt="" width="12" height="15" src="{{@shared.assetsHost}}/img/play-triangle.svg">
 			<span>What is Globalping</span>
@@ -28,7 +28,6 @@
 
 				<div class="c-gp-video-modal_player">
 					<iframe class="c-gp-video-modal_iframe"
-						title="What is Globalping video"
 						loading="lazy"
 						allow="accelerometer;gyroscope;autoplay;encrypted-media;picture-in-picture;"
 						allowfullscreen="allowfullscreen">
@@ -42,6 +41,7 @@
 <script>
 	const VIDEO_MODAL_VIEW = 'video';
 	const VIDEO_MODAL_IFRAME_SRC = 'https://player.mediadelivery.net/embed/628851/9446ae1d-4d0a-436c-9b0d-e84b2e9fe2af?autoplay=false&loop=false&muted=false&preload=true&responsive=true';
+	const VIDEO_MODAL_IFRAME_AUTOPLAY_SRC = VIDEO_MODAL_IFRAME_SRC.replace('autoplay=false', 'autoplay=true');
 	const VIDEO_MODAL_PLAYERJS_SRC = 'https://assets.mediadelivery.net/playerjs/playerjs-latest.min.js';
 
 	component.exports = {
@@ -59,12 +59,14 @@
 		onteardown () {
 			this.teardownVideoModal();
 		},
-		openVideoModal () {
+		openVideoModal ({ autoplay = false } = {}) {
 			let { modal, $modal } = this._videoModalHandlers || {};
 
 			if (!modal) {
 				return false;
 			}
+
+			this._shouldPlayVideoModalOnShow ||= autoplay;
 
 			if (!$modal.hasClass('in') && document.activeElement instanceof HTMLElement) {
 				this._videoModalReturnFocusEl = document.activeElement;
@@ -180,6 +182,7 @@
 		},
 		activateVideoModalFrame () {
 			let videoFrame = this._videoModalHandlers?.videoFrame;
+			let iframeSrc = this._shouldPlayVideoModalOnShow ? VIDEO_MODAL_IFRAME_AUTOPLAY_SRC : VIDEO_MODAL_IFRAME_SRC;
 
 			this._isVideoModalFrameActive = true;
 
@@ -187,11 +190,15 @@
 				return;
 			}
 
-			if (videoFrame.getAttribute('src') !== VIDEO_MODAL_IFRAME_SRC) {
-				videoFrame.setAttribute('src', VIDEO_MODAL_IFRAME_SRC);
+			if (videoFrame.getAttribute('src') !== iframeSrc) {
+				videoFrame.setAttribute('src', iframeSrc);
 			}
 
-			this.getVideoModalPlayer(videoFrame);
+			this.getVideoModalPlayer(videoFrame).then((player) => {
+				if (this._isVideoModalFrameActive && this._shouldPlayVideoModalOnShow) {
+					player?.play?.();
+				}
+			}).catch(() => null);
 		},
 		moveVideoModalFocusOut (modal = this._videoModalHandlers?.modal) {
 			let activeElement = document.activeElement;
@@ -213,6 +220,7 @@
 			let shouldClearReturnFocusEl = !hasReturnFocusEl || !document.contains(this._videoModalReturnFocusEl);
 
 			this._isVideoModalFrameActive = false;
+			this._shouldPlayVideoModalOnShow = false;
 			this.resetVideoModalPlayback();
 
 			if (this.get('view') === VIDEO_MODAL_VIEW) {
