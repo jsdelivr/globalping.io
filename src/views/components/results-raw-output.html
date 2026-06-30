@@ -211,7 +211,7 @@
 					1: [],
 				},
 				networkDataByIp: Object.create(null),
-				logoErrors: Object.create(null),
+				logoErrors: new Set(),
 				networkLookupsActive: false,
 				PROBE_STATUS_FAILED,
 				PROBE_STATUS_OFFLINE,
@@ -222,8 +222,8 @@
 				headerInfoCharWidths: null,
 				headerInfoFallbackCharWidth: 7,
 				headerInfoListWidth: 0,
-				headerInfoOverflowByResultId: Object.create(null),
-				headerInfoEntityWidthsByKey: Object.create(null),
+				headerInfoOverflowByResultId: new Set(),
+				headerInfoEntityWidthsByKey: new Map(),
 				floatingSetLocationButton: {
 					visible: false,
 					top: 0,
@@ -235,6 +235,28 @@
 				itemFocused: false,
 				justFocusedItem: false,
 			};
+		},
+		computed: {
+			responseBodyCharsPerLine () {
+				let listWidth = this.get('headerInfoListWidth') || 0;
+				let outputHorizontalPadding = 32 * 2;
+				let outputListMargin = 24 * 2;
+
+				let contentWidth = listWidth
+					? Math.max(1, listWidth - outputHorizontalPadding)
+					: Math.min(1240, window.innerWidth - outputListMargin - outputHorizontalPadding);
+
+				let charWidth = this.get('responseBodyCharWidth') || 7;
+				return Math.max(1, Math.floor(contentWidth / charWidth));
+			},
+			headerInfoAvailableHalfWidth () {
+				let listWidth = this.get('headerInfoListWidth') || 0;
+				let containerHorizontalPadding = 24 * 2;
+				let containerWidth = listWidth - containerHorizontalPadding;
+				let arrowMinWidth = 110;
+				let arrowMarginRight = 32;
+				return (containerWidth / 2) - ((arrowMinWidth + arrowMarginRight) / 2);
+			},
 		},
 		onrender () {
 			if (!Ractive.isServer) {
@@ -282,11 +304,11 @@
 						return;
 					}
 
-					this.recalculateHeaderInfoLayoutStates({ allowShrink: false });
+					this.setResultsBlockHeight({ allowShrink: false });
 				}, { deep: true, defer: true, init: false });
 
 				this.observe('hiddenResponseBodies', () => {
-					this.recalculateHeaderInfoLayoutStates({ allowShrink: false });
+					this.setResultsBlockHeight({ allowShrink: false });
 				}, { deep: true, defer: true, init: false });
 
 				this.observe('preparedTestResults activeTargetIdx', () => {
@@ -391,7 +413,7 @@
 
 			let nodeRect = node.getBoundingClientRect();
 			let containerRect = container.getBoundingClientRect();
-			let top = nodeRect.top - containerRect.top + nodeHeader.getBoundingClientRect().height / 2 - 13;
+			let top = nodeRect.top - containerRect.top + nodeHeader.offsetHeight / 2 - 13;
 			let left = nodeRect.left - containerRect.left - 26;
 
 			if (top !== floatingSetLocationButton.top || left !== floatingSetLocationButton.left) {
@@ -481,28 +503,11 @@
 			}
 		},
 		// --- Logic to determine whether to (always) show the HTTP response body ---
-		getResponseBodyCharsPerLine () {
-			let contentWidth = 0;
-			let outputHorizontalPadding = 32 * 2;
-
-			try {
-				let listEl = this.find('.c-gp-results-raw-output_list');
-				let listWidth = listEl?.getBoundingClientRect?.().width || 0;
-				contentWidth = Math.max(1, listWidth - outputHorizontalPadding);
-			} catch {
-				let windowWidth = window.innerWidth;
-				let outputListMargin = 24 * 2;
-				contentWidth = Math.min(1240, windowWidth - outputListMargin - outputHorizontalPadding);
-			}
-
-			let charWidth = this.get('responseBodyCharWidth') || 7;
-			return Math.max(1, Math.floor(contentWidth / charWidth));
-		},
 		isResponseBodyHidden (result) {
 			let activeTargetIdx = this.get('activeTargetIdx');
 			let body = result?.statsPerTarget?.[activeTargetIdx]?.responseBody || '';
 
-			if (!_.shouldCollapseResponseBody(body, this.getResponseBodyCharsPerLine())) {
+			if (!_.shouldCollapseResponseBody(body, this.get('responseBodyCharsPerLine'))) {
 				return false;
 			}
 
@@ -566,13 +571,13 @@
 					let limit = Math.min(itemsAmount, 3);
 
 					for (let i = 0; i < limit; i++) {
-						targetHeight += items[i].getBoundingClientRect().height;
+						targetHeight += items[i].offsetHeight;
 					}
 
 					let totalItemHeight = targetHeight;
 
 					for (let i = limit; i < itemsAmount; i++) {
-						totalItemHeight += items[i].getBoundingClientRect().height;
+						totalItemHeight += items[i].offsetHeight;
 					}
 
 					targetHeight = Math.ceil(targetHeight);
@@ -721,13 +726,36 @@
 
 			return ipTextWidth + locationTextWidth + networkTextWidth + loadingPlaceholderWidth + iconWidths + textIconGaps + fieldsGap + entityHorizontalPadding;
 		},
-		resetHeaderInfoEntityWidthCache () {
-			this.set('headerInfoEntityWidthsByKey', Object.create(null));
+		getHeaderInfoEntityWidthCacheKey (result, activeTargetIdx = this.get('activeTargetIdx')) {
+			return `${activeTargetIdx}:${result?.clientSideId ?? ''}`;
+		},
+		resetHeaderInfoEntityWidthCache (ipAddresses = null) {
+			if (ipAddresses === null) {
+				this.set('headerInfoEntityWidthsByKey', new Map());
+				return;
+			}
+
+			if (ipAddresses.length === 0) {
+				return;
+			}
+
+			let activeTargetIdx = this.get('activeTargetIdx');
+			let ipAddressSet = new Set(ipAddresses);
+			let preparedTestResults = this.get('preparedTestResults') || [];
+			let headerInfoEntityWidthsByKey = this.get('headerInfoEntityWidthsByKey');
+
+			preparedTestResults.forEach((result) => {
+				let ipAddr = result?.statsPerTarget?.[activeTargetIdx]?.ipAddr;
+
+				if (ipAddressSet.has(ipAddr)) {
+					headerInfoEntityWidthsByKey.delete(this.getHeaderInfoEntityWidthCacheKey(result));
+				}
+			});
 		},
 		getHeaderInfoEntityWidths (result) {
-			let activeTargetIdx = this.get('activeTargetIdx');
-			let cacheKey = `${activeTargetIdx}:${result?.clientSideId ?? ''}`;
-			let cached = this.get('headerInfoEntityWidthsByKey')[cacheKey];
+			let cacheKey = this.getHeaderInfoEntityWidthCacheKey(result);
+			let headerInfoEntityWidthsByKey = this.get('headerInfoEntityWidthsByKey');
+			let cached = headerInfoEntityWidthsByKey.get(cacheKey);
 
 			if (cached) {
 				return cached;
@@ -737,52 +765,75 @@
 			let source = target ? this.getHeaderInfoSourceEntityWidth(result) : 0;
 			let widths = { target, source };
 
-			this.set('headerInfoEntityWidthsByKey', {
-				...this.get('headerInfoEntityWidthsByKey'),
-				[cacheKey]: widths,
-			});
+			headerInfoEntityWidthsByKey.set(cacheKey, widths);
 
 			return widths;
 		},
-		getHeaderInfoAvailableHalfWidth () {
-			let listWidth = this.get('headerInfoListWidth') || 0;
-			let containerHorizontalPadding = 24 * 2;
-			let containerWidth = listWidth - containerHorizontalPadding;
-			let arrowMinWidth = 110;
-			let arrowMarginRight = 32;
-			return (containerWidth / 2) - ((arrowMinWidth + arrowMarginRight) / 2);
-		},
 		recalculateHeaderInfoLayoutStates ({ allowShrink = true, updateHeight = true } = {}) {
 			let listEl = this.find('.c-gp-results-raw-output_list');
-			let listWidth = listEl?.getBoundingClientRect?.().width || 0;
+			let listWidth = listEl?.offsetWidth || 0;
 			let preparedTestResults = this.get('preparedTestResults') || [];
-			let overflowByResultId = Object.create(null);
+			let previousListWidth = this.get('headerInfoListWidth') || 0;
+			let headerInfoEntityWidthsByKey = this.get('headerInfoEntityWidthsByKey');
+			let shouldRecalculateCachedOverflow = listWidth !== previousListWidth || headerInfoEntityWidthsByKey.size === 0;
 
-			this.set('headerInfoListWidth', listWidth);
-			let availableHalfWidth = this.getHeaderInfoAvailableHalfWidth();
+			let previousOverflowByResultId = this.get('headerInfoOverflowByResultId') || new Set();
+			let overflowByResultId = shouldRecalculateCachedOverflow
+				? new Set()
+				: new Set(previousOverflowByResultId);
+
+			let didUpdateOverflow = shouldRecalculateCachedOverflow;
+
+			if (shouldRecalculateCachedOverflow) {
+				this.set('headerInfoListWidth', listWidth);
+			}
+
+			let availableHalfWidth = this.get('headerInfoAvailableHalfWidth');
 
 			preparedTestResults.forEach((result) => {
+				let resultId = result.clientSideId;
+				let wasWidthCached = headerInfoEntityWidthsByKey.has(this.getHeaderInfoEntityWidthCacheKey(result));
 				let widths = this.getHeaderInfoEntityWidths(result);
 				let targetEntityWidth = widths.target;
 
 				if (!targetEntityWidth) {
+					if (overflowByResultId.has(resultId)) {
+						overflowByResultId.delete(resultId);
+						didUpdateOverflow = true;
+					}
+
+					return;
+				}
+
+				if (wasWidthCached && !shouldRecalculateCachedOverflow) {
 					return;
 				}
 
 				let sourceEntityWidth = widths.source;
+				let shouldUseOverflowLayout = sourceEntityWidth > availableHalfWidth || targetEntityWidth > availableHalfWidth;
 
-				overflowByResultId[result.clientSideId] = sourceEntityWidth > availableHalfWidth || targetEntityWidth > availableHalfWidth;
+				if (overflowByResultId.has(resultId) !== shouldUseOverflowLayout) {
+					didUpdateOverflow = true;
+				}
+
+				if (shouldUseOverflowLayout) {
+					overflowByResultId.add(resultId);
+				} else {
+					overflowByResultId.delete(resultId);
+				}
 			});
 
-			this.set('headerInfoOverflowByResultId', overflowByResultId);
+			if (didUpdateOverflow) {
+				this.set('headerInfoOverflowByResultId', overflowByResultId);
+			}
 
 			if (updateHeight) {
 				this.setResultsBlockHeight({ allowShrink });
 			}
 		},
 		shouldUseOverflowLayout (result) {
-			let overflowByResultId = this.get('headerInfoOverflowByResultId') || {};
-			return !!overflowByResultId[result?.clientSideId];
+			let overflowByResultId = this.get('headerInfoOverflowByResultId') || new Set();
+			return overflowByResultId.has(result?.clientSideId);
 		},
 		recalculateHeaderInfoLayoutStatesAfterNetworkLookup () {
 			if (this.get('pendingNetworkLookups').size > 0) {
@@ -794,8 +845,7 @@
 				this.pendingNetworkDataUpdatesFlushTimeout = null;
 			}
 
-			this.flushNetworkDataUpdates();
-			this.resetHeaderInfoEntityWidthCache();
+			this.resetHeaderInfoEntityWidthCache(this.flushNetworkDataUpdates());
 			this.recalculateHeaderInfoLayoutStates({ allowShrink: false });
 		},
 		// --- Fetching and caching network data + related getters ---
@@ -804,8 +854,8 @@
 				return;
 			}
 
-			this.pendingNetworkDataUpdatesByIp = this.pendingNetworkDataUpdatesByIp || Object.create(null);
-			this.pendingNetworkDataUpdatesByIp[ipAddr] = networkData;
+			this.pendingNetworkDataUpdatesByIp = this.pendingNetworkDataUpdatesByIp || new Map();
+			this.pendingNetworkDataUpdatesByIp.set(ipAddr, networkData);
 			this.scheduleNetworkDataUpdatesFlush();
 		},
 		scheduleNetworkDataUpdatesFlush () {
@@ -823,27 +873,28 @@
 				}
 
 				this.pendingNetworkDataUpdatesFlushTimeout = null;
-				this.flushNetworkDataUpdates();
-				this.resetHeaderInfoEntityWidthCache();
+				this.resetHeaderInfoEntityWidthCache(this.flushNetworkDataUpdates());
 				this.recalculateHeaderInfoLayoutStates({ allowShrink: false });
 			}, 500);
 		},
 		flushNetworkDataUpdates () {
-			let networkDataUpdatesByIp = this.pendingNetworkDataUpdatesByIp || Object.create(null);
-			let hasIpUpdates = Object.keys(networkDataUpdatesByIp).length > 0;
+			let networkDataUpdatesByIp = this.pendingNetworkDataUpdatesByIp || new Map();
+			let hasIpUpdates = networkDataUpdatesByIp.size > 0;
 
 			if (hasIpUpdates) {
 				this.set('networkDataByIp', {
 					...this.get('networkDataByIp'),
-					...networkDataUpdatesByIp,
+					...Object.fromEntries(networkDataUpdatesByIp),
 				});
 
-				this.pendingNetworkDataUpdatesByIp = Object.create(null);
+				this.pendingNetworkDataUpdatesByIp = new Map();
 			}
 
 			if (hasIpUpdates) {
-				this.set('showingNetworkLogos', this.get('showingNetworkLogos') || Object.values(networkDataUpdatesByIp).some(networkData => !!networkData?.asn));
+				this.set('showingNetworkLogos', this.get('showingNetworkLogos') || Array.from(networkDataUpdatesByIp.values()).some(networkData => !!networkData?.asn));
 			}
+
+			return Array.from(networkDataUpdatesByIp.keys());
 		},
 		populateNetworkData () {
 			let preparedTestResults = this.get('preparedTestResults') || [];
@@ -934,13 +985,11 @@
 			return this.getNetworkAsnByIp(ipAddr) && this.getNetworkName(ipAddr);
 		},
 		logoError (logoKey) {
-			return !!this.get('logoErrors')[logoKey];
+			return this.get('logoErrors').has(logoKey);
 		},
 		setLogoError (logoKey) {
-			this.set('logoErrors', {
-				...this.get('logoErrors'),
-				[logoKey]: true,
-			});
+			this.get('logoErrors').add(logoKey);
+			this.update('logoErrors');
 		},
 		// --- Other functions ---
 		getStatusColor (targetStats) {
@@ -962,7 +1011,7 @@
 			this.set(`hiddenTestResults[${activeTargetIdx}]`, updated);
 
 			// Reset the content state when closing output, but keep the current response-body state when opening it.
-			if (!isOpening && !hiddenContent.includes(resultId) && _.shouldCollapseResponseBody(body, this.getResponseBodyCharsPerLine())) {
+			if (!isOpening && !hiddenContent.includes(resultId) && _.shouldCollapseResponseBody(body, this.get('responseBodyCharsPerLine'))) {
 				this.set(`hiddenResponseBodies[${activeTargetIdx}]`, [ ...hiddenContent, resultId ]);
 			}
 		},
