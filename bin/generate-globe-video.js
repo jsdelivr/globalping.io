@@ -485,40 +485,44 @@ async function main () {
 
 	let framesDir = options.framesDir || fs.mkdtempSync(path.join(os.tmpdir(), 'globalping-globe-'));
 
-	fs.mkdirSync(framesDir, { recursive: true });
-	console.log(`Rendering ${frameCount} frames to ${framesDir}`);
+	try {
+		fs.mkdirSync(framesDir, { recursive: true });
+		console.log(`Rendering ${frameCount} frames to ${framesDir}`);
 
-	for (let frameIndex = 0; frameIndex < frameCount; frameIndex++) {
-		let progress = frameIndex / frameCount;
-		let framePath = path.join(framesDir, `frame-${String(frameIndex).padStart(4, '0')}.png`);
+		for (let frameIndex = 0; frameIndex < frameCount; frameIndex++) {
+			let progress = frameIndex / frameCount;
+			let framePath = path.join(framesDir, `frame-${String(frameIndex).padStart(4, '0')}.png`);
 
-		await renderPngFrame({
-			dots,
-			pulseWindows,
-			progress,
-			rotationDegrees: options.rotationDegrees,
-			pulseCycles: options.pulseCycles,
-			pulseGlobeForeshortening: options.pulseGlobeForeshortening,
-			outputPath: framePath,
-			size: options.size,
+			await renderPngFrame({
+				dots,
+				pulseWindows,
+				progress,
+				rotationDegrees: options.rotationDegrees,
+				pulseCycles: options.pulseCycles,
+				pulseGlobeForeshortening: options.pulseGlobeForeshortening,
+				outputPath: framePath,
+				size: options.size,
+			});
+
+			if ((frameIndex + 1) % Math.max(Math.floor(frameCount / 10), 1) === 0 || frameIndex + 1 === frameCount) {
+				console.log(`Rendered ${frameIndex + 1}/${frameCount} frames`);
+			}
+		}
+
+		console.log(`Encoding WebM: ${options.outputPath}`);
+
+		encodeWebm({
+			framesDir,
+			fps: options.fps,
+			crf: options.crf,
+			outputPath: options.outputPath,
 		});
 
-		if ((frameIndex + 1) % Math.max(Math.floor(frameCount / 10), 1) === 0 || frameIndex + 1 === frameCount) {
-			console.log(`Rendered ${frameIndex + 1}/${frameCount} frames`);
+		console.log(`Saved video: ${options.outputPath}`);
+	} finally {
+		if (!options.keepFrames && !options.framesDir) {
+			removeDirectory(framesDir);
 		}
-	}
-
-	console.log(`Encoding WebM: ${options.outputPath}`);
-
-	encodeWebm({
-		framesDir,
-		fps: options.fps,
-		crf: options.crf,
-		outputPath: options.outputPath,
-	});
-
-	if (!options.keepFrames && !options.framesDir) {
-		removeDirectory(framesDir);
 	}
 
 	console.log(`Saved video: ${options.outputPath}`);
