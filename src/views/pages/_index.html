@@ -2336,14 +2336,16 @@
 
 							let resTiming = !calcTiming ? null : typeof calcTiming.value === 'number' ? `${Math.round(calcTiming.value)}${calcTiming.units}` : calcTiming.value;
 
-							let httpStatus = calcTiming?.extraValues?.httpStatus?.value;
-							let dnsStatus = calcTiming?.extraValues?.dnsStatus?.value;
+							let extraValues = calcTiming?.extraValues;
+							let httpStatus = extraValues?.httpStatus?.value;
+							let dnsStatus = extraValues?.dnsStatus?.value;
+							let errorCode = null;
 
-							let errorCode = typeof httpStatus === 'number' && httpStatus >= 400
-								? `Error ${httpStatus}`
-								: typeof dnsStatus === 'string' && dnsStatus !== 'NOERROR'
-									? dnsStatus
-									: null;
+							if (extraValues?.errorStatus === _.getProbeStatusHttpErrorValue()) {
+								errorCode = `Error ${httpStatus}`;
+							} else if (extraValues?.errorStatus === _.getProbeStatusDnsErrorValue() && dnsStatus !== null && typeof dnsStatus !== 'undefined') {
+								errorCode = dnsStatus;
+							}
 
 							return {
 								...data,

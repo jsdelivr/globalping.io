@@ -9,7 +9,8 @@ const screenType = {
 const PROBE_NO_TIMING_VALUE = 'time out';
 const PROBE_STATUS_FAILED = 'failed';
 const PROBE_STATUS_OFFLINE = 'offline';
-const PROBE_STATUS_ERROR = 'error';
+const PROBE_STATUS_DNS_ERROR = 'dns-error';
+const PROBE_STATUS_HTTP_ERROR = 'http-error';
 const PROBE_STATUS_ERROR_COLOR = '#9b51e0';
 
 const COUNTRIES = require('../json/countries.json');
@@ -356,7 +357,7 @@ module.exports = {
 			}
 
 			if ((typeof dnsStatus !== 'undefined' && dnsStatus !== 'NOERROR') || answersCount === 0) {
-				extraValues.errorStatus = PROBE_STATUS_ERROR;
+				extraValues.errorStatus = PROBE_STATUS_DNS_ERROR;
 			}
 		} else if (lowCaseTestName === 'mtr') {
 			let lastHop = testResData.result.hops ? testResData.result.hops[testResData.result.hops.length - 1] : {};
@@ -381,7 +382,7 @@ module.exports = {
 				};
 
 				if (testResData.result.statusCode >= 400) {
-					extraValues.errorStatus = PROBE_STATUS_ERROR;
+					extraValues.errorStatus = PROBE_STATUS_HTTP_ERROR;
 				}
 
 				if (typeof testResData.result?.timings?.dns === 'number') {
@@ -471,8 +472,12 @@ module.exports = {
 		return PROBE_STATUS_OFFLINE;
 	},
 
-	getProbeStatusErrorValue () {
-		return PROBE_STATUS_ERROR;
+	getProbeStatusDnsErrorValue () {
+		return PROBE_STATUS_DNS_ERROR;
+	},
+
+	getProbeStatusHttpErrorValue () {
+		return PROBE_STATUS_HTTP_ERROR;
 	},
 
 	capitalizeFirstLetter (word) {
@@ -559,7 +564,7 @@ module.exports = {
 			return '#17233A';
 		}
 
-		if (timing === PROBE_STATUS_ERROR) {
+		if (timing === PROBE_STATUS_DNS_ERROR || timing === PROBE_STATUS_HTTP_ERROR) {
 			return PROBE_STATUS_ERROR_COLOR;
 		}
 
