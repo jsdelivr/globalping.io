@@ -2330,11 +2330,27 @@
 								calcTiming = _.calcGpTestResTiming(testType, res, dnsOpts.trace);
 							}
 
+							if (calcTiming?.extraValues?.errorStatus) {
+								calcTiming.value = calcTiming.extraValues.errorStatus;
+							}
+
 							let resTiming = !calcTiming ? null : typeof calcTiming.value === 'number' ? `${Math.round(calcTiming.value)}${calcTiming.units}` : calcTiming.value;
+
+							let extraValues = calcTiming?.extraValues;
+							let httpStatus = extraValues?.httpStatus?.value;
+							let dnsStatus = extraValues?.dnsStatus?.value;
+							let errorCode = null;
+
+							if (extraValues?.errorStatus === _.getProbeStatusHttpErrorValue()) {
+								errorCode = `HTTP ${httpStatus}`;
+							} else if (extraValues?.errorStatus === _.getProbeStatusDnsErrorValue() && dnsStatus !== null && typeof dnsStatus !== 'undefined') {
+								errorCode = dnsStatus;
+							}
 
 							return {
 								...data,
 								timings: [ resTiming ],
+								errorCodes: [ errorCode ],
 							};
 						});
 
@@ -2362,6 +2378,7 @@
 								return {
 									...mD,
 									timings: [ ...mD.timings, ...secReqMD.timings ],
+									errorCodes: [ ...mD.errorCodes, ...secReqMD.errorCodes ],
 									targets: [ ...mD.targets, ...secReqMD.targets ],
 								};
 							});
@@ -3890,7 +3907,7 @@
 			infoWindowContent += `<div class="gp-map_popup${targetsCnt > 1 ? '_multi' : '_single'}">`;
 
 			if (targetsCnt === 1) {
-				infoWindowContent += `<div class="gp-map_popup_single_timing">${markerData.timings[0] || ''}</div>`;
+				infoWindowContent += `<div class="gp-map_popup_single_timing">${markerData.errorCodes?.[0] || markerData.timings[0] || ''}</div>`;
 				infoWindowContent += `<div class="gp-map_popup_single_network">${markerData.network}</div>`;
 				infoWindowContent += `<div class="gp-map_popup_single_location">(${markerData.city}, ${markerData.country})</div>`;
 			} else {
@@ -3902,7 +3919,7 @@
 					infoWindowContent += `<span class="gp-map_popup_multi_data_target">${target}</span>`;
 
 					infoWindowContent += `<span class="gp-map_popup_multi_data_timing"
-						style='color: ${_.getGpProbeStatusColor(markerData.timings[targetIdx], probesMaxTiming, probesMinTiming)}'>${markerData.timings[targetIdx] || ''}</span>`;
+						style='color: ${_.getGpProbeStatusColor(markerData.timings[targetIdx], probesMaxTiming, probesMinTiming)}'>${markerData.errorCodes?.[targetIdx] || markerData.timings[targetIdx] || ''}</span>`;
 
 					infoWindowContent += '</div>';
 				});
