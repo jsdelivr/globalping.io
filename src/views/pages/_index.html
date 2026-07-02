@@ -2330,6 +2330,10 @@
 								calcTiming = _.calcGpTestResTiming(testType, res, dnsOpts.trace);
 							}
 
+							if (calcTiming?.extraValues?.errorStatus) {
+								calcTiming.value = calcTiming.extraValues.errorStatus;
+							}
+
 							let resTiming = !calcTiming ? null : typeof calcTiming.value === 'number' ? `${Math.round(calcTiming.value)}${calcTiming.units}` : calcTiming.value;
 
 							return {

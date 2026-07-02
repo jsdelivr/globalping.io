@@ -9,6 +9,8 @@ const screenType = {
 const PROBE_NO_TIMING_VALUE = 'time out';
 const PROBE_STATUS_FAILED = 'failed';
 const PROBE_STATUS_OFFLINE = 'offline';
+const PROBE_STATUS_ERROR = 'error';
+const PROBE_STATUS_ERROR_COLOR = '#9b51e0';
 
 const COUNTRIES = require('../json/countries.json');
 
@@ -323,14 +325,38 @@ module.exports = {
 				}
 			}
 		} else if (lowCaseTestName === 'dns') {
+			let dnsResult = testResData.result;
+
 			if (dnsTraceEnabled) {
 				let lastHop = testResData.result.hops ? testResData.result.hops[testResData.result.hops.length - 1] : {};
 
 				if (lastHop) {
 					resTiming = lastHop.timings.total;
+					dnsResult = lastHop;
 				}
 			} else {
 				resTiming = testResData.result.timings.total;
+			}
+
+			let answersCount = dnsResult.answers?.length ?? 0;
+			let dnsStatus = dnsResult.statusCodeName ?? dnsResult.statusCode;
+
+			extraValues.answers = {
+				text: 'Answers',
+				value: answersCount,
+				units: '',
+			};
+
+			if (dnsStatus !== null && typeof dnsStatus !== 'undefined') {
+				extraValues.dnsStatus = {
+					text: dnsResult.statusCodeName ? '' : 'Status',
+					value: dnsStatus,
+					units: '',
+				};
+			}
+
+			if (!(dnsStatus === 'NOERROR' && answersCount !== 0)) {
+				extraValues.errorStatus = PROBE_STATUS_ERROR;
 			}
 		} else if (lowCaseTestName === 'mtr') {
 			let lastHop = testResData.result.hops ? testResData.result.hops[testResData.result.hops.length - 1] : {};
@@ -345,8 +371,18 @@ module.exports = {
 				resTiming = lastHop.stats.avg;
 			}
 		} else if (lowCaseTestName === 'http') {
-			if (testResData.result.statusCode !== null) {
+			if (typeof testResData.result.statusCode === 'number') {
 				resTiming = testResData.result?.timings?.total;
+
+				extraValues.httpStatus = {
+					text: 'HTTP',
+					value: testResData.result.statusCode,
+					units: '',
+				};
+
+				if (testResData.result.statusCode >= 400) {
+					extraValues.errorStatus = PROBE_STATUS_ERROR;
+				}
 
 				if (typeof testResData.result?.timings?.dns === 'number') {
 					extraValues.dns = {
@@ -435,6 +471,10 @@ module.exports = {
 		return PROBE_STATUS_OFFLINE;
 	},
 
+	getProbeStatusErrorValue () {
+		return PROBE_STATUS_ERROR;
+	},
+
 	capitalizeFirstLetter (word) {
 		return word ? word[0].toUpperCase() + word.slice(1) : '';
 	},
@@ -508,7 +548,7 @@ module.exports = {
 	},
 	getGpProbeStatusColor (timing, probesMaxTiming = 200, probesMinTiming = 5) {
 		// return default GREY color while probe has no timing yet
-		if (!timing) { return '#c0c0c0'; }
+		if (typeof timing === 'undefined') { return '#c0c0c0'; }
 
 		// return default color for timed out probe
 		if (
@@ -517,6 +557,10 @@ module.exports = {
 			|| timing === PROBE_STATUS_OFFLINE
 		) {
 			return '#17233A';
+		}
+
+		if (timing === PROBE_STATUS_ERROR) {
+			return PROBE_STATUS_ERROR_COLOR;
 		}
 
 		function getColorFromGradient (quotient, start, middle, end) {
