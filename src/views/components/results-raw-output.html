@@ -1016,7 +1016,8 @@
 		getHeaderSecondaryMetrics (extraValues = {}) {
 			return Object.keys(extraValues)
 				.filter(key => ![ 'answers', 'dnsStatus', 'httpStatus', 'errorStatus' ].includes(key))
-				.map(key => extraValues[key]);
+				.map(key => extraValues[key])
+				.filter(Boolean);
 		},
 		hideShowTestResult (resultId) {
 			let activeTargetIdx = this.get('activeTargetIdx');
