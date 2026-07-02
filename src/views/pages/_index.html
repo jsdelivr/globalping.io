@@ -733,8 +733,9 @@
 							<c-gp-results-table-output
 								testReqParams="{{testReqParams}}"
 								testInProgress="{{testInProgress}}"
-								preparedTestResults="{{preparedTestResults}}"
+								preparedTestResults="{{tablePreparedTestResults}}"
 								targetsCnt="{{targetsArr.length}}"
+								expectedTargetsCnt="{{isInfiniteModeRes ? targetsArr.length : (qsMeasurementIdsArr.length > 1 ? qsMeasurementIdsArr.length : targetsArr.length)}}"
 								currSearchLocation="{{mainOptions.location}}"
 								measurementsMetadata="{{measurementsMetadata}}"
 								isInfiniteModeRes="{{isInfiniteModeRes}}"
@@ -1616,6 +1617,7 @@
 	const PROBE_STATUS_OFFLINE = _.getProbeStatusOfflineValue();
 	const PROBE_OFFLINE_TEXT = 'Probe offline';
 	const RAW_OUTPUT_LINES_BATCH_LIMIT = 40;
+	const TABLE_RESULTS_UPDATE_INTERVAL = 1500;
 	const DEFAULT_TARGET_VALUE = 'cdn.jsdelivr.net';
 	const INFINITE_MEASUREMENT_PACKETS = 16;
 	const INFINITE_MEASUREMENT_LIMIT = 5;
@@ -1780,6 +1782,7 @@
 				isInfiniteModeRes: false,
 				prevProbesMeasId: null,
 				preparedTestResults: [],
+				tablePreparedTestResults: [],
 				ddHandlerSet: false,
 				showCreditsData: false,
 				rateCreditsData: null,
@@ -1858,14 +1861,19 @@
 				return true;
 			},
 			anyResponseBodyCollapsible () {
+				if (Ractive.isServer) {
+					return false;
+				}
+
 				let preparedTestResults = this.get('preparedTestResults') || [];
 				let targetsArr = this.get('targetsArr') || [];
+				let charsPerLine = this.getRawOutputCharsPerLine();
 
 				for (let targetIdx = 0; targetIdx < targetsArr.length; targetIdx++) {
 					for (let i = 0; i < preparedTestResults.length; i++) {
 						let body = preparedTestResults[i]?.statsPerTarget?.[targetIdx]?.responseBody || '';
 
-						if (_.shouldCollapseResponseBody(body, this.getRawOutputCharsPerLine())) {
+						if (_.shouldCollapseResponseBody(body, charsPerLine)) {
 							return true;
 						}
 					}
@@ -1980,7 +1988,7 @@
 					app.router.replaceQueryParam('order', sortOrder === DEFAULT_SORT_ORDER ? null : sortOrder, this);
 				});
 
-				this.observe('sortOrder sortBy preparedTestResults activeTargetIdx rawOutputMode', () => {
+				this.observe('sortOrder sortBy preparedTestResults activeTargetIdx', () => {
 					let sortOrder = this.get('sortOrder');
 					let sortBy = this.get('sortBy');
 					let preparedTestResults = this.get('preparedTestResults');
@@ -1988,8 +1996,18 @@
 					let activeTargetIdx = rawOutputMode ? this.get('activeTargetIdx') : 0;
 
 					if (preparedTestResults.length) {
-						this.set('preparedTestResults', _.sortGpMeasurementResults(preparedTestResults, sortBy, sortOrder, activeTargetIdx));
+						let sortedResults = _.sortGpMeasurementResults(preparedTestResults, sortBy, sortOrder, activeTargetIdx);
+						let orderChanged = sortedResults.length !== preparedTestResults.length
+							|| sortedResults.some((result, idx) => result.clientSideId !== preparedTestResults[idx]?.clientSideId);
+
+						if (orderChanged) {
+							this.set('preparedTestResults', sortedResults);
+						}
 					}
+				});
+
+				this.observe('preparedTestResults rawOutputMode testInProgress', () => {
+					this.scheduleTablePreparedTestResultsUpdate();
 				});
 
 				// clear table sort params and enable rawOutputMode whenever test type isn't ping
@@ -2388,6 +2406,10 @@
 
 					let testType = this.get('testReqParams.type');
 					let isInfiniteModeRes = this.get('isInfiniteModeRes');
+					let sortBy = this.get('sortBy');
+					let sortOrder = this.get('sortOrder');
+					let rawOutputMode = this.get('rawOutputMode');
+					let activeTargetIdx = rawOutputMode ? this.get('activeTargetIdx') : 0;
 					let preparedTestResults;
 
 					if (testType === 'ping' && isInfiniteModeRes) {
@@ -2395,6 +2417,8 @@
 					} else {
 						preparedTestResults = this.prepareRegularResults(testResults);
 					}
+
+					preparedTestResults = _.sortGpMeasurementResults(preparedTestResults, sortBy, sortOrder, activeTargetIdx);
 
 					this.set('preparedTestResults', preparedTestResults);
 				});
@@ -2509,11 +2533,60 @@
 			}
 
 			clearTimeout(this.get('runTestBtnDelayTimeout'));
+			clearTimeout(this.tableResultsUpdateTimeout);
 			this.get('testReqCancelFn')?.forEach(cancel => cancel?.());
 			this.set('testReqCancelFn', []);
 		},
 		isActiveTestRun (testRunId) {
 			return testRunId === null || testRunId === undefined || testRunId === this.get('activeTestRunId');
+		},
+		updateTablePreparedTestResults () {
+			let preparedTestResults = this.get('preparedTestResults') || [];
+
+			this.set('tablePreparedTestResults', preparedTestResults);
+			this.lastTableResultsUpdate = performance.now();
+		},
+		isTableResultsShapeReady (preparedTestResults = this.get('tablePreparedTestResults') || []) {
+			let expectedTargetsCnt = this.get('targetsArr.length');
+
+			if (!this.get('isInfiniteModeRes') && this.get('qsMeasurementIdsArr.length') > 1) {
+				expectedTargetsCnt = this.get('qsMeasurementIdsArr.length');
+			}
+
+			let actualTargetsCnt = preparedTestResults[0]?.statsPerTarget?.length || 0;
+
+			return !expectedTargetsCnt || actualTargetsCnt >= expectedTargetsCnt;
+		},
+		scheduleTablePreparedTestResultsUpdate () {
+			if (this.get('rawOutputMode')) {
+				clearTimeout(this.tableResultsUpdateTimeout);
+				this.tableResultsUpdateTimeout = null;
+				return;
+			}
+
+			let preparedTestResults = this.get('preparedTestResults') || [];
+			let tablePreparedTestResults = this.get('tablePreparedTestResults') || [];
+			let hasRenderedResults = tablePreparedTestResults.length && this.isTableResultsShapeReady(tablePreparedTestResults);
+
+			if (!preparedTestResults.length || !this.get('testInProgress') || !hasRenderedResults) {
+				clearTimeout(this.tableResultsUpdateTimeout);
+				this.tableResultsUpdateTimeout = null;
+
+				this.updateTablePreparedTestResults();
+				return;
+			}
+
+			if (this.tableResultsUpdateTimeout) {
+				return;
+			}
+
+			let elapsed = performance.now() - (this.lastTableResultsUpdate || 0);
+			let delay = Math.max(TABLE_RESULTS_UPDATE_INTERVAL - elapsed, 0);
+
+			this.tableResultsUpdateTimeout = setTimeout(() => {
+				this.tableResultsUpdateTimeout = null;
+				this.updateTablePreparedTestResults();
+			}, delay);
 		},
 		handleRunTestBtn () {
 			if (this.get('runTestBtnDisabled')) {
@@ -3079,18 +3152,27 @@
 			this.set('responseBodyCharWidth', width > 0 ? width : 7);
 		},
 		getRawOutputCharsPerLine () {
-			let listEl = this.find('.c-gp-results-raw-output_list');
-			let listWidth = listEl?.getBoundingClientRect?.().width || 0;
+			let listEl;
 			let outputHorizontalPadding = 32 * 2;
 			let outputListMargin = 24 * 2;
+			let windowWidth = window.innerWidth;
+			let FALLBACK_CHAR_WIDTH = 7;
+
+			try {
+				listEl = this.find('.c-gp-results-raw-output_list');
+			} catch {
+				let contentWidth = Math.min(1240, windowWidth - outputListMargin - outputHorizontalPadding);
+				return Math.floor(contentWidth / FALLBACK_CHAR_WIDTH);
+			}
+
+			let listWidth = listEl?.getBoundingClientRect?.().width || 0;
 			let contentWidth = Math.max(1, listWidth - outputHorizontalPadding);
 
 			if (!listWidth) {
-				let windowWidth = window.innerWidth;
 				contentWidth = Math.min(1240, windowWidth - outputListMargin - outputHorizontalPadding);
 			}
 
-			let charWidth = this.get('responseBodyCharWidth') || 7;
+			let charWidth = this.get('responseBodyCharWidth') || FALLBACK_CHAR_WIDTH;
 			return Math.max(1, Math.floor(contentWidth / charWidth));
 		},
 		collapseAllRawOutput ({ responseBodyOnly = false } = {}) {

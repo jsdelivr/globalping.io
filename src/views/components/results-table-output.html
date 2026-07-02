@@ -43,214 +43,215 @@
 				<div class="results-table_header_cell graph">Graph</div>
 			</div>
 
-			{{#each preparedTestResults}}
-				<div class="results-table_row row-num-{{this.clientSideId}} item-id-{{this.clientSideId}}"
-					tabindex="0"
-					role="button"
-					aria-label="Set as location for the next test"
-					on-focus="@this.enableItemFocused(@event, this.clientSideId)"
-					on-blur="@this.hideSetLocationButton(@event)"
-					on-keydown="@this.headerKeydownHandler(@event, this.clientSideId)"
-					on-mouseenter="@this.showSetLocationButton(this.clientSideId)"
-					on-mouseleave="@this.hideSetLocationButton(@event)"
-				>
-					<div class="results-table_row_location">
-						<span class="results-table_row_location_status-line">
-							<span
-								class="results-table_row_location_status-line_top"
-								style="background-color: {{_.getGpProbeStatusColor(this.statsPerTarget[0].avgTiming)}}">
+			{{#if isResultsShapeReady && preparedTestResults.length}}
+				{{#each preparedTestResults}}
+					<div class="results-table_row row-num-{{this.clientSideId}} item-id-{{this.clientSideId}}"
+						tabindex="0"
+						role="button"
+						aria-label="Set as location for the next test"
+						on-focus="@this.enableItemFocused(@event, this.clientSideId)"
+						on-blur="@this.hideSetLocationButton(@event)"
+						on-keydown="@this.headerKeydownHandler(@event, this.clientSideId)"
+						on-mouseenter="@this.showSetLocationButton(this.clientSideId)"
+						on-mouseleave="@this.hideSetLocationButton(@event)"
+					>
+						<div class="results-table_row_location">
+							<span class="results-table_row_location_status-line">
+								<span
+									class="results-table_row_location_status-line_top"
+									style="background-color: {{_.getGpProbeStatusColor(this.statsPerTarget[0].avgTiming)}}">
+								</span>
+								<span
+									class="results-table_row_location_status-line_bottom"
+									style="background-color: {{_.getGpProbeStatusColor(this.statsPerTarget[1] ? this.statsPerTarget[1].avgTiming : this.statsPerTarget[0].avgTiming)}}">
+								</span>
 							</span>
-							<span
-								class="results-table_row_location_status-line_bottom"
-								style="background-color: {{_.getGpProbeStatusColor(this.statsPerTarget[1] ? this.statsPerTarget[1].avgTiming : this.statsPerTarget[0].avgTiming)}}">
-							</span>
-						</span>
 
-						<img width="28" height="20" src="https://cdn.jsdelivr.net/npm/country-flag-icons@1.5.5/3x2/{{this.country}}.svg">
+							<img width="28" height="20" src="https://cdn.jsdelivr.net/npm/country-flag-icons@1.5.5/3x2/{{this.country}}.svg">
 
-						<div class="results-table_row_location_data">
-							<span>{{this.city}}, {{this.country}}, {{this.continent}}</span>
-							<span>{{this.network}}</span>
+							<div class="results-table_row_location_data">
+								<span>{{this.city}}, {{this.country}}, {{this.continent}}</span>
+								<span>{{this.network}}</span>
+							</div>
 						</div>
 
+						<div class="results-table_row_stats">
+							{{#each this.statsPerTarget}}
+								<div class="results-table_row_stats_subrow">
+									{{#if targetsCnt > 1}}
+										<div class="results-table_row_stats_subrow_cell targets">
+											<div class="results-table_row_stats_subrow_cell_value">
+												{{#if this.target}}
+													<span>{{this.target}}</span>
+												{{elseif testInProgress}}
+													<c-placeholder-skeleton type="subheader"></c-placeholder-skeleton>
+												{{else}}
+													<span>—</span>
+												{{/if}}
+											</div>
+										</div>
+									{{/if}}
+
+									{{#if this.isFailed}}
+										<div class="results-table_row_stats_subrow_cell probe-failed">
+											<span>{{PROBE_FAILED_TEXT}}</span>
+											<div as-tooltip="`${this.failureRawOutput}`, 'top', true">
+												<img width="20" height="20" alt="" src="{{@shared.assetsHost}}/img/target-icon.svg">
+											</div>
+										</div>
+									{{elseif this.isOffline && !isInfiniteModeRes}}
+										<div class="results-table_row_stats_subrow_cell probe-offline">
+											<span>{{PROBE_OFFLINE_TEXT}}</span>
+										</div>
+									{{else}}
+										<div class="results-table_row_stats_subrow_cell quality">
+											<div class="results-table_row_stats_subrow_cell_value">
+												<span class="results-table_row_stats_subrow_cell_value_header">Quality</span>
+												{{#if this.qualityStr}}
+													<span>{{this.qualityStr}}</span>
+												{{elseif testInProgress}}
+													<c-placeholder-skeleton type="subheader"></c-placeholder-skeleton>
+												{{else}}
+													<span>—</span>
+												{{/if}}
+											</div>
+										</div>
+
+										<div class="results-table_row_stats_subrow_cell rtt">
+											<div class="results-table_row_stats_subrow_cell_value">
+												<span class="timings {{#unless areTimingsReady}}no-value{{/unless}}">
+													<span class="timings_header">
+														<span>rtt&nbsp;</span>
+														<span>last</span>
+													</span>
+
+													{{#if this.areTimingsReady}}
+														<span class="timings_value">
+															{{@this.formatTimingValue(this.lastTiming)}}
+															{{#if this.lastTiming !== PROBE_NO_TIMING_VALUE}}
+																<span class="timings_units">ms</span>
+															{{/if}}
+														</span>
+													{{elseif !this.areTimingsReady && testInProgress}}
+														<c-placeholder-skeleton type="subheader"></c-placeholder-skeleton>
+													{{else}}
+														<span>—</span>
+													{{/if}}
+												</span>
+
+												<span class="timings_separator">/</span>
+
+												<span class="timings {{#unless areTimingsReady}}no-value{{/unless}}">
+													<span class="timings_header">
+														<span>rtt&nbsp;</span>
+														<span>min</span>
+													</span>
+
+													{{#if this.areTimingsReady}}
+														<span class="timings_value">
+															{{@this.formatTimingValue(this.minTiming)}}
+															{{#if this.minTiming !== PROBE_NO_TIMING_VALUE}}
+																<span class="timings_units">ms</span>
+															{{/if}}
+														</span>
+													{{elseif !this.areTimingsReady && testInProgress}}
+														<c-placeholder-skeleton type="subheader"></c-placeholder-skeleton>
+													{{else}}
+														<span>—</span>
+													{{/if}}
+												</span>
+
+												<span class="timings_separator">/</span>
+
+												<span class="timings {{#unless areTimingsReady}}no-value{{/unless}}">
+													<span class="timings_header">
+														<span>rtt&nbsp;</span>
+														<span>avg</span>
+													</span>
+
+													{{#if this.areTimingsReady}}
+														<span class="timings_value">
+															{{@this.formatTimingValue(this.avgTiming)}}
+															{{#if this.avgTiming !== PROBE_NO_TIMING_VALUE}}
+																<span class="timings_units">ms</span>
+															{{/if}}
+														</span>
+													{{elseif !this.areTimingsReady && testInProgress}}
+														<c-placeholder-skeleton type="subheader"></c-placeholder-skeleton>
+													{{else}}
+														<span>—</span>
+													{{/if}}
+												</span>
+
+												<span class="timings_separator">/</span>
+
+												<span class="timings {{#unless areTimingsReady}}no-value{{/unless}}">
+													<span class="timings_header">
+														<span>rtt&nbsp;</span>
+														<span>max</span>
+													</span>
+
+													{{#if this.areTimingsReady}}
+														<span class="timings_value">
+															{{@this.formatTimingValue(this.maxTiming)}}
+															{{#if this.maxTiming !== PROBE_NO_TIMING_VALUE}}
+																<span class="timings_units">ms</span>
+															{{/if}}
+														</span>
+													{{elseif !this.areTimingsReady && testInProgress}}
+														<c-placeholder-skeleton type="subheader"></c-placeholder-skeleton>
+													{{else}}
+														<span>—</span>
+													{{/if}}
+												</span>
+
+												{{#if this.areTimingsReady
+													&& this.minTiming !== PROBE_NO_TIMING_VALUE
+													&& this.avgTiming !== PROBE_NO_TIMING_VALUE
+													&& this.maxTiming !== PROBE_NO_TIMING_VALUE
+												}}
+													<span class="lg-screen-units">ms</span>
+												{{/if}}
+											</div>
+										</div>
+
+										<div class="results-table_row_stats_subrow_cell ip">
+											<div class="results-table_row_stats_subrow_cell_value">
+												<span class="results-table_row_stats_subrow_cell_value_header"><span class="hidden-xs">Resolved </span>IP</span>
+												{{#if this.ipAddr}}
+													<span class="visible-lg"> <!-- We break in two lines if the value has more than 4 non-empty groups. -->
+														{{#each splitIPv6(ipAddr)}}
+															{{this}}<br>
+														{{/each}}
+													</span>
+													<span class="hidden-lg text-ellipsis">{{this.ipAddr}}</span>
+												{{elseif !this.ipAddr && testInProgress}}
+													<c-placeholder-skeleton type="subheader"></c-placeholder-skeleton>
+												{{else}}
+													<span>—</span>
+												{{/if}}
+											</div>
+										</div>
+
+										<div class="results-table_row_stats_subrow_cell graph">
+											<div class="results-table_row_stats_subrow_cell_value">
+												<span class="results-table_row_stats_subrow_cell_value_header">Graph</span>
+												{{#if typeof this.packetsRtt !== 'undefined' && this.packetsRtt.length}}
+													<div>{{{ @this.createGraph(this.packetsRtt) }}}</div>
+												{{elseif testInProgress && testInProgress}}
+													<c-placeholder-skeleton type="subheader"></c-placeholder-skeleton>
+												{{else}}
+													<span>—</span>
+												{{/if}}
+											</div>
+										</div>
+									{{/if}}
+								</div>
+							{{/each}}
+						</div>
 					</div>
-
-					<div class="results-table_row_stats">
-						{{#each this.statsPerTarget}}
-							<div class="results-table_row_stats_subrow">
-								{{#if targetsCnt > 1}}
-									<div class="results-table_row_stats_subrow_cell targets">
-										<div class="results-table_row_stats_subrow_cell_value">
-											{{#if this.target}}
-												<span>{{this.target}}</span>
-											{{elseif testInProgress}}
-												<c-placeholder-skeleton type="subheader"></c-placeholder-skeleton>
-											{{else}}
-												<span>—</span>
-											{{/if}}
-										</div>
-									</div>
-								{{/if}}
-
-								{{#if this.isFailed}}
-									<div class="results-table_row_stats_subrow_cell probe-failed">
-										<span>{{PROBE_FAILED_TEXT}}</span>
-										<div as-tooltip="`${this.failureRawOutput}`, 'top', true">
-											<img width="20" height="20" src="{{@shared.assetsHost}}/img/target-icon.svg">
-										</div>
-									</div>
-								{{elseif this.isOffline && !isInfiniteModeRes}}
-									<div class="results-table_row_stats_subrow_cell probe-offline">
-										<span>{{PROBE_OFFLINE_TEXT}}</span>
-									</div>
-								{{else}}
-									<div class="results-table_row_stats_subrow_cell quality">
-										<div class="results-table_row_stats_subrow_cell_value">
-											<span class="results-table_row_stats_subrow_cell_value_header">Quality</span>
-											{{#if this.qualityStr}}
-												<span>{{this.qualityStr}}</span>
-											{{elseif testInProgress}}
-												<c-placeholder-skeleton type="subheader"></c-placeholder-skeleton>
-											{{else}}
-												<span>—</span>
-											{{/if}}
-										</div>
-									</div>
-
-									<div class="results-table_row_stats_subrow_cell rtt">
-										<div class="results-table_row_stats_subrow_cell_value">
-											<span class="timings {{#unless areTimingsReady}}no-value{{/unless}}">
-												<span class="timings_header">
-													<span>rtt&nbsp;</span>
-													<span>last</span>
-												</span>
-
-												{{#if this.areTimingsReady}}
-													<span class="timings_value">
-														{{@this.formatTimingValue(this.lastTiming)}}
-														{{#if this.lastTiming !== PROBE_NO_TIMING_VALUE}}
-															<span class="timings_units">ms</span>
-														{{/if}}
-													</span>
-												{{elseif !this.areTimingsReady && testInProgress}}
-													<c-placeholder-skeleton type="subheader"></c-placeholder-skeleton>
-												{{else}}
-													<span>—</span>
-												{{/if}}
-											</span>
-
-											<span class="timings_separator">/</span>
-
-											<span class="timings {{#unless areTimingsReady}}no-value{{/unless}}">
-												<span class="timings_header">
-													<span>rtt&nbsp;</span>
-													<span>min</span>
-												</span>
-
-												{{#if this.areTimingsReady}}
-													<span class="timings_value">
-														{{@this.formatTimingValue(this.minTiming)}}
-														{{#if this.minTiming !== PROBE_NO_TIMING_VALUE}}
-															<span class="timings_units">ms</span>
-														{{/if}}
-													</span>
-												{{elseif !this.areTimingsReady && testInProgress}}
-													<c-placeholder-skeleton type="subheader"></c-placeholder-skeleton>
-												{{else}}
-													<span>—</span>
-												{{/if}}
-											</span>
-
-											<span class="timings_separator">/</span>
-
-											<span class="timings {{#unless areTimingsReady}}no-value{{/unless}}">
-												<span class="timings_header">
-													<span>rtt&nbsp;</span>
-													<span>avg</span>
-												</span>
-
-												{{#if this.areTimingsReady}}
-													<span class="timings_value">
-														{{@this.formatTimingValue(this.avgTiming)}}
-														{{#if this.avgTiming !== PROBE_NO_TIMING_VALUE}}
-															<span class="timings_units">ms</span>
-														{{/if}}
-													</span>
-												{{elseif !this.areTimingsReady && testInProgress}}
-													<c-placeholder-skeleton type="subheader"></c-placeholder-skeleton>
-												{{else}}
-													<span>—</span>
-												{{/if}}
-											</span>
-
-											<span class="timings_separator">/</span>
-
-											<span class="timings {{#unless areTimingsReady}}no-value{{/unless}}">
-												<span class="timings_header">
-													<span>rtt&nbsp;</span>
-													<span>max</span>
-												</span>
-
-												{{#if this.areTimingsReady}}
-													<span class="timings_value">
-														{{@this.formatTimingValue(this.maxTiming)}}
-														{{#if this.maxTiming !== PROBE_NO_TIMING_VALUE}}
-															<span class="timings_units">ms</span>
-														{{/if}}
-													</span>
-												{{elseif !this.areTimingsReady && testInProgress}}
-													<c-placeholder-skeleton type="subheader"></c-placeholder-skeleton>
-												{{else}}
-													<span>—</span>
-												{{/if}}
-											</span>
-
-											{{#if this.areTimingsReady
-												&& this.minTiming !== PROBE_NO_TIMING_VALUE
-												&& this.avgTiming !== PROBE_NO_TIMING_VALUE
-												&& this.maxTiming !== PROBE_NO_TIMING_VALUE
-											}}
-												<span class="lg-screen-units">ms</span>
-											{{/if}}
-										</div>
-									</div>
-
-									<div class="results-table_row_stats_subrow_cell ip">
-										<div class="results-table_row_stats_subrow_cell_value">
-											<span class="results-table_row_stats_subrow_cell_value_header"><span class="hidden-xs">Resolved </span>IP</span>
-											{{#if this.ipAddr}}
-												<span class="visible-lg"> <!-- We break in two lines if the value has more than 4 non-empty groups. -->
-													{{#each splitIPv6(ipAddr)}}
-														{{this}}<br>
-													{{/each}}
-												</span>
-												<span class="hidden-lg text-ellipsis">{{this.ipAddr}}</span>
-											{{elseif !this.ipAddr && testInProgress}}
-												<c-placeholder-skeleton type="subheader"></c-placeholder-skeleton>
-											{{else}}
-												<span>—</span>
-											{{/if}}
-										</div>
-									</div>
-
-									<div class="results-table_row_stats_subrow_cell graph">
-										<div class="results-table_row_stats_subrow_cell_value">
-											<span class="results-table_row_stats_subrow_cell_value_header">Graph</span>
-											{{#if typeof this.packetsRtt !== 'undefined' && this.packetsRtt.length}}
-												<div>{{{ @this.createGraph(this.packetsRtt) }}}</div>
-											{{elseif testInProgress && testInProgress}}
-												<c-placeholder-skeleton type="subheader"></c-placeholder-skeleton>
-											{{else}}
-												<span>—</span>
-											{{/if}}
-										</div>
-									</div>
-								{{/if}}
-							</div>
-						{{/each}}
-					</div>
-				</div>
-			{{/each}}
+				{{/each}}
+			{{/if}}
 		</div>
 	</div>
 
@@ -314,16 +315,33 @@
 				justFocusedItem: false,
 			};
 		},
+		computed: {
+			isResultsShapeReady () {
+				let expectedTargetsCnt = this.get('expectedTargetsCnt');
+				let preparedTestResults = this.get('preparedTestResults') || [];
+				let actualTargetsCnt = preparedTestResults[0]?.statsPerTarget?.length || 0;
+
+				return !expectedTargetsCnt || actualTargetsCnt >= expectedTargetsCnt;
+			},
+		},
 		onrender () {
 			if (!Ractive.isServer) {
 				listeners.screenWidthListener(this);
 
 				this.observe('screenWidth', () => {
+					if (!this.get('isResultsShapeReady')) { return; }
+
 					let preparedTestResults = this.get('preparedTestResults');
-					preparedTestResults && this.setResultsBlockHeight(preparedTestResults);
+					preparedTestResults.length && this.setResultsBlockHeight(preparedTestResults);
 				});
 
-				this.observe('preparedTestResults', (preparedTestResults) => {
+				this.observe('preparedTestResults isResultsShapeReady', () => {
+					if (!this.get('isResultsShapeReady')) { return; }
+
+					let preparedTestResults = this.get('preparedTestResults') || [];
+
+					if (!preparedTestResults.length) { return; }
+
 					this.setChartMaxHeight(preparedTestResults);
 					// set results block height based on content
 					this.setResultsBlockHeight(preparedTestResults);
@@ -397,6 +415,10 @@
 			if (event?.type === 'scroll') {
 				this.set('floatingSetLocationButton.visible', false);
 				this.set('itemFocused', false);
+				return;
+			}
+
+			if (!this.get('floatingSetLocationButton.visible') && !this.get('itemFocused')) {
 				return;
 			}
 
