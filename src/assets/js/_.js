@@ -355,7 +355,7 @@ module.exports = {
 				};
 			}
 
-			if (!(dnsStatus === 'NOERROR' && answersCount !== 0)) {
+			if (dnsStatus !== 'NOERROR' || answersCount === 0) {
 				extraValues.errorStatus = PROBE_STATUS_ERROR;
 			}
 		} else if (lowCaseTestName === 'mtr') {
