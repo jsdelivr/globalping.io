@@ -2342,7 +2342,7 @@
 							let errorCode = null;
 
 							if (extraValues?.errorStatus === _.getProbeStatusHttpErrorValue()) {
-								errorCode = `Error ${httpStatus}`;
+								errorCode = `HTTP ${httpStatus}`;
 							} else if (extraValues?.errorStatus === _.getProbeStatusDnsErrorValue() && dnsStatus !== null && typeof dnsStatus !== 'undefined') {
 								errorCode = dnsStatus;
 							}
