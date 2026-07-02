@@ -548,7 +548,7 @@ module.exports = {
 	},
 	getGpProbeStatusColor (timing, probesMaxTiming = 200, probesMinTiming = 5) {
 		// return default GREY color while probe has no timing yet
-		if (typeof timing === 'undefined') { return '#c0c0c0'; }
+		if (typeof timing === 'undefined' || timing === null) { return '#c0c0c0'; }
 
 		// return default color for timed out probe
 		if (
