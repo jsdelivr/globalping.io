@@ -147,7 +147,11 @@
 						let str = Object.keys(params.measurementOptions).reduce((str, key) => {
 							switch (key) {
 								case 'packets':
-									str += ` --packets ${params.measurementOptions.packets}`; break;
+									if (!isInfiniteModeRes) {
+										str += ` --packets ${params.measurementOptions.packets}`;
+									}
+
+									break;
 
 								case 'port':
 									str += ` --port ${params.measurementOptions.port}`; break;
