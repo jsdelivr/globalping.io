@@ -6,7 +6,7 @@
 			<div class="results-table_header">
 				<button class="results-table_header_cell location" on-click="@this.onSortClick('location')">
 					Location
-					<img width="8" src="{{@shared.assetsHost}}/img/{{@this.getSortIcon('location')}}">
+					<img width="8" alt="" src="{{@shared.assetsHost}}/img/{{@this.getSortIcon('location')}}">
 				</button>
 
 				{{#if targetsCnt > 1}}
@@ -15,28 +15,28 @@
 
 				<button class="results-table_header_cell quality" on-click="@this.onSortClick('quality')">
 					Quality
-					<img width="8" src="{{@shared.assetsHost}}/img/{{@this.getSortIcon('quality')}}">
+					<img width="8" alt="" src="{{@shared.assetsHost}}/img/{{@this.getSortIcon('quality')}}">
 				</button>
 
 				<div class="results-table_header_cell rtt">
 					<button class="rtt_text" on-click="@this.onSortClick('rtt-last')">
 						rtt last
-						<img width="8" src="{{@shared.assetsHost}}/img/{{@this.getSortIcon('rtt-last')}}">
+						<img width="8" alt="" src="{{@shared.assetsHost}}/img/{{@this.getSortIcon('rtt-last')}}">
 					</button>
 					<span class="rtt_separator">/</span>
 					<button class="rtt_text" on-click="@this.onSortClick('min')">
 						min
-						<img width="8" src="{{@shared.assetsHost}}/img/{{@this.getSortIcon('min')}}">
+						<img width="8" alt="" src="{{@shared.assetsHost}}/img/{{@this.getSortIcon('min')}}">
 					</button>
 					<span class="rtt_separator">/</span>
 					<button class="rtt_text" on-click="@this.onSortClick('avg')">
 						avg
-						<img width="8" src="{{@shared.assetsHost}}/img/{{@this.getSortIcon('avg')}}">
+						<img width="8" alt="" src="{{@shared.assetsHost}}/img/{{@this.getSortIcon('avg')}}">
 					</button>
 					<span class="rtt_separator">/</span>
 					<button class="rtt_text" on-click="@this.onSortClick('max')">
 						max
-						<img width="8" src="{{@shared.assetsHost}}/img/{{@this.getSortIcon('max')}}">
+						<img width="8" alt="" src="{{@shared.assetsHost}}/img/{{@this.getSortIcon('max')}}">
 					</button>
 				</div>
 				<div class="results-table_header_cell ip">Resolved IP</div>
@@ -66,13 +66,12 @@
 							</span>
 						</span>
 
-						<img width="28" height="20" src="https://cdn.jsdelivr.net/npm/country-flag-icons@1.5.5/3x2/{{this.country}}.svg">
+						<img width="28" height="20" alt="" src="https://cdn.jsdelivr.net/npm/country-flag-icons@1.5.5/3x2/{{this.country}}.svg">
 
 						<div class="results-table_row_location_data">
 							<span>{{this.city}}, {{this.country}}, {{this.continent}}</span>
 							<span>{{this.network}}</span>
 						</div>
-
 					</div>
 
 					<div class="results-table_row_stats">
@@ -96,7 +95,7 @@
 									<div class="results-table_row_stats_subrow_cell probe-failed">
 										<span>{{PROBE_FAILED_TEXT}}</span>
 										<div as-tooltip="`${this.failureRawOutput}`, 'top', true">
-											<img width="20" height="20" src="{{@shared.assetsHost}}/img/target-icon.svg">
+											<img width="20" height="20" alt="" src="{{@shared.assetsHost}}/img/target-icon.svg">
 										</div>
 									</div>
 								{{elseif this.isOffline && !isInfiniteModeRes}}
@@ -320,10 +319,14 @@
 
 				this.observe('screenWidth', () => {
 					let preparedTestResults = this.get('preparedTestResults');
-					preparedTestResults && this.setResultsBlockHeight(preparedTestResults);
+					preparedTestResults.length && this.setResultsBlockHeight(preparedTestResults);
 				});
 
-				this.observe('preparedTestResults', (preparedTestResults) => {
+				this.observe('preparedTestResults', () => {
+					let preparedTestResults = this.get('preparedTestResults') || [];
+
+					if (!preparedTestResults.length) { return; }
+
 					this.setChartMaxHeight(preparedTestResults);
 					// set results block height based on content
 					this.setResultsBlockHeight(preparedTestResults);
@@ -397,6 +400,10 @@
 			if (event?.type === 'scroll') {
 				this.set('floatingSetLocationButton.visible', false);
 				this.set('itemFocused', false);
+				return;
+			}
+
+			if (!this.get('floatingSetLocationButton.visible') && !this.get('itemFocused')) {
 				return;
 			}
 

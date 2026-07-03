@@ -688,7 +688,7 @@
 						<p>{{{measurementErrMsg}}}</p>
 					</div>
 				</div>
-			{{elseif testResults}}
+			{{elseif testResults && (rawOutputMode || tableOutputReady)}}
 				<div class="gp_map-block_test-output">
 					<c-gp-results-controls
 						showMap="{{showMap}}"
@@ -1857,15 +1857,29 @@
 
 				return true;
 			},
+			tableOutputReady () {
+				let preparedTestResults = this.get('preparedTestResults') || [];
+				let expectedTargetsCnt = this.get('isInfiniteModeRes') || this.get('qsMeasurementIdsArr.length') <= 1
+					? this.get('targetsArr.length')
+					: this.get('qsMeasurementIdsArr.length');
+				let actualTargetsCnt = preparedTestResults[0]?.statsPerTarget?.length || 0;
+
+				return preparedTestResults.length && (!expectedTargetsCnt || actualTargetsCnt >= expectedTargetsCnt);
+			},
 			anyResponseBodyCollapsible () {
+				if (Ractive.isServer) {
+					return false;
+				}
+
 				let preparedTestResults = this.get('preparedTestResults') || [];
 				let targetsArr = this.get('targetsArr') || [];
+				let charsPerLine = this.getRawOutputCharsPerLine();
 
 				for (let targetIdx = 0; targetIdx < targetsArr.length; targetIdx++) {
 					for (let i = 0; i < preparedTestResults.length; i++) {
 						let body = preparedTestResults[i]?.statsPerTarget?.[targetIdx]?.responseBody || '';
 
-						if (_.shouldCollapseResponseBody(body, this.getRawOutputCharsPerLine())) {
+						if (_.shouldCollapseResponseBody(body, charsPerLine)) {
 							return true;
 						}
 					}
@@ -1988,7 +2002,13 @@
 					let activeTargetIdx = rawOutputMode ? this.get('activeTargetIdx') : 0;
 
 					if (preparedTestResults.length) {
-						this.set('preparedTestResults', _.sortGpMeasurementResults(preparedTestResults, sortBy, sortOrder, activeTargetIdx));
+						let sortedResults = _.sortGpMeasurementResults(preparedTestResults, sortBy, sortOrder, activeTargetIdx);
+						let orderChanged = sortedResults.length !== preparedTestResults.length
+							|| sortedResults.some((result, idx) => result.clientSideId !== preparedTestResults[idx]?.clientSideId);
+
+						if (orderChanged) {
+							this.set('preparedTestResults', sortedResults);
+						}
 					}
 				});
 
@@ -2405,6 +2425,10 @@
 
 					let testType = this.get('testReqParams.type');
 					let isInfiniteModeRes = this.get('isInfiniteModeRes');
+					let sortBy = this.get('sortBy');
+					let sortOrder = this.get('sortOrder');
+					let rawOutputMode = this.get('rawOutputMode');
+					let activeTargetIdx = rawOutputMode ? this.get('activeTargetIdx') : 0;
 					let preparedTestResults;
 
 					if (testType === 'ping' && isInfiniteModeRes) {
@@ -2412,6 +2436,8 @@
 					} else {
 						preparedTestResults = this.prepareRegularResults(testResults);
 					}
+
+					preparedTestResults = _.sortGpMeasurementResults(preparedTestResults, sortBy, sortOrder, activeTargetIdx);
 
 					this.set('preparedTestResults', preparedTestResults);
 				});
@@ -3096,18 +3122,27 @@
 			this.set('responseBodyCharWidth', width > 0 ? width : 7);
 		},
 		getRawOutputCharsPerLine () {
-			let listEl = this.find('.c-gp-results-raw-output_list');
-			let listWidth = listEl?.getBoundingClientRect?.().width || 0;
+			let listEl;
 			let outputHorizontalPadding = 32 * 2;
 			let outputListMargin = 24 * 2;
+			let windowWidth = window.innerWidth;
+			let FALLBACK_CHAR_WIDTH = 7;
+
+			try {
+				listEl = this.find('.c-gp-results-raw-output_list');
+			} catch {
+				let contentWidth = Math.min(1240, windowWidth - outputListMargin - outputHorizontalPadding);
+				return Math.floor(contentWidth / FALLBACK_CHAR_WIDTH);
+			}
+
+			let listWidth = listEl?.getBoundingClientRect?.().width || 0;
 			let contentWidth = Math.max(1, listWidth - outputHorizontalPadding);
 
 			if (!listWidth) {
-				let windowWidth = window.innerWidth;
 				contentWidth = Math.min(1240, windowWidth - outputListMargin - outputHorizontalPadding);
 			}
 
-			let charWidth = this.get('responseBodyCharWidth') || 7;
+			let charWidth = this.get('responseBodyCharWidth') || FALLBACK_CHAR_WIDTH;
 			return Math.max(1, Math.floor(contentWidth / charWidth));
 		},
 		collapseAllRawOutput ({ responseBodyOnly = false } = {}) {
