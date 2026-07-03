@@ -43,7 +43,7 @@
 				<div class="results-table_header_cell graph">Graph</div>
 			</div>
 
-			{{#if isResultsShapeReady && preparedTestResults.length}}
+			{{#if preparedTestResults.length}}
 				{{#each preparedTestResults}}
 					<div class="results-table_row row-num-{{this.clientSideId}} item-id-{{this.clientSideId}}"
 						tabindex="0"
@@ -315,29 +315,16 @@
 				justFocusedItem: false,
 			};
 		},
-		computed: {
-			isResultsShapeReady () {
-				let expectedTargetsCnt = this.get('expectedTargetsCnt');
-				let preparedTestResults = this.get('preparedTestResults') || [];
-				let actualTargetsCnt = preparedTestResults[0]?.statsPerTarget?.length || 0;
-
-				return !expectedTargetsCnt || actualTargetsCnt >= expectedTargetsCnt;
-			},
-		},
 		onrender () {
 			if (!Ractive.isServer) {
 				listeners.screenWidthListener(this);
 
 				this.observe('screenWidth', () => {
-					if (!this.get('isResultsShapeReady')) { return; }
-
 					let preparedTestResults = this.get('preparedTestResults');
 					preparedTestResults.length && this.setResultsBlockHeight(preparedTestResults);
 				});
 
-				this.observe('preparedTestResults isResultsShapeReady', () => {
-					if (!this.get('isResultsShapeReady')) { return; }
-
+				this.observe('preparedTestResults', () => {
 					let preparedTestResults = this.get('preparedTestResults') || [];
 
 					if (!preparedTestResults.length) { return; }

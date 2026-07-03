@@ -688,7 +688,7 @@
 						<p>{{{measurementErrMsg}}}</p>
 					</div>
 				</div>
-			{{elseif testResults}}
+			{{elseif testResults && (rawOutputMode || tableOutputReady)}}
 				<div class="gp_map-block_test-output">
 					<c-gp-results-controls
 						showMap="{{showMap}}"
@@ -733,9 +733,8 @@
 							<c-gp-results-table-output
 								testReqParams="{{testReqParams}}"
 								testInProgress="{{testInProgress}}"
-								preparedTestResults="{{tablePreparedTestResults}}"
+								preparedTestResults="{{preparedTestResults}}"
 								targetsCnt="{{targetsArr.length}}"
-								expectedTargetsCnt="{{isInfiniteModeRes ? targetsArr.length : (qsMeasurementIdsArr.length > 1 ? qsMeasurementIdsArr.length : targetsArr.length)}}"
 								currSearchLocation="{{mainOptions.location}}"
 								measurementsMetadata="{{measurementsMetadata}}"
 								isInfiniteModeRes="{{isInfiniteModeRes}}"
@@ -1617,7 +1616,6 @@
 	const PROBE_STATUS_OFFLINE = _.getProbeStatusOfflineValue();
 	const PROBE_OFFLINE_TEXT = 'Probe offline';
 	const RAW_OUTPUT_LINES_BATCH_LIMIT = 40;
-	const TABLE_RESULTS_UPDATE_INTERVAL = 1500;
 	const DEFAULT_TARGET_VALUE = 'cdn.jsdelivr.net';
 	const INFINITE_MEASUREMENT_PACKETS = 16;
 	const INFINITE_MEASUREMENT_LIMIT = 5;
@@ -1782,7 +1780,6 @@
 				isInfiniteModeRes: false,
 				prevProbesMeasId: null,
 				preparedTestResults: [],
-				tablePreparedTestResults: [],
 				ddHandlerSet: false,
 				showCreditsData: false,
 				rateCreditsData: null,
@@ -1859,6 +1856,15 @@
 				}
 
 				return true;
+			},
+			tableOutputReady () {
+				let preparedTestResults = this.get('preparedTestResults') || [];
+				let expectedTargetsCnt = this.get('isInfiniteModeRes') || this.get('qsMeasurementIdsArr.length') <= 1
+					? this.get('targetsArr.length')
+					: this.get('qsMeasurementIdsArr.length');
+				let actualTargetsCnt = preparedTestResults[0]?.statsPerTarget?.length || 0;
+
+				return preparedTestResults.length && (!expectedTargetsCnt || actualTargetsCnt >= expectedTargetsCnt);
 			},
 			anyResponseBodyCollapsible () {
 				if (Ractive.isServer) {
@@ -2004,10 +2010,6 @@
 							this.set('preparedTestResults', sortedResults);
 						}
 					}
-				});
-
-				this.observe('preparedTestResults rawOutputMode testInProgress', () => {
-					this.scheduleTablePreparedTestResultsUpdate();
 				});
 
 				// clear table sort params and enable rawOutputMode whenever test type isn't ping
@@ -2550,60 +2552,11 @@
 			}
 
 			clearTimeout(this.get('runTestBtnDelayTimeout'));
-			clearTimeout(this.tableResultsUpdateTimeout);
 			this.get('testReqCancelFn')?.forEach(cancel => cancel?.());
 			this.set('testReqCancelFn', []);
 		},
 		isActiveTestRun (testRunId) {
 			return testRunId === null || testRunId === undefined || testRunId === this.get('activeTestRunId');
-		},
-		updateTablePreparedTestResults () {
-			let preparedTestResults = this.get('preparedTestResults') || [];
-
-			this.set('tablePreparedTestResults', preparedTestResults);
-			this.lastTableResultsUpdate = performance.now();
-		},
-		isTableResultsShapeReady (preparedTestResults = this.get('tablePreparedTestResults') || []) {
-			let expectedTargetsCnt = this.get('targetsArr.length');
-
-			if (!this.get('isInfiniteModeRes') && this.get('qsMeasurementIdsArr.length') > 1) {
-				expectedTargetsCnt = this.get('qsMeasurementIdsArr.length');
-			}
-
-			let actualTargetsCnt = preparedTestResults[0]?.statsPerTarget?.length || 0;
-
-			return !expectedTargetsCnt || actualTargetsCnt >= expectedTargetsCnt;
-		},
-		scheduleTablePreparedTestResultsUpdate () {
-			if (this.get('rawOutputMode')) {
-				clearTimeout(this.tableResultsUpdateTimeout);
-				this.tableResultsUpdateTimeout = null;
-				return;
-			}
-
-			let preparedTestResults = this.get('preparedTestResults') || [];
-			let tablePreparedTestResults = this.get('tablePreparedTestResults') || [];
-			let hasRenderedResults = tablePreparedTestResults.length && this.isTableResultsShapeReady(tablePreparedTestResults);
-
-			if (!preparedTestResults.length || !this.get('testInProgress') || !hasRenderedResults) {
-				clearTimeout(this.tableResultsUpdateTimeout);
-				this.tableResultsUpdateTimeout = null;
-
-				this.updateTablePreparedTestResults();
-				return;
-			}
-
-			if (this.tableResultsUpdateTimeout) {
-				return;
-			}
-
-			let elapsed = performance.now() - (this.lastTableResultsUpdate || 0);
-			let delay = Math.max(TABLE_RESULTS_UPDATE_INTERVAL - elapsed, 0);
-
-			this.tableResultsUpdateTimeout = setTimeout(() => {
-				this.tableResultsUpdateTimeout = null;
-				this.updateTablePreparedTestResults();
-			}, delay);
 		},
 		handleRunTestBtn () {
 			if (this.get('runTestBtnDisabled')) {
