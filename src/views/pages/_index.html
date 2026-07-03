@@ -1994,7 +1994,7 @@
 					app.router.replaceQueryParam('order', sortOrder === DEFAULT_SORT_ORDER ? null : sortOrder, this);
 				});
 
-				this.observe('sortOrder sortBy preparedTestResults activeTargetIdx', () => {
+				this.observe('sortOrder sortBy preparedTestResults activeTargetIdx rawOutputMode', () => {
 					let sortOrder = this.get('sortOrder');
 					let sortBy = this.get('sortBy');
 					let preparedTestResults = this.get('preparedTestResults');
