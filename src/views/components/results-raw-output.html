@@ -106,6 +106,13 @@
 							<c-dot-loader></c-dot-loader>
 						{{else}}
 							<div class="c-gp-results-raw-output_list_item_header_metrics-controls_metrics">
+								{{#each @this.getHeaderPrimaryMetrics(this.statsPerTarget[activeTargetIdx].extraValues)}}
+									<span class="c-gp-results-raw-output_list_item_header_metrics-controls_metric">
+										{{this.text}}
+										<b>{{this.value}}{{this.units}}</b>
+									</span>
+								{{/each}}
+
 								{{#if _.getGpTargetTiming(this.statsPerTarget[activeTargetIdx])}}
 									<span class="c-gp-results-raw-output_list_item_header_metrics-controls_metric">
 										Time
@@ -116,7 +123,7 @@
 								{{/if}}
 
 								{{#unless this.statsPerTarget[activeTargetIdx].isFailed || this.statsPerTarget[activeTargetIdx].avgTiming === PROBE_STATUS_OFFLINE}}
-									{{#each this.statsPerTarget[activeTargetIdx].extraValues}}
+									{{#each @this.getHeaderSecondaryMetrics(this.statsPerTarget[activeTargetIdx].extraValues)}}
 										<span class="c-gp-results-raw-output_list_item_header_metrics-controls_metric">
 											{{this.text}}
 											<b>{{this.value}}{{this.units}}</b>
@@ -993,7 +1000,24 @@
 		},
 		// --- Other functions ---
 		getStatusColor (targetStats) {
+			if (targetStats.extraValues?.errorStatus) {
+				return _.getGpProbeStatusColor(targetStats.extraValues.errorStatus);
+			}
+
 			return _.getGpProbeStatusColor(targetStats.avgTiming, this.get('testReqParams').type === 'http' ? 1000 : 200);
+		},
+		getHeaderPrimaryMetrics (extraValues = {}) {
+			return [
+				extraValues.dnsStatus,
+				extraValues.httpStatus,
+				extraValues.answers,
+			].filter(Boolean);
+		},
+		getHeaderSecondaryMetrics (extraValues = {}) {
+			return Object.keys(extraValues)
+				.filter(key => ![ 'answers', 'dnsStatus', 'httpStatus', 'errorStatus' ].includes(key))
+				.map(key => extraValues[key])
+				.filter(Boolean);
 		},
 		hideShowTestResult (resultId) {
 			let activeTargetIdx = this.get('activeTargetIdx');
