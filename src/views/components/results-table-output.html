@@ -254,18 +254,21 @@
 	</div>
 
 	{{#if floatingSetLocationButton.visible}}
-		<button class="c-gp-results-table-output_set-location {{#if itemFocused}}focus-outline{{/if}}"
-			type="button"
-			tabindex="-1"
-			style="top: {{floatingSetLocationButton.top}}px; left: {{floatingSetLocationButton.left}}px;"
-			as-tooltip="'Set as location for the next test', 'right'"
-			on-focus="@this.set('itemFocused', true)"
-			on-blur="@this.hideSetLocationButton(@event)"
-			on-click="@this.setProbeAsLocation()"
-			on-mouseleave="@this.hideSetLocationButton(@event)"
-			aria-label="Set as location for the next test">
-			<i class="fa fa-map-marker" aria-hidden="true"></i>
-		</button>
+		<div class="c-gp-results-table-output_set-location-hitarea"
+			style="top: {{floatingSetLocationButton.top}}px; left: {{floatingSetLocationButton.left-4}}px; height: {{floatingSetLocationButton.height}}px;"
+			on-mouseleave="@this.hideSetLocationButton(@event)">
+			<button class="c-gp-results-table-output_set-location {{#if itemFocused}}focus-outline{{/if}}"
+				type="button"
+				tabindex="-1"
+				style="top: {{floatingSetLocationButton.buttonTop}}px;"
+				as-tooltip="'Set as location for the next test', 'right'"
+				on-focus="@this.set('itemFocused', true)"
+				on-blur="@this.hideSetLocationButton(@event)"
+				on-click="@this.setProbeAsLocation()"
+				aria-label="Set as location for the next test">
+				<i class="fa fa-map-marker" aria-hidden="true"></i>
+			</button>
+		</div>
 	{{/if}}
 </div>
 
@@ -307,6 +310,8 @@
 					visible: false,
 					top: 0,
 					left: 0,
+					height: 0,
+					buttonTop: 0,
 					probeData: null,
 				},
 				itemFocused: false,
@@ -377,15 +382,18 @@
 				return;
 			}
 
+			let rowRect = rowNode.getBoundingClientRect();
 			let containerRect = container.getBoundingClientRect();
-			let relativeTop = rowLocationRect.top - containerRect.top;
+			let relativeTop = rowRect.top - containerRect.top;
 			let relativeLeft = rowLocationRect.left - containerRect.left;
 
 			this.set('floatingSetLocationButton', {
 				visible: true,
 				probeData,
-				top: relativeTop + rowLocationRect.height / 2 - 13,
+				top: relativeTop,
 				left: relativeLeft - 26,
+				height: rowRect.height,
+				buttonTop: rowLocationRect.top - rowRect.top + rowLocationRect.height / 2 - 13,
 			});
 		},
 		hideSetLocationButton (event) {
@@ -408,6 +416,7 @@
 			}
 
 			let setLocationButton = this.find('.c-gp-results-table-output_set-location');
+			let setLocationHitarea = this.find('.c-gp-results-table-output_set-location-hitarea');
 
 			if (event?.type === 'blur' && !event.relatedTarget) {
 				requestAnimationFrame(() => {
@@ -429,7 +438,9 @@
 				let container = event.target.closest('.results-table_row');
 				let relatedContainer = event.relatedTarget.closest?.('.results-table_row');
 
-				if ((container && container.contains(event.relatedTarget)) || relatedContainer || (setLocationButton && setLocationButton.contains(event.relatedTarget))) {
+				if ((container && container.contains(event.relatedTarget))
+					|| relatedContainer
+					|| (setLocationHitarea && setLocationHitarea.contains(event.relatedTarget))) {
 					return;
 				}
 			}

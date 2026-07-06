@@ -177,18 +177,21 @@
 	</div>
 
 	{{#if showSetLocationButton && floatingSetLocationButton.visible}}
-		<button class="c-gp-results-raw-output_set-location {{#if itemFocused}}focus-outline{{/if}}"
-			type="button"
-			tabindex="-1"
-			style="top: {{floatingSetLocationButton.top}}px; left: {{floatingSetLocationButton.left}}px;"
-			as-tooltip="'Set as location for the next test', 'right'"
-			on-focus="@this.set('itemFocused', true)"
-			on-blur="@this.hideSetLocationButton(@event)"
-			on-click="@this.setProbeAsLocation()"
-			on-mouseleave="@this.hideSetLocationButton(@event)"
-			aria-label="Set as location for the next test">
-			<i class="fa fa-map-marker" aria-hidden="true"></i>
-		</button>
+		<div class="c-gp-results-raw-output_set-location-hitarea"
+			style="top: {{floatingSetLocationButton.top}}px; left: {{floatingSetLocationButton.left-4}}px; height: {{floatingSetLocationButton.height}}px;"
+			on-mouseleave="@this.hideSetLocationButton(@event)">
+			<button class="c-gp-results-raw-output_set-location {{#if itemFocused}}focus-outline{{/if}}"
+				type="button"
+				tabindex="-1"
+				style="top: {{floatingSetLocationButton.buttonTop}}px;"
+				as-tooltip="'Set as location for the next test', 'right'"
+				on-focus="@this.set('itemFocused', true)"
+				on-blur="@this.hideSetLocationButton(@event)"
+				on-click="@this.setProbeAsLocation()"
+				aria-label="Set as location for the next test">
+				<i class="fa fa-map-marker" aria-hidden="true"></i>
+			</button>
+		</div>
 	{{/if}}
 </div>
 
@@ -235,6 +238,8 @@
 					visible: false,
 					top: 0,
 					left: 0,
+					height: 0,
+					buttonTop: 0,
 					clientSideId: null,
 					probeData: null,
 				},
@@ -397,8 +402,10 @@
 				visible: true,
 				clientSideId,
 				probeData,
-				top: relativeTop + nodeHeaderHeight / 2 - 13,
+				top: relativeTop,
 				left: relativeLeft - 26,
+				height: nodeRect.height,
+				buttonTop: nodeHeaderHeight / 2 - 13,
 			});
 		},
 		hideSetLocationButtonIfMoved () {
@@ -419,11 +426,17 @@
 			}
 
 			let nodeRect = node.getBoundingClientRect();
+			let nodeHeaderRect = nodeHeader.getBoundingClientRect();
 			let containerRect = container.getBoundingClientRect();
-			let top = nodeRect.top - containerRect.top + nodeHeader.offsetHeight / 2 - 13;
+			let top = nodeRect.top - containerRect.top;
 			let left = nodeRect.left - containerRect.left - 26;
+			let height = nodeRect.height;
+			let buttonTop = nodeHeaderRect.height / 2 - 13;
 
-			if (top !== floatingSetLocationButton.top || left !== floatingSetLocationButton.left) {
+			if (top !== floatingSetLocationButton.top
+				|| left !== floatingSetLocationButton.left
+				|| height !== floatingSetLocationButton.height
+				|| buttonTop !== floatingSetLocationButton.buttonTop) {
 				this.set('itemFocused', false);
 				this.set('floatingSetLocationButton.visible', false);
 			}
@@ -446,6 +459,7 @@
 			}
 
 			let setLocationButton = this.find('.c-gp-results-raw-output_set-location');
+			let setLocationHitarea = this.find('.c-gp-results-raw-output_set-location-hitarea');
 
 			if (event?.type === 'blur' && !event.relatedTarget) {
 				requestAnimationFrame(() => {
@@ -467,7 +481,9 @@
 				let container = event.target.closest('.c-gp-results-raw-output_list_item');
 				let relatedContainer = event.relatedTarget.closest?.('.c-gp-results-raw-output_list_item');
 
-				if ((container && container.contains(event.relatedTarget)) || relatedContainer || (setLocationButton && setLocationButton.contains(event.relatedTarget))) {
+				if ((container && container.contains(event.relatedTarget))
+					|| relatedContainer
+					|| (setLocationHitarea && setLocationHitarea.contains(event.relatedTarget))) {
 					return;
 				}
 			}

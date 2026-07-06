@@ -537,6 +537,16 @@
 		}
 	}
 
+	&_set-location-hitarea {
+		position: absolute;
+		width: 34px;
+		z-index: 10;
+
+		@media (max-width: @screen-xs-max) {
+			display: none;
+		}
+	}
+
 	&_set-location {
 		position: absolute;
 		display: flex;
@@ -546,7 +556,7 @@
 		border-radius: 8px 0 0 8px;
 		color: #17233a;
 		cursor: pointer;
-		z-index: 10;
+		left: 4px;
 		transition: background-color .1s ease-out;
 		width: 26px;
 		height: 26px;
