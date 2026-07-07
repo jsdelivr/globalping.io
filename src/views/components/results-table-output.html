@@ -320,21 +320,12 @@
 		},
 		onrender () {
 			if (!Ractive.isServer) {
-				listeners.screenWidthListener(this);
-
-				this.observe('screenWidth', () => {
-					let preparedTestResults = this.get('preparedTestResults');
-					preparedTestResults.length && this.setResultsBlockHeight(preparedTestResults);
-				});
-
 				this.observe('preparedTestResults', () => {
 					let preparedTestResults = this.get('preparedTestResults') || [];
 
 					if (!preparedTestResults.length) { return; }
 
 					this.setChartMaxHeight(preparedTestResults);
-					// set results block height based on content
-					this.setResultsBlockHeight(preparedTestResults);
 				});
 
 				this.observe('sortOrder sortBy', () => {
@@ -488,19 +479,6 @@
 				'chartMaxHeight',
 				Math.max(...allPacketRtt.filter(v => typeof v === 'number')),
 			);
-		},
-		setResultsBlockHeight (results) {
-			requestAnimationFrame(() => {
-				let listWrapperEl = document.querySelector('.results-table-wrapper');
-
-				if (listWrapperEl) {
-					let itemsAmount = results.length;
-					let listElScrollHeight = listWrapperEl.scrollHeight;
-					let avgItemElHeight = Math.ceil(listElScrollHeight / itemsAmount);
-
-					listWrapperEl.style.height = `${itemsAmount < 8 ? avgItemElHeight * itemsAmount : avgItemElHeight * 8}px`;
-				}
-			});
 		},
 		createRealTimeGraph (
 			data,

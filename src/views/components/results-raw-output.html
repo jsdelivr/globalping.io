@@ -1,7 +1,7 @@
 <link rel="ractive" href="./tls-details.html" name="c-gp-tls-details">
 <link rel="ractive" href="./dot-loader.html" name="c-dot-loader">
 
-<div class="c-gp-results-raw-output">
+<div class="c-gp-results-raw-output {{#if allowResultsBlockShrink}}is-height-shrink-enabled{{/if}}">
 	<div class="c-gp-results-raw-output_list {{#if testInProgress}}round-bottom{{/if}}" on-scroll="@this.hideSetLocationButton(@event)">
 		{{#each preparedTestResults}}
 			<div class="c-gp-results-raw-output_list_item item-id-{{this.clientSideId}}"
@@ -202,7 +202,7 @@
 	const tooltip = require('../../assets/js/decorators/tooltip');
 	const PROBE_STATUS_FAILED = _.getProbeStatusFailedValue();
 	const PROBE_STATUS_OFFLINE = _.getProbeStatusOfflineValue();
-	let MIN_OUTPUT_HEIGHT = 400;
+	const MIN_OUTPUT_HEIGHT = 400;
 
 	component.exports = {
 		decorators: {
@@ -227,6 +227,7 @@
 				PROBE_STATUS_OFFLINE,
 				pendingNetworkLookups: new Set(),
 				showingNetworkLogos: false,
+				allowResultsBlockShrink: false,
 				resultsBlockHeightShapeSignature: null,
 				skipNextResize: false,
 				headerInfoCharWidths: null,
@@ -291,7 +292,10 @@
 					let targetId = hiddenTestResults.find(resId => resId === clientSideId);
 
 					if (typeof targetId === 'number') {
-						this.set('skipNextResize', true);
+						if (this.get('allowResultsBlockShrink')) {
+							this.set('skipNextResize', true);
+						}
+
 						this.hideShowTestResult(targetId);
 					}
 
@@ -300,6 +304,7 @@
 
 				this.observe('preparedTestResults testInProgress', () => {
 					this.resetHeaderInfoEntityWidthCache();
+					this.populateNetworkData();
 
 					this.recalculateHeaderInfoLayoutStates({
 						allowShrink: this.shouldAllowResultsBlockShrink(),
@@ -323,7 +328,7 @@
 					this.setResultsBlockHeight({ allowShrink: false });
 				}, { deep: true, defer: true, init: false });
 
-				this.observe('preparedTestResults activeTargetIdx', () => {
+				this.observe('activeTargetIdx', () => {
 					this.resetHeaderInfoEntityWidthCache();
 					this.populateNetworkData();
 					this.recalculateHeaderInfoLayoutStates({ allowShrink: false });
@@ -358,6 +363,12 @@
 			if (this.pendingNetworkDataUpdatesFlushTimeout) {
 				clearTimeout(this.pendingNetworkDataUpdatesFlushTimeout);
 				this.pendingNetworkDataUpdatesFlushTimeout = null;
+			}
+
+			if (this.pendingResultsBlockHeightFrame) {
+				cancelAnimationFrame(this.pendingResultsBlockHeightFrame);
+				this.pendingResultsBlockHeightFrame = null;
+				this.pendingResultsBlockHeightAllowShrink = false;
 			}
 		},
 		// --- set location button logic ---
@@ -550,6 +561,10 @@
 			return `${measurementIds}:${expectedTargetsCnt}:${preparedTestResults.length}`;
 		},
 		shouldAllowResultsBlockShrink () {
+			if (!this.get('allowResultsBlockShrink')) {
+				return false;
+			}
+
 			let currentSignature = this.getResultsBlockHeightShapeSignature();
 			let previousSignature = this.get('resultsBlockHeightShapeSignature');
 
@@ -558,6 +573,10 @@
 			return currentSignature !== previousSignature;
 		},
 		setResultsBlockHeight ({ allowShrink = true } = {}) {
+			if (!this.get('allowResultsBlockShrink')) {
+				return;
+			}
+
 			this.pendingResultsBlockHeightAllowShrink = this.pendingResultsBlockHeightFrame
 				? this.pendingResultsBlockHeightAllowShrink && allowShrink
 				: allowShrink;
@@ -566,7 +585,7 @@
 				return;
 			}
 
-			requestAnimationFrame(() => {
+			this.pendingResultsBlockHeightFrame = requestAnimationFrame(() => {
 				let pendingAllowShrink = this.pendingResultsBlockHeightAllowShrink;
 				this.pendingResultsBlockHeightAllowShrink = false;
 				this.pendingResultsBlockHeightFrame = null;
@@ -623,8 +642,6 @@
 					}
 				}
 			});
-
-			this.pendingResultsBlockHeightFrame = true;
 		},
 		// --- Logic to determine whether to wrap the header info ---
 		// First, calculate current character widths for the font used in the header info
@@ -792,7 +809,7 @@
 
 			return widths;
 		},
-		recalculateHeaderInfoLayoutStates ({ allowShrink = true, updateHeight = true } = {}) {
+		recalculateHeaderInfoLayoutStates ({ allowShrink = true } = {}) {
 			let listEl = this.find('.c-gp-results-raw-output_list');
 			let listWidth = listEl?.offsetWidth || 0;
 			let preparedTestResults = this.get('preparedTestResults') || [];
@@ -850,9 +867,7 @@
 				this.set('headerInfoOverflowByResultId', overflowByResultId);
 			}
 
-			if (updateHeight) {
-				this.setResultsBlockHeight({ allowShrink });
-			}
+			this.setResultsBlockHeight({ allowShrink });
 		},
 		shouldUseOverflowLayout (result) {
 			let overflowByResultId = this.get('headerInfoOverflowByResultId') || new Set();

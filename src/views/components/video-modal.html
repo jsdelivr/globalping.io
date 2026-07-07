@@ -260,6 +260,7 @@
 				return;
 			}
 
+			document.body.appendChild(modal);
 			document.documentElement.classList.add('scrollbar-stable');
 
 			let $modal = $(modal);
@@ -322,6 +323,7 @@
 			$modal.off('hidden.bs.modal', hiddenHandler);
 			videoFrame?.removeEventListener('load', loadHandler);
 			this.forceHideVideoModal(modal);
+			modal.remove();
 			document.documentElement.classList.remove('scrollbar-stable');
 			this._videoModalPlayerPromise = null;
 			this._videoModalPlayerApiPromise = null;
