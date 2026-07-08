@@ -854,7 +854,6 @@
 	const DEFAULT_SORT_BY = 'location';
 	const DEFAULT_SORT_ORDER = 'asc';
 	const SORT_ORDER_OPTS = [ 'asc', 'desc' ];
-	const FOCUS_MODE_TRANSITION_MS = 420;
 	const FOCUS_MODE_CONTENT_SWAP_MS = 150;
 	const FOCUS_MODE_CONTENT_EXIT_MS = 180;
 	const FOCUS_MODE_PROMPT_ENTER_MS = 180;
@@ -1835,7 +1834,6 @@
 		},
 		openFocusMode (event) {
 			event?.preventDefault?.();
-			let scrollY = window.scrollY;
 			let shouldSkipOpeningTransition = this.shouldSkipFocusModeOpeningTransition();
 
 			clearTimeout(this.get('focusModeOpenTimeout'));
@@ -1855,7 +1853,6 @@
 				}, FOCUS_MODE_CONTENT_SWAP_MS));
 			}
 
-			this.restoreWindowScroll(scrollY, shouldSkipOpeningTransition);
 			this.focusFocusModeToggleButton();
 		},
 		closeFocusMode (event) {
@@ -1864,8 +1861,6 @@
 			if (!this.get('focusModeActive')) {
 				return;
 			}
-
-			let scrollY = window.scrollY;
 
 			clearTimeout(this.get('focusModeOpenTimeout'));
 			clearTimeout(this.get('focusModePromptTimeout'));
@@ -1878,7 +1873,6 @@
 			this.set('focusModeDismissed', true);
 			this.set('focusModeOpen', false);
 			this.set('focusModeContentLeaving', true);
-			this.restoreWindowScroll(scrollY);
 			this.focusFocusModeToggleButton();
 
 			this.set('focusModePromptTimeout', setTimeout(() => {
@@ -1918,19 +1912,6 @@
 		},
 		shouldSkipFocusModeOpeningTransition () {
 			return window.matchMedia('(max-width: 767px)').matches;
-		},
-		restoreWindowScroll (scrollY, skipTransitionFollowUp = false) {
-			requestAnimationFrame(() => {
-				window.scrollTo(window.scrollX, scrollY);
-			});
-
-			if (skipTransitionFollowUp) {
-				return;
-			}
-
-			setTimeout(() => {
-				window.scrollTo(window.scrollX, scrollY);
-			}, FOCUS_MODE_TRANSITION_MS);
 		},
 		disableRunTestBtnForDelay () {
 			clearTimeout(this.get('runTestBtnDelayTimeout'));
