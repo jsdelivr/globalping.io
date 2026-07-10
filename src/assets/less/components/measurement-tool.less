@@ -79,11 +79,18 @@
 		z-index: 1040;
 		opacity: 0;
 		background: rgba(0, 0, 0, .02);
+		backdrop-filter: blur(0);
 		pointer-events: none;
-		transition: opacity .42s ease;
+		transition:
+			opacity .42s ease,
+			backdrop-filter .42s ease;
 
-		&.active {
-			opacity: 1;
+		@media (min-width: @screen-sm-min) {
+			&.active {
+				opacity: 1;
+				backdrop-filter: blur(8px);
+				pointer-events: auto;
+			}
 		}
 	}
 
@@ -94,9 +101,10 @@
 		align-items: center;
 		background-color: #fff;
 		width: 100%;
-		z-index: 1;
+		--focus-mode-offset-y: 0;
+		z-index: 1050;
 		box-shadow: 0 0 0 rgba(0, 0, 0, 0);
-		transition: width .42s ease, max-width .42s ease, margin-bottom .42s ease, box-shadow .42s ease, transform .42s ease;
+		transition: width .42s ease, max-width .42s ease, margin-bottom .42s ease, border-color .42s ease, box-shadow .21s ease, transform .42s ease;
 		padding-bottom: 40px;
 
 		// hide visual artifact below the div on mobile (flashing dark line)
@@ -127,13 +135,14 @@
 
 		&_focus-mode {
 			position: relative;
-			z-index: 1050;
 			width: 100%;
 			max-width: none;
 			margin: 0;
 			overflow: visible;
 			border-radius: 0;
-			box-shadow: 0 24px 80px rgba(0, 0, 0, .1);
+			box-shadow:
+				0 28px 90px rgba(0, 0, 0, .22),
+				0 0 0 1px rgba(255, 255, 255, .42);
 			transform: none;
 
 			&:after {
@@ -141,7 +150,8 @@
 			}
 
 			@media (min-width: @screen-sm-min) {
-				transform: translateY(-400px);
+				--focus-mode-offset-y: -400px;
+				transform: translateY(var(--focus-mode-offset-y));
 				margin-bottom: -400px;
 				width: calc(100% - 48px);
 				max-width: 1304px;
@@ -151,7 +161,6 @@
 			}
 
 			@media (min-width: @screen-lg-min) {
-				transform: translateY(-340px);
 				margin-bottom: -340px;
 			}
 

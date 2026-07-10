@@ -11,11 +11,14 @@
 <link rel="ractive" href="./test-examples.html" name="c-test-examples">
 
 {{#if focusModeAvailable}}
-	<div class="c-measurement-tool_focus-mode-backdrop {{#if focusModeActive}}active{{/if}}" aria-hidden="true"></div>
+	<div
+		class="c-measurement-tool_focus-mode-backdrop {{#if focusModeActive}}active{{/if}}"
+		aria-hidden="true"
+		on-click="@this.closeFocusModeFromBackdrop(@event)"></div>
 {{/if}}
 
 <div
-	class="c-measurement-tool {{#if focusModeActive}}c-measurement-tool_focus-mode{{/if}}"
+	class="c-measurement-tool {{#if focusModeActive}}c-measurement-tool_focus-mode{{/if}} {{#if focusModeActive || focusModeOpening || focusModeContentLeaving || focusModePromptEntering}}c-measurement-tool_focus-layer{{/if}}"
 	{{#if focusModeActive}}role="dialog" aria-label="Globalping measurement tool"{{/if}}>
 	<div class="c-measurement-tool_header {{#if focusModeAvailable && !focusModeActive}}c-measurement-tool_header_mobile-enter{{/if}}">
 		<span class="c-measurement-tool_header_dots" aria-hidden="true">
@@ -857,6 +860,7 @@
 	const FOCUS_MODE_CONTENT_SWAP_MS = 150;
 	const FOCUS_MODE_CONTENT_EXIT_MS = 180;
 	const FOCUS_MODE_PROMPT_ENTER_MS = 180;
+	const FOCUS_MODE_SCROLL_OFFSET = 30;
 	const SORT_BY_OPTS = [
 		{
 			value: 'location',
@@ -1834,19 +1838,20 @@
 		},
 		openFocusMode (event) {
 			event?.preventDefault?.();
-			let shouldSkipOpeningTransition = this.shouldSkipFocusModeOpeningTransition();
+			let isMobileViewport = _.isMobileViewport();
 
 			clearTimeout(this.get('focusModeOpenTimeout'));
 			clearTimeout(this.get('focusModePromptTimeout'));
 			this.set('focusModeOpenTimeout', null);
 			this.set('focusModePromptTimeout', null);
 			this.set('focusModeDismissed', false);
-			this.set('focusModeOpening', !shouldSkipOpeningTransition);
+			this.set('focusModeOpening', !isMobileViewport);
 			this.set('focusModePromptEntering', false);
 			this.set('focusModeContentLeaving', false);
 			this.set('focusModeOpen', true);
+			this.scrollFocusModeRootAfterRender(isMobileViewport ? 0 : FOCUS_MODE_SCROLL_OFFSET);
 
-			if (!shouldSkipOpeningTransition) {
+			if (!isMobileViewport) {
 				this.set('focusModeOpenTimeout', setTimeout(() => {
 					this.set('focusModeOpening', false);
 					this.set('focusModeOpenTimeout', null);
@@ -1885,6 +1890,10 @@
 				}, FOCUS_MODE_PROMPT_ENTER_MS));
 			}, FOCUS_MODE_CONTENT_EXIT_MS));
 		},
+		closeFocusModeFromBackdrop (event) {
+			this.closeFocusMode(event);
+			this.scrollFocusModeRootAfterRender();
+		},
 		handleFocusModeKeyDown (event) {
 			if (event.key === 'Escape' && this.get('focusModeActive')) {
 				this.closeFocusMode(event);
@@ -1909,9 +1918,6 @@
 			} catch {
 				element?.focus();
 			}
-		},
-		shouldSkipFocusModeOpeningTransition () {
-			return window.matchMedia('(max-width: 767px)').matches;
 		},
 		disableRunTestBtnForDelay () {
 			clearTimeout(this.get('runTestBtnDelayTimeout'));
@@ -2015,6 +2021,11 @@
 			this.set('focusModePromptEntering', false);
 			this.set('focusModeContentLeaving', false);
 			this.set('focusModeOpen', true);
+
+			if (!_.isMobileViewport()) {
+				this.scrollFocusModeRootAfterRender();
+			}
+
 			this.expandAllRawOutput();
 
 			// if it is infinite/multi-endpoint measurement then we should show TableOutput by default
@@ -2901,6 +2912,43 @@
 					behavior: 'smooth',
 				});
 			}
+		},
+		scrollFocusModeRootIntoView (scrollOffset = FOCUS_MODE_SCROLL_OFFSET) {
+			let mapBlockEl = this.find('.c-measurement-tool');
+
+			if (!mapBlockEl) {
+				return;
+			}
+
+			let targetScrollTop = this.getFocusModeRootScrollTop(mapBlockEl, scrollOffset);
+
+			if (targetScrollTop >= window.scrollY) {
+				return;
+			}
+
+			window.scrollTo({
+				behavior: 'smooth',
+				top: targetScrollTop,
+			});
+		},
+		getFocusModeRootScrollTop (mapBlockEl, scrollOffset = FOCUS_MODE_SCROLL_OFFSET) {
+			let style = getComputedStyle(mapBlockEl);
+			let focusModeOffsetY = Number.parseFloat(style.getPropertyValue('--focus-mode-offset-y')) || 0;
+			let currentTransformY = 0;
+			let matrixMatch = style.transform.match(/^matrix(3d)?\((.+)\)$/);
+
+			if (matrixMatch) {
+				let transformValues = matrixMatch[2].split(',').map(value => Number.parseFloat(value));
+				currentTransformY = matrixMatch[1] ? transformValues[13] : transformValues[5];
+				currentTransformY = Number.isFinite(currentTransformY) ? currentTransformY : 0;
+			}
+
+			return Math.max(0, window.scrollY + mapBlockEl.getBoundingClientRect().top - currentTransformY + focusModeOffsetY - scrollOffset);
+		},
+		scrollFocusModeRootAfterRender (scrollOffset = FOCUS_MODE_SCROLL_OFFSET) {
+			this.update().then(() => {
+				requestAnimationFrame(() => this.scrollFocusModeRootIntoView(scrollOffset));
+			});
 		},
 		updateMapMarkerWithIW (marker, markerData, currentMarkerIdx) {
 			let updSvg = this.createMapMarkerSvg(markerData);
