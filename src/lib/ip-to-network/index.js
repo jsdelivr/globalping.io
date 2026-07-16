@@ -1,14 +1,35 @@
 const fs = require('node:fs');
 const path = require('node:path');
-const net = require('node:net');
 const maxmind = require('maxmind');
-const { createIpLookup } = require('./ip-lookup');
+const { parse } = require('csv-parse/sync');
+const { IPRangeList } = require('ip-range-list');
 const legalNameNormalization = require('globalping-api/dist/src/lib/geoip/legal-name-normalization');
+
+const loadIpRangeList = (...filenames) => {
+	let ranges = new IPRangeList();
+
+	for (let filename of filenames) {
+		let rawData = fs.readFileSync(path.join(__dirname, `/../../../data/${filename}`));
+
+		let records = parse(rawData.toString('utf8'), {
+			skip_empty_lines: true,
+		});
+
+		for (let row of records) {
+			let subnet = row?.[0]?.trim();
+
+			if (subnet && subnet !== 'prefix') {
+				ranges.addSubnet(subnet);
+			}
+		}
+	}
+
+	return ranges;
+};
 
 let ipToDomainReader = null;
 let ipToLocationReader = null;
-let anycastIpv4Lookup = null;
-let anycastIpv6Lookup = null;
+let anycastIpLookup = null;
 let nameNormalizationAvailable = false;
 let nameNormalizationInited = false;
 
@@ -18,8 +39,7 @@ ipToDomainReader = new maxmind.Reader(ipInfoMmdb);
 let maxmindMmdb = fs.readFileSync(path.join(__dirname, '/../../../data/MAXMIND_GEO_LITE2_CITY.mmdb'));
 ipToLocationReader = new maxmind.Reader(maxmindMmdb);
 
-anycastIpv4Lookup = createIpLookup('LACES_ANYCAST_IPV4.csv', 'ipv4');
-anycastIpv6Lookup = createIpLookup('LACES_ANYCAST_IPV6.csv', 'ipv6');
+anycastIpLookup = loadIpRangeList('LACES_ANYCAST_IPV4.csv', 'LACES_ANYCAST_IPV6.csv');
 
 void legalNameNormalization.populateLegalNames().then(() => {
 	nameNormalizationAvailable = true;
@@ -29,13 +49,10 @@ void legalNameNormalization.populateLegalNames().then(() => {
 	nameNormalizationInited = true;
 });
 
-module.exports.isReady = () => !!ipToDomainReader && !!ipToLocationReader && !!anycastIpv4Lookup && !!anycastIpv6Lookup && nameNormalizationInited;
+module.exports.isReady = () => !!ipToDomainReader && !!ipToLocationReader && !!anycastIpLookup && nameNormalizationInited;
 
 function getLocationByIp (ip) {
-	let ipVersion = net.isIP(ip);
-	let isAnycast = ipVersion === 4
-		? anycastIpv4Lookup?.check(ip)
-		: anycastIpv6Lookup?.check(ip);
+	let isAnycast = anycastIpLookup?.check(ip);
 
 	if (isAnycast) {
 		return {
