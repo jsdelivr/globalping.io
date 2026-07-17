@@ -102,7 +102,7 @@
 
 		<div
 			class="gp_map-block {{#if focusModeActive}}gp_map-block_focus-mode{{/if}}"
-			{{#if focusModeActive}}role="dialog" aria-label="Globalping measurement tool"{{/if}}>
+			{{#if focusModeActive}}role="dialog" aria-modal="true" aria-label="Globalping measurement tool" tabindex="-1"{{/if}}>
 			<div class="gp_map-block_header {{#if focusModeAvailable && !focusModeActive}}gp_map-block_header_mobile-enter{{/if}}">
 				<span class="gp_map-block_header_dots" aria-hidden="true">
 					<span></span>
@@ -2852,8 +2852,41 @@
 			this.scrollFocusModeRootAfterRender();
 		},
 		handleFocusModeKeyDown (event) {
-			if (event.key === 'Escape' && this.get('focusModeActive')) {
+			if (!this.get('focusModeActive')) {
+				return;
+			}
+
+			if (event.key === 'Escape') {
 				this.closeFocusMode(event);
+				return;
+			}
+
+			if (event.key !== 'Tab') {
+				return;
+			}
+
+			// force focus to stay within the map block
+			let focusModeRoot = this.find('.gp_map-block');
+			let focusableElements = Array.from(focusModeRoot.querySelectorAll('a[href], button, input, select, textarea, [tabindex]'))
+				.filter(element => !element.disabled
+				&& element.getAttribute('tabindex') !== '-1'
+				&& element.getClientRects().length);
+
+			if (!focusableElements.length) {
+				event.preventDefault();
+				this.focusWithoutScroll(focusModeRoot);
+				return;
+			}
+
+			let firstElement = focusableElements[0];
+			let lastElement = focusableElements[focusableElements.length - 1];
+			let activeElement = document.activeElement;
+			let shouldWrapBackward = event.shiftKey && (activeElement === firstElement || !focusModeRoot.contains(activeElement));
+			let shouldWrapForward = !event.shiftKey && (activeElement === lastElement || !focusModeRoot.contains(activeElement));
+
+			if (shouldWrapBackward || shouldWrapForward) {
+				event.preventDefault();
+				this.focusWithoutScroll(shouldWrapBackward ? lastElement : firstElement);
 			}
 		},
 		focusFocusModeToggleButton () {
