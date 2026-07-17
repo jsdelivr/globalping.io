@@ -1994,6 +1994,10 @@
 				};
 			},
 			focusModeAvailable () {
+				if (this.get('view') === 'video') {
+					return false;
+				}
+
 				return !!(
 					this.get('testInProgress')
 					|| this.get('testResults')
