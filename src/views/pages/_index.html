@@ -1710,6 +1710,7 @@
 	const FOCUS_MODE_CONTENT_EXIT_MS = 180;
 	const FOCUS_MODE_PROMPT_ENTER_MS = 180;
 	const FOCUS_MODE_SCROLL_OFFSET = 30;
+	const PENDING_RESULT_SCROLL_TIMEOUT_MS = 500;
 	const SORT_BY_OPTS = [
 		{
 			value: 'location',
@@ -2811,7 +2812,10 @@
 			this.set('focusModePromptEntering', false);
 			this.set('focusModeContentLeaving', false);
 			this.set('focusModeOpen', true);
-			this.scrollFocusModeRootAfterRender(isMobileViewport ? 0 : FOCUS_MODE_SCROLL_OFFSET);
+
+			if (this.get('pendingResultId') === null) {
+				this.scrollFocusModeRootAfterRender(isMobileViewport ? 0 : FOCUS_MODE_SCROLL_OFFSET);
+			}
 
 			if (!isMobileViewport) {
 				this.set('focusModeOpenTimeout', setTimeout(() => {
@@ -3453,17 +3457,10 @@
 					return;
 				}
 
-				let firstFrame = requestAnimationFrame(() => {
-					if (this.get('pendingResultScrollFrame') === firstFrame) {
-						this.set('pendingResultScrollFrame', null);
-					}
-
-					if (!isCurrentNavigation()) {
-						return;
-					}
-
-					let secondFrame = requestAnimationFrame(() => {
-						if (this.get('pendingResultScrollFrame') === secondFrame) {
+				let retryUntil = performance.now() + PENDING_RESULT_SCROLL_TIMEOUT_MS;
+				let findAndScrollToResult = () => {
+					let frame = requestAnimationFrame(() => {
+						if (this.get('pendingResultScrollFrame') === frame) {
 							this.set('pendingResultScrollFrame', null);
 						}
 
@@ -3479,20 +3476,30 @@
 							el = this.find(`.c-gp-results-table-output .results-table_row.row-num-${clientSideId}`);
 						}
 
-						if (el && isCurrentNavigation()) {
+						let mapWrapper = this.find('.gp_map-block_map-wrapper');
+						let mapIsCollapsing = !this.get('showMap') && mapWrapper.getBoundingClientRect().height > 0;
+
+						if (el && !mapIsCollapsing) {
 							let focusModeRoot = this.find('.gp_map-block');
 							let resultOffset = el.getBoundingClientRect().top - focusModeRoot.getBoundingClientRect().top;
 							let scrollTop = this.getFocusModeRootScrollTop(focusModeRoot) + resultOffset;
 
 							window.scrollTo({ top: scrollTop, behavior: 'smooth' });
 							this.set('pendingResultId', null);
+							return;
+						}
+
+						if (performance.now() < retryUntil) {
+							findAndScrollToResult();
+						} else {
+							this.set('pendingResultId', null);
 						}
 					});
 
-					this.set('pendingResultScrollFrame', secondFrame);
-				});
+					this.set('pendingResultScrollFrame', frame);
+				};
 
-				this.set('pendingResultScrollFrame', firstFrame);
+				findAndScrollToResult();
 			});
 		},
 		cancelPendingResultScrollFrame () {
