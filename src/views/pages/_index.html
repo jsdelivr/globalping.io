@@ -93,7 +93,7 @@
 			</div>
 		</div>
 
-		{{#if focusModeAvailable || focusModeActive}}
+		{{#if view !== 'video' && (focusModeAvailable || focusModeActive)}}
 			<div
 				class="gp_focus-mode-backdrop {{#if focusModeActive}}active{{/if}}"
 				aria-hidden="true"
@@ -103,16 +103,16 @@
 		<div
 			class="gp_map-block {{#if focusModeActive}}gp_map-block_focus-mode{{/if}}"
 			{{#if focusModeActive}}role="dialog" aria-modal="true" aria-label="Globalping measurement tool" tabindex="-1"{{/if}}>
-			<div class="gp_map-block_header {{#if focusModeAvailable && !focusModeActive}}gp_map-block_header_mobile-enter{{/if}}">
+			<div class="gp_map-block_header">
 				<span class="gp_map-block_header_dots" aria-hidden="true">
 					<span></span>
 					<span></span>
 					<span></span>
 				</span>
-				{{#if shareResHeaderData}}
+				{{#if view !== 'video' && shareResHeaderData}}
 					<span class="gp_map-block_header_share-res-msg">{{shareResHeaderData}}</span>
 				{{/if}}
-				{{#if focusModeAvailable || focusModeActive}}
+				{{#if view !== 'video' && (focusModeAvailable || focusModeActive)}}
 					<span class="gp_map-block_header_actions">
 						{{#if focusModeActive}}
 							<button
@@ -654,7 +654,7 @@
 							</button>
 
 							<div class="dropdown-menu gp_map-block_settings-wrapper_split-btn_dropdown">
-								<span class="dropdown-item" on-click="@this.reUseProbesRunTest()">Re-use probes</span>
+								<button type="button" class="dropdown-item" on-click="@this.reUseProbesRunTest()">Re-use probes</button>
 							</div>
 						</div>
 					{{else}}
@@ -678,14 +678,14 @@
 				</div>
 			</div>
 
-			{{#if showCreditsErrorBar && (focusModeActive || !focusModeAvailable)}}
+			{{#if view !== 'video' && showCreditsErrorBar && (focusModeActive || !focusModeAvailable)}}
 				<c-gp-credits-message
 					measurementErrMsg="{{measurementErrMsg}}"
 					rateCreditsData="{{rateCreditsData}}">
 				</c-gp-credits-message>
 			{{/if}}
 
-			{{#if mobileShareResHeaderData && (focusModeActive || !focusModeAvailable)}}
+			{{#if view !== 'video' && mobileShareResHeaderData && (focusModeActive || !focusModeAvailable)}}
 				<p class="gp_map-block_test-details">
 					<i class="fa fa-info-circle" aria-hidden="true"></i>
 					Showing <strong>{{mobileShareResHeaderData.type}}</strong> test results for <strong>{{mobileShareResHeaderData.target}}</strong> from {{mobileShareResHeaderData.date}}.
@@ -704,7 +704,7 @@
 				{{/if}}
 			</div>
 
-			{{#if showCreditsData && (focusModeActive || !focusModeAvailable)}}
+			{{#if view !== 'video' && showCreditsData && (focusModeActive || !focusModeAvailable)}}
 				<c-gp-credits
 					mapOpened="{{showMap}}"
 					testInProgress="{{testInProgress}}"
@@ -714,10 +714,10 @@
 				</c-gp-credits>
 			{{/if}}
 
-			<div class="gp_map-block_test-output_stack">
-				{{#if focusModeAvailable && (!focusModeActive || focusModeOpening)}}
-					<div class="gp_map-block_test-output with-padding {{#if focusModeOpening}}gp_map-block_test-output_prompt-overlay{{/if}}">
-						<div class="gp_map-block_test-output_focus-prompt {{#if focusModeOpening}}gp_map-block_test-output_focus-prompt_exiting{{elseif focusModePromptEntering}}gp_map-block_test-output_focus-prompt_entering{{/if}}">
+			<div class="gp_map-block_test-output gp_map-block_test-output_stack">
+				{{#if focusModeAvailable && (!focusModeActive || focusModeTransition === 'opening')}}
+					<div class="gp_map-block_test-output with-padding {{#if focusModeTransition === 'opening'}}gp_map-block_test-output_prompt-overlay{{/if}}">
+						<div class="gp_map-block_test-output_info gp_map-block_test-output_focus-prompt {{#if focusModeTransition === 'opening'}}gp_map-block_test-output_focus-prompt_exiting{{elseif focusModeTransition === 'prompt-entering'}}gp_map-block_test-output_focus-prompt_entering{{/if}}">
 							<i class="fa fa-line-chart" aria-hidden="true"></i>
 							<div class="gp_map-block_test-output_focus-prompt_text">
 								<strong>{{focusModePromptStatus.title}}</strong>
@@ -735,9 +735,9 @@
 					</div>
 				{{/if}}
 
-				{{#if !focusModeAvailable || focusModeActive || focusModeContentLeaving}}
+				{{#if view !== 'video' && (!focusModeAvailable || focusModeActive || focusModeTransition === 'content-leaving')}}
 					{{#if measurementErrMsg && !showCreditsErrorBar}}
-						<div class="gp_map-block_test-output gp_map-block_test-output_focused-content {{#if focusModeContentLeaving}}gp_map-block_test-output_focused-content_leaving{{/if}} with-padding">
+						<div class="gp_map-block_test-output gp_map-block_test-output_focused-content {{#if focusModeTransition === 'content-leaving'}}gp_map-block_test-output_focused-content_leaving{{/if}} with-padding">
 							<div class="gp_map-block_test-output_fail-msg">
 								<img width="56"
 									height="56"
@@ -747,7 +747,7 @@
 							</div>
 						</div>
 					{{elseif testResults && (rawOutputMode || tableOutputReady)}}
-						<div class="gp_map-block_test-output gp_map-block_test-output_focused-content {{#if focusModeContentLeaving}}gp_map-block_test-output_focused-content_leaving{{/if}}">
+						<div class="gp_map-block_test-output gp_map-block_test-output_focused-content {{#if focusModeTransition === 'content-leaving'}}gp_map-block_test-output_focused-content_leaving{{/if}}">
 							<c-gp-results-controls
 								showMap="{{showMap}}"
 								originalShowMap="{{originalShowMap}}"
@@ -810,7 +810,7 @@
 							{{/if}}
 						</div>
 					{{elseif @this.shouldShowMeasurementLoadingInfo()}}
-						<div class="gp_map-block_test-output gp_map-block_test-output_focused-content {{#if focusModeContentLeaving}}gp_map-block_test-output_focused-content_leaving{{/if}} with-padding">
+						<div class="gp_map-block_test-output gp_map-block_test-output_focused-content {{#if focusModeTransition === 'content-leaving'}}gp_map-block_test-output_focused-content_leaving{{/if}} with-padding">
 							<div class="gp_map-block_test-output_info">
 								{{#if showMeasurementLoadingInfo}}
 									<div class="gp_map-block_test-output_info_text gp_map-block_test-output_info_text_entering">
@@ -818,13 +818,13 @@
 											height="56"
 											src="{{@shared.assetsHost}}/img/bulb-icon.svg">
 
-										<p>{{#if measurementLoadingSource === 'new'}}Measurement started{{else}}Measurement loading...{{/if}}</p>
+										<p>{{#if shareResFlow}}Measurement loading...{{else}}Measurement started{{/if}}</p>
 									</div>
 								{{/if}}
 							</div>
 						</div>
 					{{else}}
-						<div class="gp_map-block_test-output gp_map-block_test-output_focused-content {{#if focusModeContentLeaving}}gp_map-block_test-output_focused-content_leaving{{/if}} with-padding">
+						<div class="gp_map-block_test-output gp_map-block_test-output_focused-content {{#if focusModeTransition === 'content-leaving'}}gp_map-block_test-output_focused-content_leaving{{/if}} with-padding">
 							<div class="gp_map-block_test-output_info">
 								<div class="gp_map-block_test-output_info_text">
 									<img width="56"
@@ -844,7 +844,7 @@
 					{{/if}}
 				{{/if}}
 			</div>
-			{{#if rawOutputMode && showingNetworkLogos && (focusModeActive || !focusModeAvailable)}}
+			{{#if view !== 'video' && rawOutputMode && showingNetworkLogos && (focusModeActive || !focusModeAvailable)}}
 				<a class="gp_map-block_logo-dev-link" href="https://logo.dev" target="_blank" rel="noopener noreferrer">Network logos provided by Logo.dev</a>
 			{{/if}}
 		</div>
@@ -1839,20 +1839,11 @@
 				runTestBtnText: 'Run Test',
 				testReqParams: null,
 				focusModeOpen: false,
-				focusModeDismissed: false,
-				focusModeOpening: false,
-				focusModePromptEntering: false,
-				focusModeContentLeaving: false,
-				focusModeOpenTimeout: null,
-				focusModePromptTimeout: null,
+				focusModeTransition: null,
+				focusModeTransitionTimeout: null,
 				pendingResultId: null,
-				pendingResultNavigationId: 0,
-				pendingResultScrollFrame: null,
 				showMeasurementLoadingInfo: false,
-				measurementLoadingSource: null,
 				sharedMeasurementInitialLoading: false,
-				sharedMeasurementLoadFailed: false,
-				measurementLoadingInfoTimeout: null,
 				probesResponse: null,
 				clusterRadius: null,
 				nextClusterRadius: null,
@@ -1960,45 +1951,26 @@
 				let measurementErrMsg = this.get('measurementErrMsg');
 				let testResults = Object.values(this.get('testResults') || {});
 				let hasTestResults = testResults.some(results => results?.length);
+				let title = 'Measurement was stopped';
+				let description = 'Open focus mode to review any available measurement details.';
 
 				if (measurementErrMsg) {
-					return {
-						title: 'Measurement failed',
-						description: measurementErrMsg,
-					};
+					title = 'Measurement failed';
+					description = measurementErrMsg;
+				} else if (this.get('sharedMeasurementInitialLoading')) {
+					title = 'Measurement is loading';
+					description = 'The shared measurement results are still loading.';
+				} else if (this.get('testInProgress')) {
+					title = 'Measurement is running';
+					description = 'Open focus mode to view detailed results and sharing options as they become available.';
+				} else if (hasTestResults) {
+					title = 'Measurement results are ready';
+					description = 'Open focus mode to view detailed results and sharing options.';
 				}
 
-				if (this.get('sharedMeasurementInitialLoading')) {
-					return {
-						title: 'Measurement is loading',
-						description: 'The shared measurement results are still loading.',
-					};
-				}
-
-				if (this.get('testInProgress')) {
-					return {
-						title: 'Measurement is running',
-						description: 'Open focus mode to view detailed results and sharing options as they become available.',
-					};
-				}
-
-				if (hasTestResults) {
-					return {
-						title: 'Measurement results are ready',
-						description: 'Open focus mode to view detailed results and sharing options.',
-					};
-				}
-
-				return {
-					title: 'Measurement was stopped',
-					description: 'Open focus mode to review any available measurement details.',
-				};
+				return { title, description };
 			},
 			focusModeAvailable () {
-				if (this.get('view') === 'video') {
-					return false;
-				}
-
 				return !!(
 					this.get('testInProgress')
 					|| this.get('testResults')
@@ -2011,7 +1983,7 @@
 			focusModeActive () {
 				return this.get('view') !== 'video' && (
 					this.get('focusModeOpen')
-					|| (!!this.get('measurement') && !this.get('focusModeDismissed'))
+					|| (Ractive.isServer && !!this.get('measurement'))
 				);
 			},
 			anyResponseBodyCollapsible () {
@@ -2037,6 +2009,8 @@
 			},
 		},
 		onrender () {
+			this.focusModeRenderId = (this.focusModeRenderId || 0) + 1;
+
 			if (!Ractive.isServer) {
 				this.set('@shared.googleMapsLoaded', true);
 
@@ -2049,6 +2023,8 @@
 			}
 		},
 		oninit () {
+			this.pendingResultScrollFrame = null;
+
 			if (!Ractive.isServer) {
 				this.on('c-header.main-logo-click', () => {
 					this.set('measurement', '');
@@ -2082,18 +2058,9 @@
 
 					this.set('qsMeasurementIdsArr', qsMeasurementIdsArr);
 					this.set('shareResFlow', true);
-					this.set('measurementLoadingSource', 'existing');
 					this.set('sharedMeasurementInitialLoading', true);
-					this.set('sharedMeasurementLoadFailed', false);
 					this.set('prevProbesMeasId', qsMeasurementIdsArr[0]);
-					clearTimeout(this.get('focusModeOpenTimeout'));
-					clearTimeout(this.get('focusModePromptTimeout'));
-					this.set('focusModeOpenTimeout', null);
-					this.set('focusModePromptTimeout', null);
-					this.set('focusModeDismissed', !shouldOpenFocusMode);
-					this.set('focusModeOpening', false);
-					this.set('focusModePromptEntering', false);
-					this.set('focusModeContentLeaving', false);
+					this.clearFocusModeTransition();
 					this.set('focusModeOpen', shouldOpenFocusMode);
 
 					this.getMultipleTestMeasurementById(qsMeasurementIdsArr, isInfiniteMeas);
@@ -2152,27 +2119,32 @@
 
 				this.initResponseBodyCharWidth();
 
-				this.observe('focusModeActive testInProgress shareResFlow measurement testReqParams measurementLoadingSource sharedMeasurementInitialLoading', () => {
-					clearTimeout(this.get('measurementLoadingInfoTimeout'));
-					this.set('measurementLoadingInfoTimeout', null);
+				this.observe('view', (view, previousView) => {
+					if (view !== 'video' && previousView !== 'video') {
+						return;
+					}
+
+					this.clearFocusModeTransition();
+					this.set('focusModeOpen', false);
+				});
+
+				this.observe('focusModeActive testInProgress shareResFlow measurement testReqParams sharedMeasurementInitialLoading', () => {
+					clearTimeout(this.measurementLoadingInfoTimeout);
+					this.measurementLoadingInfoTimeout = null;
 					this.set('showMeasurementLoadingInfo', false);
+					let shouldShow = this.shouldShowMeasurementLoadingInfo();
 
-					if (!this.shouldShowMeasurementLoadingInfo()) {
-						return;
-					}
-
-					if (this.get('measurementLoadingSource') === 'existing') {
+					if (shouldShow && this.get('shareResFlow')) {
 						this.set('showMeasurementLoadingInfo', true);
-						return;
+					} else if (shouldShow) {
+						this.measurementLoadingInfoTimeout = setTimeout(() => {
+							this.measurementLoadingInfoTimeout = null;
+
+							if (this.shouldShowMeasurementLoadingInfo()) {
+								this.set('showMeasurementLoadingInfo', true);
+							}
+						}, 300);
 					}
-
-					this.set('measurementLoadingInfoTimeout', setTimeout(() => {
-						this.set('measurementLoadingInfoTimeout', null);
-
-						if (this.shouldShowMeasurementLoadingInfo()) {
-							this.set('showMeasurementLoadingInfo', true);
-						}
-					}, 300));
 				});
 
 				this.observe('pendingResultId focusModeActive tableOutputReady rawOutputMode', () => {
@@ -2439,6 +2411,10 @@
 					let infiniteSwitchEnabled = this.get('infiniteSwitchEnabled');
 					let targetsArrLength = this.get('targetsArr').length;
 
+					if (this.get('shareResFlow')) {
+						this.set('testInProgress', realTimeTestResResponse.some(r => r.status === 'in-progress'));
+					}
+
 					if (
 						!(targetsArrLength === 1 && infiniteSwitchEnabled)
 						&& Object.values(respStatuses).length === targetsArrLength
@@ -2601,7 +2577,7 @@
 				// check the statuses of probes in the measurement and stop measurement if all of them are failed
 				this.observe('testResults', (testResults) => {
 					for (let i in testResults) {
-						if (this.get('testInProgress') && this.get('isInfiniteModeRes') && testResults[i].every(r => r.result.status === PROBE_STATUS_FAILED)) {
+						if (this.get('testInProgress') && !this.get('shareResFlow') && this.get('isInfiniteModeRes') && testResults[i].every(r => r.result.status === PROBE_STATUS_FAILED)) {
 							this.stopCurrentTest();
 
 							return;
@@ -2733,6 +2709,7 @@
 			}
 		},
 		onunrender () {
+			this.focusModeRenderId = (this.focusModeRenderId || 0) + 1;
 			this.set('activeTestRunId', this.get('activeTestRunId') + 1);
 			let gmapsIdleListener = this.get('gmapsIdleListener');
 
@@ -2742,25 +2719,18 @@
 			}
 
 			clearTimeout(this.get('runTestBtnDelayTimeout'));
-			clearTimeout(this.get('focusModeOpenTimeout'));
-			clearTimeout(this.get('focusModePromptTimeout'));
-			clearTimeout(this.get('measurementLoadingInfoTimeout'));
-			this.set('pendingResultNavigationId', this.get('pendingResultNavigationId') + 1);
+			clearTimeout(this.get('focusModeTransitionTimeout'));
+			clearTimeout(this.measurementLoadingInfoTimeout);
+			this.measurementLoadingInfoTimeout = null;
 			this.cancelPendingResultScrollFrame();
 			this.set('pendingResultId', null);
 			this.get('testReqCancelFn')?.forEach(cancel => cancel?.());
 			this.set('testReqCancelFn', []);
 		},
 		shouldShowMeasurementLoadingInfo () {
-			if (!this.get('focusModeActive')) {
-				return false;
-			}
-
-			if (this.get('measurementLoadingSource') === 'existing') {
-				return this.get('sharedMeasurementInitialLoading');
-			}
-
-			return this.get('measurementLoadingSource') === 'new' && this.get('testInProgress');
+			return this.get('focusModeActive') && (this.get('shareResFlow')
+				? this.get('sharedMeasurementInitialLoading')
+				: this.get('testInProgress'));
 		},
 		isActiveTestRun (testRunId) {
 			return testRunId === null || testRunId === undefined || testRunId === this.get('activeTestRunId');
@@ -2799,18 +2769,20 @@
 			this.set('runTestBtnDisabled', false);
 			this.set('runTestBtnDelayTimeout', null);
 		},
+		clearFocusModeTransition () {
+			clearTimeout(this.get('focusModeTransitionTimeout'));
+
+			this.set({
+				focusModeTransition: null,
+				focusModeTransitionTimeout: null,
+			});
+		},
 		openFocusMode (event) {
 			event?.preventDefault?.();
 			let isMobileViewport = _.isMobileViewport();
 
-			clearTimeout(this.get('focusModeOpenTimeout'));
-			clearTimeout(this.get('focusModePromptTimeout'));
-			this.set('focusModeOpenTimeout', null);
-			this.set('focusModePromptTimeout', null);
-			this.set('focusModeDismissed', false);
-			this.set('focusModeOpening', !isMobileViewport);
-			this.set('focusModePromptEntering', false);
-			this.set('focusModeContentLeaving', false);
+			this.clearFocusModeTransition();
+			this.set('focusModeTransition', isMobileViewport ? null : 'opening');
 			this.set('focusModeOpen', true);
 
 			if (this.get('pendingResultId') === null) {
@@ -2818,9 +2790,9 @@
 			}
 
 			if (!isMobileViewport) {
-				this.set('focusModeOpenTimeout', setTimeout(() => {
-					this.set('focusModeOpening', false);
-					this.set('focusModeOpenTimeout', null);
+				this.set('focusModeTransitionTimeout', setTimeout(() => {
+					this.set('focusModeTransition', null);
+					this.set('focusModeTransitionTimeout', null);
 				}, FOCUS_MODE_CONTENT_SWAP_MS));
 			}
 
@@ -2833,25 +2805,26 @@
 				return;
 			}
 
-			clearTimeout(this.get('focusModeOpenTimeout'));
-			clearTimeout(this.get('focusModePromptTimeout'));
-			this.set('focusModeOpenTimeout', null);
-			this.set('focusModePromptTimeout', null);
-			this.set('focusModeOpening', false);
-			this.set('focusModePromptEntering', false);
-			this.set('focusModeContentLeaving', false);
-			this.set('focusModeDismissed', true);
+			this.cancelPendingResultScrollFrame();
+			this.set('pendingResultId', null);
+
+			let isMobileViewport = _.isMobileViewport();
+
+			this.clearFocusModeTransition();
 			this.set('focusModeOpen', false);
-			this.set('focusModeContentLeaving', true);
+			this.set('focusModeTransition', isMobileViewport ? null : 'content-leaving');
 			this.focusFocusModeToggleButton();
 
-			this.set('focusModePromptTimeout', setTimeout(() => {
-				this.set('focusModeContentLeaving', false);
-				this.set('focusModePromptEntering', true);
+			if (isMobileViewport) {
+				return;
+			}
 
-				this.set('focusModePromptTimeout', setTimeout(() => {
-					this.set('focusModePromptEntering', false);
-					this.set('focusModePromptTimeout', null);
+			this.set('focusModeTransitionTimeout', setTimeout(() => {
+				this.set('focusModeTransition', 'prompt-entering');
+
+				this.set('focusModeTransitionTimeout', setTimeout(() => {
+					this.set('focusModeTransition', null);
+					this.set('focusModeTransitionTimeout', null);
 				}, FOCUS_MODE_PROMPT_ENTER_MS));
 			}, FOCUS_MODE_CONTENT_EXIT_MS));
 		},
@@ -2898,7 +2871,13 @@
 			}
 		},
 		focusFocusModeToggleButton () {
+			let renderId = this.focusModeRenderId;
+
 			this.update().then(() => {
+				if (this.focusModeRenderId !== renderId) {
+					return;
+				}
+
 				this.focusWithoutScroll(this.find('.gp_map-block_header_focus-toggle'));
 			});
 		},
@@ -3002,14 +2981,7 @@
 			this.set('_measurementOgDescription', null);
 			this.set('showingNetworkLogos', false);
 			this.set('activeTestRunId', testRunId);
-			clearTimeout(this.get('focusModeOpenTimeout'));
-			clearTimeout(this.get('focusModePromptTimeout'));
-			this.set('focusModeOpenTimeout', null);
-			this.set('focusModePromptTimeout', null);
-			this.set('focusModeDismissed', false);
-			this.set('focusModeOpening', false);
-			this.set('focusModePromptEntering', false);
-			this.set('focusModeContentLeaving', false);
+			this.clearFocusModeTransition();
 			this.set('focusModeOpen', true);
 
 			if (!_.isMobileViewport()) {
@@ -3432,14 +3404,10 @@
 				return;
 			}
 
-			let navigationId = this.get('pendingResultNavigationId') + 1;
-
 			this.cancelPendingResultScrollFrame();
-			this.set('pendingResultNavigationId', navigationId);
 
 			let isCurrentNavigation = () => this.get('focusModeActive')
-				&& this.get('pendingResultId') === clientSideId
-				&& this.get('pendingResultNavigationId') === navigationId;
+				&& this.get('pendingResultId') === clientSideId;
 
 			this.update().then(() => {
 				if (!isCurrentNavigation()) {
@@ -3460,9 +3428,11 @@
 				let retryUntil = performance.now() + PENDING_RESULT_SCROLL_TIMEOUT_MS;
 				let findAndScrollToResult = () => {
 					let frame = requestAnimationFrame(() => {
-						if (this.get('pendingResultScrollFrame') === frame) {
-							this.set('pendingResultScrollFrame', null);
+						if (this.pendingResultScrollFrame !== frame) {
+							return;
 						}
+
+						this.pendingResultScrollFrame = null;
 
 						if (!isCurrentNavigation()) {
 							return;
@@ -3496,18 +3466,16 @@
 						}
 					});
 
-					this.set('pendingResultScrollFrame', frame);
+					this.pendingResultScrollFrame = frame;
 				};
 
 				findAndScrollToResult();
 			});
 		},
 		cancelPendingResultScrollFrame () {
-			let frame = this.get('pendingResultScrollFrame');
-
-			if (frame !== null) {
-				cancelAnimationFrame(frame);
-				this.set('pendingResultScrollFrame', null);
+			if (this.pendingResultScrollFrame !== null) {
+				cancelAnimationFrame(this.pendingResultScrollFrame);
+				this.pendingResultScrollFrame = null;
 			}
 		},
 		initResponseBodyCharWidth () {
@@ -3923,13 +3891,11 @@
 			this.set({
 				shareResFlow: false,
 				sharedMeasurementInitialLoading: false,
-				sharedMeasurementLoadFailed: false,
 			});
 
 			this.get('testReqCancelFn')?.forEach(cancel => cancel?.());
 			this.set('testReqCancelFn', []);
 			this.disableRunTestBtnForDelay();
-			this.set('measurementLoadingSource', 'new');
 			this.set('testInProgress', true);
 
 			let mq = window.matchMedia('(min-width: 768px)');
@@ -4075,8 +4041,19 @@
 			return Math.max(0, window.scrollY + mapBlockEl.getBoundingClientRect().top - currentTransformY + focusModeOffsetY - scrollOffset);
 		},
 		scrollFocusModeRootAfterRender (scrollOffset = FOCUS_MODE_SCROLL_OFFSET) {
+			let scheduledScrollY = window.scrollY;
+			let renderId = this.focusModeRenderId;
+
 			this.update().then(() => {
-				requestAnimationFrame(() => this.scrollFocusModeRootIntoView(scrollOffset));
+				if (this.focusModeRenderId !== renderId) {
+					return;
+				}
+
+				requestAnimationFrame(() => {
+					if (this.focusModeRenderId === renderId && window.scrollY === scheduledScrollY) {
+						this.scrollFocusModeRootIntoView(scrollOffset);
+					}
+				});
 			});
 		},
 		updateMapMarkerWithIW (marker, markerData, currentMarkerIdx) {
@@ -4171,12 +4148,12 @@
 				}
 
 				this.set('sharedMeasurementInitialLoading', false);
-			} catch (error) {
-				this.handleSharedMeasurementLoadError(error);
+			} catch {
+				// getTestMeasurementById handles shared measurement errors before rejecting.
 			}
 		},
 		handleSharedMeasurementLoadError (error) {
-			if (!this.get('shareResFlow') || this.get('sharedMeasurementLoadFailed')) {
+			if (!this.get('shareResFlow') || this.get('measurementErrMsg')) {
 				return;
 			}
 
@@ -4184,9 +4161,8 @@
 
 			this.set({
 				testReqCancelFn: [],
-				measurementLoadingSource: null,
+				testInProgress: false,
 				sharedMeasurementInitialLoading: false,
-				sharedMeasurementLoadFailed: true,
 				measurementErrMsg: error.responseStatusCode === 404
 					? 'This measurement has expired or is no longer available.'
 					: 'Unable to load this measurement. Please try again later.',

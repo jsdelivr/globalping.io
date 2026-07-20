@@ -12,18 +12,6 @@
 	}
 }
 
-@keyframes gp-focus-details-exit {
-	from {
-		opacity: 1;
-		transform: translateY(0);
-	}
-
-	to {
-		opacity: 0;
-		transform: translateY(32px);
-	}
-}
-
 @keyframes gp-focus-content-enter {
 	from {
 		opacity: 0;
@@ -33,30 +21,6 @@
 	to {
 		opacity: 1;
 		transform: translateY(0);
-	}
-}
-
-@keyframes gp-focus-content-exit {
-	from {
-		opacity: 1;
-		transform: translateY(0);
-	}
-
-	to {
-		opacity: 0;
-		transform: translateY(10px);
-	}
-}
-
-@keyframes gp-focus-prompt-exit {
-	from {
-		opacity: 1;
-		transform: translateY(0);
-	}
-
-	to {
-		opacity: 0;
-		transform: translateY(-6px);
 	}
 }
 
@@ -91,16 +55,12 @@
 	}
 
 	&.focus-mode-open {
-		padding-bottom: 0;
-
 		@media (max-width: @screen-xs-max) {
+			padding-bottom: 0;
+
 			.gp_main-info, .c-gp-jumbotron {
 				display: none;
 			}
-		}
-
-		@media (min-width: @screen-sm-min) {
-			padding-bottom: 88px;
 		}
 
 		.gp_main-info {
@@ -345,25 +305,23 @@
 			}
 		}
 
-		&_focus-mode {
-			&-backdrop {
-				position: fixed;
-				inset: 0;
-				z-index: 1040;
-				opacity: 0;
-				background: rgba(0, 0, 0, .02);
-				backdrop-filter: blur(0);
-				pointer-events: none;
-				transition:
-					opacity .42s ease,
-					backdrop-filter .42s ease;
+		&_focus-mode-backdrop {
+			position: fixed;
+			inset: 0;
+			z-index: 1040;
+			opacity: 0;
+			background: rgba(0, 0, 0, .02);
+			backdrop-filter: blur(0);
+			pointer-events: none;
+			transition:
+				opacity .42s ease,
+				backdrop-filter .42s ease;
 
-				@media (min-width: @screen-sm-min) {
-					&.active {
-						opacity: 1;
-						backdrop-filter: blur(8px);
-						pointer-events: auto;
-					}
+			@media (min-width: @screen-sm-min) {
+				&.active {
+					opacity: 1;
+					backdrop-filter: blur(8px);
+					pointer-events: auto;
 				}
 			}
 		}
@@ -379,21 +337,8 @@
 			z-index: 1050;
 			box-shadow: 0 0 0 rgba(0, 0, 0, 0);
 			transition: width .42s ease, max-width .42s ease, margin-bottom .42s ease, box-shadow .21s ease, transform .42s ease;
-			padding-bottom: 40px;
 
 			body.modal-open & {
-				z-index: 1;
-			}
-
-			// hide visual artifact below the div on mobile (flashing dark line)
-			&:after {
-				position: absolute;
-				content: "";
-				bottom: -1px;
-				left: 0;
-				width: 100%;
-				height: 2px;
-				background: #fff;
 				z-index: 1;
 			}
 
@@ -404,24 +349,12 @@
 				border: 1.5px solid #e7e7ee;
 				box-shadow: 0 2px 2px rgba(0, 0, 0, .04);
 				border-radius: 8px;
-				padding-bottom: 0;
-
-				&:after {
-					display: none;
-				}
 			}
 
 			&_focus-mode {
-				position: relative;
-				width: 100%;
-				max-width: none;
-				margin: 0;
-				overflow: visible;
-				border-radius: 0;
 				box-shadow:
 					0 28px 90px rgba(0, 0, 0, .22),
 					0 0 0 1px rgba(255, 255, 255, .42);
-				transform: none;
 
 				&:after {
 					display: none;
@@ -431,19 +364,10 @@
 					--focus-mode-offset-y: -400px;
 					transform: translateY(var(--focus-mode-offset-y));
 					margin-bottom: -400px;
-					width: calc(100% - 48px);
-					max-width: 1304px;
-					margin-right: auto;
-					margin-left: auto;
-					border-radius: 8px;
 				}
 
 				@media (min-width: @screen-lg-min) {
 					margin-bottom: -340px;
-				}
-
-				.gp_map-block_header {
-					display: flex;
 				}
 
 				.c-gp-credits, .c-gp-credits-message, .gp_map-block_test-details, .gp_map-block_logo-dev-link {
@@ -493,7 +417,6 @@
 
 				&_share-res-msg {
 					width: auto;
-					flex: 0 1 auto;
 					text-align: center;
 				}
 
@@ -1104,8 +1027,12 @@
 								font-weight: 400;
 								line-height: 20px;
 								letter-spacing: 0;
+								appearance: none;
+								background: transparent;
+								border: 0;
 								padding: 0 16px;
 								cursor: pointer;
+								text-align: left;
 
 								&:hover, &.active {
 									background: #f3f5f7;
@@ -1151,29 +1078,20 @@
 
 				&_stack {
 					position: relative;
-					width: 100%;
 				}
 
-				&_prompt-overlay {
+				&_prompt-overlay, &_focused-content_leaving {
 					position: absolute;
-					top: 0;
-					right: 0;
-					left: 0;
+					inset: 0 0 auto;
 					z-index: 1;
 					pointer-events: none;
 				}
 
 				&_focused-content_leaving {
-					position: absolute;
-					top: 0;
-					right: 0;
-					left: 0;
-					z-index: 1;
 					background: #fff;
-					pointer-events: none;
 
 					> * {
-						animation: gp-focus-content-exit .18s ease-in both;
+						animation: gp-focus-content-enter .18s ease-out reverse both;
 					}
 				}
 
@@ -1227,15 +1145,9 @@
 				}
 
 				&_focus-prompt {
-					display: flex;
-					flex-direction: column;
-					align-items: center;
 					justify-content: center;
 					gap: 24px;
-					width: 100%;
 					padding: 32px 24px;
-					background: #fbfbfb;
-					border-radius: 8px;
 					color: #17233a;
 					text-align: center;
 
@@ -1281,7 +1193,7 @@
 					}
 
 					&_exiting {
-						animation: gp-focus-prompt-exit .15s ease-in both;
+						animation: gp-focus-prompt-enter .15s ease-out reverse both;
 					}
 
 					&_entering {
@@ -1348,28 +1260,35 @@
 			}
 
 			@media (max-width: @screen-xs-max) {
-				transition: none;
+				padding-bottom: 40px;
 
-				&_map-wrapper {
+				&, &_map-wrapper {
 					transition: none;
 				}
 
-				&_focus-mode {
-					.gp_map-block_test-details,
-					.gp_map-block_test-output_focused-content,
-					.gp_map-block_test-output_focused-content_leaving > *,
-					.gp_map-block_test-output_info_text_entering,
-					.gp_map-block_test-output_focus-prompt_entering,
-					.gp_map-block_test-output_focus-prompt_exiting {
-						animation: none;
-					}
+				// hide visual artifact below the div on mobile (flashing dark line)
+				&:after {
+					position: absolute;
+					content: "";
+					bottom: -1px;
+					left: 0;
+					width: 100%;
+					height: 2px;
+					background: #fff;
+					z-index: 1;
 				}
-			}
-		}
 
-		@media (max-width: @screen-xs-max) {
-			&_focus-mode-backdrop {
-				transition: none;
+				.c-gp-credits,
+				.c-gp-credits-message,
+				.gp_map-block_test-details,
+				.gp_map-block_test-output_focused-content,
+				.gp_map-block_test-output_focused-content_leaving > *,
+				.gp_map-block_test-output_info_text_entering,
+				.gp_map-block_test-output_focus-prompt_entering,
+				.gp_map-block_test-output_focus-prompt_exiting,
+				.gp_map-block_logo-dev-link {
+					animation: none;
+				}
 			}
 		}
 
