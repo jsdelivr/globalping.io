@@ -51,7 +51,7 @@
 
 	<c-notification></c-notification>
 
-	<c-gp-header additionalClasses="header-with-globalping-bg no-border"></c-gp-header>
+	<c-gp-header additionalClasses="header-with-globalping-bg no-border" isInert="{{focusModeActive}}"></c-gp-header>
 
 	<div class="p-globalping {{#if focusModeActive}}focus-mode-open{{/if}}">
 		<c-gp-jumbotron className="main" gridType="globe"></c-gp-jumbotron>
@@ -1561,7 +1561,7 @@
 		</div>
 	</div>
 
-	<c-gp-footer></c-gp-footer>
+	<c-gp-footer isInert="{{focusModeActive}}"></c-gp-footer>
 </r-page>
 
 <script>
