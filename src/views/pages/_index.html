@@ -4266,6 +4266,7 @@
 				let inputErrors = _.parseValidationErrors(err.error, isSecondTarget && targetsArr[1]);
 
 				this.set('inputErrors', inputErrors);
+				this.set('measurementErrMsg', 'Please correct the highlighted fields and run the measurement again.');
 
 				// open measurement options menu if it contains errors
 				if (measurementOptsErr) {
