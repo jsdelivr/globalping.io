@@ -364,10 +364,10 @@
 			if (![ url, `gpp://${url}` ].some((url) => {
 				try {
 					let { protocol, port, pathname, hostname, search } = new URL(url);
-					protocol = [ 'http:', 'https:', 'http2:' ].includes(protocol.toLowerCase()) ? protocol.replace(':', '') : 'https';
 					pathname = pathname !== '/' ? pathname : '';
 					search = search.replace('?', '');
-					resetProtocolPortPathQuery ||= protocol || port || pathname || search;
+					resetProtocolPortPathQuery ||= protocol !== 'gpp:' || port || pathname || search;
+					protocol = [ 'http:', 'https:', 'http2:' ].includes(protocol.toLowerCase()) ? protocol.replace(':', '') : 'https';
 
 					if (!hostname) {
 						// Just one extra check. The constructor above may throw too.
