@@ -263,7 +263,7 @@
 					let tagsArr = this.get('tagsArr');
 					let valuesDelimiter = this.get('valuesDelimiter');
 
-					this.handleOptsOnTargetInputFullURL(rawPasteContent, tagsArr, valuesDelimiter);
+					this.handleOptsOnTargetInputFullURL(rawPasteContent, tagsArr, valuesDelimiter, true);
 				});
 
 				// toggle IP version switch on SPACE
@@ -360,38 +360,45 @@
 			this.set('inputValue', this.get('tagsArr')[index]);
 			this.removeTagByIdx(index);
 		},
-		handleOptsOnTargetInputFullURL (url, tagsArr = null, delimiter = null) {
-			try {
-				let { protocol, port, pathname, hostname, search } = new URL(url);
-				pathname = pathname !== '/' ? pathname : '';
-				search = search.replace('?', '');
+		handleOptsOnTargetInputFullURL (url, tagsArr = null, delimiter = null, resetProtocolPortPathQuery = false) {
+			if (![ url, `gpp://${url}` ].some((url) => {
+				try {
+					let { protocol, port, pathname, hostname, search } = new URL(url);
+					protocol = [ 'http:', 'https:', 'http2:' ].includes(protocol.toLowerCase()) ? protocol.replace(':', '') : 'https';
+					pathname = pathname !== '/' ? pathname : '';
+					search = search.replace('?', '');
+					resetProtocolPortPathQuery ||= protocol || port || pathname || search;
 
-				if (!hostname) {
-					// Just one extra check. The constructor above may throw too.
-					throw new Error('Invalid URL');
+					if (!hostname) {
+						// Just one extra check. The constructor above may throw too.
+						throw new Error('Invalid URL');
+					}
+
+					if (pathname || search) {
+						this.set('gpMainOpts.type', 'HTTP');
+					}
+
+					if (this.get('gpMainOpts.type') === 'HTTP' && resetProtocolPortPathQuery) {
+						this.set('gpHttpOpts.protocol', protocol?.toUpperCase());
+						this.set('gpNotAppliedOpts.request.path', pathname);
+						this.set('gpNotAppliedOpts.request.query', search);
+					}
+
+					this.set('gpMainOpts.target', tagsArr ? [ ...tagsArr, hostname ].join(delimiter) : hostname);
+					resetProtocolPortPathQuery && this.set('gpNotAppliedOpts.port', port);
+					this.set('tagsArr', tagsArr ? [ ...tagsArr, hostname ] : [ hostname ]);
+				} catch {
+					return false;
 				}
 
-				if (pathname || search) {
-					this.set('gpMainOpts.type', 'HTTP');
-				}
-
-				if (this.get('gpMainOpts.type') === 'HTTP') {
-					this.set('gpHttpOpts.protocol', protocol.replace(':', '').toUpperCase());
-					this.set('gpNotAppliedOpts.request.path', pathname);
-					this.set('gpNotAppliedOpts.request.query', search);
-				}
-
-				this.set('gpMainOpts.target', tagsArr ? [ ...tagsArr, hostname ].join(delimiter) : hostname);
-				this.set('gpNotAppliedOpts.port', port);
-				this.set('tagsArr', tagsArr ? [ ...tagsArr, hostname ] : [ hostname ]);
-			} catch {
+				return true;
+			})) {
 				this.set('gpMainOpts.target', tagsArr ? [ ...tagsArr, url ].join(delimiter) : url);
 				this.set('tagsArr', tagsArr ? [ ...tagsArr, url ] : [ url ]);
-			} finally {
-				let gpUrlHandlerCb = this.get('gpUrlHandlerCb');
-
-				gpUrlHandlerCb();
 			}
+
+			let gpUrlHandlerCb = this.get('gpUrlHandlerCb');
+			gpUrlHandlerCb();
 		},
 		handleIpVersionSwitch (ipVersion) {
 			let isDisabled = this.get('isDisabled');
