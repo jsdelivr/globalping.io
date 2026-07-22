@@ -24,6 +24,16 @@
 	}
 }
 
+@keyframes gp-results-preview-expand {
+	from {
+		clip-path: inset(0 0 calc(100% - 300px));
+	}
+
+	to {
+		clip-path: inset(0);
+	}
+}
+
 @keyframes gp-focus-prompt-enter {
 	from {
 		opacity: 0;
@@ -323,6 +333,12 @@
 					backdrop-filter: blur(8px);
 					pointer-events: auto;
 				}
+
+				&_closing {
+					opacity: 0;
+					backdrop-filter: blur(0);
+					transition: none;
+				}
 			}
 		}
 
@@ -373,6 +389,21 @@
 
 				.gp_map-block_test-output_focused-content {
 					animation: gp-focus-content-enter .24s ease-out both;
+				}
+
+				.gp_map-block_test-output_results-preview_expanding {
+					animation: gp-results-preview-expand .42s cubic-bezier(.16, 1, .3, 1) both;
+				}
+
+				.gp_map-block_test-output_results-preview_expanded {
+					animation: none;
+				}
+			}
+
+			&_results-leaving {
+				@media (min-width: @screen-sm-min) {
+					box-shadow: 0 2px 2px rgba(0, 0, 0, .04);
+					transition: width .42s ease, max-width .42s ease, margin-bottom .42s ease, transform .42s ease;
 				}
 			}
 
@@ -1089,6 +1120,66 @@
 
 					> * {
 						animation: gp-focus-content-enter .18s ease-out reverse both;
+					}
+				}
+
+				&_results-preview-content {
+					width: 100%;
+				}
+
+				&_results-preview {
+					position: relative;
+					justify-content: flex-start;
+					max-height: 300px;
+					overflow: hidden;
+					border-bottom: 1px solid #e7e7ee;
+
+					&_entering {
+						animation: gp-focus-prompt-enter .18s ease-out both;
+					}
+
+					@media (min-width: @screen-sm-min) {
+						border-bottom: none;
+						border-radius: 0 0 6px 6px;
+					}
+
+					> .gp_map-block_test-output_results-preview-content {
+						pointer-events: none;
+						user-select: none;
+					}
+
+					&-action {
+						position: absolute;
+						display: flex;
+						height: 100%;
+						width: 100%;
+						align-items: center;
+						justify-content: center;
+						background: linear-gradient(to top, #fff 0, #ffffffb3 55%, #fff6 100%);
+						z-index: 2;
+						pointer-events: none;
+
+						&_button {
+							display: flex;
+							align-items: center;
+							justify-content: center;
+							gap: 8px;
+							width: fit-content;
+							padding: 7px 14px;
+							background: #fff;
+							border: 1px solid #e7e7ee;
+							border-radius: 16px;
+							box-shadow: 2px 2px 6px 0 rgba(0, 0, 0, .03);
+							font-size: 13px;
+							font-weight: 600;
+							transition: all .1s ease-in-out;
+							pointer-events: auto;
+
+							&:hover {
+								background: #f9fafb;
+								box-shadow: 2px 2px 6px 0 rgba(0, 0, 0, .05);
+							}
+						}
 					}
 				}
 
