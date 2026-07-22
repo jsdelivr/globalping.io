@@ -1,0 +1,366 @@
+{{#if locationBreakdown.length}}
+	<div class="c-measurement-breakdown">
+		<div class="c-measurement-breakdown_header">
+			<span>Location breakdown</span>
+		</div>
+
+		<div class="c-measurement-breakdown_locations">
+			{{#each locationBreakdown}}
+				<section class="c-measurement-breakdown_location">
+					<h3>
+						<i class="fa fa-map-marker" aria-hidden="true"></i>
+						{{this.location}}
+					</h3>
+
+					<div class="c-measurement-breakdown_targets {{#if this.targets.length > 1}}multi-target{{/if}}">
+						{{#each this.targets}}
+							<div class="c-measurement-breakdown_target">
+								{{#if this.showTarget}}
+									<div class="c-measurement-breakdown_target_name" title="{{this.target}}">{{this.target}}</div>
+								{{/if}}
+
+								<div class="c-measurement-breakdown_metrics">
+									{{#each this.metrics}}
+										<div class="c-measurement-breakdown_metric">
+											<span>{{this.label}}</span>
+											<strong>{{this.value}}</strong>
+										</div>
+									{{/each}}
+								</div>
+							</div>
+						{{/each}}
+					</div>
+				</section>
+			{{/each}}
+		</div>
+	</div>
+{{/if}}
+
+<script>
+	const countries = require('../../assets/json/countries.json');
+	const continents = require('../../assets/json/continents.json');
+	const states = require('../../assets/json/usa-states.json');
+
+	const COUNTRIES_BY_CODE = Object.fromEntries(countries.map(country => [ country.code, country.name ]));
+	const CONTINENTS_BY_CODE = Object.fromEntries(continents.map(continent => [ continent.code, continent.name ]));
+	const STATES_BY_CODE = Object.fromEntries(states.map(state => [ `US-${state.code}`, state.name ]));
+	const LOCATION_FIELDS = [ 'continent', 'region', 'country', 'state', 'city', 'asn', 'network', 'tags' ];
+	const escapePattern = string => string.replace(/[\\^$.*+?()[\]{}|]/g, '\\$&');
+	const normalizeValue = value => String(value ?? '').trim().toLowerCase();
+
+	const getProbeValues = (probe) => {
+		let countryCode = String(probe.country || '').toUpperCase();
+		let countryName = COUNTRIES_BY_CODE[countryCode] || probe.country || '';
+		let continentCode = String(probe.continent || '').toUpperCase();
+		let continentName = CONTINENTS_BY_CODE[continentCode] || probe.continent || '';
+		let rawState = String(probe.state || '');
+		let stateCode = rawState ? /^US-/i.test(rawState) ? rawState.toUpperCase() : `US-${rawState.toUpperCase()}` : '';
+		let stateName = STATES_BY_CODE[stateCode] || '';
+		let rawAsn = String(probe.asn || '').replace(/^AS/i, '');
+		let tags = probe.tags || [];
+		let countryValues = [ countryName, countryCode ];
+
+		if (countryCode === 'GB') {
+			countryValues.push('UK', 'Great Britain', 'England');
+		}
+
+		return {
+			city: [ probe.city, stateCode, stateName, ...countryValues ],
+			region: [ probe.region ],
+			state: [ stateCode, rawState, stateName ],
+			country: countryValues,
+			continent: [ continentName, continentCode ],
+			asn: rawAsn ? [ `AS${rawAsn}`, rawAsn ] : [],
+			network: [ probe.network ],
+			tags,
+		};
+	};
+
+	const filterProbesByMagic = (probes, magic) => {
+		let normalizedProbes = probes.map(probe => ({
+			original: probe,
+			allValues: Object.values(getProbeValues(probe))
+				.flat()
+				.map(normalizeValue)
+				.filter(Boolean)
+				.join('\n'),
+		}));
+		let conditions = String(magic || '').split('+')
+			.map(normalizeValue)
+			.filter(Boolean)
+			.sort();
+
+		return conditions.reduce((filteredProbes, condition) => {
+			if (condition === 'world') {
+				return filteredProbes;
+			}
+
+			let exactPattern = new RegExp(`(?:^|\\n)${escapePattern(condition)}(?:$|\\n)`, 'm');
+			let exactMatchFound = false;
+			let looseMatchFound = false;
+
+			filteredProbes = filteredProbes.filter((probe) => {
+				if (!probe.allValues.includes(condition)) {
+					return false;
+				}
+
+				if (exactPattern.test(probe.allValues)) {
+					exactMatchFound = true;
+				} else {
+					looseMatchFound = true;
+				}
+
+				return true;
+			});
+
+			if (exactMatchFound && looseMatchFound) {
+				filteredProbes = filteredProbes.filter(probe => exactPattern.test(probe.allValues));
+			}
+
+			return filteredProbes;
+		}, normalizedProbes).map(probe => probe.original);
+	};
+
+	const doesProbeMatchLocation = (probe, location) => {
+		let rawAsn = normalizeValue(probe.asn).replace(/^as/, '');
+		let probeValues = {
+			continent: [ probe.continent ],
+			region: [ probe.region ],
+			country: [ probe.country ],
+			state: [ probe.state ],
+			city: [ probe.city ],
+			asn: rawAsn ? [ rawAsn ] : [],
+			network: [ probe.network ],
+			tags: probe.tags || [],
+		};
+
+		return LOCATION_FIELDS.every((field) => {
+			let requestedValues = Array.isArray(location[field]) ? location[field] : [ location[field] ];
+			requestedValues = requestedValues
+				.map(value => field === 'asn' ? normalizeValue(value).replace(/^as/, '') : normalizeValue(value))
+				.filter(Boolean);
+
+			if (!requestedValues.length) {
+				return true;
+			}
+
+			let values = probeValues[field].map(normalizeValue);
+
+			return requestedValues.every(value => values.includes(value));
+		});
+	};
+
+	const getLocationLabel = (location) => {
+		if (location.magic) {
+			return String(location.magic).trim();
+		}
+
+		let labels = {
+			continent: 'Continent',
+			region: 'Region',
+			country: 'Country',
+			state: 'State',
+			city: 'City',
+			asn: 'ASN',
+			network: 'Network',
+			tags: 'Tags',
+		};
+
+		return LOCATION_FIELDS.flatMap((field) => {
+			let values = Array.isArray(location[field]) ? location[field] : [ location[field] ];
+			values = values.filter(value => value !== null && typeof value !== 'undefined' && value !== '');
+
+			return values.length ? `${labels[field]}: ${values.join(' + ')}` : [];
+		}).join(' \u00b7 ') || 'All locations';
+	};
+
+	component.exports = {
+		data () {
+			return {
+				locations: [],
+				preparedTestResults: [],
+				targets: [],
+				testType: '',
+			};
+		},
+		computed: {
+			locationBreakdown () {
+				let preparedTestResults = this.get('preparedTestResults') || [];
+				let targetsArr = this.get('targets') || [];
+				let testType = this.get('testType')?.toLowerCase();
+
+				if (!preparedTestResults.length || !testType) {
+					return [];
+				}
+
+				let formatNumber = value => Math.round(value * 10) / 10;
+				let average = (values) => {
+					let numericValues = values.filter(value => typeof value === 'number' && Number.isFinite(value));
+
+					if (!numericValues.length) {
+						return null;
+					}
+
+					return formatNumber(numericValues.reduce((sum, value) => sum + value, 0) / numericValues.length);
+				};
+				let range = (values, units = '') => {
+					let numericValues = values.filter(value => typeof value === 'number' && Number.isFinite(value));
+
+					if (!numericValues.length) {
+						return null;
+					}
+
+					let min = formatNumber(Math.min(...numericValues));
+					let max = formatNumber(Math.max(...numericValues));
+
+					return `${min}${min === max ? '' : ` - ${max}`}${units}`;
+				};
+				let countValues = (values) => {
+					let counts = values.reduce((result, value) => {
+						if (value !== null && typeof value !== 'undefined' && value !== '') {
+							result[value] = (result[value] || 0) + 1;
+						}
+
+						return result;
+					}, {});
+
+					return Object.entries(counts)
+						.sort((a, b) => b[1] - a[1] || String(a[0]).localeCompare(String(b[0])))
+						.map(([ value, count ]) => `${value} \u00d7 ${count}`)
+						.join(', ');
+				};
+				let requestedLocations = this.get('locations');
+				requestedLocations = Array.isArray(requestedLocations) ? requestedLocations : [];
+				let unmatchedResults = [ ...preparedTestResults ];
+				let groups = requestedLocations.map((location) => {
+					let results = location.magic
+						? filterProbesByMagic(unmatchedResults, location.magic)
+						: unmatchedResults.filter(result => doesProbeMatchLocation(result, location));
+					let matchedResults = new Set(results);
+
+					unmatchedResults = unmatchedResults.filter(result => !matchedResults.has(result));
+
+					return {
+						location: getLocationLabel(location),
+						results,
+					};
+				});
+
+				if (unmatchedResults.length) {
+					groups.push({
+						location: requestedLocations.length ? 'Other matched probes' : 'All locations',
+						results: unmatchedResults,
+					});
+				}
+
+				let observedTargetCount = Math.max(0, ...preparedTestResults.map(result => result.statsPerTarget?.length || 0));
+				let targetCount = Math.max(targetsArr.length, observedTargetCount);
+
+				return groups.map((group) => {
+					let targets = [];
+
+					for (let targetIdx = 0; targetIdx < targetCount; targetIdx++) {
+						let targetStats = group.results
+							.map(result => result.statsPerTarget?.[targetIdx])
+							.filter(Boolean);
+						let metrics = [{
+							label: 'Probes',
+							value: group.results.length,
+						}];
+						let readyCount = targetStats.filter(stats => Object.hasOwn(stats, 'rawOutput')).length;
+						let failedCount = targetStats.filter(stats => stats.isFailed).length;
+						let offlineCount = targetStats.filter(stats => stats.isOffline).length;
+						let avgTiming = average(targetStats.map(stats => stats.avgTiming));
+						let addAverageMetric = (label, values, units = '') => {
+							let value = average(values);
+
+							if (value !== null) {
+								metrics.push({ label, value: `${value}${units}` });
+							}
+						};
+
+						metrics.push({ label: 'Results ready', value: `${readyCount} / ${group.results.length}` });
+
+						if (avgTiming !== null) {
+							metrics.push({
+								label: testType === 'dns' ? 'Avg query time' : testType === 'http' ? 'Avg total time' : 'Avg latency',
+								value: `${avgTiming} ms`,
+							});
+						}
+
+						if (testType === 'ping') {
+							let timingRange = range([
+								...targetStats.map(stats => stats.minTiming),
+								...targetStats.map(stats => stats.maxTiming),
+							], ' ms');
+
+							if (timingRange) {
+								metrics.push({ label: 'Latency range', value: timingRange });
+							}
+
+							addAverageMetric('Avg packet loss', targetStats.map(stats => stats.packetLoss), '%');
+						} else if (testType === 'traceroute') {
+							let hopsRange = range(targetStats.map(stats => stats.extraValues?.hops?.value));
+
+							if (hopsRange) {
+								metrics.push({ label: 'Hop count', value: hopsRange });
+							}
+						} else if (testType === 'mtr') {
+							addAverageMetric('Avg packet loss', targetStats.map(stats => stats.packetLoss), '%');
+
+							let hopsRange = range(targetStats.map(stats => stats.extraValues?.hops?.value));
+
+							if (hopsRange) {
+								metrics.push({ label: 'Hop count', value: hopsRange });
+							}
+						} else if (testType === 'dns') {
+							addAverageMetric('Avg answers', targetStats.map(stats => stats.extraValues?.answers?.value));
+
+							let statuses = countValues(targetStats.map(stats => stats.extraValues?.dnsStatus?.value));
+
+							if (statuses) {
+								metrics.push({ label: 'DNS status', value: statuses });
+							}
+						} else if (testType === 'http') {
+							let statuses = countValues(targetStats.map(stats => stats.extraValues?.httpStatus?.value));
+
+							if (statuses) {
+								metrics.push({ label: 'HTTP status', value: statuses });
+							}
+
+							[
+								[ 'Avg DNS', 'dns' ],
+								[ 'Avg TCP', 'tcp' ],
+								[ 'Avg TLS', 'tls' ],
+								[ 'Avg TTFB', 'firstByte' ],
+								[ 'Avg download', 'download' ],
+							].forEach(([ label, key ]) => addAverageMetric(label, targetStats.map(stats => stats.extraValues?.[key]?.value), ' ms'));
+						}
+
+						if (failedCount || offlineCount) {
+							let unavailable = [];
+
+							if (failedCount) {
+								unavailable.push(`${failedCount} failed`);
+							}
+
+							if (offlineCount) {
+								unavailable.push(`${offlineCount} offline`);
+							}
+
+							metrics.push({ label: 'Unavailable', value: unavailable.join(', ') });
+						}
+
+						targets.push({
+							showTarget: targetCount > 1,
+							target: targetsArr[targetIdx] || targetStats[0]?.target || `Target ${targetIdx + 1}`,
+							metrics,
+						});
+					}
+
+					return { location: group.location, targets };
+				});
+			},
+		},
+	};
+</script>

@@ -7,6 +7,7 @@
 <link rel="ractive" href="../components/controlled-textarea.html" name="c-controlled-textarea">
 <link rel="ractive" href="../components/tags-input.html" name="c-tags-input">
 <link rel="ractive" href="../components/results-controls.html" name="c-gp-results-controls">
+<link rel="ractive" href="../components/measurement-breakdown.html" name="c-measurement-breakdown">
 <link rel="ractive" href="../components/results-raw-output.html" name="c-gp-results-raw-output">
 <link rel="ractive" href="../components/results-table-output.html" name="c-gp-results-table-output">
 <link rel="ractive" href="../components/results-share.html" name="c-gp-results-share">
@@ -676,6 +677,15 @@
 					rateCreditsData="{{rateCreditsData}}"
 					testResults="{{testResults}}">
 				</c-gp-credits>
+			{{/if}}
+
+			{{#if view !== 'video'}}
+				<c-measurement-breakdown
+					locations="{{testReqParams.locations}}"
+					preparedTestResults="{{preparedTestResults}}"
+					targets="{{targetsArr}}"
+					testType="{{testReqParams.type}}">
+				</c-measurement-breakdown>
 			{{/if}}
 
 			{{#if measurementErrMsg && !showCreditsErrorBar}}
@@ -3322,6 +3332,10 @@
 						delete testReqParams.updatedAt;
 						delete testReqParams.createdAt;
 
+						if (!Array.isArray(testReqParams.locations) && Array.isArray(this.get('testReqParams.locations'))) {
+							testReqParams.locations = this.get('testReqParams.locations');
+						}
+
 						testReqParams = {
 							inProgressUpdates: isInfiniteMeas,
 							limit: DEFAULT_LIMIT,
@@ -4035,6 +4049,7 @@
 				let maxTiming = stats.max || PROBE_NO_TIMING_VALUE;
 
 				let responseBodyDelimiter = /(?:\r?\n){2}/;
+				let lastHop = res.result.hops?.[res.result.hops.length - 1];
 
 				return {
 					...baseStat,
@@ -4049,6 +4064,9 @@
 					isOffline,
 					packetsRtt,
 					extraValues,
+					packetLoss: res.type.toLowerCase() === 'mtr' && typeof lastHop?.stats?.loss === 'number'
+						? lastHop.stats.loss
+						: extraValues.loss?.value ?? null,
 					failureRawOutput: this.getFailureProbeRawOutput(res),
 					rawOutput: res.type === 'http' ? res.result.rawOutput.split(responseBodyDelimiter)[0] : res.result.rawOutput,
 					responseBody: res.type === 'http' ? res.result.rawOutput.split(responseBodyDelimiter).slice(1).join('\n\n') : null,
