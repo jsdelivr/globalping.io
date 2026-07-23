@@ -51,7 +51,7 @@
 
 	<c-notification></c-notification>
 
-	<c-gp-header additionalClasses="header-with-globalping-bg no-border" isInert="{{focusModeActive}}"></c-gp-header>
+	<c-gp-header additionalClasses="header-with-globalping-bg no-border"></c-gp-header>
 
 	<div class="p-globalping {{#if focusModeActive}}focus-mode-open{{/if}}">
 		<c-gp-jumbotron className="main" gridType="globe"></c-gp-jumbotron>
@@ -93,16 +93,7 @@
 			</div>
 		</div>
 
-		{{#if focusModeAvailable || focusModeActive}}
-			<div
-				class="gp_focus-mode-backdrop {{#if focusModeActive}}active{{elseif focusModeTransition}}gp_focus-mode-backdrop_closing{{/if}}"
-				aria-hidden="true"
-				on-click="@this.closeFocusModeFromBackdrop(@event)"></div>
-		{{/if}}
-
-		<div
-			class="gp_map-block {{#if focusModeActive}}gp_map-block_focus-mode{{elseif focusModeTransition === 'content-leaving'}}gp_map-block_results-leaving{{/if}}"
-			{{#if focusModeActive}}role="dialog" aria-modal="true" aria-label="Globalping measurement tool" tabindex="-1"{{/if}}>
+		<div class="gp_map-block {{#if focusModeActive}}gp_map-block_focus-mode{{/if}}">
 			<div class="gp_map-block_header">
 				<span class="gp_map-block_header_dots" aria-hidden="true">
 					<span></span>
@@ -715,9 +706,9 @@
 			{{/if}}
 
 			<div class="gp_map-block_test-output gp_map-block_test-output_stack">
-				{{#if focusModeAvailable && (!focusModeActive || focusModeTransition === 'opening') && !focusModeResultsPreviewAvailable}}
-					<div class="gp_map-block_test-output with-padding {{#if focusModeTransition === 'opening'}}gp_map-block_test-output_prompt-overlay{{/if}}">
-						<div class="gp_map-block_test-output_info gp_map-block_test-output_focus-prompt {{#if focusModeTransition === 'opening'}}gp_map-block_test-output_focus-prompt_exiting{{elseif focusModeTransition === 'prompt-entering'}}gp_map-block_test-output_focus-prompt_entering{{/if}}">
+				{{#if focusModeAvailable && !focusModeActive && !focusModeResultsPreviewAvailable}}
+					<div class="gp_map-block_test-output with-padding">
+						<div class="gp_map-block_test-output_info gp_map-block_test-output_focus-prompt">
 							<i class="fa fa-line-chart" aria-hidden="true"></i>
 							<div class="gp_map-block_test-output_focus-prompt_text">
 								<strong>{{focusModePromptStatus.title}}</strong>
@@ -735,9 +726,9 @@
 					</div>
 				{{/if}}
 
-				{{#if !focusModeAvailable || focusModeActive || focusModeTransition === 'content-leaving' || focusModeResultsPreviewAvailable}}
+				{{#if !focusModeAvailable || focusModeActive || focusModeResultsPreviewAvailable}}
 					{{#if measurementErrMsg && !showCreditsErrorBar}}
-						<div class="gp_map-block_test-output gp_map-block_test-output_focused-content {{#if focusModeTransition === 'content-leaving'}}gp_map-block_test-output_focused-content_leaving{{/if}} with-padding">
+						<div class="gp_map-block_test-output gp_map-block_test-output_focused-content with-padding">
 							<div class="gp_map-block_test-output_fail-msg">
 								<img width="56"
 									height="56"
@@ -747,8 +738,8 @@
 							</div>
 						</div>
 					{{elseif testResults && (rawOutputMode || tableOutputReady)}}
-						<div class="gp_map-block_test-output gp_map-block_test-output_focused-content {{#if focusModeResultsPreviewAvailable && !focusModeActive && focusModeTransition !== 'content-leaving'}}gp_map-block_test-output_results-preview {{#if focusModeTransition === 'prompt-entering'}}gp_map-block_test-output_results-preview_entering{{/if}}{{elseif focusModeResultsPreviewAvailable && focusModeTransition === 'opening'}}gp_map-block_test-output_results-preview_expanding{{elseif focusModeResultsPreviewAvailable && focusModeActive}}gp_map-block_test-output_results-preview_expanded{{elseif focusModeTransition === 'content-leaving'}}gp_map-block_test-output_focused-content_leaving{{/if}}">
-							<div class="gp_map-block_test-output_results-preview-content" {{#if focusModeResultsPreviewAvailable && !focusModeActive && focusModeTransition !== 'content-leaving'}}inert aria-hidden="true"{{/if}}>
+						<div class="gp_map-block_test-output gp_map-block_test-output_focused-content {{#if focusModeResultsPreviewAvailable && !focusModeActive}}gp_map-block_test-output_results-preview{{elseif focusModeResultsPreviewAvailable && focusModeTransition === 'opening'}}gp_map-block_test-output_results-preview_expanding{{/if}}">
+							<div class="gp_map-block_test-output_results-preview-content" {{#if focusModeResultsPreviewAvailable && !focusModeActive}}inert aria-hidden="true"{{/if}}>
 								<c-gp-results-controls
 									showMap="{{showMap}}"
 									originalShowMap="{{originalShowMap}}"
@@ -811,7 +802,7 @@
 								{{/if}}
 							</div>
 
-							{{#if focusModeResultsPreviewAvailable && !focusModeActive && focusModeTransition !== 'content-leaving'}}
+							{{#if focusModeResultsPreviewAvailable && !focusModeActive}}
 								<div class="gp_map-block_test-output_results-preview-action">
 									<button type="button"
 										class="gp_map-block_test-output_results-preview-action_button"
@@ -823,10 +814,10 @@
 							{{/if}}
 						</div>
 					{{elseif @this.shouldShowMeasurementLoadingInfo()}}
-						<div class="gp_map-block_test-output gp_map-block_test-output_focused-content {{#if focusModeTransition === 'content-leaving'}}gp_map-block_test-output_focused-content_leaving{{/if}} with-padding">
+						<div class="gp_map-block_test-output gp_map-block_test-output_focused-content with-padding">
 							<div class="gp_map-block_test-output_info">
 								{{#if showMeasurementLoadingInfo}}
-									<div class="gp_map-block_test-output_info_text gp_map-block_test-output_info_text_entering">
+									<div class="gp_map-block_test-output_info_text">
 										<img width="56"
 											height="56"
 											src="{{@shared.assetsHost}}/img/bulb-icon.svg">
@@ -837,7 +828,7 @@
 							</div>
 						</div>
 					{{else}}
-						<div class="gp_map-block_test-output gp_map-block_test-output_focused-content {{#if focusModeTransition === 'content-leaving'}}gp_map-block_test-output_focused-content_leaving{{/if}} with-padding">
+						<div class="gp_map-block_test-output gp_map-block_test-output_focused-content with-padding">
 							<div class="gp_map-block_test-output_info">
 								<div class="gp_map-block_test-output_info_text">
 									<img width="56"
@@ -1574,7 +1565,7 @@
 		</div>
 	</div>
 
-	<c-gp-footer isInert="{{focusModeActive}}"></c-gp-footer>
+	<c-gp-footer></c-gp-footer>
 </r-page>
 
 <script>
@@ -1720,10 +1711,7 @@
 	const DEFAULT_SORT_ORDER = 'asc';
 	const SORT_ORDER_OPTS = [ 'asc', 'desc' ];
 	const FOCUS_MODE_VIEW = 'measurement';
-	const FOCUS_MODE_CONTENT_SWAP_MS = 150;
 	const FOCUS_MODE_RESULTS_EXPAND_MS = 420;
-	const FOCUS_MODE_CONTENT_EXIT_MS = 180;
-	const FOCUS_MODE_PROMPT_ENTER_MS = 180;
 	const FOCUS_MODE_SCROLL_OFFSET = 30;
 	const PENDING_RESULT_SCROLL_TIMEOUT_MS = 500;
 	const SORT_BY_OPTS = [
@@ -2792,23 +2780,23 @@
 			let isResultsPreviewOpening = !isMobileViewport && !!this.find('.gp_map-block_test-output_results-preview');
 
 			this.clearFocusModeTransition();
-			this.set('focusModeTransition', isMobileViewport ? null : 'opening');
+			this.set('focusModeTransition', isResultsPreviewOpening ? 'opening' : null);
 			app.router.replaceQueryParam('view', FOCUS_MODE_VIEW, this);
 
 			if (!isMobileViewport && this.get('pendingResultId') === null) {
 				this.scrollFocusModeRootAfterRender();
 			}
 
-			if (!isMobileViewport) {
+			if (isResultsPreviewOpening) {
 				this.set('focusModeTransitionTimeout', setTimeout(() => {
 					this.set('focusModeTransition', null);
 					this.set('focusModeTransitionTimeout', null);
-				}, isResultsPreviewOpening ? FOCUS_MODE_RESULTS_EXPAND_MS : FOCUS_MODE_CONTENT_SWAP_MS));
+				}, FOCUS_MODE_RESULTS_EXPAND_MS));
 			}
 
 			this.focusFocusModeToggleButton();
 		},
-		closeFocusMode (event, restoreFocus = true) {
+		closeFocusMode (event) {
 			event?.preventDefault?.();
 
 			if (!this.get('focusModeActive')) {
@@ -2818,72 +2806,16 @@
 			this.cancelPendingResultScrollFrame();
 			this.set('pendingResultId', null);
 
-			let isMobileViewport = _.isMobileViewport();
-
 			this.clearFocusModeTransition();
 			app.router.replaceQueryParam('view', null, this);
-			this.set('focusModeTransition', isMobileViewport ? null : 'content-leaving');
-
-			if (restoreFocus) {
-				this.focusFocusModeToggleButton();
-			}
-
-			if (isMobileViewport) {
-				return;
-			}
-
-			this.set('focusModeTransitionTimeout', setTimeout(() => {
-				this.set('focusModeTransition', 'prompt-entering');
-
-				this.set('focusModeTransitionTimeout', setTimeout(() => {
-					this.set('focusModeTransition', null);
-					this.set('focusModeTransitionTimeout', null);
-				}, FOCUS_MODE_PROMPT_ENTER_MS));
-			}, FOCUS_MODE_CONTENT_EXIT_MS));
-		},
-		closeFocusModeFromBackdrop (event) {
-			this.closeFocusMode(event, false);
-			this.scrollFocusModeRootAfterRender();
+			this.focusFocusModeToggleButton({ scrollRootIntoView: true });
 		},
 		handleFocusModeKeyDown (event) {
-			if (!this.get('focusModeActive')) {
-				return;
-			}
-
-			if (event.key === 'Escape') {
+			if (this.get('focusModeActive') && event.key === 'Escape') {
 				this.closeFocusMode(event);
-				return;
-			}
-
-			if (event.key !== 'Tab') {
-				return;
-			}
-
-			// force focus to stay within the map block
-			let focusModeRoot = this.find('.gp_map-block');
-			let focusableElements = Array.from(focusModeRoot.querySelectorAll('a[href], button, input, select, textarea, [tabindex]'))
-				.filter(element => !element.disabled
-				&& element.getAttribute('tabindex') !== '-1'
-				&& element.getClientRects().length);
-
-			if (!focusableElements.length) {
-				event.preventDefault();
-				this.focusWithoutScroll(focusModeRoot);
-				return;
-			}
-
-			let firstElement = focusableElements[0];
-			let lastElement = focusableElements[focusableElements.length - 1];
-			let activeElement = document.activeElement;
-			let shouldWrapBackward = event.shiftKey && (activeElement === firstElement || !focusModeRoot.contains(activeElement));
-			let shouldWrapForward = !event.shiftKey && (activeElement === lastElement || !focusModeRoot.contains(activeElement));
-
-			if (shouldWrapBackward || shouldWrapForward) {
-				event.preventDefault();
-				this.focusWithoutScroll(shouldWrapBackward ? lastElement : firstElement);
 			}
 		},
-		focusFocusModeToggleButton () {
+		focusFocusModeToggleButton ({ scrollRootIntoView = false } = {}) {
 			let renderId = this.focusModeRenderId;
 
 			this.update().then(() => {
@@ -2892,6 +2824,10 @@
 				}
 
 				this.focusWithoutScroll(this.find('.gp_map-block_header_focus-toggle'));
+
+				if (scrollRootIntoView) {
+					this.scrollFocusModeRootIntoView();
+				}
 			});
 		},
 		focusWithoutScroll (element) {
