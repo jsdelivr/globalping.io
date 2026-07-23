@@ -93,7 +93,7 @@
 			</div>
 		</div>
 
-		{{#if view !== 'video' && (focusModeAvailable || focusModeActive)}}
+		{{#if focusModeAvailable || focusModeActive}}
 			<div
 				class="gp_focus-mode-backdrop {{#if focusModeActive}}active{{elseif focusModeTransition}}gp_focus-mode-backdrop_closing{{/if}}"
 				aria-hidden="true"
@@ -109,10 +109,10 @@
 					<span></span>
 					<span></span>
 				</span>
-				{{#if view !== 'video' && shareResHeaderData}}
+				{{#if shareResHeaderData}}
 					<span class="gp_map-block_header_share-res-msg">{{shareResHeaderData}}</span>
 				{{/if}}
-				{{#if view !== 'video' && (focusModeAvailable || focusModeActive)}}
+				{{#if focusModeAvailable || focusModeActive}}
 					<span class="gp_map-block_header_actions">
 						{{#if focusModeActive}}
 							<button
@@ -678,14 +678,14 @@
 				</div>
 			</div>
 
-			{{#if view !== 'video' && showCreditsErrorBar && (focusModeActive || !focusModeAvailable)}}
+			{{#if showCreditsErrorBar && (focusModeActive || !focusModeAvailable)}}
 				<c-gp-credits-message
 					measurementErrMsg="{{measurementErrMsg}}"
 					rateCreditsData="{{rateCreditsData}}">
 				</c-gp-credits-message>
 			{{/if}}
 
-			{{#if view !== 'video' && mobileShareResHeaderData && (focusModeActive || !focusModeAvailable)}}
+			{{#if mobileShareResHeaderData && (focusModeActive || !focusModeAvailable)}}
 				<p class="gp_map-block_test-details">
 					<i class="fa fa-info-circle" aria-hidden="true"></i>
 					Showing <strong>{{mobileShareResHeaderData.type}}</strong> test results for <strong>{{mobileShareResHeaderData.target}}</strong> from {{mobileShareResHeaderData.date}}.
@@ -704,7 +704,7 @@
 				{{/if}}
 			</div>
 
-			{{#if view !== 'video' && showCreditsData && (focusModeActive || !focusModeAvailable)}}
+			{{#if showCreditsData && (focusModeActive || !focusModeAvailable)}}
 				<c-gp-credits
 					mapOpened="{{showMap}}"
 					testInProgress="{{testInProgress}}"
@@ -715,7 +715,7 @@
 			{{/if}}
 
 			<div class="gp_map-block_test-output gp_map-block_test-output_stack">
-				{{#if focusModeAvailable && (!focusModeActive || focusModeTransition === 'opening') && (!focusModeResultsPreviewAvailable || view === 'video')}}
+				{{#if focusModeAvailable && (!focusModeActive || focusModeTransition === 'opening') && !focusModeResultsPreviewAvailable}}
 					<div class="gp_map-block_test-output with-padding {{#if focusModeTransition === 'opening'}}gp_map-block_test-output_prompt-overlay{{/if}}">
 						<div class="gp_map-block_test-output_info gp_map-block_test-output_focus-prompt {{#if focusModeTransition === 'opening'}}gp_map-block_test-output_focus-prompt_exiting{{elseif focusModeTransition === 'prompt-entering'}}gp_map-block_test-output_focus-prompt_entering{{/if}}">
 							<i class="fa fa-line-chart" aria-hidden="true"></i>
@@ -735,7 +735,7 @@
 					</div>
 				{{/if}}
 
-				{{#if view !== 'video' && (!focusModeAvailable || focusModeActive || focusModeTransition === 'content-leaving' || focusModeResultsPreviewAvailable)}}
+				{{#if !focusModeAvailable || focusModeActive || focusModeTransition === 'content-leaving' || focusModeResultsPreviewAvailable}}
 					{{#if measurementErrMsg && !showCreditsErrorBar}}
 						<div class="gp_map-block_test-output gp_map-block_test-output_focused-content {{#if focusModeTransition === 'content-leaving'}}gp_map-block_test-output_focused-content_leaving{{/if}} with-padding">
 							<div class="gp_map-block_test-output_fail-msg">
@@ -857,7 +857,7 @@
 					{{/if}}
 				{{/if}}
 			</div>
-			{{#if view !== 'video' && rawOutputMode && showingNetworkLogos && (focusModeActive || !focusModeAvailable)}}
+			{{#if rawOutputMode && showingNetworkLogos && (focusModeActive || !focusModeAvailable)}}
 				<a class="gp_map-block_logo-dev-link" href="https://logo.dev" target="_blank" rel="noopener noreferrer">Network logos provided by Logo.dev</a>
 			{{/if}}
 		</div>
@@ -1719,6 +1719,7 @@
 	const DEFAULT_SORT_BY = 'location';
 	const DEFAULT_SORT_ORDER = 'asc';
 	const SORT_ORDER_OPTS = [ 'asc', 'desc' ];
+	const FOCUS_MODE_VIEW = 'measurement';
 	const FOCUS_MODE_CONTENT_SWAP_MS = 150;
 	const FOCUS_MODE_RESULTS_EXPAND_MS = 420;
 	const FOCUS_MODE_CONTENT_EXIT_MS = 180;
@@ -1852,7 +1853,6 @@
 				mobileShareResHeaderData: null,
 				runTestBtnText: 'Run Test',
 				testReqParams: null,
-				focusModeOpen: false,
 				focusModeTransition: null,
 				focusModeTransitionTimeout: null,
 				pendingResultId: null,
@@ -2006,10 +2006,7 @@
 				);
 			},
 			focusModeActive () {
-				return this.get('view') !== 'video' && (
-					this.get('focusModeOpen')
-					|| (Ractive.isServer && !!this.get('measurement'))
-				);
+				return this.get('view') === FOCUS_MODE_VIEW;
 			},
 			anyResponseBodyCollapsible () {
 				if (Ractive.isServer) {
@@ -2079,14 +2076,10 @@
 				}
 
 				if (qsMeasurementIdsArr.length) {
-					let shouldOpenFocusMode = this.get('view') !== 'video';
-
 					this.set('qsMeasurementIdsArr', qsMeasurementIdsArr);
 					this.set('shareResFlow', true);
 					this.set('sharedMeasurementInitialLoading', true);
 					this.set('prevProbesMeasId', qsMeasurementIdsArr[0]);
-					this.clearFocusModeTransition();
-					this.set('focusModeOpen', shouldOpenFocusMode);
 
 					this.getMultipleTestMeasurementById(qsMeasurementIdsArr, isInfiniteMeas);
 				}
@@ -2143,15 +2136,6 @@
 				}
 
 				this.initResponseBodyCharWidth();
-
-				this.observe('view', (view, previousView) => {
-					if (view !== 'video' && previousView !== 'video') {
-						return;
-					}
-
-					this.clearFocusModeTransition();
-					this.set('focusModeOpen', false);
-				});
 
 				this.observe('focusModeActive testInProgress shareResFlow measurement testReqParams sharedMeasurementInitialLoading', () => {
 					clearTimeout(this.measurementLoadingInfoTimeout);
@@ -2809,7 +2793,7 @@
 
 			this.clearFocusModeTransition();
 			this.set('focusModeTransition', isMobileViewport ? null : 'opening');
-			this.set('focusModeOpen', true);
+			app.router.replaceQueryParam('view', FOCUS_MODE_VIEW, this);
 
 			if (!isMobileViewport && this.get('pendingResultId') === null) {
 				this.scrollFocusModeRootAfterRender();
@@ -2837,7 +2821,7 @@
 			let isMobileViewport = _.isMobileViewport();
 
 			this.clearFocusModeTransition();
-			this.set('focusModeOpen', false);
+			app.router.replaceQueryParam('view', null, this);
 			this.set('focusModeTransition', isMobileViewport ? null : 'content-leaving');
 			this.focusFocusModeToggleButton();
 
@@ -3008,7 +2992,7 @@
 			this.set('showingNetworkLogos', false);
 			this.set('activeTestRunId', testRunId);
 			this.clearFocusModeTransition();
-			this.set('focusModeOpen', true);
+			app.router.replaceQueryParam('view', FOCUS_MODE_VIEW, this);
 
 			if (!_.isMobileViewport()) {
 				this.scrollFocusModeRootAfterRender();
