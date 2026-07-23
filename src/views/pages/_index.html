@@ -103,38 +103,59 @@
 		<div
 			class="gp_map-block {{#if focusModeActive}}gp_map-block_focus-mode{{elseif focusModeTransition === 'content-leaving'}}gp_map-block_results-leaving{{/if}}"
 			{{#if focusModeActive}}role="dialog" aria-modal="true" aria-label="Globalping measurement tool" tabindex="-1"{{/if}}>
+			{{#if focusModeActive || focusModeTransition === 'content-leaving'}}
+				<div
+					class="gp_map-block_focus-bar {{#if focusModeTransition === 'opening'}}gp_map-block_focus-bar_entering{{elseif focusModeTransition === 'content-leaving'}}gp_map-block_focus-bar_leaving{{/if}}"
+					{{#unless focusModeActive}}inert aria-hidden="true"{{/unless}}>
+					<img
+						class="gp_map-block_focus-bar_logo"
+						width="119"
+						height="24"
+						src="{{@shared.assetsHost}}/img/logo-full-dark.svg"
+						alt="Globalping">
+					<span class="gp_map-block_focus-bar_message">{{shareResHeaderData}}</span>
+					<button
+						type="button"
+						class="gp_map-block_header_focus-toggle gp_map-block_focus-bar_return"
+						aria-label="Return from measurement focus mode"
+						on-click="@this.closeFocusMode(@event)">
+						<i class="fa fa-reply" aria-hidden="true"></i>
+						<span>Return</span>
+					</button>
+				</div>
+			{{/if}}
+
 			<div class="gp_map-block_header">
 				<span class="gp_map-block_header_dots" aria-hidden="true">
 					<span></span>
 					<span></span>
 					<span></span>
 				</span>
-				{{#if shareResHeaderData}}
+				{{#if shareResHeaderData && !focusModeActive}}
 					<span class="gp_map-block_header_share-res-msg">{{shareResHeaderData}}</span>
 				{{/if}}
-				{{#if focusModeAvailable || focusModeActive}}
+				{{#if focusModeActive}}
+					<span class="gp_map-block_header_actions gp_map-block_header_actions_mobile-close">
+						<button
+							type="button"
+							class="gp_map-block_header_focus-toggle gp_map-block_header_focus-toggle_mobile-close"
+							aria-label="Close measurement focus mode"
+							on-click="@this.closeFocusMode(@event)">
+							<i class="fa fa-times" aria-hidden="true"></i>
+							<span>Exit focus mode</span>
+						</button>
+					</span>
+				{{elseif focusModeAvailable}}
 					<span class="gp_map-block_header_actions">
-						{{#if focusModeActive}}
-							<button
-								type="button"
-								class="gp_map-block_header_focus-toggle"
-								aria-label="Close measurement focus mode"
-								on-click="@this.closeFocusMode(@event)">
-								<i class="fa fa-times" aria-hidden="true"></i>
-								<span class="hidden-xs">Close</span>
-								<span class="mobile-only">Exit focus mode</span>
-							</button>
-						{{else}}
-							<button
-								type="button"
-								class="gp_map-block_header_focus-toggle"
-								aria-label="Open measurement focus mode"
-								on-click="@this.openFocusMode(@event)">
-								<i class="fa fa-expand" aria-hidden="true"></i>
-								<span class="hidden-xs">Focus mode</span>
-								<span class="mobile-only">Enter focus mode</span>
-							</button>
-						{{/if}}
+						<button
+							type="button"
+							class="gp_map-block_header_focus-toggle gp_map-block_header_focus-toggle_open"
+							aria-label="Open measurement focus mode"
+							on-click="@this.openFocusMode(@event)">
+							<i class="fa fa-expand" aria-hidden="true"></i>
+							<span class="hidden-xs">Focus mode</span>
+							<span class="mobile-only">Enter focus mode</span>
+						</button>
 					</span>
 				{{/if}}
 			</div>
@@ -2891,7 +2912,11 @@
 					return;
 				}
 
-				this.focusWithoutScroll(this.find('.gp_map-block_header_focus-toggle'));
+				let focusToggleSelector = this.get('focusModeActive')
+					? _.isMobileViewport() ? '.gp_map-block_header_focus-toggle_mobile-close' : '.gp_map-block_focus-bar_return'
+					: '.gp_map-block_header_focus-toggle_open';
+
+				this.focusWithoutScroll(this.find(focusToggleSelector));
 			});
 		},
 		focusWithoutScroll (element) {
@@ -4064,7 +4089,9 @@
 
 				requestAnimationFrame(() => {
 					if (this.focusModeRenderId === renderId && window.scrollY === scheduledScrollY) {
-						this.scrollFocusModeRootIntoView(scrollOffset);
+						let focusBar = this.get('focusModeActive') && this.find('.gp_map-block_focus-bar');
+
+						this.scrollFocusModeRootIntoView(scrollOffset - (focusBar?.offsetTop || 0));
 					}
 				});
 			});
