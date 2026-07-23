@@ -251,7 +251,7 @@
 		},
 		computed: {
 			responseBodyCharsPerLine () {
-				let listWidth = this.get('headerInfoListWidth') || 0;
+				let listWidth = this.get('expandedListWidth') || this.get('headerInfoListWidth') || 0;
 				let outputHorizontalPadding = 32 * 2;
 				let outputListMargin = 24 * 2;
 
@@ -342,6 +342,10 @@
 					}
 
 					this.recalculateHeaderInfoLayoutStates();
+				}, { init: false });
+
+				this.observe('expandedListWidth limitLayoutToFirstResult', () => {
+					this.recalculateHeaderInfoLayoutStates({ allowShrink: false });
 				}, { init: false });
 
 				this._onSetLocationViewportChange = (event) => {
@@ -540,6 +544,10 @@
 		isResponseBodyHidden (result) {
 			let activeTargetIdx = this.get('activeTargetIdx');
 			let body = result?.statsPerTarget?.[activeTargetIdx]?.responseBody || '';
+
+			if (this.get('limitLayoutToFirstResult') && result?.clientSideId !== this.get('preparedTestResults.0.clientSideId')) {
+				return true;
+			}
 
 			if (!_.shouldCollapseResponseBody(body, this.get('responseBodyCharsPerLine'))) {
 				return false;
@@ -811,10 +819,17 @@
 		},
 		recalculateHeaderInfoLayoutStates ({ allowShrink = true } = {}) {
 			let listEl = this.find('.c-gp-results-raw-output_list');
-			let listWidth = listEl?.offsetWidth || 0;
+			let listWidth = this.get('expandedListWidth') || listEl?.offsetWidth || 0;
 			let preparedTestResults = this.get('preparedTestResults') || [];
+			let resultsToRecalculate = this.get('limitLayoutToFirstResult') ? preparedTestResults.slice(0, 1) : preparedTestResults;
 			let previousListWidth = this.get('headerInfoListWidth') || 0;
 			let headerInfoEntityWidthsByKey = this.get('headerInfoEntityWidthsByKey');
+
+			if (listWidth !== previousListWidth && this.get('limitLayoutToFirstResult')) {
+				this.resetHeaderInfoEntityWidthCache();
+				headerInfoEntityWidthsByKey = this.get('headerInfoEntityWidthsByKey');
+			}
+
 			let shouldRecalculateCachedOverflow = listWidth !== previousListWidth || headerInfoEntityWidthsByKey.size === 0;
 
 			let previousOverflowByResultId = this.get('headerInfoOverflowByResultId') || new Set();
@@ -830,7 +845,7 @@
 
 			let availableHalfWidth = this.get('headerInfoAvailableHalfWidth');
 
-			preparedTestResults.forEach((result) => {
+			resultsToRecalculate.forEach((result) => {
 				let resultId = result.clientSideId;
 				let wasWidthCached = headerInfoEntityWidthsByKey.has(this.getHeaderInfoEntityWidthCacheKey(result));
 				let widths = this.getHeaderInfoEntityWidths(result);

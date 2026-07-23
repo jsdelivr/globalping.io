@@ -800,6 +800,8 @@
 											sortBy="{{sortBy}}"
 											showingNetworkLogos="{{showingNetworkLogos}}"
 											responseBodyCharWidth="{{responseBodyCharWidth}}"
+											expandedListWidth="{{rawOutputExpandedListWidth}}"
+											limitLayoutToFirstResult="{{!focusModeActive}}"
 											expandAllRawOutput="{{@this.expandAllRawOutput}}">
 										</c-gp-results-raw-output>
 									</div>
@@ -2026,18 +2028,29 @@
 			focusModeActive () {
 				return this.get('view') === FOCUS_MODE_VIEW;
 			},
+			rawOutputExpandedListWidth () {
+				let screenWidth = this.get('screenWidth') || 0;
+
+				if (Ractive.isServer || screenWidth < 768) {
+					return 0;
+				}
+
+				let pageWidth = document.body?.clientWidth || document.documentElement.clientWidth;
+				return Math.min(1304, pageWidth - 48);
+			},
 			anyResponseBodyCollapsible () {
 				if (Ractive.isServer) {
 					return false;
 				}
 
 				let preparedTestResults = this.get('preparedTestResults') || [];
+				let resultsToCheck = this.get('focusModeActive') ? preparedTestResults : preparedTestResults.slice(0, 1);
 				let targetsArr = this.get('targetsArr') || [];
 				let charsPerLine = this.getRawOutputCharsPerLine();
 
 				for (let targetIdx = 0; targetIdx < targetsArr.length; targetIdx++) {
-					for (let i = 0; i < preparedTestResults.length; i++) {
-						let body = preparedTestResults[i]?.statsPerTarget?.[targetIdx]?.responseBody || '';
+					for (let i = 0; i < resultsToCheck.length; i++) {
+						let body = resultsToCheck[i]?.statsPerTarget?.[targetIdx]?.responseBody || '';
 
 						if (_.shouldCollapseResponseBody(body, charsPerLine)) {
 							return true;
@@ -3535,15 +3548,19 @@
 			let outputListMargin = 24 * 2;
 			let windowWidth = window.innerWidth;
 			let FALLBACK_CHAR_WIDTH = 7;
+			let listWidth = this.get('rawOutputExpandedListWidth');
 
-			try {
-				listEl = this.find('.c-gp-results-raw-output_list');
-			} catch {
-				let contentWidth = Math.min(1240, windowWidth - outputListMargin - outputHorizontalPadding);
-				return Math.floor(contentWidth / FALLBACK_CHAR_WIDTH);
+			if (!listWidth) {
+				try {
+					listEl = this.find('.c-gp-results-raw-output_list');
+				} catch {
+					let contentWidth = Math.min(1240, windowWidth - outputListMargin - outputHorizontalPadding);
+					return Math.floor(contentWidth / FALLBACK_CHAR_WIDTH);
+				}
+
+				listWidth = listEl?.getBoundingClientRect?.().width || 0;
 			}
 
-			let listWidth = listEl?.getBoundingClientRect?.().width || 0;
 			let contentWidth = Math.max(1, listWidth - outputHorizontalPadding);
 
 			if (!listWidth) {
