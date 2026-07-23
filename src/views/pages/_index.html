@@ -2808,7 +2808,7 @@
 
 			this.focusFocusModeToggleButton();
 		},
-		closeFocusMode (event) {
+		closeFocusMode (event, restoreFocus = true) {
 			event?.preventDefault?.();
 
 			if (!this.get('focusModeActive')) {
@@ -2823,7 +2823,10 @@
 			this.clearFocusModeTransition();
 			app.router.replaceQueryParam('view', null, this);
 			this.set('focusModeTransition', isMobileViewport ? null : 'content-leaving');
-			this.focusFocusModeToggleButton();
+
+			if (restoreFocus) {
+				this.focusFocusModeToggleButton();
+			}
 
 			if (isMobileViewport) {
 				return;
@@ -2839,7 +2842,7 @@
 			}, FOCUS_MODE_CONTENT_EXIT_MS));
 		},
 		closeFocusModeFromBackdrop (event) {
-			this.closeFocusMode(event);
+			this.closeFocusMode(event, false);
 			this.scrollFocusModeRootAfterRender();
 		},
 		handleFocusModeKeyDown (event) {
