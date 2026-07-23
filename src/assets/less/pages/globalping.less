@@ -55,19 +55,19 @@
 	flex-direction: column;
 	align-items: center;
 	flex-shrink: 0;
-	min-height: 95vh;
 	padding-bottom: 28px;
 	margin-bottom: -40px;
 
 	@media (min-width: @screen-sm-min) {
 		margin-bottom: 0;
 		padding-bottom: 88px;
+		min-height: calc(95vh + 400px);
 	}
 
 	&.focus-mode-open {
-		@media (max-width: @screen-xs-max) {
-			padding-bottom: 0;
+		padding-bottom: 0;
 
+		@media (max-width: @screen-xs-max) {
 			.gp_main-info, .c-gp-jumbotron {
 				display: none;
 			}
@@ -94,6 +94,22 @@
 		.c-gp-jumbotron .jumbotron_globe {
 			opacity: 0;
 			pointer-events: none;
+		}
+	}
+
+	&.focus-mode-open + .c-gp-footer {
+		@media (min-width: @screen-sm-min) {
+			position: relative;
+			flex-shrink: 0;
+			height: 60px;
+			padding-top: 0;
+
+			.wrapper {
+				position: absolute;
+				right: 0;
+				bottom: 0;
+				left: 0;
+			}
 		}
 	}
 
@@ -376,11 +392,8 @@
 					--focus-mode-offset-y: -400px;
 					transform: translateY(var(--focus-mode-offset-y));
 					margin-bottom: -400px;
+					border: none;
 					box-shadow: 0 28px 90px rgba(0, 0, 0, .22), 0 0 0 1px rgba(255, 255, 255, .42);
-				}
-
-				@media (min-width: @screen-lg-min) {
-					margin-bottom: -340px;
 				}
 
 				.c-gp-credits, .c-gp-credits-message, .gp_map-block_test-details, .gp_map-block_logo-dev-link {
