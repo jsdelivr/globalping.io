@@ -31,29 +31,9 @@
 	&.focus-mode-open {
 		@media (max-width: @screen-xs-max) {
 			padding-bottom: 0;
-
-			.gp_main-info {
-				display: none;
-			}
-		}
-
-		.gp_main-info {
-			visibility: hidden;
-			overflow: hidden;
-			pointer-events: none;
-			transition: height .42s ease, margin .42s ease;
-
-			@media (min-width: @screen-sm-min) {
-				height: 292px;
-				margin: 82px 24px 48px;
-			}
 		}
 
 		.gp_details, .gp_integrations, .gp_features, .gp_installation, .gp_our-users, .gp_join-network, .gp_join-community, .gp_gh-links, .gp_probe, .gp_sponsors {
-			display: none;
-		}
-
-		.c-gp-jumbotron .jumbotron_globe {
 			display: none;
 		}
 	}
@@ -67,8 +47,6 @@
 			row-gap: 24px;
 			margin: 20px 24px 40px;
 			max-width: 880px;
-			visibility: visible;
-			transition: height .42s ease, margin .42s ease;
 
 			@media (min-width: @screen-sm-min) {
 				text-align: center;
