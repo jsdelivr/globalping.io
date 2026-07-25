@@ -30,7 +30,8 @@
 
 	&.focus-mode-open {
 		@media (max-width: @screen-xs-max) {
-			padding-bottom: 0;
+			margin-bottom: 0;
+			padding-bottom: 24px;
 		}
 
 		.gp_details, .gp_integrations, .gp_features, .gp_installation, .gp_our-users, .gp_join-network, .gp_join-community, .gp_gh-links, .gp_probe, .gp_sponsors {
@@ -257,9 +258,7 @@
 			align-items: center;
 			background-color: #fff;
 			width: 100%;
-			--focus-mode-offset-y: 0;
 			z-index: 1;
-			transition: margin-bottom .42s ease, transform .42s ease;
 
 			@media (min-width: @screen-sm-min) {
 				max-width: 1304px;
@@ -277,17 +276,7 @@
 					display: none;
 				}
 
-				@media (min-width: @screen-sm-min) {
-					--focus-mode-offset-y: -400px;
-					transform: translateY(var(--focus-mode-offset-y));
-					margin-bottom: -400px;
-				}
-
-				@media (min-width: @screen-lg-min) {
-					margin-bottom: -340px;
-				}
-
-				.gp_map-block_test-output_results-preview_expanding {
+				.gp_map-block_test-output_results-preview-content_expanding {
 					animation: gp-results-preview-expand .42s cubic-bezier(.16, 1, .3, 1) both;
 				}
 			}
@@ -1000,7 +989,7 @@
 				&_results-preview {
 					position: relative;
 					justify-content: flex-start;
-					max-height: 300px;
+					max-height: 220px;
 					overflow: hidden;
 					border-bottom: 1px solid #e7e7ee;
 

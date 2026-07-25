@@ -56,7 +56,7 @@
 	<div class="p-globalping {{#if focusModeActive}}focus-mode-open{{/if}}">
 		<c-gp-jumbotron className="main" gridType="globe"></c-gp-jumbotron>
 
-		<div class="gp_main-info" inert="{{focusModeActive}}">
+		<div class="gp_main-info">
 			<div class="gp_main-info_descr">
 				<span class="gp_main-info_descr_green">Monitor, debug and benchmark</span>
 				<span>your internet infrastructure from a globally distributed network of probes.</span>
@@ -738,8 +738,8 @@
 							</div>
 						</div>
 					{{elseif testResults && (rawOutputMode || tableOutputReady)}}
-						<div class="gp_map-block_test-output gp_map-block_test-output_focused-content {{#if focusModeResultsPreviewAvailable && !focusModeActive}}gp_map-block_test-output_results-preview{{elseif focusModeResultsPreviewAvailable && focusModeTransition === 'opening'}}gp_map-block_test-output_results-preview_expanding{{/if}}">
-							<div class="gp_map-block_test-output_results-preview-content" {{#if focusModeResultsPreviewAvailable && !focusModeActive}}inert aria-hidden="true"{{/if}}>
+						<div class="gp_map-block_test-output gp_map-block_test-output_focused-content {{#if focusModeResultsPreviewAvailable && !focusModeActive}}gp_map-block_test-output_results-preview{{/if}}">
+							<div class="gp_map-block_test-output_results-preview-content {{#if focusModeResultsPreviewAvailable && focusModeTransition === 'opening'}}gp_map-block_test-output_results-preview-content_expanding{{/if}}" {{#if focusModeResultsPreviewAvailable && !focusModeActive}}inert aria-hidden="true"{{/if}}>
 								<c-gp-results-controls
 									showMap="{{showMap}}"
 									originalShowMap="{{originalShowMap}}"
@@ -797,7 +797,8 @@
 										isInfiniteModeRes="{{isInfiniteModeRes}}"
 										testInProgress="{{testInProgress}}"
 										preparedTestResults="{{preparedTestResults}}"
-										activeTargetIdx="{{activeTargetIdx}}">
+										activeTargetIdx="{{activeTargetIdx}}"
+										scrollToMapBlock="{{@this.scrollToMapBlockTop}}">
 									</c-gp-results-share>
 								{{/if}}
 							</div>
@@ -2783,10 +2784,6 @@
 			this.set('focusModeTransition', isResultsPreviewOpening ? 'opening' : null);
 			app.router.replaceQueryParam('view', FOCUS_MODE_VIEW, this);
 
-			if (!isMobileViewport && this.get('pendingResultId') === null) {
-				this.scrollFocusModeRootAfterRender();
-			}
-
 			if (isResultsPreviewOpening) {
 				this.set('focusModeTransitionTimeout', setTimeout(() => {
 					this.set('focusModeTransition', null);
@@ -2808,14 +2805,14 @@
 
 			this.clearFocusModeTransition();
 			app.router.replaceQueryParam('view', null, this);
-			this.focusFocusModeToggleButton({ scrollRootIntoView: true });
+			this.focusFocusModeToggleButton();
 		},
 		handleFocusModeKeyDown (event) {
 			if (this.get('focusModeActive') && event.key === 'Escape') {
 				this.closeFocusMode(event);
 			}
 		},
-		focusFocusModeToggleButton ({ scrollRootIntoView = false } = {}) {
+		focusFocusModeToggleButton () {
 			let renderId = this.focusModeRenderId;
 
 			this.update().then(() => {
@@ -2824,10 +2821,6 @@
 				}
 
 				this.focusWithoutScroll(this.find('.gp_map-block_header_focus-toggle'));
-
-				if (scrollRootIntoView) {
-					this.scrollFocusModeRootIntoView();
-				}
 			});
 		},
 		focusWithoutScroll (element) {
@@ -2932,10 +2925,6 @@
 			this.set('activeTestRunId', testRunId);
 			this.clearFocusModeTransition();
 			app.router.replaceQueryParam('view', FOCUS_MODE_VIEW, this);
-
-			if (!_.isMobileViewport()) {
-				this.scrollFocusModeRootAfterRender();
-			}
 
 			this.expandAllRawOutput();
 
@@ -3957,53 +3946,18 @@
 				});
 			}
 		},
-		scrollFocusModeRootIntoView (scrollOffset = FOCUS_MODE_SCROLL_OFFSET) {
+		scrollToMapBlockTop () {
 			let mapBlockEl = this.find('.gp_map-block');
 
-			if (!mapBlockEl) {
-				return;
+			if (mapBlockEl) {
+				window.scrollTo({
+					top: this.getFocusModeRootScrollTop(mapBlockEl),
+					behavior: 'smooth',
+				});
 			}
-
-			let targetScrollTop = this.getFocusModeRootScrollTop(mapBlockEl, scrollOffset);
-
-			if (targetScrollTop >= window.scrollY) {
-				return;
-			}
-
-			window.scrollTo({
-				behavior: 'smooth',
-				top: targetScrollTop,
-			});
 		},
 		getFocusModeRootScrollTop (mapBlockEl, scrollOffset = FOCUS_MODE_SCROLL_OFFSET) {
-			let style = getComputedStyle(mapBlockEl);
-			let focusModeOffsetY = Number.parseFloat(style.getPropertyValue('--focus-mode-offset-y')) || 0;
-			let currentTransformY = 0;
-			let matrixMatch = style.transform.match(/^matrix(3d)?\((.+)\)$/);
-
-			if (matrixMatch) {
-				let transformValues = matrixMatch[2].split(',').map(value => Number.parseFloat(value));
-				currentTransformY = matrixMatch[1] ? transformValues[13] : transformValues[5];
-				currentTransformY = Number.isFinite(currentTransformY) ? currentTransformY : 0;
-			}
-
-			return Math.max(0, window.scrollY + mapBlockEl.getBoundingClientRect().top - currentTransformY + focusModeOffsetY - scrollOffset);
-		},
-		scrollFocusModeRootAfterRender (scrollOffset = FOCUS_MODE_SCROLL_OFFSET) {
-			let scheduledScrollY = window.scrollY;
-			let renderId = this.focusModeRenderId;
-
-			this.update().then(() => {
-				if (this.focusModeRenderId !== renderId) {
-					return;
-				}
-
-				requestAnimationFrame(() => {
-					if (this.focusModeRenderId === renderId && window.scrollY === scheduledScrollY) {
-						this.scrollFocusModeRootIntoView(scrollOffset);
-					}
-				});
-			});
+			return Math.max(0, window.scrollY + mapBlockEl.getBoundingClientRect().top - scrollOffset);
 		},
 		updateMapMarkerWithIW (marker, markerData, currentMarkerIdx) {
 			let updSvg = this.createMapMarkerSvg(markerData);
