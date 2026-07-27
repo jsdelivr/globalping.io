@@ -51,7 +51,7 @@
 
 	<c-notification></c-notification>
 
-	<c-gp-header additionalClasses="header-with-globalping-bg no-border"></c-gp-header>
+	<c-gp-header additionalClasses="header-with-globalping-bg no-border focus-mode-header-transition {{#if focusModeActive}}focus-mode-header{{/if}}"></c-gp-header>
 
 	<div class="p-globalping {{#if focusModeActive}}focus-mode-open{{/if}}">
 		<c-gp-jumbotron className="main" gridType="globe"></c-gp-jumbotron>
@@ -3957,22 +3957,20 @@
 				});
 			}
 		},
-		scrollFocusModeRootIntoView (scrollOffset = FOCUS_MODE_SCROLL_OFFSET) {
+		scrollFocusModeRootIntoView () {
 			let mapBlockEl = this.find('.gp_map-block');
 
 			if (!mapBlockEl) {
 				return;
 			}
 
-			let targetScrollTop = this.getFocusModeRootScrollTop(mapBlockEl, scrollOffset);
-
-			if (targetScrollTop >= window.scrollY) {
+			if (window.scrollY === 0) {
 				return;
 			}
 
 			window.scrollTo({
 				behavior: 'smooth',
-				top: targetScrollTop,
+				top: 0,
 			});
 		},
 		getFocusModeRootScrollTop (mapBlockEl, scrollOffset = FOCUS_MODE_SCROLL_OFFSET) {
@@ -3989,7 +3987,7 @@
 
 			return Math.max(0, window.scrollY + mapBlockEl.getBoundingClientRect().top - currentTransformY + focusModeOffsetY - scrollOffset);
 		},
-		scrollFocusModeRootAfterRender (scrollOffset = FOCUS_MODE_SCROLL_OFFSET) {
+		scrollFocusModeRootAfterRender () {
 			let scheduledScrollY = window.scrollY;
 			let renderId = this.focusModeRenderId;
 
@@ -4000,7 +3998,7 @@
 
 				requestAnimationFrame(() => {
 					if (this.focusModeRenderId === renderId && window.scrollY === scheduledScrollY) {
-						this.scrollFocusModeRootIntoView(scrollOffset);
+						this.scrollFocusModeRootIntoView();
 					}
 				});
 			});
