@@ -507,11 +507,12 @@ module.exports = {
 	},
 
 	extractHttpRawOutput (rawOutput = '') {
-		let [ rawHeaders, ...rawBodyParts ] = (rawOutput || '').split(/(?:\r?\n){2}/);
+		let raw = rawOutput || '';
+		let separator = /(?:\r?\n){2}/.exec(raw);
 
 		return {
-			rawBody: rawBodyParts.join('\n\n'),
-			rawHeaders,
+			rawBody: separator ? raw.slice(separator.index + separator[0].length) : '',
+			rawHeaders: separator ? raw.slice(0, separator.index) : raw,
 		};
 	},
 
@@ -714,15 +715,21 @@ module.exports = {
 				return value.toLowerCase();
 			}
 
-			return Infinity;
+			return undefined;
 		};
 
 		let compareValues = (a, b) => {
 			let lhs = normalizeSortValue(a);
 			let rhs = normalizeSortValue(b);
 
+			if (typeof lhs === 'undefined' || typeof rhs === 'undefined') {
+				if (lhs === rhs) { return 0; }
+
+				return typeof lhs === 'undefined' ? 1 : -1;
+			}
+
 			if (typeof lhs === 'string' || typeof rhs === 'string') {
-				return sortCoeff * String(lhs).localeCompare(String(rhs));
+				return sortCoeff * String(lhs).localeCompare(String(rhs), undefined, { numeric: true });
 			}
 
 			return sortCoeff * (lhs - rhs);

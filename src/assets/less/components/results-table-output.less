@@ -259,10 +259,6 @@
 			background: #fbfbfb;
 			padding-bottom: 8px;
 
-			&:focus, &:focus-visible {
-				outline: none;
-			}
-
 			@media (min-width: @screen-lg-min) {
 				display: table-row-group;
 				background: initial;
@@ -304,6 +300,13 @@
 					display: flex;
 					align-items: center;
 					column-gap: 8px;
+					width: 100%;
+					padding: 0;
+					border: 0;
+					background: transparent;
+					color: inherit;
+					font: inherit;
+					text-align: left;
 				}
 
 				&_status-line {
@@ -399,12 +402,6 @@
 					display: table-row;
 				}
 
-				&:nth-child(2n) {
-					@media (max-width: @screen-md-max) {
-						border-top: 1px solid #e7e7ee;
-					}
-				}
-
 				&_cell {
 					display: flex;
 					align-items: center;
@@ -419,7 +416,6 @@
 						vertical-align: middle;
 						white-space: nowrap;
 						border-bottom: 1px solid #e7e7ee;
-						min-height: 36px;
 
 						&:last-child {
 							padding-right: 24px;

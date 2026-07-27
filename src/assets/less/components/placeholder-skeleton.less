@@ -1,7 +1,7 @@
 .c-placeholder-skeleton {
 	width: 100%;
 
-	& *, & {
+	&, & > span, & span > span {
 		display: block;
 	}
 
@@ -70,14 +70,10 @@
 				height: 20px;
 				padding-left: 24px;
 
-				>li {
+				> span {
 					width: 100%;
 					height: 100%;
 					border-radius: 4px;
-
-					&::marker {
-						text-align: center;
-					}
 
 					.skeleton_animated {
 						border-radius: 4px;

@@ -52,12 +52,6 @@
 
 			{{#each preparedTestResults as result}}
 				<tbody class="results-table_row row-num-{{result.clientSideId}} item-id-{{result.clientSideId}}"
-					tabindex="0"
-					role="button"
-					aria-label="Set as location for the next test"
-					on-focus="@this.enableItemFocused(@event, result.clientSideId)"
-					on-blur="@this.hideSetLocationButton(@event)"
-					on-keydown="@this.headerKeydownHandler(@event, result.clientSideId)"
 					on-mouseenter="@this.showSetLocationButton(result.clientSideId)"
 					on-mouseleave="@this.hideSetLocationButton(@event)"
 				>
@@ -65,7 +59,12 @@
 						<tr class="results-table_row_stats_subrow target-{{targetIdx}}">
 							{{#if targetIdx === 0}}
 								<td class="results-table_row_location" rowspan="{{result.statsPerTarget.length}}">
-									<div class="results-table_row_location_content">
+									<button class="results-table_row_location_content"
+										type="button"
+										aria-label="Set as location for the next test"
+										on-focus="@this.enableItemFocused(@event, result.clientSideId)"
+										on-blur="@this.hideSetLocationButton(@event)"
+										on-click="@this.setProbeAsLocation(result.clientSideId)">
 										<span class="results-table_row_location_status-line">
 											<span
 												class="results-table_row_location_status-line_top"
@@ -79,11 +78,11 @@
 
 										<img width="28" height="20" alt="" src="https://cdn.jsdelivr.net/npm/country-flag-icons@1.5.5/3x2/{{result.country}}.svg">
 
-										<div class="results-table_row_location_data">
+										<span class="results-table_row_location_data">
 											<span>{{result.city}}, {{result.country}}, {{result.continent}}</span>
 											<span>{{result.network}}</span>
-										</div>
-									</div>
+										</span>
+									</button>
 								</td>
 							{{/if}}
 
@@ -362,11 +361,12 @@
 			let left = rowLocationRect.left - containerRect.left - 26;
 			let height = rowRect.height;
 			let buttonTop = rowLocationRect.top - rowRect.top + rowLocationRect.height / 2 - 13;
+			let moved = (current, previous) => Math.abs(current - previous) > .5;
 
-			if (top !== floatingSetLocationButton.top
-				|| left !== floatingSetLocationButton.left
-				|| height !== floatingSetLocationButton.height
-				|| buttonTop !== floatingSetLocationButton.buttonTop) {
+			if (moved(top, floatingSetLocationButton.top)
+				|| moved(left, floatingSetLocationButton.left)
+				|| moved(height, floatingSetLocationButton.height)
+				|| moved(buttonTop, floatingSetLocationButton.buttonTop)) {
 				this.set('itemFocused', false);
 				this.set('floatingSetLocationButton.visible', false);
 			}
@@ -436,7 +436,7 @@
 			this.set('floatingSetLocationButton.visible', false);
 		},
 		enableItemFocused (event, clientSideId) {
-			if (!event.target?.classList.contains('results-table_row')) {
+			if (!event.target?.classList.contains('results-table_row_location_content')) {
 				return;
 			}
 
@@ -447,16 +447,6 @@
 			requestAnimationFrame(() => {
 				this.set('justFocusedItem', false);
 			});
-		},
-		headerKeydownHandler (event, clientSideId) {
-			if (!event.target?.classList.contains('results-table_row')) {
-				return;
-			}
-
-			if (event.key === 'Enter' || event.key === ' ') {
-				event.preventDefault();
-				this.setProbeAsLocation(clientSideId);
-			}
 		},
 		setChartMaxHeight (results) {
 			let chartMaxHeight = 0;
