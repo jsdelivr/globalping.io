@@ -378,16 +378,16 @@
 			--focus-mode-offset-y: 0;
 			z-index: 1050;
 			box-shadow: 0 0 0 rgba(0, 0, 0, 0);
-			transition: width .42s ease, max-width .42s ease, margin-bottom .42s ease, box-shadow .21s ease, transform .42s ease;
+			transition: margin-bottom .42s ease, box-shadow .21s ease, transform .42s ease;
 
 			body.modal-open & {
 				z-index: 1;
 			}
 
 			@media (min-width: @screen-sm-min) {
-				max-width: 1214px;
+				max-width: 1304px;
 				margin: 0 auto;
-				width: calc(90% - 38px);
+				width: calc(100% - 48px);
 				border: 1.5px solid #e7e7ee;
 				box-shadow: 0 2px 2px rgba(0, 0, 0, .04);
 				border-radius: 8px;
@@ -400,8 +400,6 @@
 
 				@media (min-width: @screen-sm-min) {
 					--focus-mode-offset-y: -400px;
-					max-width: 1304px;
-					width: calc(100% - 48px);
 					transform: translateY(var(--focus-mode-offset-y));
 					margin-bottom: -400px;
 					border: none;
@@ -428,7 +426,7 @@
 			&_results-leaving {
 				@media (min-width: @screen-sm-min) {
 					box-shadow: 0 2px 2px rgba(0, 0, 0, .04);
-					transition: width .42s ease, max-width .42s ease, margin-bottom .42s ease, transform .42s ease;
+					transition: margin-bottom .42s ease, transform .42s ease;
 				}
 			}
 
@@ -1214,7 +1212,7 @@
 				&_results-preview {
 					position: relative;
 					justify-content: flex-start;
-					max-height: 300px;
+					max-height: 230px;
 					overflow: hidden;
 					border-bottom: 1px solid #e7e7ee;
 

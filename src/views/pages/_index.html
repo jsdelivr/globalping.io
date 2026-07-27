@@ -51,7 +51,7 @@
 
 	<c-notification></c-notification>
 
-	<c-gp-header additionalClasses="header-with-globalping-bg no-border" isInert="{{focusModeActive}}"></c-gp-header>
+	<c-gp-header additionalClasses="header-with-globalping-bg no-border {{#if focusModeActive}}navbar-focus-mode{{/if}}" isInert="{{focusModeActive}}"></c-gp-header>
 
 	<div class="p-globalping {{#if focusModeActive}}focus-mode-open{{/if}}">
 		<c-gp-jumbotron className="main" gridType="globe"></c-gp-jumbotron>
