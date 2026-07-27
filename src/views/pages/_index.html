@@ -2305,10 +2305,7 @@
 					if (!testResults) { return; }
 
 					let testType = this.get('mainOptions.type');
-					let testReqParams = this.get('testReqParams');
-					let dnsTraceEnabled = testReqParams
-						? testReqParams.measurementOptions?.trace === true
-						: this.get('dnsOpts.trace') === true;
+					let dnsTraceEnabled = this.isDnsTraceEnabled();
 					let targetsCnt = this.get('targetsArr').length;
 					let infiniteSwitchEnabled = this.get('infiniteSwitchEnabled');
 
@@ -3989,14 +3986,18 @@
 
 			return infoWindowContent;
 		},
+		isDnsTraceEnabled () {
+			let testReqParams = this.get('testReqParams');
+
+			return testReqParams
+				? testReqParams.measurementOptions?.trace === true
+				: this.get('dnsOpts.trace') === true;
+		},
 		getTableColumns (testType = this.get('testReqParams.type'), dnsTraceEnabled) {
 			let lowCaseTestName = (testType || '').toLowerCase();
 
 			if (typeof dnsTraceEnabled !== 'boolean') {
-				let testReqParams = this.get('testReqParams');
-				dnsTraceEnabled = testReqParams
-					? testReqParams.measurementOptions?.trace === true
-					: this.get('dnsOpts.trace') === true;
+				dnsTraceEnabled = this.isDnsTraceEnabled();
 			}
 
 			let cacheKey = `${lowCaseTestName}:${dnsTraceEnabled}`;
@@ -4013,48 +4014,47 @@
 				{ key: 'max', label: 'max', mobileLabel: 'Rtt max' },
 			];
 
-			let timingColumn = (timings, sortable = true) => ({
+			let timingColumn = timings => ({
 				key: 'timings',
 				type: 'timings',
 				className: 'rtt',
 				timings: timings.map((timing, idx) => ({
-					sortable,
 					isLast: idx === timings.length - 1,
 					...timing,
 				})),
 			});
 			let tableColumns;
 
-			if (lowCaseTestName === 'traceroute') {
+			if ([ 'traceroute', 'mtr' ].includes(lowCaseTestName)) {
 				tableColumns = [
-					timingColumn(rttTimings),
 					{ key: 'hops', label: 'Hops', className: 'hops' },
-				];
-			} else if (lowCaseTestName === 'mtr') {
-				tableColumns = [
 					timingColumn(rttTimings),
-					{ key: 'hops', label: 'Hops', className: 'hops' },
+					{ key: 'ip', type: 'ip', label: 'Resolved IP', mobileLabel: 'IP', className: 'ip', sortable: false },
+					{ key: 'graph', type: 'graph', label: 'Graph', className: 'graph', sortable: false },
 				];
 			} else if (lowCaseTestName === 'dns') {
 				tableColumns = [
 					...dnsTraceEnabled ? [] : [{ key: 'dns-status', label: 'Status', className: 'status' }],
 					{ key: 'answers', label: 'Answers', className: 'answers' },
 					{ key: 'total', label: 'Time', className: 'total' },
+					{ key: 'resolver', label: 'Resolver', className: 'resolver', sortable: false },
 				];
 			} else if (lowCaseTestName === 'http') {
 				tableColumns = [
 					{ key: 'http-status', label: 'Status', className: 'status http-status' },
+					{ key: 'content-length', label: 'Content length', className: 'content-length' },
 					{ key: 'total', label: 'Total', className: 'total' },
 					{ key: 'ip', type: 'ip', label: 'Resolved IP', mobileLabel: 'IP', className: 'ip', sortable: false },
-					{ key: 'content-length', label: 'Content length', className: 'content-length' },
 				];
-			} else {
+			} else if (lowCaseTestName === 'ping') {
 				tableColumns = [
 					{ key: 'quality', label: 'Quality', className: 'quality' },
 					timingColumn(rttTimings),
 					{ key: 'ip', type: 'ip', label: 'Resolved IP', mobileLabel: 'IP', className: 'ip', sortable: false },
 					{ key: 'graph', type: 'graph', label: 'Graph', className: 'graph', sortable: false },
 				];
+			} else {
+				throw new Error(`Unsupported table test type: ${testType}`);
 			}
 
 			TABLE_COLUMNS_CACHE.set(cacheKey, tableColumns);
@@ -4084,8 +4084,12 @@
 			let values = new Set();
 
 			MEASUREMENT_TYPES.forEach((testType) => {
-				this.getSortOptionsFromTableColumns(this.getTableColumns(testType))
-					.forEach(option => values.add(option.value));
+				let dnsTraceVariants = testType === 'dns' ? [ false, true ] : [ false ];
+
+				dnsTraceVariants.forEach((dnsTraceEnabled) => {
+					this.getSortOptionsFromTableColumns(this.getTableColumns(testType, dnsTraceEnabled))
+						.forEach(option => values.add(option.value));
+				});
 			});
 
 			return [ ...values ];
@@ -4115,8 +4119,8 @@
 				showDesktopUnits: timings.length > 0 && timings.every(timing => typeof timing.value === 'number'),
 			};
 		},
-		createEmptyTableCells (testType) {
-			return this.getTableColumns(testType).map((column) => {
+		createEmptyTableCells (testType, dnsTraceEnabled) {
+			return this.getTableColumns(testType, dnsTraceEnabled).map((column) => {
 				if (column.type === 'timings') {
 					return this.createTimingTableCell(column, {});
 				}
@@ -4129,9 +4133,13 @@
 
 			return hops.length ? hops[hops.length - 1] : null;
 		},
+		getLastHopRtts (result = {}) {
+			return (this.getLastHop(result)?.timings || [])
+				.map(timing => timing?.rtt)
+				.filter(rtt => typeof rtt === 'number' && Number.isFinite(rtt));
+		},
 		getLastHopTimingStats (result = {}) {
-			let timings = this.getLastHop(result)?.timings || [];
-			let rtts = timings.map(timing => timing?.rtt).filter(rtt => typeof rtt === 'number' && Number.isFinite(rtt));
+			let rtts = this.getLastHopRtts(result);
 
 			if (!rtts.length) {
 				return {
@@ -4198,10 +4206,6 @@
 			if (lowCaseTestName === 'ping') {
 				tableCells = tableColumns.map((column) => {
 					if (column.key === 'quality') {
-						sortValues.quality = typeof targetStats.statsTotal === 'number' && targetStats.statsTotal > 0
-							? targetStats.statsDrop / targetStats.statsTotal
-							: undefined;
-
 						return this.createMetricTableCell(targetStats.qualityStr);
 					}
 
@@ -4252,17 +4256,26 @@
 				sortValues = { ...timingValues, hops };
 
 				tableCells = tableColumns.map((column) => {
+					if (column.key === 'hops') {
+						return this.createMetricTableCell(hops);
+					}
+
 					if (column.type === 'timings') {
 						return this.createTimingTableCell(column, timingValues);
 					}
 
-					return this.createMetricTableCell(hops);
+					if (column.key === 'ip') {
+						return this.createMetricTableCell(targetStats.ipAddr);
+					}
+
+					return this.createMetricTableCell(targetStats.packetsRtt);
 				});
 			} else if (lowCaseTestName === 'dns') {
 				let dnsResult = dnsTraceEnabled ? this.getLastHop(res.result) || res.result : res.result;
 				let statusText = dnsResult.statusCodeName ?? dnsResult.statusCode;
 				let answers = dnsResult.answers?.length ?? 0;
 				let total = dnsResult.timings?.total;
+				let resolver = dnsResult.resolver;
 
 				sortValues['dns-status'] = typeof dnsResult.statusCode === 'number' ? dnsResult.statusCode : statusText;
 				sortValues.answers = answers;
@@ -4277,7 +4290,11 @@
 						return this.createMetricTableCell(answers);
 					}
 
-					return this.createMetricTableCell(typeof total === 'number' ? `${total} ms` : null);
+					if (column.key === 'total') {
+						return this.createMetricTableCell(typeof total === 'number' ? `${total} ms` : null);
+					}
+
+					return this.createMetricTableCell(resolver);
 				});
 			} else if (lowCaseTestName === 'http') {
 				let statusText = this.getHttpStatusText(res.result);
@@ -4304,7 +4321,7 @@
 					return this.createMetricTableCell(typeof contentLength === 'number' ? `${contentLength} B` : null);
 				});
 			} else {
-				tableCells = this.createEmptyTableCells(testType);
+				tableCells = this.createEmptyTableCells(testType, dnsTraceEnabled);
 			}
 
 			return {
@@ -4317,10 +4334,7 @@
 				return [];
 			}
 
-			let testReqParams = this.get('testReqParams');
-			let dnsTraceEnabled = testReqParams
-				? testReqParams.measurementOptions?.trace === true
-				: this.get('dnsOpts.trace') === true;
+			let dnsTraceEnabled = this.isDnsTraceEnabled();
 
 			let parseTargetStats = (res) => {
 				let baseStat = { target: res.target };
@@ -4328,7 +4342,7 @@
 				if (res.result.status === 'in-progress') {
 					return {
 						...baseStat,
-						tableCells: this.createEmptyTableCells(res.type),
+						tableCells: this.createEmptyTableCells(res.type, dnsTraceEnabled),
 						sortValues: {},
 					};
 				}
@@ -4341,6 +4355,11 @@
 				} = _.calcGpTestResTiming(res.type, res, dnsTraceEnabled);
 
 				let { packetsRtt, packetsTotal } = _.parseGpRawOutputForTimings(res.result.rawOutput);
+
+				if ([ 'traceroute', 'mtr' ].includes(res.type)) {
+					packetsRtt = this.getLastHopRtts(res.result);
+				}
+
 				let stats = res.result?.stats || {};
 				let isOffline = res.result.status === PROBE_STATUS_OFFLINE;
 				let minTiming = typeof stats.min === 'number' ? stats.min : PROBE_NO_TIMING_VALUE;
