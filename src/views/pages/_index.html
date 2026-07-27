@@ -51,7 +51,7 @@
 
 	<c-notification></c-notification>
 
-	<c-gp-header additionalClasses="header-with-globalping-bg no-border" isInert="{{focusModeActive}}"></c-gp-header>
+	<c-gp-header additionalClasses="header-with-globalping-bg no-border {{#if focusModeActive}}navbar-focus-mode{{/if}}" isInert="{{focusModeActive}}"></c-gp-header>
 
 	<div class="p-globalping {{#if focusModeActive}}focus-mode-open{{/if}}">
 		<c-gp-jumbotron className="main" gridType="globe"></c-gp-jumbotron>
@@ -103,25 +103,38 @@
 		<div
 			class="gp_map-block {{#if focusModeActive}}gp_map-block_focus-mode{{elseif focusModeTransition === 'content-leaving'}}gp_map-block_results-leaving{{/if}}"
 			{{#if focusModeActive}}role="dialog" aria-modal="true" aria-label="Globalping measurement tool" tabindex="-1"{{/if}}>
-			<div class="gp_map-block_header {{#if focusModeActive}}gp_map-block_header_focus-mode{{elseif focusModeTransition}}gp_map-block_header_default-entering{{/if}}">
+			{{#if focusModeActive || focusModeTransition === 'content-leaving'}}
+				<div
+					class="gp_map-block_focus-bar {{#if focusModeTransition === 'opening'}}gp_map-block_focus-bar_entering{{elseif focusModeTransition === 'content-leaving'}}gp_map-block_focus-bar_leaving{{/if}}"
+					{{#unless focusModeActive}}inert aria-hidden="true"{{/unless}}>
+					<img
+						class="gp_map-block_focus-bar_logo"
+						width="119"
+						height="24"
+						src="{{@shared.assetsHost}}/img/globalping-full-dark.svg"
+						alt="Globalping">
+					<span class="gp_map-block_focus-bar_message">{{shareResHeaderData}}</span>
+					<button
+						type="button"
+						class="gp_map-block_header_focus-toggle gp_map-block_focus-bar_return"
+						aria-label="Return to homepage from measurement focus mode"
+						on-click="@this.closeFocusMode(@event)">
+						<i class="fa fa-reply" aria-hidden="true"></i>
+						<span>Return to homepage</span>
+					</button>
+				</div>
+			{{/if}}
+
+			<div class="gp_map-block_header">
+				<span class="gp_map-block_header_dots" aria-hidden="true">
+					<span></span>
+					<span></span>
+					<span></span>
+				</span>
+				{{#if shareResHeaderData && !focusModeActive}}
+					<span class="gp_map-block_header_share-res-msg">{{shareResHeaderData}}</span>
+				{{/if}}
 				{{#if focusModeActive}}
-					<div class="gp_map-block_header_focus-content {{#if focusModeTransition === 'opening'}}gp_map-block_header_focus-content_entering{{/if}}">
-						<img
-							class="gp_map-block_header_focus-content_logo"
-							width="119"
-							height="24"
-							src="{{@shared.assetsHost}}/img/globalping-full-dark.svg"
-							alt="Globalping">
-						<span class="gp_map-block_header_focus-content_message">{{shareResHeaderData}}</span>
-						<button
-							type="button"
-							class="gp_map-block_header_focus-toggle gp_map-block_header_focus-content_return"
-							aria-label="Return from measurement focus mode"
-							on-click="@this.closeFocusMode(@event)">
-							<i class="fa fa-reply" aria-hidden="true"></i>
-							<span>Return</span>
-						</button>
-					</div>
 					<span class="gp_map-block_header_actions gp_map-block_header_actions_mobile-close">
 						<button
 							type="button"
@@ -132,28 +145,18 @@
 							<span>Exit focus mode</span>
 						</button>
 					</span>
-				{{else}}
-					<span class="gp_map-block_header_dots" aria-hidden="true">
-						<span></span>
-						<span></span>
-						<span></span>
+				{{elseif focusModeAvailable}}
+					<span class="gp_map-block_header_actions">
+						<button
+							type="button"
+							class="gp_map-block_header_focus-toggle gp_map-block_header_focus-toggle_open"
+							aria-label="Open measurement focus mode"
+							on-click="@this.openFocusMode(@event)">
+							<i class="fa fa-expand" aria-hidden="true"></i>
+							<span class="hidden-xs">Focus mode</span>
+							<span class="mobile-only">Enter focus mode</span>
+						</button>
 					</span>
-					{{#if shareResHeaderData}}
-						<span class="gp_map-block_header_share-res-msg">{{shareResHeaderData}}</span>
-					{{/if}}
-					{{#if focusModeAvailable}}
-						<span class="gp_map-block_header_actions">
-							<button
-								type="button"
-								class="gp_map-block_header_focus-toggle gp_map-block_header_focus-toggle_open"
-								aria-label="Open measurement focus mode"
-								on-click="@this.openFocusMode(@event)">
-								<i class="fa fa-expand" aria-hidden="true"></i>
-								<span class="hidden-xs">Focus mode</span>
-								<span class="mobile-only">Enter focus mode</span>
-							</button>
-						</span>
-					{{/if}}
 				{{/if}}
 			</div>
 
@@ -2923,7 +2926,7 @@
 				}
 
 				let focusToggleSelector = this.get('focusModeActive')
-					? _.isMobileViewport() ? '.gp_map-block_header_focus-toggle_mobile-close' : '.gp_map-block_header_focus-content_return'
+					? _.isMobileViewport() ? '.gp_map-block_header_focus-toggle_mobile-close' : '.gp_map-block_focus-bar_return'
 					: '.gp_map-block_header_focus-toggle_open';
 
 				this.focusWithoutScroll(this.find(focusToggleSelector));
@@ -4103,7 +4106,9 @@
 
 				requestAnimationFrame(() => {
 					if (this.focusModeRenderId === renderId && window.scrollY === scheduledScrollY) {
-						this.scrollFocusModeRootIntoView(scrollOffset);
+						let focusBar = this.get('focusModeActive') && this.find('.gp_map-block_focus-bar');
+
+						this.scrollFocusModeRootIntoView(scrollOffset - (focusBar?.offsetTop || 0));
 					}
 				});
 			});

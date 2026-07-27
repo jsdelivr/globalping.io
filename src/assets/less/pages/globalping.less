@@ -46,13 +46,27 @@
 	}
 }
 
-@keyframes gp-focus-header-fade-in {
+@keyframes gp-focus-bar-enter {
 	from {
 		opacity: 0;
+		transform: translateY(76px);
 	}
 
 	to {
 		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+@keyframes gp-focus-bar-leave {
+	from {
+		opacity: 1;
+		transform: translateY(0);
+	}
+
+	to {
+		opacity: 0;
+		transform: translateY(76px);
 	}
 }
 
@@ -378,16 +392,16 @@
 			--focus-mode-offset-y: 0;
 			z-index: 1050;
 			box-shadow: 0 0 0 rgba(0, 0, 0, 0);
-			transition: width .42s ease, max-width .42s ease, margin-bottom .42s ease, box-shadow .21s ease, transform .42s ease;
+			transition: margin-bottom .42s ease, box-shadow .21s ease, transform .42s ease;
 
 			body.modal-open & {
 				z-index: 1;
 			}
 
 			@media (min-width: @screen-sm-min) {
-				max-width: 1214px;
+				max-width: 1304px;
 				margin: 0 auto;
-				width: calc(90% - 38px);
+				width: calc(100% - 48px);
 				border: 1.5px solid #e7e7ee;
 				box-shadow: 0 2px 2px rgba(0, 0, 0, .04);
 				border-radius: 8px;
@@ -400,8 +414,6 @@
 
 				@media (min-width: @screen-sm-min) {
 					--focus-mode-offset-y: -400px;
-					max-width: 1304px;
-					width: calc(100% - 48px);
 					transform: translateY(var(--focus-mode-offset-y));
 					margin-bottom: -400px;
 					border: none;
@@ -425,78 +437,82 @@
 				}
 			}
 
+			&_focus-bar {
+				position: absolute;
+				top: -76px;
+				left: 0;
+				z-index: 1;
+				display: grid;
+				grid-template-columns: minmax(119px, 1fr) minmax(0, auto) minmax(119px, 1fr);
+				align-items: center;
+				column-gap: 16px;
+				width: 100%;
+				height: 64px;
+				padding: 0 24px;
+				background: #fff;
+				border: 1px solid #e7e7ee;
+				border-radius: 8px;
+				box-shadow: 0 12px 36px rgba(0, 0, 0, .16);
+
+				@media (min-width: @screen-sm-min) {
+					&_entering {
+						animation: gp-focus-bar-enter .42s cubic-bezier(.16, 1, .3, 1) both;
+					}
+
+					&_leaving {
+						animation: gp-focus-bar-leave .18s ease-in both;
+					}
+				}
+
+				& + .gp_map-block_header {
+					position: relative;
+					z-index: 2;
+				}
+
+				&_logo {
+					justify-self: start;
+					width: 119px;
+					height: 24px;
+				}
+
+				&_message {
+					min-width: 0;
+					overflow: hidden;
+					color: #17233a;
+					text-align: center;
+					text-overflow: ellipsis;
+					white-space: nowrap;
+				}
+
+				&_return.gp_map-block_header_focus-toggle {
+					justify-self: end;
+					height: 38px;
+				}
+
+				@media (max-width: @screen-xs-max) {
+					display: none;
+				}
+			}
+
 			&_results-leaving {
 				@media (min-width: @screen-sm-min) {
 					box-shadow: 0 2px 2px rgba(0, 0, 0, .04);
-					transition: width .42s ease, max-width .42s ease, margin-bottom .42s ease, transform .42s ease;
+					transition: margin-bottom .42s ease, transform .42s ease;
 				}
 			}
 
 			&_header {
 				display: flex;
 
-				&_default-entering {
-					@media (min-width: @screen-sm-min) {
-						> .gp_map-block_header_dots,
-						> .gp_map-block_header_share-res-msg,
-						> .gp_map-block_header_actions {
-							animation: gp-focus-header-fade-in .18s ease-out both;
-						}
-					}
-				}
-
 				@media (min-width: @screen-sm-min) {
 					align-items: center;
 					justify-content: space-between;
 					column-gap: 9px;
 					width: 100%;
-					height: 44px;
-					padding: 0 24px;
+					height: 40px;
+					padding: 0 13.5px;
 					background: linear-gradient(180deg, #fff 0, #fafafa 100%);
 					border-radius: 8px 8px 0 0;
-				}
-
-				&_focus-mode {
-					@media (min-width: @screen-sm-min) {
-						background: #f8f8f8;
-					}
-				}
-
-				&_focus-content {
-					display: grid;
-					grid-template-columns: minmax(119px, 1fr) minmax(0, auto) minmax(119px, 1fr);
-					align-items: center;
-					column-gap: 16px;
-					width: 100%;
-
-					&_entering {
-						@media (min-width: @screen-sm-min) {
-							animation: gp-focus-header-fade-in .15s ease-out both;
-						}
-					}
-
-					&_logo {
-						justify-self: start;
-						width: 119px;
-						height: 24px;
-					}
-
-					&_message {
-						min-width: 0;
-						overflow: hidden;
-						color: #17233a;
-						text-align: center;
-						text-overflow: ellipsis;
-						white-space: nowrap;
-					}
-
-					&_return.gp_map-block_header_focus-toggle {
-						justify-self: end;
-					}
-
-					@media (max-width: @screen-xs-max) {
-						display: none;
-					}
 				}
 
 				&_dots, &_actions {
@@ -552,6 +568,12 @@
 					&:focus-visible {
 						outline: none;
 						box-shadow: 0 2px 2px rgba(0, 0, 0, .04), 0 0 0 1px #fff, 0 0 0 4px rgba(23, 212, 167, .48);
+					}
+
+					&_open {
+						@media (min-width: @screen-sm-min) {
+							margin-right: 10.5px;
+						}
 					}
 				}
 
