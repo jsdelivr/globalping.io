@@ -11,12 +11,11 @@
 		</div>
 
 		<div class="content-wrapper_ctrls">
-			<div class="content-wrapper_ctrls_switch {{#if testType !== 'ping'}}content-wrapper_ctrls_switch--disabled{{/if}}" data-testid="results-display-switch">
+			<div class="content-wrapper_ctrls_switch" data-testid="results-display-switch">
 				<input id="display-type"
 					type="checkbox"
 					checked="{{rawOutputMode}}"
 					twoway="false"
-					disabled="{{testType !== 'ping'}}"
 					class="switch-input {{#unless rawOutputMode}}table{{/unless}}"
 					on-click="@this.handleDisplayTypeInputClick(@event)"
 					on-keydown="@this.handleDisplayTypeInputKeyDown(@event)">
@@ -41,7 +40,7 @@
 				<img width="13" height="13" alt="" src="{{@shared.assetsHost}}/img/map-icon{{#if showMap}}.active{{/if}}.svg"/>
 			</button>
 
-			{{#if testType === 'ping'}}
+			{{#if sortByOpts.length}}
 				<div class="content-wrapper_ctrls_sort-options desktop-hidden dropdown">
 					<div class="btn-group">
 						<button type="button"
@@ -130,8 +129,6 @@
 			event.preventDefault();
 		},
 		handleDisplayTypeSwitch (rawOutputMode) {
-			if (this.get('testType') !== 'ping') { return; }
-
 			this.set('rawOutputMode', rawOutputMode);
 		},
 		onSortOptionSelect (field) {

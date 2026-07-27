@@ -506,6 +506,15 @@ module.exports = {
 		}, []);
 	},
 
+	extractHttpRawOutput (rawOutput = '') {
+		let [ rawHeaders, ...rawBodyParts ] = (rawOutput || '').split(/(?:\r?\n){2}/);
+
+		return {
+			rawBody: rawBodyParts.join('\n\n'),
+			rawHeaders,
+		};
+	},
+
 	parseGpRawOutputForTimings (raw) {
 		let packets = [];
 		let timeMatch, noAnswerMatch;
@@ -600,6 +609,14 @@ module.exports = {
 		return getColorFromGradient(pureTimingValue / probesMaxTiming, '#17d4a7', '#ffb800', '#e64e3d');
 	},
 
+	getGpTargetStatusColor (targetStats, testType) {
+		if (targetStats?.extraValues?.errorStatus) {
+			return this.getGpProbeStatusColor(targetStats.extraValues.errorStatus);
+		}
+
+		return this.getGpProbeStatusColor(targetStats?.avgTiming, testType === 'http' ? 1000 : 200);
+	},
+
 	pluralize (singular, countOrPlural, countOrUndefined) {
 		let count = typeof countOrPlural === 'string' ? countOrUndefined : countOrPlural;
 		let plural = typeof countOrPlural === 'string' ? countOrPlural : singular + 's';
@@ -688,8 +705,31 @@ module.exports = {
 			return `${loc.city}${loc.country}${loc.continent}${loc.network}`;
 		};
 
+		let normalizeSortValue = (value) => {
+			if (typeof value === 'number' && !Number.isNaN(value)) {
+				return value;
+			}
+
+			if (typeof value === 'string' && value) {
+				return value.toLowerCase();
+			}
+
+			return Infinity;
+		};
+
+		let compareValues = (a, b) => {
+			let lhs = normalizeSortValue(a);
+			let rhs = normalizeSortValue(b);
+
+			if (typeof lhs === 'string' || typeof rhs === 'string') {
+				return sortCoeff * String(lhs).localeCompare(String(rhs));
+			}
+
+			return sortCoeff * (lhs - rhs);
+		};
+
 		let getFieldVal = (loc, field) => {
-			let value = loc.statsPerTarget[targetIdx][field];
+			let value = loc.statsPerTarget[targetIdx]?.[field];
 
 			if (typeof value !== 'number' || Number.isNaN(value)) {
 				return Infinity;
@@ -697,6 +737,8 @@ module.exports = {
 
 			return value;
 		};
+
+		let getSortVal = loc => loc.statsPerTarget[targetIdx]?.sortValues?.[by];
 
 		switch (by) {
 			case 'location': {
@@ -717,6 +759,10 @@ module.exports = {
 			}
 
 			default: {
+				if (results.some(result => Object.hasOwn(result.statsPerTarget[targetIdx]?.sortValues || {}, by))) {
+					return results.toSorted((a, b) => compareValues(getSortVal(a), getSortVal(b)));
+				}
+
 				if (!Object.hasOwn(sortToFieldMap, by)) {
 					return results;
 				}

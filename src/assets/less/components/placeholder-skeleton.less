@@ -1,8 +1,12 @@
 .c-placeholder-skeleton {
 	width: 100%;
 
+	& *, & {
+		display: block;
+	}
+
 	.skeleton {
-		&-header, &-subheader, &-descr, &-list {
+		&-header, &-subheader, &-descr, &-list, &-base {
 			width: 100%;
 
 			.skeleton_animated {
@@ -80,6 +84,16 @@
 						height: 100%;
 					}
 				}
+			}
+		}
+
+		&-base {
+			height: 16px;
+			border-radius: 4px;
+
+			.skeleton_animated {
+				height: 100%;
+				border-radius: 4px;
 			}
 		}
 	}

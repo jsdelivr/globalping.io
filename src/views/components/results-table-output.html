@@ -2,255 +2,190 @@
 
 <div class="c-gp-results-table-output">
 	<div class="results-table-wrapper" on-scroll="@this.hideSetLocationButton(@event)">
-		<div class="results-table {{#if targetsCnt === 1}}single-target{{/if}}">
-			<div class="results-table_header">
-				<button class="results-table_header_cell location" on-click="@this.onSortClick('location')">
-					Location
-					<img width="8" alt="" src="{{@shared.assetsHost}}/img/{{@this.getSortIcon('location')}}">
-				</button>
+		<table class="results-table {{#if targetsCnt === 1}}single-target{{/if}}">
+			<thead class="results-table_header">
+				<tr>
+					<th class="results-table_header_cell location" scope="col">
+						<button type="button" on-click="@this.onSortClick('location')">
+							Location
+							<img width="8" alt="" src="{{@shared.assetsHost}}/img/{{@this.getSortIcon('location')}}">
+						</button>
+					</th>
 
-				{{#if targetsCnt > 1}}
-					<div class="results-table_header_cell targets"></div>
-				{{/if}}
+					{{#if targetsCnt > 1}}
+						<th class="results-table_header_cell targets" scope="col"></th>
+					{{/if}}
 
-				<button class="results-table_header_cell quality" on-click="@this.onSortClick('quality')">
-					Quality
-					<img width="8" alt="" src="{{@shared.assetsHost}}/img/{{@this.getSortIcon('quality')}}">
-				</button>
+					{{#each tableColumns as column}}
+						{{#if column.type === 'timings'}}
+							<th class="results-table_header_cell {{column.className}}" scope="col">
+								<div class="timings-group">
+									{{#each column.timings as timing}}
+										{{#if timing.sortable !== false}}
+											<button type="button" class="rtt_text" on-click="@this.onSortClick(timing.key)">
+												{{timing.label}}
+												<img width="8" alt="" src="{{@shared.assetsHost}}/img/{{@this.getSortIcon(timing.key)}}">
+											</button>
+										{{else}}
+											<span class="rtt_text">{{timing.label}}</span>
+										{{/if}}
 
-				<div class="results-table_header_cell rtt">
-					<button class="rtt_text" on-click="@this.onSortClick('rtt-last')">
-						rtt last
-						<img width="8" alt="" src="{{@shared.assetsHost}}/img/{{@this.getSortIcon('rtt-last')}}">
-					</button>
-					<span class="rtt_separator">/</span>
-					<button class="rtt_text" on-click="@this.onSortClick('min')">
-						min
-						<img width="8" alt="" src="{{@shared.assetsHost}}/img/{{@this.getSortIcon('min')}}">
-					</button>
-					<span class="rtt_separator">/</span>
-					<button class="rtt_text" on-click="@this.onSortClick('avg')">
-						avg
-						<img width="8" alt="" src="{{@shared.assetsHost}}/img/{{@this.getSortIcon('avg')}}">
-					</button>
-					<span class="rtt_separator">/</span>
-					<button class="rtt_text" on-click="@this.onSortClick('max')">
-						max
-						<img width="8" alt="" src="{{@shared.assetsHost}}/img/{{@this.getSortIcon('max')}}">
-					</button>
-				</div>
-				<div class="results-table_header_cell ip">Resolved IP</div>
-				<div class="results-table_header_cell graph">Graph</div>
-			</div>
+										{{#unless timing.isLast}}
+											<span class="rtt_separator">/</span>
+										{{/unless}}
+									{{/each}}
+								</div>
+							</th>
+						{{elseif column.sortable !== false}}
+							<th class="results-table_header_cell {{column.className}}" scope="col">
+								<button type="button" on-click="@this.onSortClick(column.key)">
+									{{column.label}}
+									<img width="8" alt="" src="{{@shared.assetsHost}}/img/{{@this.getSortIcon(column.key)}}">
+								</button>
+							</th>
+						{{else}}
+							<th class="results-table_header_cell {{column.className}}" scope="col">{{column.label}}</th>
+						{{/if}}
+					{{/each}}
+				</tr>
+			</thead>
 
-			{{#each preparedTestResults}}
-				<div class="results-table_row row-num-{{this.clientSideId}} item-id-{{this.clientSideId}}"
+			{{#each preparedTestResults as result}}
+				<tbody class="results-table_row row-num-{{result.clientSideId}} item-id-{{result.clientSideId}}"
 					tabindex="0"
 					role="button"
 					aria-label="Set as location for the next test"
-					on-focus="@this.enableItemFocused(@event, this.clientSideId)"
+					on-focus="@this.enableItemFocused(@event, result.clientSideId)"
 					on-blur="@this.hideSetLocationButton(@event)"
-					on-keydown="@this.headerKeydownHandler(@event, this.clientSideId)"
-					on-mouseenter="@this.showSetLocationButton(this.clientSideId)"
+					on-keydown="@this.headerKeydownHandler(@event, result.clientSideId)"
+					on-mouseenter="@this.showSetLocationButton(result.clientSideId)"
 					on-mouseleave="@this.hideSetLocationButton(@event)"
 				>
-					<div class="results-table_row_location">
-						<span class="results-table_row_location_status-line">
-							<span
-								class="results-table_row_location_status-line_top"
-								style="background-color: {{_.getGpProbeStatusColor(this.statsPerTarget[0].avgTiming)}}">
-							</span>
-							<span
-								class="results-table_row_location_status-line_bottom"
-								style="background-color: {{_.getGpProbeStatusColor(this.statsPerTarget[1] ? this.statsPerTarget[1].avgTiming : this.statsPerTarget[0].avgTiming)}}">
-							</span>
-						</span>
+					{{#each result.statsPerTarget as target : targetIdx}}
+						<tr class="results-table_row_stats_subrow target-{{targetIdx}}">
+							{{#if targetIdx === 0}}
+								<td class="results-table_row_location" rowspan="{{result.statsPerTarget.length}}">
+									<div class="results-table_row_location_content">
+										<span class="results-table_row_location_status-line">
+											<span
+												class="results-table_row_location_status-line_top"
+												style="background-color: {{_.getGpTargetStatusColor(result.statsPerTarget[0], testType)}}">
+											</span>
+											<span
+												class="results-table_row_location_status-line_bottom"
+												style="background-color: {{_.getGpTargetStatusColor(result.statsPerTarget[1] ? result.statsPerTarget[1] : result.statsPerTarget[0], testType)}}">
+											</span>
+										</span>
 
-						<img width="28" height="20" alt="" src="https://cdn.jsdelivr.net/npm/country-flag-icons@1.5.5/3x2/{{this.country}}.svg">
+										<img width="28" height="20" alt="" src="https://cdn.jsdelivr.net/npm/country-flag-icons@1.5.5/3x2/{{result.country}}.svg">
 
-						<div class="results-table_row_location_data">
-							<span>{{this.city}}, {{this.country}}, {{this.continent}}</span>
-							<span>{{this.network}}</span>
-						</div>
-					</div>
-
-					<div class="results-table_row_stats">
-						{{#each this.statsPerTarget}}
-							<div class="results-table_row_stats_subrow">
-								{{#if targetsCnt > 1}}
-									<div class="results-table_row_stats_subrow_cell targets">
-										<div class="results-table_row_stats_subrow_cell_value">
-											{{#if this.target}}
-												<span>{{this.target}}</span>
-											{{elseif testInProgress}}
-												<c-placeholder-skeleton type="subheader"></c-placeholder-skeleton>
-											{{else}}
-												<span>—</span>
-											{{/if}}
+										<div class="results-table_row_location_data">
+											<span>{{result.city}}, {{result.country}}, {{result.continent}}</span>
+											<span>{{result.network}}</span>
 										</div>
 									</div>
-								{{/if}}
+								</td>
+							{{/if}}
 
-								{{#if this.isFailed}}
-									<div class="results-table_row_stats_subrow_cell probe-failed">
+							{{#if targetsCnt > 1}}
+								<td class="results-table_row_stats_subrow_cell cell targets">
+									<div class="cell-value">
+										{{#if target.target}}
+											<span>{{target.target}}</span>
+										{{elseif testInProgress}}
+											<c-placeholder-skeleton type="base"></c-placeholder-skeleton>
+										{{else}}
+											<span>&mdash;</span>
+										{{/if}}
+									</div>
+								</td>
+							{{/if}}
+
+							{{#if target.isFailed}}
+								<td class="results-table_row_stats_subrow_cell cell probe-failed" colspan="{{tableColumns.length}}">
+									<span class="probe-failed_content">
 										<span>{{PROBE_FAILED_TEXT}}</span>
-										<div as-tooltip="`${this.failureRawOutput}`, 'top', true">
-											<img width="20" height="20" alt="" src="{{@shared.assetsHost}}/img/target-icon.svg">
-										</div>
-									</div>
-								{{elseif this.isOffline && !isInfiniteModeRes}}
-									<div class="results-table_row_stats_subrow_cell probe-offline">
-										<span>{{PROBE_OFFLINE_TEXT}}</span>
-									</div>
-								{{else}}
-									<div class="results-table_row_stats_subrow_cell quality">
-										<div class="results-table_row_stats_subrow_cell_value">
-											<span class="results-table_row_stats_subrow_cell_value_header">Quality</span>
-											{{#if this.qualityStr}}
-												<span>{{this.qualityStr}}</span>
-											{{elseif testInProgress}}
-												<c-placeholder-skeleton type="subheader"></c-placeholder-skeleton>
-											{{else}}
-												<span>—</span>
-											{{/if}}
-										</div>
-									</div>
+										<img class="probe-failed_icon" width="20" height="20" alt="" src="{{@shared.assetsHost}}/img/target-icon.svg" as-tooltip="`${target.failureRawOutput}`, 'top', true">
+									</span>
+								</td>
+							{{elseif target.isOffline && !isInfiniteModeRes}}
+								<td class="results-table_row_stats_subrow_cell cell probe-offline" colspan="{{tableColumns.length}}">
+									<span>{{PROBE_OFFLINE_TEXT}}</span>
+								</td>
+							{{else}}
+								{{#each tableColumns as column : columnIdx}}
+									<td class="results-table_row_stats_subrow_cell cell {{column.className}} {{#if column.type !== 'timings' && column.sortable !== false}}is-sortable{{/if}}">
+										<div class="cell-value">
+											<span class="cell-label">{{column.mobileLabel || column.label}}</span>
 
-									<div class="results-table_row_stats_subrow_cell rtt">
-										<div class="results-table_row_stats_subrow_cell_value">
-											<span class="timings {{#unless areTimingsReady}}no-value{{/unless}}">
-												<span class="timings_header">
-													<span>rtt&nbsp;</span>
-													<span>last</span>
-												</span>
+											{{#if column.type === 'timings'}}
+												<div class="timings-group">
+													{{#each column.timings as timing : timingIdx}}
+														<span class="timings {{#unless target.tableCells[columnIdx].timings[timingIdx].hasValue}}no-value{{/unless}} {{#if timing.sortable !== false}}is-sortable{{/if}}">
+															<span class="timings_header">{{timing.mobileLabel || timing.label}}</span>
 
-												{{#if this.areTimingsReady}}
-													<span class="timings_value">
-														{{@this.formatTimingValue(this.lastTiming)}}
-														{{#if this.lastTiming !== PROBE_NO_TIMING_VALUE}}
-															<span class="timings_units">ms</span>
-														{{/if}}
-													</span>
-												{{elseif !this.areTimingsReady && testInProgress}}
-													<c-placeholder-skeleton type="subheader"></c-placeholder-skeleton>
-												{{else}}
-													<span>—</span>
-												{{/if}}
-											</span>
+															{{#if target.tableCells[columnIdx].timings[timingIdx].hasValue}}
+																<span class="timings_value">
+																	{{@this.formatTimingValue(target.tableCells[columnIdx].timings[timingIdx].value)}}
+																	{{#if target.tableCells[columnIdx].timings[timingIdx].units}}
+																		<span class="timings_units">{{target.tableCells[columnIdx].timings[timingIdx].units}}</span>
+																	{{/if}}
+																</span>
+															{{elseif testInProgress}}
+																<c-placeholder-skeleton type="base"></c-placeholder-skeleton>
+															{{else}}
+																<span>&mdash;</span>
+															{{/if}}
+														</span>
 
-											<span class="timings_separator">/</span>
-
-											<span class="timings {{#unless areTimingsReady}}no-value{{/unless}}">
-												<span class="timings_header">
-													<span>rtt&nbsp;</span>
-													<span>min</span>
-												</span>
-
-												{{#if this.areTimingsReady}}
-													<span class="timings_value">
-														{{@this.formatTimingValue(this.minTiming)}}
-														{{#if this.minTiming !== PROBE_NO_TIMING_VALUE}}
-															<span class="timings_units">ms</span>
-														{{/if}}
-													</span>
-												{{elseif !this.areTimingsReady && testInProgress}}
-													<c-placeholder-skeleton type="subheader"></c-placeholder-skeleton>
-												{{else}}
-													<span>—</span>
-												{{/if}}
-											</span>
-
-											<span class="timings_separator">/</span>
-
-											<span class="timings {{#unless areTimingsReady}}no-value{{/unless}}">
-												<span class="timings_header">
-													<span>rtt&nbsp;</span>
-													<span>avg</span>
-												</span>
-
-												{{#if this.areTimingsReady}}
-													<span class="timings_value">
-														{{@this.formatTimingValue(this.avgTiming)}}
-														{{#if this.avgTiming !== PROBE_NO_TIMING_VALUE}}
-															<span class="timings_units">ms</span>
-														{{/if}}
-													</span>
-												{{elseif !this.areTimingsReady && testInProgress}}
-													<c-placeholder-skeleton type="subheader"></c-placeholder-skeleton>
-												{{else}}
-													<span>—</span>
-												{{/if}}
-											</span>
-
-											<span class="timings_separator">/</span>
-
-											<span class="timings {{#unless areTimingsReady}}no-value{{/unless}}">
-												<span class="timings_header">
-													<span>rtt&nbsp;</span>
-													<span>max</span>
-												</span>
-
-												{{#if this.areTimingsReady}}
-													<span class="timings_value">
-														{{@this.formatTimingValue(this.maxTiming)}}
-														{{#if this.maxTiming !== PROBE_NO_TIMING_VALUE}}
-															<span class="timings_units">ms</span>
-														{{/if}}
-													</span>
-												{{elseif !this.areTimingsReady && testInProgress}}
-													<c-placeholder-skeleton type="subheader"></c-placeholder-skeleton>
-												{{else}}
-													<span>—</span>
-												{{/if}}
-											</span>
-
-											{{#if this.areTimingsReady
-												&& this.minTiming !== PROBE_NO_TIMING_VALUE
-												&& this.avgTiming !== PROBE_NO_TIMING_VALUE
-												&& this.maxTiming !== PROBE_NO_TIMING_VALUE
-											}}
-												<span class="lg-screen-units">ms</span>
-											{{/if}}
-										</div>
-									</div>
-
-									<div class="results-table_row_stats_subrow_cell ip">
-										<div class="results-table_row_stats_subrow_cell_value">
-											<span class="results-table_row_stats_subrow_cell_value_header"><span class="hidden-xs">Resolved </span>IP</span>
-											{{#if this.ipAddr}}
-												<span class="visible-lg"> <!-- We break in two lines if the value has more than 4 non-empty groups. -->
-													{{#each splitIPv6(ipAddr)}}
-														{{this}}<br>
+														{{#unless timing.isLast}}
+															<span class="timings_separator">/</span>
+														{{/unless}}
 													{{/each}}
-												</span>
-												<span class="hidden-lg text-ellipsis">{{this.ipAddr}}</span>
-											{{elseif !this.ipAddr && testInProgress}}
-												<c-placeholder-skeleton type="subheader"></c-placeholder-skeleton>
-											{{else}}
-												<span>—</span>
-											{{/if}}
-										</div>
-									</div>
+												</div>
 
-									<div class="results-table_row_stats_subrow_cell graph">
-										<div class="results-table_row_stats_subrow_cell_value">
-											<span class="results-table_row_stats_subrow_cell_value_header">Graph</span>
-											{{#if typeof this.packetsRtt !== 'undefined' && this.packetsRtt.length}}
-												<div>{{{ @this.createGraph(this.packetsRtt) }}}</div>
-											{{elseif testInProgress && testInProgress}}
-												<c-placeholder-skeleton type="subheader"></c-placeholder-skeleton>
+												{{#if target.tableCells[columnIdx].showDesktopUnits}}
+													<span class="lg-screen-units">ms</span>
+												{{/if}}
+											{{elseif column.type === 'ip'}}
+												{{#if target.tableCells[columnIdx].hasValue}}
+													<span class="visible-lg">
+														{{#each splitIPv6(target.tableCells[columnIdx].value) as line}}
+															{{line}}<br>
+														{{/each}}
+													</span>
+													<span class="hidden-lg text-ellipsis">{{target.tableCells[columnIdx].value}}</span>
+												{{elseif testInProgress}}
+													<c-placeholder-skeleton type="base"></c-placeholder-skeleton>
+												{{else}}
+													<span>&mdash;</span>
+												{{/if}}
+											{{elseif column.type === 'graph'}}
+												{{#if target.tableCells[columnIdx].value && target.tableCells[columnIdx].value.length}}
+													<div>{{{ @this.createGraph(target.tableCells[columnIdx].value) }}}</div>
+												{{elseif testInProgress}}
+													<c-placeholder-skeleton type="base"></c-placeholder-skeleton>
+												{{else}}
+													<span>&mdash;</span>
+												{{/if}}
 											{{else}}
-												<span>—</span>
+												{{#if target.tableCells[columnIdx].hasValue}}
+													<span>{{target.tableCells[columnIdx].value}}</span>
+												{{elseif testInProgress}}
+													<c-placeholder-skeleton type="base"></c-placeholder-skeleton>
+												{{else}}
+													<span>&mdash;</span>
+												{{/if}}
 											{{/if}}
 										</div>
-									</div>
-								{{/if}}
-							</div>
-						{{/each}}
-					</div>
-				</div>
+									</td>
+								{{/each}}
+							{{/if}}
+						</tr>
+					{{/each}}
+				</tbody>
 			{{/each}}
-		</div>
+		</table>
 	</div>
 
 	{{#if floatingSetLocationButton.visible}}
@@ -312,7 +247,7 @@
 					left: 0,
 					height: 0,
 					buttonTop: 0,
-					probeData: null,
+					clientSideId: null,
 				},
 				itemFocused: false,
 				justFocusedItem: false,
@@ -323,16 +258,19 @@
 				listeners.screenWidthListener(this);
 
 				this.observe('screenWidth', () => {
-					let preparedTestResults = this.get('preparedTestResults');
-					preparedTestResults.length && this.setResultsBlockHeight(preparedTestResults);
+					this.setResultsBlockHeight(this.get('preparedTestResults') || []);
 				});
 
 				this.observe('preparedTestResults', () => {
 					let preparedTestResults = this.get('preparedTestResults') || [];
+					let tableColumns = this.get('tableColumns') || [];
 
-					if (!preparedTestResults.length) { return; }
+					if (tableColumns.some(column => column.type === 'graph')) {
+						this.setChartMaxHeight(preparedTestResults);
+					} else if (this.get('chartMaxHeight') !== 0) {
+						this.set('chartMaxHeight', 0);
+					}
 
-					this.setChartMaxHeight(preparedTestResults);
 					// set results block height based on content
 					this.setResultsBlockHeight(preparedTestResults);
 				});
@@ -353,16 +291,20 @@
 				listeners.addManagedListener(this, window, 'scroll', this._onSetLocationViewportChange);
 			}
 		},
+		onunrender () {
+			if (this.resultsBlockHeightAnimationFrame) {
+				cancelAnimationFrame(this.resultsBlockHeightAnimationFrame);
+			}
+		},
 		// --- set location button logic ---
 		isSetLocationFocusActive (setLocationButton) {
 			let activeElement = document.activeElement;
 
 			return (setLocationButton && setLocationButton.contains(activeElement))
-				|| activeElement?.classList.contains('results-table_row');
+				|| activeElement?.classList.contains('results-table_row_location_content');
 		},
 		showSetLocationButton (clientSideId) {
-			let probeData = this.get('preparedTestResults').find(item => item.clientSideId === clientSideId);
-			let rowNode = document.querySelector(`.item-id-${clientSideId}`);
+			let rowNode = this.find(`.item-id-${clientSideId}`);
 			let rowLocation = rowNode?.querySelector('.results-table_row_location');
 			let container = this.find('.c-gp-results-table-output');
 			let listContainer = this.find('.results-table-wrapper');
@@ -389,12 +331,45 @@
 
 			this.set('floatingSetLocationButton', {
 				visible: true,
-				probeData,
+				clientSideId,
 				top: relativeTop,
 				left: relativeLeft - 26,
 				height: rowRect.height,
 				buttonTop: rowLocationRect.top - rowRect.top + rowLocationRect.height / 2 - 13,
 			});
+		},
+		hideSetLocationButtonIfMoved () {
+			let floatingSetLocationButton = this.get('floatingSetLocationButton');
+
+			if (!floatingSetLocationButton.visible) {
+				return;
+			}
+
+			let rowNode = this.find(`.item-id-${floatingSetLocationButton.clientSideId}`);
+			let rowLocation = rowNode?.querySelector('.results-table_row_location');
+			let container = this.find('.c-gp-results-table-output');
+
+			if (!rowNode || !rowLocation || !container) {
+				this.set('itemFocused', false);
+				this.set('floatingSetLocationButton.visible', false);
+				return;
+			}
+
+			let rowRect = rowNode.getBoundingClientRect();
+			let rowLocationRect = rowLocation.getBoundingClientRect();
+			let containerRect = container.getBoundingClientRect();
+			let top = rowRect.top - containerRect.top;
+			let left = rowLocationRect.left - containerRect.left - 26;
+			let height = rowRect.height;
+			let buttonTop = rowLocationRect.top - rowRect.top + rowLocationRect.height / 2 - 13;
+
+			if (top !== floatingSetLocationButton.top
+				|| left !== floatingSetLocationButton.left
+				|| height !== floatingSetLocationButton.height
+				|| buttonTop !== floatingSetLocationButton.buttonTop) {
+				this.set('itemFocused', false);
+				this.set('floatingSetLocationButton.visible', false);
+			}
 		},
 		hideSetLocationButton (event) {
 			if (this.get('justFocusedItem')) {
@@ -448,8 +423,14 @@
 			this.set('floatingSetLocationButton.visible', false);
 			this.set('itemFocused', false);
 		},
-		setProbeAsLocation (probeData = this.get('floatingSetLocationButton.probeData')) {
-			if (!probeData) { return; }
+		setProbeAsLocation (clientSideId = this.get('floatingSetLocationButton.clientSideId')) {
+			let probeData = (this.get('preparedTestResults') || []).find(item => item.clientSideId === clientSideId);
+
+			if (!probeData) {
+				this.set('itemFocused', false);
+				this.set('floatingSetLocationButton.visible', false);
+				return;
+			}
 
 			this.set('currSearchLocation', `AS${probeData.asn}+${probeData.city}`);
 			this.set('floatingSetLocationButton.visible', false);
@@ -474,32 +455,48 @@
 
 			if (event.key === 'Enter' || event.key === ' ') {
 				event.preventDefault();
-				let probeData = this.get('preparedTestResults').find(item => item.clientSideId === clientSideId);
-				this.setProbeAsLocation(probeData);
+				this.setProbeAsLocation(clientSideId);
 			}
 		},
 		setChartMaxHeight (results) {
-			let allPacketRtt = results
-				.map(test => Array.isArray(test.statsPerTarget)
-					? test.statsPerTarget.map(target => target.packetsRtt).flat()
-					: []).flat();
+			let chartMaxHeight = 0;
 
-			this.set(
-				'chartMaxHeight',
-				Math.max(...allPacketRtt.filter(v => typeof v === 'number')),
-			);
+			results.forEach((result) => {
+				result.statsPerTarget?.forEach((target) => {
+					target.packetsRtt?.forEach((value) => {
+						if (typeof value === 'number') {
+							chartMaxHeight = Math.max(chartMaxHeight, value);
+						}
+					});
+				});
+			});
+
+			this.set('chartMaxHeight', chartMaxHeight);
 		},
 		setResultsBlockHeight (results) {
-			requestAnimationFrame(() => {
-				let listWrapperEl = document.querySelector('.results-table-wrapper');
+			if (this.resultsBlockHeightAnimationFrame) {
+				cancelAnimationFrame(this.resultsBlockHeightAnimationFrame);
+			}
 
-				if (listWrapperEl) {
-					let itemsAmount = results.length;
-					let listElScrollHeight = listWrapperEl.scrollHeight;
-					let avgItemElHeight = Math.ceil(listElScrollHeight / itemsAmount);
+			let itemsAmount = results.length;
 
-					listWrapperEl.style.height = `${itemsAmount < 8 ? avgItemElHeight * itemsAmount : avgItemElHeight * 8}px`;
+			this.resultsBlockHeightAnimationFrame = requestAnimationFrame(() => {
+				this.resultsBlockHeightAnimationFrame = null;
+				this.hideSetLocationButtonIfMoved();
+
+				let listWrapperEl = this.find('.results-table-wrapper');
+
+				if (!listWrapperEl) { return; }
+
+				if (!itemsAmount) {
+					listWrapperEl.style.height = '';
+					return;
 				}
+
+				let listElScrollHeight = listWrapperEl.scrollHeight;
+				let avgItemElHeight = Math.ceil(listElScrollHeight / itemsAmount);
+
+				listWrapperEl.style.height = `${itemsAmount < 8 ? avgItemElHeight * itemsAmount : avgItemElHeight * 8}px`;
 			});
 		},
 		createRealTimeGraph (

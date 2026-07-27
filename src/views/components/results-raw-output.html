@@ -1016,11 +1016,7 @@
 		},
 		// --- Other functions ---
 		getStatusColor (targetStats) {
-			if (targetStats.extraValues?.errorStatus) {
-				return _.getGpProbeStatusColor(targetStats.extraValues.errorStatus);
-			}
-
-			return _.getGpProbeStatusColor(targetStats.avgTiming, this.get('testReqParams').type === 'http' ? 1000 : 200);
+			return _.getGpTargetStatusColor(targetStats, this.get('testReqParams').type);
 		},
 		getHeaderPrimaryMetrics (extraValues = {}) {
 			return [
