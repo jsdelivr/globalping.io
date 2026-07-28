@@ -2809,6 +2809,7 @@
 					return;
 				}
 
+				this.set('measurement', null);
 				this.handlePostGPMeasError(err);
 			});
 		},
@@ -3538,7 +3539,6 @@
 			this.disableRunTestBtnForDelay();
 			this.get('testReqCancelFn')?.forEach(cancel => cancel?.());
 			this.set('testReqCancelFn', []);
-			app.router.replaceQueryParam('measurement', null, this);
 			this.set('testReqParams', null);
 			this.set('measurementsMetadata', null);
 			this.set('testInProgress', true);
@@ -3772,6 +3772,10 @@
 			}).catch((err) => {
 				if (!this.isActiveTestRun(testRunId)) {
 					return;
+				}
+
+				if (resNumber === 0) {
+					this.set('measurement', null);
 				}
 
 				this.handlePostGPMeasError(err);
