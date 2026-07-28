@@ -115,10 +115,12 @@
 						alt="Globalping">
 					<div class="gp_map-block_focus-bar_heading">
 						<h2>Measurement results</h2>
-						<span>
-							<i class="fa fa-calendar" aria-hidden="true"></i>
-							{{measurementDate}}
-						</span>
+						{{#if measurementDate}}
+							<span>
+								<i class="fa fa-calendar" aria-hidden="true"></i>
+								{{measurementDate}}
+							</span>
+						{{/if}}
 					</div>
 					<button
 						type="button"
@@ -3025,7 +3027,7 @@
 			this.set('testInProgress', true);
 			this.set('measurementErrMsg', null);
 			this.set('testReqParams', null);
-			this.set('measurementDate', _.formatDateTime(new Date()));
+			this.set('measurementDate', null);
 			this.set('realTimeTestResResponse', null);
 			this.set('activeTargetIdx', 0);
 			this.set('measurementsMetadata', null);
