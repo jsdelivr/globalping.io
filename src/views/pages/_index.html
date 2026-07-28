@@ -744,16 +744,6 @@
 						</div>
 					{{/if}}
 
-					{{#if testReqParams.id && !testInProgress}}
-						<c-gp-results-share
-							testReqParams="{{testReqParams}}"
-							measurementsMetadata="{{measurementsMetadata}}"
-							isInfiniteModeRes="{{isInfiniteModeRes}}"
-							testInProgress="{{testInProgress}}"
-							preparedTestResults="{{preparedTestResults}}"
-							activeTargetIdx="{{activeTargetIdx}}">
-						</c-gp-results-share>
-					{{/if}}
 				</div>
 			{{else}}
 				<div class="gp_map-block_test-output with-padding">
@@ -773,6 +763,19 @@
 						<c-test-examples onExampleClick="{{@this.onExampleClick}}"></c-test-examples>
 					</div>
 				</div>
+			{{/if}}
+			{{#if testInProgress || testReqParams.id}}
+				<c-gp-results-share
+					testReqParams="{{testReqParams}}"
+					measurementsMetadata="{{measurementsMetadata}}"
+					realTimeTestResResponse="{{realTimeTestResResponse}}"
+					expectedTargetsCnt="{{targetsArr.length || qsMeasurementIdsArr.length}}"
+					isInfiniteModeRes="{{isInfiniteModeRes}}"
+					isInfiniteMeasStopped="{{isInfiniteMeasStopped}}"
+					testInProgress="{{testInProgress}}"
+					preparedTestResults="{{preparedTestResults}}"
+					activeTargetIdx="{{activeTargetIdx}}">
+				</c-gp-results-share>
 			{{/if}}
 			{{#if rawOutputMode && showingNetworkLogos}}
 				<a class="gp_map-block_logo-dev-link" href="https://logo.dev" target="_blank" rel="noopener noreferrer">Network logos provided by Logo.dev</a>
@@ -2671,7 +2674,8 @@
 			this.set('showMeasurementOpts', false);
 			this.set('testInProgress', true);
 			this.set('measurementErrMsg', null);
-			this.set('testReqParams', null);
+			this.set('targetsArr', targetsArr);
+			this.set('testReqParams', { ...reqParams, target: targetsArr[0] });
 			this.set('shareResFlow', false);
 			this.set('shareResHeaderData', null);
 			this.set('mobileShareResHeaderData', null);
@@ -2679,7 +2683,6 @@
 			this.set('activeTargetIdx', 0);
 			this.set('measurementsMetadata', null);
 			this.set('showCreditsErrorBar', false);
-			this.set('targetsArr', targetsArr);
 			this.set('infiniteMeasIds', []);
 			this.set('isInfiniteMeasStopped', false);
 			this.set('showCreditsData', true);
@@ -2730,6 +2733,15 @@
 				// Update the URL.
 				this.set('measurement', res.response.id);
 
+				this.set('testReqParams.id', res.response.id);
+
+				this.set('measurementsMetadata', {
+					0: {
+						target: targetsArr[0],
+						measurementId: res.response.id,
+					},
+				});
+
 				// set response headers for gp-credits/gp-credits-message
 				this.set('rateCreditsData', { ...res.responseHeaders });
 
@@ -2760,6 +2772,12 @@
 
 						// set response headers for gp-credits/gp-credits-message
 						this.set('rateCreditsData', combinedHeaders);
+
+						this.set('measurementsMetadata[1]', {
+							target: targetsArr[1],
+							measurementId: res1.response.id,
+						});
+
 						this.getTestMeasurementById({ measurementId: res.response.id, testRunId });
 						this.getTestMeasurementById({ measurementId: res1.response.id, resNumber: 1, testRunId });
 						this.set('showMap', this.get('originalShowMap'));
@@ -3518,6 +3536,11 @@
 		},
 		resetMapAndRunTest (prevProbesMeasId = null) {
 			this.disableRunTestBtnForDelay();
+			this.get('testReqCancelFn')?.forEach(cancel => cancel?.());
+			this.set('testReqCancelFn', []);
+			app.router.replaceQueryParam('measurement', null, this);
+			this.set('testReqParams', null);
+			this.set('measurementsMetadata', null);
 			this.set('testInProgress', true);
 
 			let mq = window.matchMedia('(min-width: 768px)');
@@ -3729,9 +3752,15 @@
 				// Update the URL.
 				if (resNumber === 0) {
 					this.set('measurement', res.response.id);
+					this.set('testReqParams.id', res.response.id);
 				} else {
 					app.router.replaceQueryParam('measurement', `${this.get('measurement').split('.').slice(-9).join('.')}.${res.response.id}`);
 				}
+
+				this.set(`measurementsMetadata[${resNumber}]`, {
+					target,
+					measurementId: res.response.id,
+				});
 
 				let updReqParams = {
 					...reqParams,

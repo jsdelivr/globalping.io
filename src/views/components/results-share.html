@@ -1,16 +1,14 @@
 <div class="c-gp-results-share">
 	<div class="c-gp-results-share_content">
-		<button as-clipboard data-clipboard-text="{{measurementLink}}">
+		<button as-clipboard data-clipboard-text="{{measurementLink}}" disabled="{{!measurementLink}}">
 			<img width="20" height="20" src="{{@shared.assetsHost}}/img/url-icon.svg">
 			Copy URL
 		</button>
 
-		{{#if showMarkdownResults}}
-			<button as-clipboard data-clipboard-text="{{markdownResults}}">
-				<img width="20" height="20" src="{{@shared.assetsHost}}/img/markdown-icon.svg">
-				Copy Markdown
-			</button>
-		{{/if}}
+		<button as-clipboard data-clipboard-text="{{markdownResults}}" disabled="{{!showMarkdownResults}}">
+			<img width="20" height="20" src="{{@shared.assetsHost}}/img/markdown-icon.svg">
+			Copy Markdown
+		</button>
 
 		<div class="c-gp-results-share_content_command">
 			<span class="c-gp-results-share_content_command_label">
@@ -22,7 +20,7 @@
 				{{cliCommand}}
 			</span>
 
-			<button as-clipboard data-clipboard-text="{{cliCommand}}">
+			<button as-clipboard data-clipboard-text="{{cliCommand}}" disabled="{{!cliCommand}}">
 				<img width="20" height="20" src="{{@shared.assetsHost}}/img/copy-icon-black.svg">
 			</button>
 		</div>
@@ -68,22 +66,23 @@
 					}
 				}, { defer: true });
 
-				this.observe('isInfiniteModeRes measurementsMetadata', () => {
+				this.observe('isInfiniteModeRes measurementsMetadata expectedTargetsCnt', () => {
 					this.createMeasLink();
 				});
 
-				this.observe('isInfiniteModeRes measurementsMetadata testReqParams', () => {
+				this.observe('isInfiniteModeRes measurementsMetadata testReqParams expectedTargetsCnt', () => {
 					this.createCliCommand();
 				});
 
-				this.observe('preparedTestResults testReqParams measurementsMetadata measurementLink', () => {
+				this.observe('preparedTestResults testReqParams measurementsMetadata measurementLink realTimeTestResResponse isInfiniteMeasStopped testInProgress expectedTargetsCnt', () => {
 					this.createMarkdownResults();
 				});
 			}
 		},
 		createMeasLink () {
-			let measurementsMetadata = this.get('measurementsMetadata');
+			let measurementsMetadata = this.get('measurementsMetadata') || {};
 			let isInfiniteModeRes = this.get('isInfiniteModeRes');
+			let expectedTargetsCnt = this.get('expectedTargetsCnt') || 0;
 
 			let origin = this.get('@global.location.origin');
 			// regular measurement IDs should be separated by a comma
@@ -92,6 +91,11 @@
 			let preparedMeasIDsArr = measIDsArr;
 
 			this.set('shareResMsg', '');
+
+			if (!isInfiniteModeRes && (!expectedTargetsCnt || measIDsArr.length < expectedTargetsCnt)) {
+				this.set('measurementLink', '');
+				return;
+			}
 
 			if (isInfiniteModeRes) {
 				// the infinite one by a dot
@@ -108,18 +112,27 @@
 
 			let textToCopy = preparedMeasIDsArr.join(idsDelimiter);
 
+			if (!textToCopy) {
+				this.set('measurementLink', '');
+				return;
+			}
+
 			let urlSearchParams = new URLSearchParams(location.search);
 			urlSearchParams.set('measurement', textToCopy);
 
 			this.set('measurementLink', `${origin}?${urlSearchParams.toString()}`);
 		},
 		createCliCommand () {
-			let params = this.get('testReqParams');
-			let measurementsMetadata = this.get('measurementsMetadata');
-			let targetsCnt = Object.values(measurementsMetadata).map(v => v.target).length;
+			let params = this.get('testReqParams') || {};
+			let expectedTargetsCnt = this.get('expectedTargetsCnt') || 0;
 			let isInfiniteModeRes = this.get('isInfiniteModeRes');
 
-			if (targetsCnt >= 2 && !isInfiniteModeRes) {
+			if (!params.type) {
+				this.set('cliCommand', '');
+				return;
+			}
+
+			if (expectedTargetsCnt >= 2 && !isInfiniteModeRes) {
 				this.set('cliCommand', 'Not supported yet');
 				return;
 			}
@@ -221,11 +234,46 @@
 
 			this.set('cliCommand', cmd.base + cmd.typePart + cmd.globalPart);
 		},
+		isMarkdownExportReady () {
+			let results = this.get('preparedTestResults');
+			let testReqParams = this.get('testReqParams');
+			let measurementsMetadata = this.get('measurementsMetadata');
+			let responses = (this.get('realTimeTestResResponse') || []).filter(Boolean);
+			let expectedTargetsCnt = this.get('expectedTargetsCnt') || 0;
+			let measurementsCnt = Object.keys(measurementsMetadata || {}).length;
+			let isInfiniteModeRes = this.get('isInfiniteModeRes');
+
+			if (!results?.length || !testReqParams?.type || !measurementsMetadata) {
+				return false;
+			}
+
+			if (isInfiniteModeRes && this.get('isInfiniteMeasStopped')) {
+				return true;
+			}
+
+			if (isInfiniteModeRes && this.get('testInProgress')) {
+				return false;
+			}
+
+			if (!responses.length || responses.some(response => response.status !== 'finished')) {
+				return false;
+			}
+
+			return isInfiniteModeRes || (
+				expectedTargetsCnt > 0
+				&& measurementsCnt >= expectedTargetsCnt
+				&& responses.length >= expectedTargetsCnt
+			);
+		},
 		createMarkdownResults () {
 			let results = this.get('preparedTestResults');
 			let testReqParams = this.get('testReqParams');
 			let measurementsMetadata = this.get('measurementsMetadata');
 			this.set('showMarkdownResults', false);
+
+			if (!this.isMarkdownExportReady()) {
+				return;
+			}
 
 			// create result title consisting of the test type and locations
 			let locationStr = testReqParams.locations.map(location => Object.values(location).join('+').trim()).join(', ');
