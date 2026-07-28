@@ -2,7 +2,7 @@ module.exports = (node, title = 'Copy to Clipboard', tooltipPlacement = 'top', n
 	let clipboard = new ClipboardJS(node);
 	let $node = nodeSelector ? $(node).parents(nodeSelector).first() : $(node);
 	let tooltipOptions = {
-		title,
+		title: () => node.disabled ? '' : title,
 		placement: tooltipPlacement,
 		trigger: 'hover',
 		container: 'body',
