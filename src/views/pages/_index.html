@@ -1942,6 +1942,7 @@
 
 				if (map === 'hidden') {
 					this.set('showMap', false);
+					this.set('originalShowMap', false);
 				}
 
 				let nonDefaultDisplayValue = isMultiEpMeas || isInfiniteMeas ? 'raw' : 'table';
@@ -2042,6 +2043,10 @@
 
 				// persist non-default map value in the URL
 				this.observe('showMap', (showMap) => {
+					if (!showMap && this.get('originalShowMap')) {
+						return;
+					}
+
 					app.router.replaceQueryParam('map', showMap ? null : 'hidden', this);
 				});
 
