@@ -805,10 +805,6 @@ module.exports = {
 		return !!window?.matchMedia('(hover: none), (pointer: coarse)')?.matches;
 	},
 
-	isMobileViewport () {
-		return window.matchMedia('(max-width: 767px)').matches;
-	},
-
 	shouldCollapseResponseBody (body, charsPerLine) {
 		if (!body) {
 			return false;

@@ -102,6 +102,9 @@ test('Homepage', async ({ page, context }) => {
 	await expect(rawResults).not.toBeVisible();
 	await expect(tableResults).toBeVisible();
 	await expect(page.locator('#gp-map > div > div.gm-style')).not.toBeVisible();
+
+	// make sure footer is visible after the test
+	await page.goto('/');
 });
 
 test('Header', async ({ page }) => {

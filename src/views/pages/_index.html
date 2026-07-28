@@ -51,7 +51,7 @@
 
 	<c-notification></c-notification>
 
-	<c-gp-header additionalClasses="header-with-globalping-bg no-border {{#if focusModeActive}}navbar-focus-mode{{/if}}" isInert="{{focusModeActive}}"></c-gp-header>
+	<c-gp-header additionalClasses="header-with-globalping-bg no-border" isInert="{{focusModeActive}}"></c-gp-header>
 
 	<div class="p-globalping {{#if focusModeActive}}focus-mode-open{{/if}}">
 		<c-gp-jumbotron className="main" gridType="globe"></c-gp-jumbotron>
@@ -113,7 +113,13 @@
 						height="24"
 						src="{{@shared.assetsHost}}/img/globalping-full-dark.svg"
 						alt="Globalping">
-					<span class="gp_map-block_focus-bar_message">{{shareResHeaderData}}</span>
+					<div class="gp_map-block_focus-bar_heading">
+						<h2>Measurement results</h2>
+						<span>
+							<i class="fa fa-calendar" aria-hidden="true"></i>
+							{{measurementDate}}
+						</span>
+					</div>
 					<button
 						type="button"
 						class="gp_map-block_header_focus-toggle gp_map-block_focus-bar_return"
@@ -131,21 +137,7 @@
 					<span></span>
 					<span></span>
 				</span>
-				{{#if shareResHeaderData && !focusModeActive}}
-					<span class="gp_map-block_header_share-res-msg">{{shareResHeaderData}}</span>
-				{{/if}}
-				{{#if focusModeActive}}
-					<span class="gp_map-block_header_actions gp_map-block_header_actions_mobile-close">
-						<button
-							type="button"
-							class="gp_map-block_header_focus-toggle gp_map-block_header_focus-toggle_mobile-close"
-							aria-label="Close measurement focus mode"
-							on-click="@this.closeFocusMode(@event)">
-							<i class="fa fa-times" aria-hidden="true"></i>
-							<span>Exit focus mode</span>
-						</button>
-					</span>
-				{{elseif focusModeAvailable}}
+				{{#if focusModeAvailable && !focusModeActive}}
 					<span class="gp_map-block_header_actions">
 						<button
 							type="button"
@@ -153,8 +145,7 @@
 							aria-label="Open measurement focus mode"
 							on-click="@this.openFocusMode(@event)">
 							<i class="fa fa-expand" aria-hidden="true"></i>
-							<span class="hidden-xs">Focus mode</span>
-							<span class="mobile-only">Enter focus mode</span>
+							<span>Focus mode</span>
 						</button>
 					</span>
 				{{/if}}
@@ -706,13 +697,6 @@
 				</c-gp-credits-message>
 			{{/if}}
 
-			{{#if mobileShareResHeaderData && (focusModeActive || !focusModeAvailable)}}
-				<p class="gp_map-block_test-details">
-					<i class="fa fa-info-circle" aria-hidden="true"></i>
-					Showing <strong>{{mobileShareResHeaderData.type}}</strong> test results for <strong>{{mobileShareResHeaderData.target}}</strong> from {{mobileShareResHeaderData.date}}.
-				</p>
-			{{/if}}
-
 			<div class="gp_map-block_map-wrapper {{#unless transitionMap}}transition-none{{/unless}} {{#unless showMap || !focusModeActive}}gp_map-block_map-wrapper_hidden{{/unless}}">
 				<div id="gp-map" class="gp_map-block_map-wrapper_map"></div>
 
@@ -767,7 +751,7 @@
 								<p>{{{measurementErrMsg}}}</p>
 							</div>
 						</div>
-					{{elseif testResults && (rawOutputMode || tableOutputReady)}}
+					{{elseif (testResults && (rawOutputMode || tableOutputReady)) || (focusModeSupported && testInProgress && remainingLoadingProbeResults.length)}}
 						<div class="gp_map-block_test-output gp_map-block_test-output_focused-content {{#if focusModeResultsPreviewAvailable && !focusModeActive && focusModeTransition !== 'content-leaving'}}gp_map-block_test-output_results-preview {{#if focusModeTransition === 'prompt-entering'}}gp_map-block_test-output_results-preview_entering{{/if}}{{elseif focusModeResultsPreviewAvailable && focusModeTransition === 'opening'}}gp_map-block_test-output_results-preview_expanding{{elseif focusModeResultsPreviewAvailable && focusModeActive}}gp_map-block_test-output_results-preview_expanded{{elseif focusModeTransition === 'content-leaving'}}gp_map-block_test-output_focused-content_leaving{{/if}}">
 							<div class="gp_map-block_test-output_results-preview-content" {{#if focusModeResultsPreviewAvailable && !focusModeActive && focusModeTransition !== 'content-leaving'}}inert aria-hidden="true"{{/if}}>
 								<c-gp-results-controls
@@ -804,7 +788,8 @@
 											showingNetworkLogos="{{showingNetworkLogos}}"
 											responseBodyCharWidth="{{responseBodyCharWidth}}"
 											expandedListWidth="{{rawOutputExpandedListWidth}}"
-											limitLayoutToFirstResult="{{!focusModeActive}}"
+											limitLayoutToFirstResult="{{focusModeResultsPreviewAvailable && !focusModeActive}}"
+											loadingProbeResults="{{focusModeSupported ? remainingLoadingProbeResults : []}}"
 											expandAllRawOutput="{{@this.expandAllRawOutput}}">
 										</c-gp-results-raw-output>
 									</div>
@@ -813,6 +798,8 @@
 										<c-gp-results-table-output
 											testInProgress="{{testInProgress}}"
 											preparedTestResults="{{preparedTestResults}}"
+											loadingProbeResults="{{focusModeSupported ? remainingLoadingProbeResults : []}}"
+											targets="{{targetsArr}}"
 											targetsCnt="{{targetsArr.length}}"
 											currSearchLocation="{{mainOptions.location}}"
 											isInfiniteModeRes="{{isInfiniteModeRes}}"
@@ -1597,7 +1584,9 @@
 		</div>
 	</div>
 
-	<c-gp-footer isInert="{{focusModeActive}}"></c-gp-footer>
+	{{#unless focusModeActive}}
+		<c-gp-footer></c-gp-footer>
+	{{/unless}}
 </r-page>
 
 <script>
@@ -1872,8 +1861,7 @@
 				scrolledToResId: null,
 				modifiedMeasOptsCnt: 0,
 				appliedMeasOpts: {},
-				shareResHeaderData: null,
-				mobileShareResHeaderData: null,
+				measurementDate: null,
 				runTestBtnText: 'Run Test',
 				testReqParams: null,
 				focusModeTransition: null,
@@ -1898,6 +1886,7 @@
 				isInfiniteModeRes: false,
 				prevProbesMeasId: null,
 				preparedTestResults: [],
+				loadingProbeResults: [],
 				ddHandlerSet: false,
 				showCreditsData: false,
 				rateCreditsData: null,
@@ -1908,6 +1897,7 @@
 				sortByOpts: SORT_BY_OPTS,
 				locationAutofilled: false,
 				showingNetworkLogos: false,
+				screenWidth: Ractive.isServer ? 0 : window.innerWidth,
 				collapseFromQuery: null,
 				skipDefaultAutoCollapseFromQuery: false,
 				integrationExamples: [
@@ -2010,16 +2000,22 @@
 			focusModeResultsPreviewAvailable () {
 				let testResults = Object.values(this.get('testResults') || {});
 				let hasTestResults = testResults.some(results => results?.length);
+				let hasLoadingProbeResults = this.get('remainingLoadingProbeResults.length') > 0;
+				let testInProgress = this.get('testInProgress');
+				let localLoadingPreviewAvailable = testInProgress
+					&& !this.get('shareResFlow')
+					&& (hasLoadingProbeResults || hasTestResults);
 
-				return !this.get('measurementErrMsg')
-					&& !this.get('testInProgress')
+				return this.get('focusModeSupported')
+					&& !this.get('measurementErrMsg')
 					&& !this.get('sharedMeasurementInitialLoading')
 					&& !this.get('isInfiniteMeasStopped')
-					&& hasTestResults
-					&& (this.get('rawOutputMode') || this.get('tableOutputReady'));
+					&& (!testInProgress || localLoadingPreviewAvailable)
+					&& (hasTestResults || hasLoadingProbeResults)
+					&& (this.get('rawOutputMode') || this.get('tableOutputReady') || hasLoadingProbeResults);
 			},
 			focusModeAvailable () {
-				return !!(
+				return this.get('focusModeSupported') && !!(
 					this.get('testInProgress')
 					|| this.get('testResults')
 					|| this.get('measurementErrMsg')
@@ -2029,7 +2025,15 @@
 				);
 			},
 			focusModeActive () {
-				return this.get('view') === FOCUS_MODE_VIEW;
+				return this.get('focusModeSupported') && this.get('view') === FOCUS_MODE_VIEW;
+			},
+			focusModeSupported () {
+				return this.get('screenWidth') >= 768;
+			},
+			remainingLoadingProbeResults () {
+				let preparedResultIds = new Set((this.get('preparedTestResults') || []).map(result => result.clientSideId));
+
+				return (this.get('loadingProbeResults') || []).filter(result => !preparedResultIds.has(result.clientSideId));
 			},
 			rawOutputExpandedListWidth () {
 				let screenWidth = this.get('screenWidth') || 0;
@@ -2047,7 +2051,9 @@
 				}
 
 				let preparedTestResults = this.get('preparedTestResults') || [];
-				let resultsToCheck = this.get('focusModeActive') ? preparedTestResults : preparedTestResults.slice(0, 1);
+				let resultsToCheck = this.get('focusModeResultsPreviewAvailable') && !this.get('focusModeActive')
+					? preparedTestResults.slice(0, 1)
+					: preparedTestResults;
 				let targetsArr = this.get('targetsArr') || [];
 				let charsPerLine = this.getRawOutputCharsPerLine();
 
@@ -2190,7 +2196,14 @@
 					}
 				});
 
-				this.observe('pendingResultId focusModeActive tableOutputReady rawOutputMode', () => {
+				this.observe('screenWidth', (screenWidth) => {
+					if (screenWidth < 768 && this.get('view') === FOCUS_MODE_VIEW) {
+						this.clearFocusModeTransition();
+						app.router.replaceQueryParam('view', null, this);
+					}
+				});
+
+				this.observe('pendingResultId focusModeActive focusModeSupported tableOutputReady rawOutputMode', () => {
 					this.scrollToPendingResult();
 				}, { defer: true });
 
@@ -2629,7 +2642,9 @@
 				});
 
 				// prepare results for gp-results-raw-output and gp-results-table-output, regular or infinite flow
-				this.observe('testResults', (testResults) => {
+				this.observe('testResults targetsArr', () => {
+					let testResults = this.get('testResults');
+
 					if (!testResults) { return; }
 
 					let testType = this.get('testReqParams.type');
@@ -2771,7 +2786,7 @@
 			this.set('testReqCancelFn', []);
 		},
 		shouldShowMeasurementLoadingInfo () {
-			return this.get('focusModeActive') && (this.get('shareResFlow')
+			return (this.get('focusModeActive') || !this.get('focusModeSupported')) && (this.get('shareResFlow')
 				? this.get('sharedMeasurementInitialLoading')
 				: this.get('testInProgress'));
 		},
@@ -2822,23 +2837,25 @@
 		},
 		openFocusMode (event) {
 			event?.preventDefault?.();
-			let isMobileViewport = _.isMobileViewport();
-			let isResultsPreviewOpening = !isMobileViewport && !!this.find('.gp_map-block_test-output_results-preview');
+
+			if (!this.get('focusModeSupported')) {
+				return;
+			}
+
+			let isResultsPreviewOpening = !!this.find('.gp_map-block_test-output_results-preview');
 
 			this.clearFocusModeTransition();
-			this.set('focusModeTransition', isMobileViewport ? null : 'opening');
+			this.set('focusModeTransition', 'opening');
 			app.router.replaceQueryParam('view', FOCUS_MODE_VIEW, this);
 
-			if (!isMobileViewport && this.get('pendingResultId') === null) {
+			if (this.get('pendingResultId') === null) {
 				this.scrollFocusModeRootAfterRender();
 			}
 
-			if (!isMobileViewport) {
-				this.set('focusModeTransitionTimeout', setTimeout(() => {
-					this.set('focusModeTransition', null);
-					this.set('focusModeTransitionTimeout', null);
-				}, isResultsPreviewOpening ? FOCUS_MODE_RESULTS_EXPAND_MS : FOCUS_MODE_CONTENT_SWAP_MS));
-			}
+			this.set('focusModeTransitionTimeout', setTimeout(() => {
+				this.set('focusModeTransition', null);
+				this.set('focusModeTransitionTimeout', null);
+			}, isResultsPreviewOpening ? FOCUS_MODE_RESULTS_EXPAND_MS : FOCUS_MODE_CONTENT_SWAP_MS));
 
 			this.focusFocusModeToggleButton();
 		},
@@ -2852,18 +2869,12 @@
 			this.cancelPendingResultScrollFrame();
 			this.set('pendingResultId', null);
 
-			let isMobileViewport = _.isMobileViewport();
-
 			this.clearFocusModeTransition();
 			app.router.replaceQueryParam('view', null, this);
-			this.set('focusModeTransition', isMobileViewport ? null : 'content-leaving');
+			this.set('focusModeTransition', 'content-leaving');
 
 			if (restoreFocus) {
 				this.focusFocusModeToggleButton();
-			}
-
-			if (isMobileViewport) {
-				return;
 			}
 
 			this.set('focusModeTransitionTimeout', setTimeout(() => {
@@ -2926,7 +2937,7 @@
 				}
 
 				let focusToggleSelector = this.get('focusModeActive')
-					? _.isMobileViewport() ? '.gp_map-block_header_focus-toggle_mobile-close' : '.gp_map-block_focus-bar_return'
+					? '.gp_map-block_focus-bar_return'
 					: '.gp_map-block_header_focus-toggle_open';
 
 				this.focusWithoutScroll(this.find(focusToggleSelector));
@@ -3014,8 +3025,7 @@
 			this.set('testInProgress', true);
 			this.set('measurementErrMsg', null);
 			this.set('testReqParams', null);
-			this.set('shareResHeaderData', null);
-			this.set('mobileShareResHeaderData', null);
+			this.set('measurementDate', _.formatDateTime(new Date()));
 			this.set('realTimeTestResResponse', null);
 			this.set('activeTargetIdx', 0);
 			this.set('measurementsMetadata', null);
@@ -3026,6 +3036,7 @@
 			this.set('showCreditsData', true);
 			this.set('prevProbesMeasId', null);
 			this.set('preparedTestResults', []);
+			this.set('loadingProbeResults', []);
 			this.set('rateCreditsData', null);
 			this.set('probesMaxTiming', type.toLowerCase() === 'http' ? 1000 : 200);
 			this.set('_measurementOgTitle', null);
@@ -3033,9 +3044,9 @@
 			this.set('showingNetworkLogos', false);
 			this.set('activeTestRunId', testRunId);
 			this.clearFocusModeTransition();
-			app.router.replaceQueryParam('view', FOCUS_MODE_VIEW, this);
+			app.router.replaceQueryParam('view', this.get('focusModeSupported') ? FOCUS_MODE_VIEW : null, this);
 
-			if (!_.isMobileViewport()) {
+			if (this.get('focusModeSupported')) {
 				this.scrollFocusModeRootAfterRender();
 			}
 
@@ -3073,6 +3084,11 @@
 
 				// set measurement ID for re-use probes case
 				this.set('prevProbesMeasId', res.response.id);
+
+				this.set('loadingProbeResults', Array.from(
+					{ length: res.response.probesCount || 0 },
+					(_, clientSideId) => ({ clientSideId }),
+				));
 
 				// Update the URL.
 				this.set('measurement', res.response.id);
@@ -3444,20 +3460,25 @@
 		handleSeeResults (clientSideId) {
 			this.set('pendingResultId', clientSideId);
 
-			if (!this.get('focusModeActive')) {
+			if (this.get('focusModeSupported') && !this.get('focusModeActive')) {
 				this.openFocusMode();
 			}
 		},
 		scrollToPendingResult () {
 			let clientSideId = this.get('pendingResultId');
+			let focusModeSupported = this.get('focusModeSupported');
 
-			if (clientSideId === null || !this.get('focusModeActive') || (!this.get('rawOutputMode') && !this.get('tableOutputReady'))) {
+			if (
+				clientSideId === null
+				|| (focusModeSupported && !this.get('focusModeActive'))
+				|| (!this.get('rawOutputMode') && !this.get('tableOutputReady'))
+			) {
 				return;
 			}
 
 			this.cancelPendingResultScrollFrame();
 
-			let isCurrentNavigation = () => this.get('focusModeActive')
+			let isCurrentNavigation = () => (!this.get('focusModeSupported') || this.get('focusModeActive'))
 				&& this.get('pendingResultId') === clientSideId;
 
 			this.update().then(() => {
@@ -3498,12 +3519,15 @@
 						}
 
 						let mapWrapper = this.find('.gp_map-block_map-wrapper');
-						let mapIsCollapsing = !this.get('showMap') && mapWrapper.getBoundingClientRect().height > 0;
+						let mapIsCollapsing = this.get('focusModeActive')
+							&& !this.get('showMap')
+							&& mapWrapper.getBoundingClientRect().height > 0;
 
 						if (el && !mapIsCollapsing) {
 							let focusModeRoot = this.find('.gp_map-block');
 							let resultOffset = el.getBoundingClientRect().top - focusModeRoot.getBoundingClientRect().top;
-							let scrollTop = this.getFocusModeRootScrollTop(focusModeRoot) + resultOffset;
+							let scrollOffset = this.get('focusModeSupported') ? FOCUS_MODE_SCROLL_OFFSET : 0;
+							let scrollTop = this.getFocusModeRootScrollTop(focusModeRoot, scrollOffset) + resultOffset;
 
 							window.scrollTo({ top: scrollTop, behavior: 'smooth' });
 							this.set('pendingResultId', null);
@@ -3638,6 +3662,10 @@
 							return;
 						}
 
+						if (Number(resNumber) === 0) {
+							this.set('measurementDate', _.formatDateTime(new Date(testRes.createdAt)));
+						}
+
 						if (isShareResCase) {
 							let currentTargets = this.get('mainOptions.target');
 							let currTargetsArr = _.removeDuplicatedTargets(currentTargets ? currentTargets.split(',') : []);
@@ -3667,15 +3695,8 @@
 
 							if (isLastShareReq) {
 								this.set('targetsArr', updTargetsArr);
-								this.set('shareResHeaderData', `Showing results from ${_.formatDateTime(new Date(testRes.createdAt))}`);
 								this.set('mainOptions.type', this.translateTestTypeName(testRes.type));
 								this.set('mainOptions.limit', testRes.limit || DEFAULT_LIMIT);
-
-								this.set('mobileShareResHeaderData', {
-									date: _.formatDateTime(new Date(testRes.createdAt)),
-									target: updTargetsArr.join(', '),
-									type: this.translateTestTypeName(testRes.type),
-								});
 
 								// handle map max timing for HTTP measurement
 								if (testRes.type.toLowerCase() === 'http') {
@@ -3797,7 +3818,6 @@
 						if (isShareResCase) {
 							this.handleSharedMeasurementLoadError(e);
 						} else if (e.responseStatusCode === 404) {
-							this.set('shareResHeaderData', 'This measurement has expired!');
 							this.set('runTestBtnText', 'Run Test');
 
 							this.scrollMapIntoView();
@@ -4051,17 +4071,10 @@
 		},
 		scrollMapIntoView () {
 			let mapBlockEl = this.find('.gp_map-block');
-			let mobileTestDetails = this.find('.gp_map-block_test-details');
 
-			if (mobileTestDetails?.checkVisibility?.()) {
-				mobileTestDetails.scrollIntoView({
-					behavior: 'smooth',
-				});
-			} else {
-				mapBlockEl.scrollIntoView({
-					behavior: 'smooth',
-				});
-			}
+			mapBlockEl.scrollIntoView({
+				behavior: 'smooth',
+			});
 		},
 		scrollFocusModeRootIntoView (scrollOffset = FOCUS_MODE_SCROLL_OFFSET) {
 			let mapBlockEl = this.find('.gp_map-block');
@@ -4223,8 +4236,7 @@
 				measurementErrMsg: error.responseStatusCode === 404
 					? 'This measurement has expired or is no longer available.'
 					: 'Unable to load this measurement. Please try again later.',
-				shareResHeaderData: null,
-				mobileShareResHeaderData: null,
+				measurementDate: null,
 				runTestBtnText: 'Run Test',
 			});
 		},
@@ -4238,6 +4250,13 @@
 
 				// set response headers for gp-credits/gp-credits-message
 				this.set('rateCreditsData', { ...res.responseHeaders, probesCount: res.response.probesCount });
+
+				if (resNumber === 0) {
+					this.set('loadingProbeResults', Array.from(
+						{ length: res.response.probesCount || 0 },
+						(_, clientSideId) => ({ clientSideId }),
+					));
+				}
 
 				// set measurement ID for re-use probes case
 				this.set('prevProbesMeasId', res.response.id);
@@ -4492,7 +4511,7 @@
 			return infoWindowContent;
 		},
 		prepareRegularResults (testResults) {
-			if (!testResults || testResults.length === 0) {
+			if (!testResults?.[0]?.length) {
 				return [];
 			}
 
@@ -4542,18 +4561,21 @@
 				};
 			};
 
+			let targets = this.get('targetsArr');
 			let prepResults = testResults[0].map(res => ({
 				clientSideId: res.clientSideId,
 				...res.probe,
 				statsPerTarget: [ parseTargetStats(res) ],
 			}));
 
-			for (let i = 1; i < testResults.length; i++) {
+			for (let i = 1; i < targets.length; i++) {
 				prepResults.forEach((pR) => {
-					let nextRes = testResults[i].find(r => r.clientSideId === pR.clientSideId);
+					let nextRes = testResults[i]?.find(r => r.clientSideId === pR.clientSideId);
 
 					if (nextRes) {
 						pR.statsPerTarget.push(parseTargetStats(nextRes));
+					} else {
+						pR.statsPerTarget.push({ target: targets[i] });
 					}
 				});
 			}
