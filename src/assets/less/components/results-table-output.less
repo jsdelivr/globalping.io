@@ -79,32 +79,16 @@
 				width: 100%;
 			}
 
-			.results-table_row_location .results-table_status-indicator {
-				@media (max-width: @screen-md-max) {
-					top: 0;
-					bottom: 0;
-					border-radius: 0;
-				}
-
-				@media (min-width: @screen-lg-min) {
-					left: 26px;
-				}
-			}
-
-			.results-table_row_location {
-				@media (min-width: @screen-lg-min) {
-					padding-left: 52px;
-				}
+			.results-table_row_location.results-table_status-line-host:before {
+				top: 0;
+				bottom: 0;
+				border-radius: 0;
 			}
 
 			.results-table_row {
 				@media (max-width: @screen-md-max) {
 					background-size: 100% 64px;
 					background-repeat: no-repeat;
-				}
-
-				@media (min-width: @screen-lg-min) {
-					background-size: 0 0;
 				}
 			}
 		}
@@ -181,19 +165,21 @@
 				}
 
 				.targets {
+					&:before {
+						top: 0;
+						bottom: 0;
+						border-radius: 0;
+					}
+
 					@media (max-width: @screen-md-max) {
 						padding-left: 34px;
 						background-position: 18px 0;
 						background-size: calc(100% - 18px) 100%;
 						background-repeat: no-repeat;
 
-						.results-table_status-indicator {
+						&:before {
 							left: 18px;
 						}
-					}
-
-					@media (min-width: @screen-lg-min) {
-						background-size: 0 0;
 					}
 				}
 
@@ -210,42 +196,17 @@
 
 		&_status-line-host {
 			position: relative;
-		}
 
-		&_status-indicator {
-			position: absolute;
-			top: 15%;
-			bottom: 15%;
-			left: 0;
-			width: 6px;
-			border-radius: 3px;
-			pointer-events: none;
-
-			@media (min-width: @screen-lg-min) {
-				top: 50%;
-				bottom: auto;
-				left: 24px;
-				width: 10px;
-				height: 10px;
-				border-radius: 50%;
-				transform: translateY(-50%);
-			}
-
-			&:after {
-				@media (min-width: @screen-lg-min) {
-					content: "";
-					position: absolute;
-					top: 50%;
-					left: -4px;
-					width: 18px;
-					height: 18px;
-					background-color: inherit;
-					border-radius: 50%;
-					opacity: .18;
-					filter: blur(3px);
-					transform: translateY(-50%);
-					pointer-events: none;
-				}
+			&:before {
+				content: "";
+				position: absolute;
+				top: 15%;
+				bottom: 15%;
+				left: 0;
+				border-left: 6px solid;
+				border-left-color: inherit;
+				border-radius: 3px;
+				pointer-events: none;
 			}
 		}
 
