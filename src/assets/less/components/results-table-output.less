@@ -10,15 +10,6 @@
 	flex-direction: column;
 	position: relative;
 
-	.results-table-wrapper {
-		overflow-y: auto;
-		max-height: max(50vh, 320px);
-
-		@media (min-width: @screen-sm-min) {
-			max-height: fit-content;
-		}
-	}
-
 	.sort-options {
 		display: flex;
 		align-items: center;
@@ -204,6 +195,20 @@
 
 			&:nth-last-child(1) {
 				border-bottom: 0;
+			}
+
+			&_loading {
+				pointer-events: none;
+
+				.results-table_row_location {
+					.c-placeholder-skeleton {
+						width: 70%;
+					}
+
+					&_status-line {
+						background: #e7e7ee;
+					}
+				}
 			}
 
 			&_location {

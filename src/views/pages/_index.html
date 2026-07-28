@@ -51,9 +51,9 @@
 
 	<c-notification></c-notification>
 
-	<c-gp-header additionalClasses="header-with-globalping-bg no-border"></c-gp-header>
+	<c-gp-header additionalClasses="header-with-globalping-bg no-border" isInert="{{focusModeActive}}"></c-gp-header>
 
-	<div class="p-globalping">
+	<div class="p-globalping {{#if focusModeActive}}focus-mode-open{{/if}}">
 		<c-gp-jumbotron className="main" gridType="globe"></c-gp-jumbotron>
 
 		<div class="gp_main-info">
@@ -93,13 +93,63 @@
 			</div>
 		</div>
 
-		<div class="gp_map-block">
+		{{#if focusModeAvailable || focusModeActive}}
+			<div
+				class="gp_focus-mode-backdrop {{#if focusModeActive}}active{{elseif focusModeTransition}}gp_focus-mode-backdrop_closing{{/if}}"
+				aria-hidden="true"
+				on-click="@this.closeFocusModeFromBackdrop(@event)"></div>
+		{{/if}}
+
+		<div
+			class="gp_map-block {{#if focusModeActive}}gp_map-block_focus-mode{{elseif focusModeTransition === 'content-leaving'}}gp_map-block_results-leaving{{/if}}"
+			{{#if focusModeActive}}role="dialog" aria-modal="true" aria-label="Globalping measurement tool" tabindex="-1"{{/if}}>
+			{{#if focusModeActive || focusModeTransition === 'content-leaving'}}
+				<div
+					class="gp_map-block_focus-bar {{#if focusModeTransition === 'opening'}}gp_map-block_focus-bar_entering{{elseif focusModeTransition === 'content-leaving'}}gp_map-block_focus-bar_leaving{{/if}}"
+					{{#unless focusModeActive}}inert aria-hidden="true"{{/unless}}>
+					<img
+						class="gp_map-block_focus-bar_logo"
+						width="119"
+						height="24"
+						src="{{@shared.assetsHost}}/img/globalping-full-dark.svg"
+						alt="Globalping">
+					<div class="gp_map-block_focus-bar_heading">
+						<h2>Measurement results</h2>
+						{{#if measurementDate}}
+							<span>
+								<i class="fa fa-calendar" aria-hidden="true"></i>
+								{{measurementDate}}
+							</span>
+						{{/if}}
+					</div>
+					<button
+						type="button"
+						class="gp_map-block_header_focus-toggle gp_map-block_focus-bar_return"
+						aria-label="Return to homepage from measurement focus mode"
+						on-click="@this.closeFocusMode(@event)">
+						<i class="fa fa-reply" aria-hidden="true"></i>
+						<span>Return to homepage</span>
+					</button>
+				</div>
+			{{/if}}
+
 			<div class="gp_map-block_header">
-				<span></span>
-				<span></span>
-				<span></span>
-				{{#if shareResHeaderData}}
-					<span class="gp_map-block_header_share-res-msg">{{shareResHeaderData}}</span>
+				<span class="gp_map-block_header_dots" aria-hidden="true">
+					<span></span>
+					<span></span>
+					<span></span>
+				</span>
+				{{#if focusModeAvailable && !focusModeActive}}
+					<span class="gp_map-block_header_actions">
+						<button
+							type="button"
+							class="gp_map-block_header_focus-toggle gp_map-block_header_focus-toggle_open"
+							aria-label="Open measurement focus mode"
+							on-click="@this.openFocusMode(@event)">
+							<i class="fa fa-expand" aria-hidden="true"></i>
+							<span>Focus mode</span>
+						</button>
+					</span>
 				{{/if}}
 			</div>
 
@@ -618,7 +668,7 @@
 							</button>
 
 							<div class="dropdown-menu gp_map-block_settings-wrapper_split-btn_dropdown">
-								<span class="dropdown-item" on-click="@this.reUseProbesRunTest()">Re-use probes</span>
+								<button type="button" class="dropdown-item" on-click="@this.reUseProbesRunTest()">Re-use probes</button>
 							</div>
 						</div>
 					{{else}}
@@ -642,21 +692,14 @@
 				</div>
 			</div>
 
-			{{#if showCreditsErrorBar}}
+			{{#if showCreditsErrorBar && (focusModeActive || !focusModeAvailable)}}
 				<c-gp-credits-message
 					measurementErrMsg="{{measurementErrMsg}}"
 					rateCreditsData="{{rateCreditsData}}">
 				</c-gp-credits-message>
 			{{/if}}
 
-			{{#if mobileShareResHeaderData}}
-				<p class="gp_map-block_test-details">
-					<i class="fa fa-info-circle" aria-hidden="true"></i>
-					Showing <strong>{{mobileShareResHeaderData.type}}</strong> test results for <strong>{{mobileShareResHeaderData.target}}</strong> from {{mobileShareResHeaderData.date}}.
-				</p>
-			{{/if}}
-
-			<div class="gp_map-block_map-wrapper {{#unless transitionMap}}transition-none{{/unless}} {{#unless showMap}}gp_map-block_map-wrapper_hidden{{/unless}}">
+			<div class="gp_map-block_map-wrapper {{#unless transitionMap}}transition-none{{/unless}} {{#unless showMap || !focusModeActive}}gp_map-block_map-wrapper_hidden{{/unless}}">
 				<div id="gp-map" class="gp_map-block_map-wrapper_map"></div>
 
 				{{#if testResults}}
@@ -668,7 +711,7 @@
 				{{/if}}
 			</div>
 
-			{{#if showCreditsData}}
+			{{#if showCreditsData && (focusModeActive || !focusModeAvailable)}}
 				<c-gp-credits
 					mapOpened="{{showMap}}"
 					testInProgress="{{testInProgress}}"
@@ -678,103 +721,155 @@
 				</c-gp-credits>
 			{{/if}}
 
-			{{#if measurementErrMsg && !showCreditsErrorBar}}
-				<div class="gp_map-block_test-output with-padding">
-					<div class="gp_map-block_test-output_fail-msg">
-						<img width="56"
-							height="56"
-							src="{{@shared.assetsHost}}/img/fail-icon-big.svg">
-
-						<p>{{{measurementErrMsg}}}</p>
+			<div class="gp_map-block_test-output gp_map-block_test-output_stack">
+				{{#if focusModeAvailable && (!focusModeActive || focusModeTransition === 'opening') && !focusModeResultsPreviewAvailable}}
+					<div class="gp_map-block_test-output with-padding {{#if focusModeTransition === 'opening'}}gp_map-block_test-output_prompt-overlay{{/if}}">
+						<div class="gp_map-block_test-output_info gp_map-block_test-output_focus-prompt {{#if focusModeTransition === 'opening'}}gp_map-block_test-output_focus-prompt_exiting{{elseif focusModeTransition === 'prompt-entering'}}gp_map-block_test-output_focus-prompt_entering{{/if}}">
+							<i class="fa fa-line-chart" aria-hidden="true"></i>
+							<div class="gp_map-block_test-output_focus-prompt_text">
+								<strong>{{focusModePromptStatus.title}}</strong>
+								<span>{{{focusModePromptStatus.description}}}</span>
+							</div>
+							<button
+								type="button"
+								class="gp_btn_green"
+								aria-label="Open measurement focus mode"
+								on-click="@this.openFocusMode(@event)">
+								<i class="fa fa-expand" aria-hidden="true"></i>
+								<span>Open focus mode</span>
+							</button>
+						</div>
 					</div>
-				</div>
-			{{elseif testResults && (rawOutputMode || tableOutputReady)}}
-				<div class="gp_map-block_test-output">
-					<c-gp-results-controls
-						showMap="{{showMap}}"
-						originalShowMap="{{originalShowMap}}"
-						targets="{{targetsArr}}"
-						activeTargetIdx="{{activeTargetIdx}}"
-						rawOutputMode="{{rawOutputMode}}"
-						collapseOutput="{{@this.collapseAllRawOutput}}"
-						expandOutput="{{@this.expandAllRawOutput}}"
-						allCollapsed="{{allCollapsed}}"
-						testType="{{testReqParams.type}}"
-						sortOrder="{{sortOrder}}"
-						sortBy="{{sortBy}}"
-						sortByOpts="{{sortByOpts}}"
-					>
-					</c-gp-results-controls>
+				{{/if}}
 
-					{{#if rawOutputMode}}
-						<div class="gp_map-block_test-output_raw-output">
-							<c-gp-results-raw-output
-								testReqParams="{{testReqParams}}"
-								preparedTestResults="{{preparedTestResults}}"
-								hiddenTestResults="{{hiddenTestResults}}"
-								hiddenResponseBodies="{{hiddenResponseBodies}}"
-								testInProgress="{{testInProgress}}"
-								scrolledToResId="{{scrolledToResId}}"
-								currSearchLocation="{{mainOptions.location}}"
-								measurementsMetadata="{{measurementsMetadata}}"
-								activeTargetIdx="{{activeTargetIdx}}"
-								targetsCnt="{{targetsArr.length}}"
-								isInfiniteModeRes="{{isInfiniteModeRes}}"
-								screenWidth="{{screenWidth}}"
-								sortOrder="{{sortOrder}}"
-								sortBy="{{sortBy}}"
-								showingNetworkLogos="{{showingNetworkLogos}}"
-								responseBodyCharWidth="{{responseBodyCharWidth}}"
-								expandAllRawOutput="{{@this.expandAllRawOutput}}">
-							</c-gp-results-raw-output>
+				{{#if !focusModeAvailable || focusModeActive || focusModeTransition === 'content-leaving' || focusModeResultsPreviewAvailable}}
+					{{#if measurementErrMsg && !showCreditsErrorBar}}
+						<div class="gp_map-block_test-output gp_map-block_test-output_focused-content {{#if focusModeTransition === 'content-leaving'}}gp_map-block_test-output_focused-content_leaving{{/if}} with-padding">
+							<div class="gp_map-block_test-output_fail-msg">
+								<img width="56"
+									height="56"
+									src="{{@shared.assetsHost}}/img/fail-icon-big.svg">
+
+								<p>{{{measurementErrMsg}}}</p>
+							</div>
+						</div>
+					{{elseif (testResults && (rawOutputMode || tableOutputReady)) || (focusModeSupported && testInProgress && remainingLoadingProbeResults.length)}}
+						<div class="gp_map-block_test-output gp_map-block_test-output_focused-content {{#if focusModeResultsPreviewAvailable && !focusModeActive && focusModeTransition !== 'content-leaving'}}gp_map-block_test-output_results-preview {{#if focusModeTransition === 'prompt-entering'}}gp_map-block_test-output_results-preview_entering{{/if}}{{elseif focusModeResultsPreviewAvailable && focusModeTransition === 'opening'}}gp_map-block_test-output_results-preview_expanding{{elseif focusModeResultsPreviewAvailable && focusModeActive}}gp_map-block_test-output_results-preview_expanded{{elseif focusModeTransition === 'content-leaving'}}gp_map-block_test-output_focused-content_leaving{{/if}}">
+							<div class="gp_map-block_test-output_results-preview-content" {{#if focusModeResultsPreviewAvailable && !focusModeActive && focusModeTransition !== 'content-leaving'}}inert aria-hidden="true"{{/if}}>
+								<c-gp-results-controls
+									showMap="{{showMap}}"
+									originalShowMap="{{originalShowMap}}"
+									targets="{{targetsArr}}"
+									activeTargetIdx="{{activeTargetIdx}}"
+									rawOutputMode="{{rawOutputMode}}"
+									collapseOutput="{{@this.collapseAllRawOutput}}"
+									expandOutput="{{@this.expandAllRawOutput}}"
+									allCollapsed="{{allCollapsed}}"
+									testType="{{testReqParams.type}}"
+									sortOrder="{{sortOrder}}"
+									sortBy="{{sortBy}}"
+									sortByOpts="{{sortByOpts}}"
+								>
+								</c-gp-results-controls>
+
+								{{#if rawOutputMode}}
+									<div class="gp_map-block_test-output_raw-output">
+										<c-gp-results-raw-output
+											testReqParams="{{testReqParams}}"
+											preparedTestResults="{{preparedTestResults}}"
+											hiddenTestResults="{{hiddenTestResults}}"
+											hiddenResponseBodies="{{hiddenResponseBodies}}"
+											testInProgress="{{testInProgress}}"
+											scrolledToResId="{{scrolledToResId}}"
+											currSearchLocation="{{mainOptions.location}}"
+											activeTargetIdx="{{activeTargetIdx}}"
+											isInfiniteModeRes="{{isInfiniteModeRes}}"
+											screenWidth="{{screenWidth}}"
+											sortOrder="{{sortOrder}}"
+											sortBy="{{sortBy}}"
+											showingNetworkLogos="{{showingNetworkLogos}}"
+											responseBodyCharWidth="{{responseBodyCharWidth}}"
+											expandedListWidth="{{rawOutputExpandedListWidth}}"
+											limitLayoutToFirstResult="{{focusModeResultsPreviewAvailable && !focusModeActive}}"
+											loadingProbeResults="{{focusModeSupported ? remainingLoadingProbeResults : []}}"
+											expandAllRawOutput="{{@this.expandAllRawOutput}}">
+										</c-gp-results-raw-output>
+									</div>
+								{{else}}
+									<div class="gp_map-block_test-output_table-output">
+										<c-gp-results-table-output
+											testInProgress="{{testInProgress}}"
+											preparedTestResults="{{preparedTestResults}}"
+											loadingProbeResults="{{focusModeSupported ? remainingLoadingProbeResults : []}}"
+											targets="{{targetsArr}}"
+											targetsCnt="{{targetsArr.length}}"
+											currSearchLocation="{{mainOptions.location}}"
+											isInfiniteModeRes="{{isInfiniteModeRes}}"
+											sortOrder="{{sortOrder}}"
+											sortBy="{{sortBy}}">
+										</c-gp-results-table-output>
+									</div>
+								{{/if}}
+
+								{{#if testReqParams.id && !testInProgress && (focusModeActive || !focusModeAvailable)}}
+									<c-gp-results-share
+										testReqParams="{{testReqParams}}"
+										measurementsMetadata="{{measurementsMetadata}}"
+										isInfiniteModeRes="{{isInfiniteModeRes}}"
+										testInProgress="{{testInProgress}}"
+										preparedTestResults="{{preparedTestResults}}"
+										activeTargetIdx="{{activeTargetIdx}}">
+									</c-gp-results-share>
+								{{/if}}
+							</div>
+
+							{{#if focusModeResultsPreviewAvailable && !focusModeActive && focusModeTransition !== 'content-leaving'}}
+								<div class="gp_map-block_test-output_results-preview-action">
+									<button type="button"
+										class="gp_map-block_test-output_results-preview-action_button"
+										on-click="@this.openFocusMode(@event)">
+										<i class="fa fa-expand" aria-hidden="true"></i>
+										View all results
+									</button>
+								</div>
+							{{/if}}
+						</div>
+					{{elseif @this.shouldShowMeasurementLoadingInfo()}}
+						<div class="gp_map-block_test-output gp_map-block_test-output_focused-content {{#if focusModeTransition === 'content-leaving'}}gp_map-block_test-output_focused-content_leaving{{/if}} with-padding">
+							<div class="gp_map-block_test-output_info">
+								{{#if showMeasurementLoadingInfo}}
+									<div class="gp_map-block_test-output_info_text gp_map-block_test-output_info_text_entering">
+										<img width="56"
+											height="56"
+											src="{{@shared.assetsHost}}/img/bulb-icon.svg">
+
+										<p>{{#if shareResFlow}}Measurement loading...{{else}}Measurement started{{/if}}</p>
+									</div>
+								{{/if}}
+							</div>
 						</div>
 					{{else}}
-						<div class="gp_map-block_test-output_table-output">
-							<c-gp-results-table-output
-								testReqParams="{{testReqParams}}"
-								testInProgress="{{testInProgress}}"
-								preparedTestResults="{{preparedTestResults}}"
-								targetsCnt="{{targetsArr.length}}"
-								currSearchLocation="{{mainOptions.location}}"
-								measurementsMetadata="{{measurementsMetadata}}"
-								isInfiniteModeRes="{{isInfiniteModeRes}}"
-								sortOrder="{{sortOrder}}"
-								sortBy="{{sortBy}}">
-							</c-gp-results-table-output>
+						<div class="gp_map-block_test-output gp_map-block_test-output_focused-content {{#if focusModeTransition === 'content-leaving'}}gp_map-block_test-output_focused-content_leaving{{/if}} with-padding">
+							<div class="gp_map-block_test-output_info">
+								<div class="gp_map-block_test-output_info_text">
+									<img width="56"
+										height="56"
+										src="{{@shared.assetsHost}}/img/bulb-icon.svg">
+
+									<p>
+										Run a global latency test! Benchmark your CDN provider and understand how the network performs!
+										Compare DNS providers to find the fastest one globally or in your region.
+										Run network tests globally or from specific locations and regions.
+										Debug and troubleshoot your networking problems and share the test results with others!
+									</p>
+								</div>
+								<c-test-examples onExampleClick="{{@this.onExampleClick}}"></c-test-examples>
+							</div>
 						</div>
 					{{/if}}
-
-					{{#if testReqParams.id && !testInProgress}}
-						<c-gp-results-share
-							testReqParams="{{testReqParams}}"
-							measurementsMetadata="{{measurementsMetadata}}"
-							isInfiniteModeRes="{{isInfiniteModeRes}}"
-							testInProgress="{{testInProgress}}"
-							preparedTestResults="{{preparedTestResults}}"
-							activeTargetIdx="{{activeTargetIdx}}">
-						</c-gp-results-share>
-					{{/if}}
-				</div>
-			{{else}}
-				<div class="gp_map-block_test-output with-padding">
-					<div class="gp_map-block_test-output_info">
-						<div class="gp_map-block_test-output_info_text">
-							<img width="56"
-								height="56"
-								src="{{@shared.assetsHost}}/img/bulb-icon.svg">
-
-							<p>
-								Run a global latency test! Benchmark your CDN provider and understand how the network performs!
-								Compare DNS providers to find the fastest one globally or in your region.
-								Run network tests globally or from specific locations and regions.
-								Debug and troubleshoot your networking problems and share the test results with others!
-							</p>
-						</div>
-						<c-test-examples onExampleClick="{{@this.onExampleClick}}"></c-test-examples>
-					</div>
-				</div>
-			{{/if}}
-			{{#if rawOutputMode && showingNetworkLogos}}
+				{{/if}}
+			</div>
+			{{#if rawOutputMode && showingNetworkLogos && (focusModeActive || !focusModeAvailable)}}
 				<a class="gp_map-block_logo-dev-link" href="https://logo.dev" target="_blank" rel="noopener noreferrer">Network logos provided by Logo.dev</a>
 			{{/if}}
 		</div>
@@ -1491,7 +1586,9 @@
 		</div>
 	</div>
 
-	<c-gp-footer></c-gp-footer>
+	{{#unless focusModeActive}}
+		<c-gp-footer></c-gp-footer>
+	{{/unless}}
 </r-page>
 
 <script>
@@ -1636,6 +1733,13 @@
 	const DEFAULT_SORT_BY = 'location';
 	const DEFAULT_SORT_ORDER = 'asc';
 	const SORT_ORDER_OPTS = [ 'asc', 'desc' ];
+	const FOCUS_MODE_VIEW = 'measurement';
+	const FOCUS_MODE_CONTENT_SWAP_MS = 150;
+	const FOCUS_MODE_RESULTS_EXPAND_MS = 420;
+	const FOCUS_MODE_CONTENT_EXIT_MS = 180;
+	const FOCUS_MODE_PROMPT_ENTER_MS = 180;
+	const FOCUS_MODE_SCROLL_OFFSET = 30;
+	const PENDING_RESULT_SCROLL_TIMEOUT_MS = 500;
 	const SORT_BY_OPTS = [
 		{
 			value: 'location',
@@ -1759,10 +1863,14 @@
 				scrolledToResId: null,
 				modifiedMeasOptsCnt: 0,
 				appliedMeasOpts: {},
-				shareResHeaderData: null,
-				mobileShareResHeaderData: null,
+				measurementDate: null,
 				runTestBtnText: 'Run Test',
 				testReqParams: null,
+				focusModeTransition: null,
+				focusModeTransitionTimeout: null,
+				pendingResultId: null,
+				showMeasurementLoadingInfo: false,
+				sharedMeasurementInitialLoading: false,
 				probesResponse: null,
 				clusterRadius: null,
 				nextClusterRadius: null,
@@ -1780,6 +1888,7 @@
 				isInfiniteModeRes: false,
 				prevProbesMeasId: null,
 				preparedTestResults: [],
+				loadingProbeResults: [],
 				ddHandlerSet: false,
 				showCreditsData: false,
 				rateCreditsData: null,
@@ -1790,6 +1899,7 @@
 				sortByOpts: SORT_BY_OPTS,
 				locationAutofilled: false,
 				showingNetworkLogos: false,
+				screenWidth: Ractive.isServer ? 0 : window.innerWidth,
 				collapseFromQuery: null,
 				skipDefaultAutoCollapseFromQuery: false,
 				integrationExamples: [
@@ -1866,18 +1976,92 @@
 
 				return preparedTestResults.length && (!expectedTargetsCnt || actualTargetsCnt >= expectedTargetsCnt);
 			},
+			focusModePromptStatus () {
+				let measurementErrMsg = this.get('measurementErrMsg');
+				let testResults = Object.values(this.get('testResults') || {});
+				let hasTestResults = testResults.some(results => results?.length);
+				let title = 'Measurement was stopped';
+				let description = 'Open focus mode to review any available measurement details.';
+
+				if (measurementErrMsg) {
+					title = 'Measurement failed';
+					description = measurementErrMsg;
+				} else if (this.get('sharedMeasurementInitialLoading')) {
+					title = 'Measurement is loading';
+					description = 'The shared measurement results are still loading.';
+				} else if (this.get('testInProgress')) {
+					title = 'Measurement is running';
+					description = 'Open focus mode to view detailed results and sharing options as they become available.';
+				} else if (hasTestResults) {
+					title = 'Measurement results are ready';
+					description = 'Open focus mode to view detailed results and sharing options.';
+				}
+
+				return { title, description };
+			},
+			focusModeResultsPreviewAvailable () {
+				let testResults = Object.values(this.get('testResults') || {});
+				let hasTestResults = testResults.some(results => results?.length);
+				let hasLoadingProbeResults = this.get('remainingLoadingProbeResults.length') > 0;
+				let testInProgress = this.get('testInProgress');
+				let localLoadingPreviewAvailable = testInProgress
+					&& !this.get('shareResFlow')
+					&& (hasLoadingProbeResults || hasTestResults);
+
+				return this.get('focusModeSupported')
+					&& !this.get('measurementErrMsg')
+					&& !this.get('sharedMeasurementInitialLoading')
+					&& !this.get('isInfiniteMeasStopped')
+					&& (!testInProgress || localLoadingPreviewAvailable)
+					&& (hasTestResults || hasLoadingProbeResults)
+					&& (this.get('rawOutputMode') || this.get('tableOutputReady') || hasLoadingProbeResults);
+			},
+			focusModeAvailable () {
+				return this.get('focusModeSupported') && !!(
+					this.get('testInProgress')
+					|| this.get('testResults')
+					|| this.get('measurementErrMsg')
+					|| this.get('testReqParams')
+					|| this.get('shareResFlow')
+					|| this.get('measurement')
+				);
+			},
+			focusModeActive () {
+				return this.get('focusModeSupported') && this.get('view') === FOCUS_MODE_VIEW;
+			},
+			focusModeSupported () {
+				return this.get('screenWidth') >= 768;
+			},
+			remainingLoadingProbeResults () {
+				let preparedResultIds = new Set((this.get('preparedTestResults') || []).map(result => result.clientSideId));
+
+				return (this.get('loadingProbeResults') || []).filter(result => !preparedResultIds.has(result.clientSideId));
+			},
+			rawOutputExpandedListWidth () {
+				let screenWidth = this.get('screenWidth') || 0;
+
+				if (Ractive.isServer || screenWidth < 768) {
+					return 0;
+				}
+
+				let pageWidth = document.body?.clientWidth || document.documentElement.clientWidth;
+				return Math.min(1304, pageWidth - 48);
+			},
 			anyResponseBodyCollapsible () {
 				if (Ractive.isServer) {
 					return false;
 				}
 
 				let preparedTestResults = this.get('preparedTestResults') || [];
+				let resultsToCheck = this.get('focusModeResultsPreviewAvailable') && !this.get('focusModeActive')
+					? preparedTestResults.slice(0, 1)
+					: preparedTestResults;
 				let targetsArr = this.get('targetsArr') || [];
 				let charsPerLine = this.getRawOutputCharsPerLine();
 
 				for (let targetIdx = 0; targetIdx < targetsArr.length; targetIdx++) {
-					for (let i = 0; i < preparedTestResults.length; i++) {
-						let body = preparedTestResults[i]?.statsPerTarget?.[targetIdx]?.responseBody || '';
+					for (let i = 0; i < resultsToCheck.length; i++) {
+						let body = resultsToCheck[i]?.statsPerTarget?.[targetIdx]?.responseBody || '';
 
 						if (_.shouldCollapseResponseBody(body, charsPerLine)) {
 							return true;
@@ -1889,6 +2073,8 @@
 			},
 		},
 		onrender () {
+			this.focusModeRenderId = (this.focusModeRenderId || 0) + 1;
+
 			if (!Ractive.isServer) {
 				this.set('@shared.googleMapsLoaded', true);
 
@@ -1897,9 +2083,12 @@
 				}
 
 				listeners.screenWidthListener(this);
+				listeners.addManagedListener(this, document, 'keydown', event => this.handleFocusModeKeyDown(event));
 			}
 		},
 		oninit () {
+			this.pendingResultScrollFrame = null;
+
 			if (!Ractive.isServer) {
 				this.on('c-header.main-logo-click', () => {
 					this.set('measurement', '');
@@ -1931,6 +2120,7 @@
 				if (qsMeasurementIdsArr.length) {
 					this.set('qsMeasurementIdsArr', qsMeasurementIdsArr);
 					this.set('shareResFlow', true);
+					this.set('sharedMeasurementInitialLoading', true);
 					this.set('prevProbesMeasId', qsMeasurementIdsArr[0]);
 
 					this.getMultipleTestMeasurementById(qsMeasurementIdsArr, isInfiniteMeas);
@@ -1941,7 +2131,10 @@
 				let display = this.get('display');
 
 				if (map === 'hidden') {
-					this.set('showMap', false);
+					this.set({
+						showMap: false,
+						originalShowMap: false,
+					});
 				}
 
 				let nonDefaultDisplayValue = isMultiEpMeas || isInfiniteMeas ? 'raw' : 'table';
@@ -1985,6 +2178,36 @@
 				}
 
 				this.initResponseBodyCharWidth();
+
+				this.observe('focusModeActive testInProgress shareResFlow measurement testReqParams sharedMeasurementInitialLoading', () => {
+					clearTimeout(this.measurementLoadingInfoTimeout);
+					this.measurementLoadingInfoTimeout = null;
+					this.set('showMeasurementLoadingInfo', false);
+					let shouldShow = this.shouldShowMeasurementLoadingInfo();
+
+					if (shouldShow && this.get('shareResFlow')) {
+						this.set('showMeasurementLoadingInfo', true);
+					} else if (shouldShow) {
+						this.measurementLoadingInfoTimeout = setTimeout(() => {
+							this.measurementLoadingInfoTimeout = null;
+
+							if (this.shouldShowMeasurementLoadingInfo()) {
+								this.set('showMeasurementLoadingInfo', true);
+							}
+						}, 300);
+					}
+				});
+
+				this.observe('screenWidth', (screenWidth) => {
+					if (screenWidth < 768 && this.get('view') === FOCUS_MODE_VIEW) {
+						this.clearFocusModeTransition();
+						app.router.replaceQueryParam('view', null, this);
+					}
+				});
+
+				this.observe('pendingResultId focusModeActive focusModeSupported tableOutputReady rawOutputMode', () => {
+					this.scrollToPendingResult();
+				}, { defer: true });
 
 				this.observe('sortBy', (sortBy) => {
 					app.router.replaceQueryParam('by', sortBy === DEFAULT_SORT_BY ? null : sortBy, this);
@@ -2246,6 +2469,10 @@
 					let infiniteSwitchEnabled = this.get('infiniteSwitchEnabled');
 					let targetsArrLength = this.get('targetsArr').length;
 
+					if (this.get('shareResFlow')) {
+						this.set('testInProgress', realTimeTestResResponse.some(r => r.status === 'in-progress'));
+					}
+
 					if (
 						!(targetsArrLength === 1 && infiniteSwitchEnabled)
 						&& Object.values(respStatuses).length === targetsArrLength
@@ -2253,10 +2480,7 @@
 					) {
 						this.set('testInProgress', false);
 
-						// if it is a share-results-flow - scroll mapBlock into the view
-						if (this.get('shareResFlow')) {
-							this.scrollMapIntoView();
-						} else {
+						if (!this.get('shareResFlow')) {
 							this.disableRunTestBtnForDelay();
 						}
 					}
@@ -2411,7 +2635,7 @@
 				// check the statuses of probes in the measurement and stop measurement if all of them are failed
 				this.observe('testResults', (testResults) => {
 					for (let i in testResults) {
-						if (this.get('testInProgress') && this.get('isInfiniteModeRes') && testResults[i].every(r => r.result.status === PROBE_STATUS_FAILED)) {
+						if (this.get('testInProgress') && !this.get('shareResFlow') && this.get('isInfiniteModeRes') && testResults[i].every(r => r.result.status === PROBE_STATUS_FAILED)) {
 							this.stopCurrentTest();
 
 							return;
@@ -2420,7 +2644,9 @@
 				});
 
 				// prepare results for gp-results-raw-output and gp-results-table-output, regular or infinite flow
-				this.observe('testResults', (testResults) => {
+				this.observe('testResults targetsArr', () => {
+					let testResults = this.get('testResults');
+
 					if (!testResults) { return; }
 
 					let testType = this.get('testReqParams.type');
@@ -2543,6 +2769,7 @@
 			}
 		},
 		onunrender () {
+			this.focusModeRenderId = (this.focusModeRenderId || 0) + 1;
 			this.set('activeTestRunId', this.get('activeTestRunId') + 1);
 			let gmapsIdleListener = this.get('gmapsIdleListener');
 
@@ -2552,8 +2779,18 @@
 			}
 
 			clearTimeout(this.get('runTestBtnDelayTimeout'));
+			clearTimeout(this.get('focusModeTransitionTimeout'));
+			clearTimeout(this.measurementLoadingInfoTimeout);
+			this.measurementLoadingInfoTimeout = null;
+			this.cancelPendingResultScrollFrame();
+			this.set('pendingResultId', null);
 			this.get('testReqCancelFn')?.forEach(cancel => cancel?.());
 			this.set('testReqCancelFn', []);
+		},
+		shouldShowMeasurementLoadingInfo () {
+			return (this.get('focusModeActive') || !this.get('focusModeSupported')) && (this.get('shareResFlow')
+				? this.get('sharedMeasurementInitialLoading')
+				: this.get('testInProgress'));
 		},
 		isActiveTestRun (testRunId) {
 			return testRunId === null || testRunId === undefined || testRunId === this.get('activeTestRunId');
@@ -2591,6 +2828,129 @@
 			clearTimeout(this.get('runTestBtnDelayTimeout'));
 			this.set('runTestBtnDisabled', false);
 			this.set('runTestBtnDelayTimeout', null);
+		},
+		clearFocusModeTransition () {
+			clearTimeout(this.get('focusModeTransitionTimeout'));
+
+			this.set({
+				focusModeTransition: null,
+				focusModeTransitionTimeout: null,
+			});
+		},
+		openFocusMode (event) {
+			event?.preventDefault?.();
+
+			if (!this.get('focusModeSupported')) {
+				return;
+			}
+
+			let isResultsPreviewOpening = !!this.find('.gp_map-block_test-output_results-preview');
+
+			this.clearFocusModeTransition();
+			this.set('focusModeTransition', 'opening');
+			app.router.replaceQueryParam('view', FOCUS_MODE_VIEW, this);
+
+			if (this.get('pendingResultId') === null) {
+				this.scrollFocusModeRootAfterRender();
+			}
+
+			this.set('focusModeTransitionTimeout', setTimeout(() => {
+				this.set('focusModeTransition', null);
+				this.set('focusModeTransitionTimeout', null);
+			}, isResultsPreviewOpening ? FOCUS_MODE_RESULTS_EXPAND_MS : FOCUS_MODE_CONTENT_SWAP_MS));
+
+			this.focusFocusModeToggleButton();
+		},
+		closeFocusMode (event, restoreFocus = true) {
+			event?.preventDefault?.();
+
+			if (!this.get('focusModeActive')) {
+				return;
+			}
+
+			this.cancelPendingResultScrollFrame();
+			this.set('pendingResultId', null);
+
+			this.clearFocusModeTransition();
+			app.router.replaceQueryParam('view', null, this);
+			this.set('focusModeTransition', 'content-leaving');
+
+			if (restoreFocus) {
+				this.focusFocusModeToggleButton();
+			}
+
+			this.set('focusModeTransitionTimeout', setTimeout(() => {
+				this.set('focusModeTransition', 'prompt-entering');
+
+				this.set('focusModeTransitionTimeout', setTimeout(() => {
+					this.set('focusModeTransition', null);
+					this.set('focusModeTransitionTimeout', null);
+				}, FOCUS_MODE_PROMPT_ENTER_MS));
+			}, FOCUS_MODE_CONTENT_EXIT_MS));
+		},
+		closeFocusModeFromBackdrop (event) {
+			this.closeFocusMode(event, false);
+			this.scrollFocusModeRootAfterRender();
+		},
+		handleFocusModeKeyDown (event) {
+			if (!this.get('focusModeActive')) {
+				return;
+			}
+
+			if (event.key === 'Escape') {
+				this.closeFocusMode(event);
+				return;
+			}
+
+			if (event.key !== 'Tab') {
+				return;
+			}
+
+			// force focus to stay within the map block
+			let focusModeRoot = this.find('.gp_map-block');
+			let focusableElements = Array.from(focusModeRoot.querySelectorAll('a[href], button, input, select, textarea, [tabindex]'))
+				.filter(element => !element.disabled
+				&& element.getAttribute('tabindex') !== '-1'
+				&& element.getClientRects().length);
+
+			if (!focusableElements.length) {
+				event.preventDefault();
+				this.focusWithoutScroll(focusModeRoot);
+				return;
+			}
+
+			let firstElement = focusableElements[0];
+			let lastElement = focusableElements[focusableElements.length - 1];
+			let activeElement = document.activeElement;
+			let shouldWrapBackward = event.shiftKey && (activeElement === firstElement || !focusModeRoot.contains(activeElement));
+			let shouldWrapForward = !event.shiftKey && (activeElement === lastElement || !focusModeRoot.contains(activeElement));
+
+			if (shouldWrapBackward || shouldWrapForward) {
+				event.preventDefault();
+				this.focusWithoutScroll(shouldWrapBackward ? lastElement : firstElement);
+			}
+		},
+		focusFocusModeToggleButton () {
+			let renderId = this.focusModeRenderId;
+
+			this.update().then(() => {
+				if (this.focusModeRenderId !== renderId) {
+					return;
+				}
+
+				let focusToggleSelector = this.get('focusModeActive')
+					? '.gp_map-block_focus-bar_return'
+					: '.gp_map-block_header_focus-toggle_open';
+
+				this.focusWithoutScroll(this.find(focusToggleSelector));
+			});
+		},
+		focusWithoutScroll (element) {
+			try {
+				element?.focus({ preventScroll: true });
+			} catch {
+				element?.focus();
+			}
 		},
 		disableRunTestBtnForDelay () {
 			clearTimeout(this.get('runTestBtnDelayTimeout'));
@@ -2667,9 +3027,7 @@
 			this.set('testInProgress', true);
 			this.set('measurementErrMsg', null);
 			this.set('testReqParams', null);
-			this.set('shareResFlow', false);
-			this.set('shareResHeaderData', null);
-			this.set('mobileShareResHeaderData', null);
+			this.set('measurementDate', null);
 			this.set('realTimeTestResResponse', null);
 			this.set('activeTargetIdx', 0);
 			this.set('measurementsMetadata', null);
@@ -2680,13 +3038,20 @@
 			this.set('showCreditsData', true);
 			this.set('prevProbesMeasId', null);
 			this.set('preparedTestResults', []);
+			this.set('loadingProbeResults', []);
 			this.set('rateCreditsData', null);
 			this.set('probesMaxTiming', type.toLowerCase() === 'http' ? 1000 : 200);
 			this.set('_measurementOgTitle', null);
 			this.set('_measurementOgDescription', null);
 			this.set('showingNetworkLogos', false);
 			this.set('activeTestRunId', testRunId);
-			this.set('testReqCancelFn', []);
+			this.clearFocusModeTransition();
+			app.router.replaceQueryParam('view', this.get('focusModeSupported') ? FOCUS_MODE_VIEW : null, this);
+
+			if (this.get('focusModeSupported')) {
+				this.scrollFocusModeRootAfterRender();
+			}
+
 			this.expandAllRawOutput();
 
 			// if it is infinite/multi-endpoint measurement then we should show TableOutput by default
@@ -2721,6 +3086,11 @@
 
 				// set measurement ID for re-use probes case
 				this.set('prevProbesMeasId', res.response.id);
+
+				this.set('loadingProbeResults', Array.from(
+					{ length: res.response.probesCount || 0 },
+					(_, clientSideId) => ({ clientSideId }),
+				));
 
 				// Update the URL.
 				this.set('measurement', res.response.id);
@@ -3090,19 +3460,99 @@
 			});
 		},
 		handleSeeResults (clientSideId) {
-			let el;
+			this.set('pendingResultId', clientSideId);
 
-			if (this.get('rawOutputMode')) {
-				el = this.find(`.c-gp-results-raw-output_list_item.item-id-${clientSideId}`);
-			} else {
-				el = this.find(`.c-gp-results-table-output .results-table_row.row-num-${clientSideId}`);
+			if (this.get('focusModeSupported') && !this.get('focusModeActive')) {
+				this.openFocusMode();
+			}
+		},
+		scrollToPendingResult () {
+			let clientSideId = this.get('pendingResultId');
+			let focusModeSupported = this.get('focusModeSupported');
+
+			if (
+				clientSideId === null
+				|| (focusModeSupported && !this.get('focusModeActive'))
+				|| (!this.get('rawOutputMode') && !this.get('tableOutputReady'))
+			) {
+				return;
 			}
 
-			// this prop will be passed to c-gp-results-raw-output in order for it to show the specific result element if it was hidden
-			this.set('scrolledToResId', clientSideId);
+			this.cancelPendingResultScrollFrame();
 
-			if (el) {
-				el.scrollIntoView({ behavior: 'smooth' });
+			let isCurrentNavigation = () => (!this.get('focusModeSupported') || this.get('focusModeActive'))
+				&& this.get('pendingResultId') === clientSideId;
+
+			this.update().then(() => {
+				if (!isCurrentNavigation()) {
+					return false;
+				}
+
+				if (this.get('rawOutputMode')) {
+					// Set this after raw output mounts so it can expand the selected item.
+					this.set('scrolledToResId', clientSideId);
+				}
+
+				return this.update().then(() => true);
+			}).then((shouldContinue) => {
+				if (!shouldContinue || !isCurrentNavigation()) {
+					return;
+				}
+
+				let retryUntil = performance.now() + PENDING_RESULT_SCROLL_TIMEOUT_MS;
+				let findAndScrollToResult = () => {
+					let frame = requestAnimationFrame(() => {
+						if (this.pendingResultScrollFrame !== frame) {
+							return;
+						}
+
+						this.pendingResultScrollFrame = null;
+
+						if (!isCurrentNavigation()) {
+							return;
+						}
+
+						let el;
+
+						if (this.get('rawOutputMode')) {
+							el = this.find(`.c-gp-results-raw-output_list_item.item-id-${clientSideId}`);
+						} else {
+							el = this.find(`.c-gp-results-table-output .results-table_row.row-num-${clientSideId}`);
+						}
+
+						let mapWrapper = this.find('.gp_map-block_map-wrapper');
+						let mapIsCollapsing = this.get('focusModeActive')
+							&& !this.get('showMap')
+							&& mapWrapper.getBoundingClientRect().height > 0;
+
+						if (el && !mapIsCollapsing) {
+							let focusModeRoot = this.find('.gp_map-block');
+							let resultOffset = el.getBoundingClientRect().top - focusModeRoot.getBoundingClientRect().top;
+							let scrollOffset = this.get('focusModeSupported') ? FOCUS_MODE_SCROLL_OFFSET : 0;
+							let scrollTop = this.getFocusModeRootScrollTop(focusModeRoot, scrollOffset) + resultOffset;
+
+							window.scrollTo({ top: scrollTop, behavior: 'smooth' });
+							this.set('pendingResultId', null);
+							return;
+						}
+
+						if (performance.now() < retryUntil) {
+							findAndScrollToResult();
+						} else {
+							this.set('pendingResultId', null);
+						}
+					});
+
+					this.pendingResultScrollFrame = frame;
+				};
+
+				findAndScrollToResult();
+			});
+		},
+		cancelPendingResultScrollFrame () {
+			if (this.pendingResultScrollFrame !== null) {
+				cancelAnimationFrame(this.pendingResultScrollFrame);
+				this.pendingResultScrollFrame = null;
 			}
 		},
 		initResponseBodyCharWidth () {
@@ -3127,15 +3577,19 @@
 			let outputListMargin = 24 * 2;
 			let windowWidth = window.innerWidth;
 			let FALLBACK_CHAR_WIDTH = 7;
+			let listWidth = this.get('rawOutputExpandedListWidth');
 
-			try {
-				listEl = this.find('.c-gp-results-raw-output_list');
-			} catch {
-				let contentWidth = Math.min(1240, windowWidth - outputListMargin - outputHorizontalPadding);
-				return Math.floor(contentWidth / FALLBACK_CHAR_WIDTH);
+			if (!listWidth) {
+				try {
+					listEl = this.find('.c-gp-results-raw-output_list');
+				} catch {
+					let contentWidth = Math.min(1240, windowWidth - outputListMargin - outputHorizontalPadding);
+					return Math.floor(contentWidth / FALLBACK_CHAR_WIDTH);
+				}
+
+				listWidth = listEl?.getBoundingClientRect?.().width || 0;
 			}
 
-			let listWidth = listEl?.getBoundingClientRect?.().width || 0;
 			let contentWidth = Math.max(1, listWidth - outputHorizontalPadding);
 
 			if (!listWidth) {
@@ -3210,6 +3664,10 @@
 							return;
 						}
 
+						if (Number(resNumber) === 0) {
+							this.set('measurementDate', _.formatDateTime(new Date(testRes.createdAt)));
+						}
+
 						if (isShareResCase) {
 							let currentTargets = this.get('mainOptions.target');
 							let currTargetsArr = _.removeDuplicatedTargets(currentTargets ? currentTargets.split(',') : []);
@@ -3239,15 +3697,8 @@
 
 							if (isLastShareReq) {
 								this.set('targetsArr', updTargetsArr);
-								this.set('shareResHeaderData', `Showing results from ${_.formatDateTime(new Date(testRes.createdAt))}`);
 								this.set('mainOptions.type', this.translateTestTypeName(testRes.type));
 								this.set('mainOptions.limit', testRes.limit || DEFAULT_LIMIT);
-
-								this.set('mobileShareResHeaderData', {
-									date: _.formatDateTime(new Date(testRes.createdAt)),
-									target: updTargetsArr.join(', '),
-									type: this.translateTestTypeName(testRes.type),
-								});
 
 								// handle map max timing for HTTP measurement
 								if (testRes.type.toLowerCase() === 'http') {
@@ -3366,9 +3817,11 @@
 
 						cancel();
 
-						if (e.responseStatusCode === 404) {
-							this.set('shareResHeaderData', 'This measurement has expired!');
+						if (isShareResCase) {
+							this.handleSharedMeasurementLoadError(e);
+						} else if (e.responseStatusCode === 404) {
 							this.set('runTestBtnText', 'Run Test');
+
 							this.scrollMapIntoView();
 						}
 
@@ -3512,6 +3965,13 @@
 			this.set('modifiedMeasOptsCnt', modifiedMeasOptsCnt);
 		},
 		resetMapAndRunTest (prevProbesMeasId = null) {
+			this.set({
+				shareResFlow: false,
+				sharedMeasurementInitialLoading: false,
+			});
+
+			this.get('testReqCancelFn')?.forEach(cancel => cancel?.());
+			this.set('testReqCancelFn', []);
 			this.disableRunTestBtnForDelay();
 			this.set('testInProgress', true);
 
@@ -3613,17 +4073,60 @@
 		},
 		scrollMapIntoView () {
 			let mapBlockEl = this.find('.gp_map-block');
-			let mobileTestDetails = this.find('.gp_map-block_test-details');
 
-			if (mobileTestDetails?.checkVisibility?.()) {
-				mobileTestDetails.scrollIntoView({
-					behavior: 'smooth',
-				});
-			} else {
-				mapBlockEl.scrollIntoView({
-					behavior: 'smooth',
-				});
+			mapBlockEl.scrollIntoView({
+				behavior: 'smooth',
+			});
+		},
+		scrollFocusModeRootIntoView (scrollOffset = FOCUS_MODE_SCROLL_OFFSET) {
+			let mapBlockEl = this.find('.gp_map-block');
+
+			if (!mapBlockEl) {
+				return;
 			}
+
+			let targetScrollTop = this.getFocusModeRootScrollTop(mapBlockEl, scrollOffset);
+
+			if (targetScrollTop >= window.scrollY) {
+				return;
+			}
+
+			window.scrollTo({
+				behavior: 'smooth',
+				top: targetScrollTop,
+			});
+		},
+		getFocusModeRootScrollTop (mapBlockEl, scrollOffset = FOCUS_MODE_SCROLL_OFFSET) {
+			let style = getComputedStyle(mapBlockEl);
+			let focusModeOffsetY = Number.parseFloat(style.getPropertyValue('--focus-mode-offset-y')) || 0;
+			let currentTransformY = 0;
+			let matrixMatch = style.transform.match(/^matrix(3d)?\((.+)\)$/);
+
+			if (matrixMatch) {
+				let transformValues = matrixMatch[2].split(',').map(value => Number.parseFloat(value));
+				currentTransformY = matrixMatch[1] ? transformValues[13] : transformValues[5];
+				currentTransformY = Number.isFinite(currentTransformY) ? currentTransformY : 0;
+			}
+
+			return Math.max(0, window.scrollY + mapBlockEl.getBoundingClientRect().top - currentTransformY + focusModeOffsetY - scrollOffset);
+		},
+		scrollFocusModeRootAfterRender (scrollOffset = FOCUS_MODE_SCROLL_OFFSET) {
+			let scheduledScrollY = window.scrollY;
+			let renderId = this.focusModeRenderId;
+
+			this.update().then(() => {
+				if (this.focusModeRenderId !== renderId) {
+					return;
+				}
+
+				requestAnimationFrame(() => {
+					if (this.focusModeRenderId === renderId && window.scrollY === scheduledScrollY) {
+						let focusBar = this.get('focusModeActive') && this.find('.gp_map-block_focus-bar');
+
+						this.scrollFocusModeRootIntoView(scrollOffset - (focusBar?.offsetTop || 0));
+					}
+				});
+			});
 		},
 		updateMapMarkerWithIW (marker, markerData, currentMarkerIdx) {
 			let updSvg = this.createMapMarkerSvg(markerData);
@@ -3696,16 +4199,48 @@
 			});
 		},
 		async getMultipleTestMeasurementById (idsArr, isInfiniteMeas = false) {
-			for (let i = 0; i < idsArr.length; i++) {
-				await this.getTestMeasurementById({
-					measurementId: idsArr[i],
-					resNumber: i,
-					isShareResCase: true,
-					isFirstShareReq: i === 0,
-					isLastShareReq: idsArr.length - 1 === i,
-					isInfiniteMeas,
-				});
+			try {
+				for (let i = 0; i < idsArr.length; i++) {
+					if (!this.get('shareResFlow')) {
+						return;
+					}
+
+					await this.getTestMeasurementById({
+						measurementId: idsArr[i],
+						resNumber: i,
+						isShareResCase: true,
+						isFirstShareReq: i === 0,
+						isLastShareReq: idsArr.length - 1 === i,
+						isInfiniteMeas,
+					});
+
+					if (!this.get('shareResFlow')) {
+						return;
+					}
+				}
+
+				this.set('sharedMeasurementInitialLoading', false);
+			} catch {
+				// getTestMeasurementById handles shared measurement errors before rejecting.
 			}
+		},
+		handleSharedMeasurementLoadError (error) {
+			if (!this.get('shareResFlow') || this.get('measurementErrMsg')) {
+				return;
+			}
+
+			this.get('testReqCancelFn')?.forEach(cancel => cancel?.());
+
+			this.set({
+				testReqCancelFn: [],
+				testInProgress: false,
+				sharedMeasurementInitialLoading: false,
+				measurementErrMsg: error.responseStatusCode === 404
+					? 'This measurement has expired or is no longer available.'
+					: 'Unable to load this measurement. Please try again later.',
+				measurementDate: null,
+				runTestBtnText: 'Run Test',
+			});
 		},
 		postInfiniteGlobalpingMeasurement ({ reqParams, target, isInfiniteMeas = true, resNumber = 0, testRunId = null }) {
 			this.set('runTestBtnText', 'Stop');
@@ -3717,6 +4252,13 @@
 
 				// set response headers for gp-credits/gp-credits-message
 				this.set('rateCreditsData', { ...res.responseHeaders, probesCount: res.response.probesCount });
+
+				if (resNumber === 0) {
+					this.set('loadingProbeResults', Array.from(
+						{ length: res.response.probesCount || 0 },
+						(_, clientSideId) => ({ clientSideId }),
+					));
+				}
 
 				// set measurement ID for re-use probes case
 				this.set('prevProbesMeasId', res.response.id);
@@ -3802,6 +4344,7 @@
 				let inputErrors = _.parseValidationErrors(err.error, isSecondTarget && targetsArr[1]);
 
 				this.set('inputErrors', inputErrors);
+				this.set('measurementErrMsg', 'Please correct the highlighted fields and run the measurement again.');
 
 				// open measurement options menu if it contains errors
 				if (measurementOptsErr) {
@@ -3970,7 +4513,7 @@
 			return infoWindowContent;
 		},
 		prepareRegularResults (testResults) {
-			if (!testResults || testResults.length === 0) {
+			if (!testResults?.[0]?.length) {
 				return [];
 			}
 
@@ -4020,18 +4563,21 @@
 				};
 			};
 
+			let targets = this.get('targetsArr');
 			let prepResults = testResults[0].map(res => ({
 				clientSideId: res.clientSideId,
 				...res.probe,
 				statsPerTarget: [ parseTargetStats(res) ],
 			}));
 
-			for (let i = 1; i < testResults.length; i++) {
+			for (let i = 1; i < targets.length; i++) {
 				prepResults.forEach((pR) => {
-					let nextRes = testResults[i].find(r => r.clientSideId === pR.clientSideId);
+					let nextRes = testResults[i]?.find(r => r.clientSideId === pR.clientSideId);
 
 					if (nextRes) {
 						pR.statsPerTarget.push(parseTargetStats(nextRes));
+					} else {
+						pR.statsPerTarget.push({ target: targets[i] });
 					}
 				});
 			}

@@ -391,7 +391,7 @@ body.noscroll {
 	line-height: 16px;
 	letter-spacing: .2px;
 	color: #fff;
-	z-index: 2;
+	z-index: @zindex-tooltip;
 
 	&.multiline {
 		white-space: normal;
@@ -1114,7 +1114,7 @@ body.noscroll {
 .aa-Panel {
 	width: fit-content !important;
 	position: absolute;
-	z-index: 1000;
+	z-index: @zindex-popover;
 
 	.fa {
 		margin-right: 4px;

@@ -28,7 +28,10 @@
 						$(this.find('button')).popover('destroy');
 					}
 
-					setTimeout(() => {
+					clearTimeout(this.popoverInitTimeout);
+
+					this.popoverInitTimeout = setTimeout(() => {
+						this.popoverInitTimeout = null;
 						let button = this.find('button');
 
 						let closeHandler = (e) => {
@@ -53,6 +56,10 @@
 					}, 600);
 				}, { defer: true });
 			}
+		},
+		onunrender () {
+			clearTimeout(this.popoverInitTimeout);
+			this.popoverInitTimeout = null;
 		},
 		ondetach () {
 			if (!Ractive.isServer) {
