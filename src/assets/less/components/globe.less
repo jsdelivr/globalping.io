@@ -2,12 +2,14 @@
 	position: absolute;
 	z-index: -1;
 	pointer-events: none;
+	overflow: hidden;
+	aspect-ratio: 2;
 
 	&_poster {
 		position: absolute;
 		width: 100%;
-		aspect-ratio: 1;
-		clip-path: circle(46.75% at 50% 50%);
+		aspect-ratio: 2;
+		clip-path: ellipse(46.75% 93.5% at 50% 100%);
 
 		img {
 			display: block;
@@ -22,8 +24,8 @@
 		display: block;
 		width: 100%;
 		height: auto;
-		aspect-ratio: 1;
-		clip-path: circle(46.75% at 50% 50%);
+		aspect-ratio: 2;
+		clip-path: ellipse(46.75% 93.5% at 50% 100%);
 		object-fit: contain;
 		opacity: 0;
 

@@ -20,6 +20,7 @@ const DEFAULT_CRF = 34;
 const DEFAULT_POSTER_TIME = 1.2;
 const DEFAULT_PULSE_CYCLES = 10;
 const DEFAULT_PULSE_GLOBE_FORESHORTENING = true;
+const OUTPUT_HEIGHT_RATIO = .5;
 const SVG_NS = 'http://www.w3.org/2000/svg';
 const DEG_TO_RAD = Math.PI / 180;
 const GLOBE_CENTER = 600;
@@ -52,7 +53,7 @@ Options:
 	--input <path>                   Globe dots json data. Default: ${DEFAULT_INPUT_PATH}
 	--output <path>                  WebM output path. Default: ${DEFAULT_OUTPUT_PATH}
 	--poster-output <path>           Poster output path. Default: ${DEFAULT_POSTER_OUTPUT_PATH}
-	--size <number>                  Square output size in pixels. Default: ${DEFAULT_SIZE}
+	--size <number>                  Output width in pixels; height is half the width. Default: ${DEFAULT_SIZE}
 	--fps <number>                   Frames per second. Default: ${DEFAULT_FPS}
 	--duration <number>              Loop duration in seconds. Default: ${DEFAULT_DURATION}
 	--visible-rows-percent <number>  Globe rows to render, 0-1 or 0-100. Default: ${DEFAULT_VISIBLE_ROWS_PERCENT}
@@ -343,6 +344,7 @@ const renderPngFrame = async ({ dots, pulseWindows, progress, rotationDegrees, p
 
 	await sharp(Buffer.from(svg))
 		.resize(size, size)
+		.extract({ left: 0, top: 0, width: size, height: Math.floor(size * OUTPUT_HEIGHT_RATIO) })
 		.png()
 		.toFile(outputPath);
 };
@@ -357,7 +359,9 @@ const renderPoster = async ({ dots, pulseWindows, options }) => {
 		pulseCycles: options.pulseCycles,
 		pulseGlobeForeshortening: options.pulseGlobeForeshortening,
 	});
-	let poster = sharp(Buffer.from(svg)).resize(options.size, options.size);
+	let poster = sharp(Buffer.from(svg))
+		.resize(options.size, options.size)
+		.extract({ left: 0, top: 0, width: options.size, height: Math.floor(options.size * OUTPUT_HEIGHT_RATIO) });
 
 	fs.mkdirSync(path.dirname(options.posterOutputPath), { recursive: true });
 
@@ -478,7 +482,7 @@ async function main () {
 		assertFfmpegAvailable();
 	}
 
-	console.log(`Rendering ${dots.count} source dots at ${options.size}x${options.size}`);
+	console.log(`Rendering ${dots.count} source dots at ${options.size}x${Math.floor(options.size * OUTPUT_HEIGHT_RATIO)}`);
 	await renderPoster({ dots, pulseWindows, options });
 	console.log(`Saved poster: ${options.posterOutputPath}`);
 
