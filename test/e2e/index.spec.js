@@ -102,6 +102,10 @@ test('Homepage', async ({ page, context }) => {
 	await expect(rawResults).not.toBeVisible();
 	await expect(tableResults).toBeVisible();
 	await expect(page.locator('#gp-map > div > div.gm-style')).not.toBeVisible();
+
+	await expect(page.locator('footer')).toHaveCount(0);
+	await page.getByRole('button', { name: 'Close measurement focus mode' }).click();
+	await expect(page.locator('footer')).toBeVisible();
 });
 
 test('Header', async ({ page }) => {

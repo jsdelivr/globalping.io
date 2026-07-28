@@ -29,13 +29,10 @@
 	}
 
 	&.focus-mode-open {
-		@media (max-width: @screen-xs-max) {
-			margin-bottom: 0;
-			padding-bottom: 24px;
-		}
-
-		.gp_details, .gp_integrations, .gp_features, .gp_installation, .gp_our-users, .gp_join-network, .gp_join-community, .gp_gh-links, .gp_probe, .gp_sponsors {
-			display: none;
+		@media (min-width: @screen-sm-min) {
+			.gp_details, .gp_integrations, .gp_features, .gp_installation, .gp_our-users, .gp_join-network, .gp_join-community, .gp_gh-links, .gp_probe, .gp_sponsors {
+				display: none;
+			}
 		}
 	}
 
@@ -270,14 +267,16 @@
 			}
 
 			&_focus-mode {
-				box-shadow: none;
+				@media (min-width: @screen-sm-min) {
+					box-shadow: none;
 
-				&:after {
-					display: none;
-				}
+					&:after {
+						display: none;
+					}
 
-				.gp_map-block_test-output_results-preview-content_expanding {
-					animation: gp-results-preview-expand .42s cubic-bezier(.16, 1, .3, 1) both;
+					.gp_map-block_test-output_results-preview-content_expanding {
+						animation: gp-results-preview-expand .42s cubic-bezier(.16, 1, .3, 1) both;
+					}
 				}
 			}
 
@@ -512,6 +511,11 @@
 							.btn-group {
 								@media (min-width: @screen-sm-min) {
 									width: 140px;
+								}
+
+								> button:focus-visible {
+									outline: none;
+									box-shadow: 0 2px 2px rgba(0, 0, 0, .04), 0 0 0 1px #fff, 0 0 0 4px rgba(23, 212, 167, .48);
 								}
 
 								.dropdown-menu {
@@ -1121,8 +1125,16 @@
 						}
 
 						> span {
+							display: flex;
+							flex-direction: column;
 							font-size: 16px;
 							line-height: 24px;
+
+							a {
+								color: #17d4a7;
+								text-decoration: underline;
+								cursor: pointer;
+							}
 						}
 					}
 

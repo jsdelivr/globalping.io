@@ -112,7 +112,7 @@
 								aria-label="Close measurement focus mode"
 								on-click="@this.closeFocusMode(@event)">
 								<i class="fa fa-times" aria-hidden="true"></i>
-								<span class="hidden-xs">Close</span>
+								<span class="hidden-xs">Close focus mode</span>
 								<span class="mobile-only">Exit focus mode</span>
 							</button>
 						{{else}}
@@ -1566,7 +1566,9 @@
 		</div>
 	</div>
 
-	<c-gp-footer></c-gp-footer>
+	{{#unless focusModeActive}}
+		<c-gp-footer></c-gp-footer>
+	{{/unless}}
 </r-page>
 
 <script>
@@ -1977,15 +1979,19 @@
 				let testResults = Object.values(this.get('testResults') || {});
 				let hasTestResults = testResults.some(results => results?.length);
 
-				return !this.get('measurementErrMsg')
+				return this.get('focusModeSupported')
+					&& !this.get('measurementErrMsg')
 					&& !this.get('testInProgress')
 					&& !this.get('sharedMeasurementInitialLoading')
 					&& !this.get('isInfiniteMeasStopped')
 					&& hasTestResults
 					&& (this.get('rawOutputMode') || this.get('tableOutputReady'));
 			},
+			focusModeSupported () {
+				return Ractive.isServer || this.get('screenWidth') >= 768;
+			},
 			focusModeAvailable () {
-				return !!(
+				return this.get('focusModeSupported') && !!(
 					this.get('testInProgress')
 					|| this.get('testResults')
 					|| this.get('measurementErrMsg')
@@ -1995,7 +2001,7 @@
 				);
 			},
 			focusModeActive () {
-				return this.get('view') === FOCUS_MODE_VIEW;
+				return this.get('focusModeSupported') && this.get('view') === FOCUS_MODE_VIEW;
 			},
 			anyResponseBodyCollapsible () {
 				if (Ractive.isServer) {
@@ -2606,10 +2612,17 @@
 					this.set('preparedTestResults', preparedTestResults);
 				});
 
-				// set initial screenWidth value
-				this.observe('screenWidth', (screenWidth) => {
+				// set initial screenWidth value and keep focus mode disabled on mobile
+				this.observe('screenWidth view', () => {
+					let screenWidth = this.get('screenWidth');
+
 					if (!screenWidth) {
 						this.set('screenWidth', window.innerWidth);
+					} else if (screenWidth < 768 && this.get('view') === FOCUS_MODE_VIEW) {
+						this.cancelPendingResultScrollFrame();
+						this.set('pendingResultId', null);
+						this.clearFocusModeTransition();
+						app.router.replaceQueryParam('view', null, this);
 					}
 				});
 
@@ -2777,8 +2790,13 @@
 		},
 		openFocusMode (event) {
 			event?.preventDefault?.();
-			let isMobileViewport = _.isMobileViewport();
-			let isResultsPreviewOpening = !isMobileViewport && !!this.find('.gp_map-block_test-output_results-preview');
+
+			if (_.isMobileViewport()) {
+				app.router.replaceQueryParam('view', null, this);
+				return;
+			}
+
+			let isResultsPreviewOpening = !!this.find('.gp_map-block_test-output_results-preview');
 
 			this.clearFocusModeTransition();
 			this.set('focusModeTransition', isResultsPreviewOpening ? 'opening' : null);
@@ -2924,7 +2942,7 @@
 			this.set('showingNetworkLogos', false);
 			this.set('activeTestRunId', testRunId);
 			this.clearFocusModeTransition();
-			app.router.replaceQueryParam('view', FOCUS_MODE_VIEW, this);
+			app.router.replaceQueryParam('view', _.isMobileViewport() ? null : FOCUS_MODE_VIEW, this);
 
 			this.expandAllRawOutput();
 
@@ -3331,20 +3349,21 @@
 		handleSeeResults (clientSideId) {
 			this.set('pendingResultId', clientSideId);
 
-			if (!this.get('focusModeActive')) {
+			if (!this.get('focusModeActive') && !_.isMobileViewport()) {
 				this.openFocusMode();
 			}
 		},
 		scrollToPendingResult () {
 			let clientSideId = this.get('pendingResultId');
+			let resultNavigationAvailable = this.get('focusModeActive') || this.get('screenWidth') < 768;
 
-			if (clientSideId === null || !this.get('focusModeActive') || (!this.get('rawOutputMode') && !this.get('tableOutputReady'))) {
+			if (clientSideId === null || !resultNavigationAvailable || (!this.get('rawOutputMode') && !this.get('tableOutputReady'))) {
 				return;
 			}
 
 			this.cancelPendingResultScrollFrame();
 
-			let isCurrentNavigation = () => this.get('focusModeActive')
+			let isCurrentNavigation = () => (this.get('focusModeActive') || this.get('screenWidth') < 768)
 				&& this.get('pendingResultId') === clientSideId;
 
 			this.update().then(() => {

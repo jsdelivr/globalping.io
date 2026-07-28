@@ -98,7 +98,10 @@
 			let shareEl = this.find('.c-gp-results-share');
 			let resultsEl = shareEl?.closest('.gp_map-block_test-output_results-preview-content');
 			let firstResultEl = resultsEl?.querySelector('.c-gp-results-raw-output_list_item, .results-table_row');
-			let stickyEnabled = !!firstResultEl && firstResultEl.getBoundingClientRect().top < window.innerHeight;
+			let firstResultRect = firstResultEl?.getBoundingClientRect();
+			let stickyTop = window.innerHeight - (shareEl?.getBoundingClientRect().height || 0) - 24;
+			let requiredVisibleHeight = Math.min(24, firstResultRect?.height || 0);
+			let stickyEnabled = !!firstResultEl && firstResultRect.top < stickyTop - requiredVisibleHeight;
 
 			if (stickyEnabled !== this.get('stickyEnabled')) {
 				this.set('stickyEnabled', stickyEnabled);
