@@ -70,17 +70,25 @@
 			width: 500px;
 			transform: translateX(40%);
 
+			@media (max-width: 381px) {
+				top: 220px;
+			}
+
+			@media (max-width: 330px) {
+				top: 256px;
+			}
+
 			@media (min-width: @screen-sm-min) {
 				right: initial;
 				top: initial;
 				left: 50%;
-				bottom: calc(var(--globe-size) * -.35);
+				bottom: calc(var(--globe-size) * .15);
 				width: var(--globe-size);
 				transform: translateX(-50%);
 			}
 
 			@media (min-width: @screen-md-min) {
-				bottom: calc(var(--globe-size) * -.4);
+				bottom: calc(var(--globe-size) * .1);
 			}
 		}
 	}
