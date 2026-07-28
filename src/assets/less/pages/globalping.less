@@ -700,6 +700,11 @@
 									width: 140px;
 								}
 
+								> button:focus-visible {
+									outline: none;
+									box-shadow: 0 2px 2px rgba(0, 0, 0, .04), 0 0 0 1px #fff, 0 0 0 4px rgba(23, 212, 167, .48);
+								}
+
 								.dropdown-menu {
 									width: 100%;
 								}
@@ -1330,8 +1335,16 @@
 						}
 
 						> span {
+							display: flex;
+							flex-direction: column;
 							font-size: 16px;
 							line-height: 24px;
+
+							a {
+								color: #17d4a7;
+								text-decoration: underline;
+								cursor: pointer;
+							}
 						}
 					}
 
