@@ -718,7 +718,7 @@ module.exports = {
 			return undefined;
 		};
 
-		let compareValues = (a, b) => {
+		let compareValues = (a, b, collator) => {
 			let lhs = normalizeSortValue(a);
 			let rhs = normalizeSortValue(b);
 
@@ -729,7 +729,7 @@ module.exports = {
 			}
 
 			if (typeof lhs === 'string' || typeof rhs === 'string') {
-				return sortCoeff * String(lhs).localeCompare(String(rhs), undefined, { numeric: true });
+				return sortCoeff * collator.compare(String(lhs), String(rhs));
 			}
 
 			return sortCoeff * (lhs - rhs);
@@ -749,7 +749,9 @@ module.exports = {
 
 		switch (by) {
 			case 'location': {
-				return results.toSorted((a, b) => sortCoeff * getLocationStr(a).localeCompare(getLocationStr(b)));
+				let collator = new Intl.Collator();
+
+				return results.toSorted((a, b) => sortCoeff * collator.compare(getLocationStr(a), getLocationStr(b)));
 			}
 
 			case 'quality': {
@@ -767,7 +769,9 @@ module.exports = {
 
 			default: {
 				if (results.some(result => Object.hasOwn(result.statsPerTarget[targetIdx]?.sortValues || {}, by))) {
-					return results.toSorted((a, b) => compareValues(getSortVal(a), getSortVal(b)));
+					let collator = new Intl.Collator(undefined, { numeric: true });
+
+					return results.toSorted((a, b) => compareValues(getSortVal(a), getSortVal(b), collator));
 				}
 
 				if (!Object.hasOwn(sortToFieldMap, by)) {
