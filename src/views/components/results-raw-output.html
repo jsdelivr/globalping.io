@@ -7,7 +7,6 @@
 			<div class="c-gp-results-raw-output_list_item item-id-{{this.clientSideId}}"
 				{{#if showSetLocationButton}}
 					tabindex="0"
-					role="button"
 					aria-label="Set as location for the next test"
 					on-focus="@this.enableItemFocused(@event, this.clientSideId)"
 					on-blur="@this.hideSetLocationButton(@event)"
@@ -494,7 +493,7 @@
 		setProbeAsLocation (probeData = this.get('floatingSetLocationButton.probeData')) {
 			if (!this.get('showSetLocationButton') || !probeData) { return; }
 
-			this.set('currSearchLocation', `AS${probeData.asn}+${probeData.city}`);
+			this.set('currSearchLocation', `${probeData.city}+AS${probeData.asn}`);
 			this.set('floatingSetLocationButton.visible', false);
 		},
 		enableItemFocused (event, clientSideId) {
@@ -1016,11 +1015,7 @@
 		},
 		// --- Other functions ---
 		getStatusColor (targetStats) {
-			if (targetStats.extraValues?.errorStatus) {
-				return _.getGpProbeStatusColor(targetStats.extraValues.errorStatus);
-			}
-
-			return _.getGpProbeStatusColor(targetStats.avgTiming, this.get('testReqParams').type === 'http' ? 1000 : 200);
+			return _.getGpTargetStatusColor(targetStats, this.get('testReqParams').type);
 		},
 		getHeaderPrimaryMetrics (extraValues = {}) {
 			return [

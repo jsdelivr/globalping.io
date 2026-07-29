@@ -699,7 +699,6 @@
 						collapseOutput="{{@this.collapseAllRawOutput}}"
 						expandOutput="{{@this.expandAllRawOutput}}"
 						allCollapsed="{{allCollapsed}}"
-						testType="{{testReqParams.type}}"
 						sortOrder="{{sortOrder}}"
 						sortBy="{{sortBy}}"
 						sortByOpts="{{sortByOpts}}"
@@ -732,8 +731,10 @@
 						<div class="gp_map-block_test-output_table-output">
 							<c-gp-results-table-output
 								testReqParams="{{testReqParams}}"
+								testType="{{testReqParams.type}}"
 								testInProgress="{{testInProgress}}"
 								preparedTestResults="{{preparedTestResults}}"
+								tableColumns="{{tableColumns}}"
 								targetsCnt="{{targetsArr.length}}"
 								currSearchLocation="{{mainOptions.location}}"
 								measurementsMetadata="{{measurementsMetadata}}"
@@ -1639,6 +1640,8 @@
 	const DEFAULT_SORT_BY = 'location';
 	const DEFAULT_SORT_ORDER = 'asc';
 	const SORT_ORDER_OPTS = [ 'asc', 'desc' ];
+	const MEASUREMENT_TYPES = [ 'ping', 'traceroute', 'mtr', 'dns', 'http' ];
+	const TABLE_COLUMNS_CACHE = new Map();
 	const SORT_BY_OPTS = [
 		{
 			value: 'location',
@@ -1791,6 +1794,7 @@
 				sortBy: DEFAULT_SORT_BY,
 				sortOrder: DEFAULT_SORT_ORDER,
 				sortByOpts: SORT_BY_OPTS,
+				tableColumns: [],
 				locationAutofilled: false,
 				showingNetworkLogos: false,
 				collapseFromQuery: null,
@@ -1956,14 +1960,13 @@
 				} else {
 					// otherwise set the appropriate default value
 					// for multi-endpoint tests, this always sets the display to table
-					// if the test is not ping, it is changed back to raw in an observer
 					this.set('rawOutputMode', nonDefaultDisplayValue !== 'raw');
 				}
 
 				// read the sorting URL params and apply them
 				let by = this.get('by');
 				let order = this.get('order');
-				let sortByVals = SORT_BY_OPTS.map(opt => opt.value);
+				let sortByVals = this.getAllTableSortValues();
 
 				if (sortByVals.includes(by)) {
 					this.set('sortBy', by);
@@ -2016,10 +2019,24 @@
 					}
 				});
 
-				// clear table sort params and enable rawOutputMode whenever test type isn't ping
-				this.observe('testReqParams.type', (testType) => {
-					if (testType && testType !== 'ping') {
-						this.set('rawOutputMode', true);
+				this.observe('testReqParams.type testReqParams.measurementOptions.trace', () => {
+					let testType = this.get('testReqParams.type');
+
+					if (!testType) {
+						return;
+					}
+
+					let tableColumns = this.getTableColumns(testType);
+					let sortByOpts = this.getSortOptionsFromTableColumns(tableColumns);
+					let sortBy = this.get('sortBy');
+
+					if (!_.isEqual(sortByOpts, this.get('sortByOpts')) || !_.isEqual(tableColumns, this.get('tableColumns'))) {
+						this.set({ tableColumns, sortByOpts });
+					}
+
+					if (!sortByOpts.some(opt => opt.value === sortBy)) {
+						this.set('sortBy', DEFAULT_SORT_BY);
+						this.set('sortOrder', DEFAULT_SORT_ORDER);
 						app.router.replaceQueryParam('by', null, this);
 						app.router.replaceQueryParam('order', null, this);
 					}
@@ -2037,7 +2054,7 @@
 					let isInfiniteMeas = this.get('isInfiniteModeRes');
 					let isMultiEpMeas = this.get('measurement')?.split(',')?.length >= 2;
 
-					if (testType === 'ping' && (isInfiniteMeas || isMultiEpMeas)) {
+					if (isInfiniteMeas || isMultiEpMeas) {
 						app.router.replaceQueryParam('display', rawOutputMode ? 'raw' : null, this);
 					} else {
 						app.router.replaceQueryParam('display', rawOutputMode ? null : 'table', this);
@@ -2295,8 +2312,8 @@
 				this.observe('testResults', (testResults) => {
 					if (!testResults) { return; }
 
-					let dnsOpts = this.get('dnsOpts');
 					let testType = this.get('mainOptions.type');
+					let dnsTraceEnabled = this.isDnsTraceEnabled();
 					let targetsCnt = this.get('targetsArr').length;
 					let infiniteSwitchEnabled = this.get('infiniteSwitchEnabled');
 
@@ -2355,7 +2372,7 @@
 									};
 								}
 							} else if (res.result.status !== 'in-progress') {
-								calcTiming = _.calcGpTestResTiming(testType, res, dnsOpts.trace);
+								calcTiming = _.calcGpTestResTiming(testType, res, dnsTraceEnabled);
 							}
 
 							if (calcTiming?.extraValues?.errorStatus) {
@@ -2699,7 +2716,7 @@
 
 			// if it is infinite/multi-endpoint measurement then we should show TableOutput by default
 			// otherwise leave prev value set by user
-			if (type === 'ping' && (infiniteSwitchEnabled || targetsArr.length >= 2)) {
+			if (infiniteSwitchEnabled || targetsArr.length >= 2) {
 				this.set('rawOutputMode', false);
 			}
 
@@ -3377,10 +3394,6 @@
 						}
 
 						resolve(testRes);
-
-						if (!cancelled) {
-							timeout = setTimeout(fetch, 500);
-						}
 					}).catch((e) => {
 						if (cancelled || !this.isActiveTestRun(testRunId)) {
 							cancel();
@@ -3388,15 +3401,49 @@
 							return;
 						}
 
-						cancel();
+						let responseStatusCode = e?.responseStatusCode;
+						let isRequestError = typeof responseStatusCode === 'number';
 
-						if (e.responseStatusCode === 404) {
-							this.set('shareResHeaderData', 'This measurement has expired!');
-							this.set('runTestBtnText', 'Run Test');
-							this.scrollMapIntoView();
+						let isRetryableRequestError = isRequestError && (
+							responseStatusCode === 0
+							|| responseStatusCode === 408
+							|| responseStatusCode === 429
+							|| responseStatusCode >= 500
+						);
+
+						if (isRetryableRequestError) {
+							return;
 						}
 
-						reject(e);
+						this.stopCurrentTest();
+
+						if (!isRequestError) {
+							reject(e);
+							return;
+						}
+
+						if (isShareResCase) {
+							let errorMessage = responseStatusCode === 404
+								? 'This measurement has expired!'
+								: 'An unexpected error occurred. Please try again later.';
+
+							this.set('shareResHeaderData', errorMessage);
+							this.set('runTestBtnText', 'Run Test');
+
+							if (responseStatusCode === 404) {
+								this.scrollMapIntoView();
+							}
+
+							reject(e);
+							return;
+						}
+
+						this.set('measurementErrMsg', 'An unexpected error occurred. Please try again later.');
+						resolve();
+					}).finally(() => {
+						if (!cancelled && this.isActiveTestRun(testRunId)) {
+							timeout = setTimeout(fetch, 500);
+						}
 					});
 				};
 
@@ -4007,18 +4054,368 @@
 
 			return infoWindowContent;
 		},
+		isDnsTraceEnabled () {
+			let testReqParams = this.get('testReqParams');
+
+			return testReqParams
+				? testReqParams.measurementOptions?.trace === true
+				: this.get('dnsOpts.trace') === true;
+		},
+		getTableColumns (testType = this.get('testReqParams.type'), dnsTraceEnabled) {
+			let lowCaseTestName = (testType || '').toLowerCase();
+
+			if (typeof dnsTraceEnabled !== 'boolean') {
+				dnsTraceEnabled = this.isDnsTraceEnabled();
+			}
+
+			let cacheKey = `${lowCaseTestName}:${dnsTraceEnabled}`;
+			let cachedColumns = TABLE_COLUMNS_CACHE.get(cacheKey);
+
+			if (cachedColumns) {
+				return cachedColumns;
+			}
+
+			let rttTimings = [
+				{ key: 'rtt-last', label: 'rtt last', mobileLabel: 'Rtt last' },
+				{ key: 'min', label: 'min', mobileLabel: 'Rtt min' },
+				{ key: 'avg', label: 'avg', mobileLabel: 'Rtt avg' },
+				{ key: 'max', label: 'max', mobileLabel: 'Rtt max' },
+			];
+
+			let timingColumn = timings => ({
+				key: 'timings',
+				type: 'timings',
+				className: 'rtt',
+				timings: timings.map((timing, idx) => ({
+					isLast: idx === timings.length - 1,
+					...timing,
+				})),
+			});
+			let tableColumns;
+
+			if ([ 'traceroute', 'mtr' ].includes(lowCaseTestName)) {
+				tableColumns = [
+					{ key: 'hops', label: 'Hops', className: 'hops' },
+					timingColumn(rttTimings),
+					{ key: 'ip', type: 'ip', label: 'Resolved IP', mobileLabel: 'IP', className: 'ip', sortable: false },
+					{ key: 'graph', type: 'graph', label: 'Graph', className: 'graph', sortable: false },
+				];
+			} else if (lowCaseTestName === 'dns') {
+				tableColumns = [
+					...dnsTraceEnabled ? [] : [{ key: 'dns-status', label: 'Status', className: 'status' }],
+					{ key: 'answers', label: 'Answers', className: 'answers' },
+					{ key: 'total', label: 'Time', className: 'total' },
+					{ key: 'resolver', label: 'Resolver', className: 'resolver', sortable: false },
+				];
+			} else if (lowCaseTestName === 'http') {
+				tableColumns = [
+					{ key: 'http-status', label: 'Status', className: 'status http-status' },
+					{ key: 'content-length', label: 'Content length', className: 'content-length' },
+					{ key: 'total', label: 'Total', className: 'total' },
+					{ key: 'ip', type: 'ip', label: 'Resolved IP', mobileLabel: 'IP', className: 'ip', sortable: false },
+				];
+			} else if (lowCaseTestName === 'ping') {
+				tableColumns = [
+					{ key: 'quality', label: 'Quality', className: 'quality' },
+					timingColumn(rttTimings),
+					{ key: 'ip', type: 'ip', label: 'Resolved IP', mobileLabel: 'IP', className: 'ip', sortable: false },
+					{ key: 'graph', type: 'graph', label: 'Graph', className: 'graph', sortable: false },
+				];
+			} else {
+				throw new Error(`Unsupported table test type: ${testType}`);
+			}
+
+			TABLE_COLUMNS_CACHE.set(cacheKey, tableColumns);
+
+			return tableColumns;
+		},
+		getSortOptionsFromTableColumns (tableColumns) {
+			let options = [{ value: 'location', name: 'Location' }];
+
+			tableColumns.forEach((column) => {
+				if (column.type === 'timings') {
+					column.timings
+						.filter(timing => timing.sortable !== false)
+						.forEach(timing => options.push({ value: timing.key, name: timing.mobileLabel || timing.label }));
+
+					return;
+				}
+
+				if (column.sortable !== false) {
+					options.push({ value: column.key, name: column.sortName || column.label });
+				}
+			});
+
+			return options;
+		},
+		getAllTableSortValues () {
+			let values = new Set();
+
+			MEASUREMENT_TYPES.forEach((testType) => {
+				let dnsTraceVariants = testType === 'dns' ? [ false, true ] : [ false ];
+
+				dnsTraceVariants.forEach((dnsTraceEnabled) => {
+					this.getSortOptionsFromTableColumns(this.getTableColumns(testType, dnsTraceEnabled))
+						.forEach(option => values.add(option.value));
+				});
+			});
+
+			return [ ...values ];
+		},
+		hasTableValue (value) {
+			return value !== null && typeof value !== 'undefined' && value !== '';
+		},
+		createMetricTableCell (value) {
+			return {
+				value,
+				hasValue: this.hasTableValue(value),
+			};
+		},
+		createTimingTableCell (column, valuesByKey) {
+			let timings = column.timings.map((timing) => {
+				let value = valuesByKey[timing.key];
+
+				return {
+					value,
+					hasValue: this.hasTableValue(value),
+					units: typeof value === 'number' ? 'ms' : '',
+				};
+			});
+
+			return {
+				timings,
+				showDesktopUnits: timings.length > 0 && timings.every(timing => typeof timing.value === 'number'),
+			};
+		},
+		createEmptyTableCells (testType, dnsTraceEnabled) {
+			return this.getTableColumns(testType, dnsTraceEnabled).map((column) => {
+				if (column.type === 'timings') {
+					return this.createTimingTableCell(column, {});
+				}
+
+				return this.createMetricTableCell(null);
+			});
+		},
+		getLastHop (result = {}) {
+			let hops = result.hops || [];
+
+			return hops.length ? hops[hops.length - 1] : null;
+		},
+		getLastHopRtts (result = {}) {
+			let lastHop = this.getLastHop(result);
+			let timings = lastHop?.timings || [];
+
+			if (timings.length) {
+				return timings.map((timing) => {
+					return typeof timing?.rtt === 'number' && Number.isFinite(timing.rtt)
+						? timing.rtt
+						: PROBE_NO_TIMING_VALUE;
+				});
+			}
+
+			let packetsTotal = lastHop?.stats?.total;
+
+			if (!Number.isInteger(packetsTotal) || packetsTotal < 0) {
+				packetsTotal = Math.max(0, ...(result.hops || []).map(hop => hop.timings?.length || 0));
+			}
+
+			return Array(packetsTotal).fill(PROBE_NO_TIMING_VALUE);
+		},
+		getLastHopTimingStats (result = {}) {
+			let rtts = this.getLastHopRtts(result);
+			let numericRtts = rtts.filter(rtt => typeof rtt === 'number' && Number.isFinite(rtt));
+
+			if (!numericRtts.length) {
+				return {
+					last: rtts[rtts.length - 1] ?? null,
+					min: PROBE_NO_TIMING_VALUE,
+					avg: PROBE_NO_TIMING_VALUE,
+					max: PROBE_NO_TIMING_VALUE,
+				};
+			}
+
+			let total = numericRtts.reduce((sum, rtt) => sum + rtt, 0);
+
+			return {
+				last: numericRtts[numericRtts.length - 1],
+				min: Math.min(...numericRtts),
+				avg: total / numericRtts.length,
+				max: Math.max(...numericRtts),
+			};
+		},
+		getLastHopLastTiming (result = {}) {
+			let rtts = this.getLastHopRtts(result);
+
+			for (let i = rtts.length - 1; i >= 0; i--) {
+				if (typeof rtts[i] === 'number') {
+					return rtts[i];
+				}
+			}
+
+			return rtts[rtts.length - 1] ?? null;
+		},
+		getHttpStatusText (result = {}) {
+			let { statusCode, statusCodeName } = result;
+
+			if (this.hasTableValue(statusCode) && this.hasTableValue(statusCodeName)) {
+				return `${statusCode} ${statusCodeName}`;
+			}
+
+			return this.hasTableValue(statusCode) ? statusCode : statusCodeName;
+		},
+		getHeaderValue (headers = {}, headerName) {
+			let headerKey = Object.keys(headers || {}).find(key => key.toLowerCase() === headerName.toLowerCase());
+
+			return headerKey ? headers[headerKey] : null;
+		},
+		getHttpContentLength (result = {}) {
+			let contentLength = this.getHeaderValue(result.headers, 'content-length');
+
+			if (typeof contentLength === 'number' && Number.isFinite(contentLength)) {
+				return contentLength;
+			}
+
+			if (typeof contentLength === 'string' && /^\d+$/.test(contentLength.trim())) {
+				return Number(contentLength.trim());
+			}
+
+			return null;
+		},
+		createTableDataForTarget (testType, res, targetStats, dnsTraceEnabled) {
+			let lowCaseTestName = (testType || '').toLowerCase();
+			let tableColumns = this.getTableColumns(testType, dnsTraceEnabled);
+			let sortValues = {};
+			let tableCells;
+
+			if (lowCaseTestName === 'ping') {
+				tableCells = tableColumns.map((column) => {
+					if (column.key === 'quality') {
+						return this.createMetricTableCell(targetStats.qualityStr);
+					}
+
+					if (column.type === 'timings') {
+						let values = targetStats.areTimingsReady ? {
+							'rtt-last': targetStats.lastTiming,
+							'min': targetStats.minTiming,
+							'avg': targetStats.avgTiming,
+							'max': targetStats.maxTiming,
+						} : {};
+
+						sortValues['rtt-last'] = targetStats.lastTiming;
+						sortValues.min = targetStats.minTiming;
+						sortValues.avg = targetStats.avgTiming;
+						sortValues.max = targetStats.maxTiming;
+
+						return this.createTimingTableCell(column, values);
+					}
+
+					if (column.key === 'ip') {
+						return this.createMetricTableCell(targetStats.ipAddr);
+					}
+
+					return this.createMetricTableCell(targetStats.packetsRtt);
+				});
+			} else if ([ 'traceroute', 'mtr' ].includes(lowCaseTestName)) {
+				let hops = res.result?.hops?.length ?? 0;
+				let timingValues = {
+					'rtt-last': targetStats.lastTiming,
+					'min': targetStats.minTiming,
+					'avg': targetStats.avgTiming,
+					'max': targetStats.maxTiming,
+				};
+
+				sortValues = { ...timingValues, hops };
+
+				tableCells = tableColumns.map((column) => {
+					if (column.key === 'hops') {
+						return this.createMetricTableCell(hops);
+					}
+
+					if (column.type === 'timings') {
+						return this.createTimingTableCell(column, timingValues);
+					}
+
+					if (column.key === 'ip') {
+						return this.createMetricTableCell(targetStats.ipAddr);
+					}
+
+					return this.createMetricTableCell(targetStats.packetsRtt);
+				});
+			} else if (lowCaseTestName === 'dns') {
+				let dnsResult = dnsTraceEnabled ? this.getLastHop(res.result) || res.result : res.result;
+				let statusText = dnsResult.statusCodeName ?? dnsResult.statusCode;
+				let answers = dnsResult.answers?.length ?? 0;
+				let total = dnsResult.timings?.total;
+				let resolver = dnsResult.resolver;
+
+				sortValues['dns-status'] = typeof dnsResult.statusCode === 'number' ? dnsResult.statusCode : statusText;
+				sortValues.answers = answers;
+				sortValues.total = total;
+
+				tableCells = tableColumns.map((column) => {
+					if (column.key === 'dns-status') {
+						return this.createMetricTableCell(statusText);
+					}
+
+					if (column.key === 'answers') {
+						return this.createMetricTableCell(answers);
+					}
+
+					if (column.key === 'total') {
+						return this.createMetricTableCell(typeof total === 'number' ? `${total} ms` : null);
+					}
+
+					return this.createMetricTableCell(resolver);
+				});
+			} else if (lowCaseTestName === 'http') {
+				let statusText = this.getHttpStatusText(res.result);
+				let total = res.result?.timings?.total;
+				let contentLength = this.getHttpContentLength(res.result);
+
+				sortValues['http-status'] = res.result?.statusCode;
+				sortValues.total = total;
+				sortValues['content-length'] = contentLength;
+
+				tableCells = tableColumns.map((column) => {
+					if (column.key === 'http-status') {
+						return this.createMetricTableCell(statusText);
+					}
+
+					if (column.key === 'total') {
+						return this.createMetricTableCell(typeof total === 'number' ? `${total} ms` : null);
+					}
+
+					if (column.key === 'ip') {
+						return this.createMetricTableCell(targetStats.ipAddr);
+					}
+
+					return this.createMetricTableCell(typeof contentLength === 'number' ? `${contentLength} B` : null);
+				});
+			} else {
+				tableCells = this.createEmptyTableCells(testType, dnsTraceEnabled);
+			}
+
+			return {
+				tableCells,
+				sortValues,
+			};
+		},
 		prepareRegularResults (testResults) {
 			if (!testResults || testResults.length === 0) {
 				return [];
 			}
 
-			let dnsTraceEnabled = this.get('testReqParams.measurementOptions.trace');
+			let dnsTraceEnabled = this.isDnsTraceEnabled();
 
 			let parseTargetStats = (res) => {
 				let baseStat = { target: res.target };
 
 				if (res.result.status === 'in-progress') {
-					return baseStat;
+					return {
+						...baseStat,
+						tableCells: this.createEmptyTableCells(res.type, dnsTraceEnabled),
+						sortValues: {},
+					};
 				}
 
 				let {
@@ -4029,14 +4426,42 @@
 				} = _.calcGpTestResTiming(res.type, res, dnsTraceEnabled);
 
 				let { packetsRtt, packetsTotal } = _.parseGpRawOutputForTimings(res.result.rawOutput);
+
+				if ([ 'traceroute', 'mtr' ].includes(res.type)) {
+					packetsRtt = this.getLastHopRtts(res.result);
+				}
+
 				let stats = res.result?.stats || {};
 				let isOffline = res.result.status === PROBE_STATUS_OFFLINE;
-				let minTiming = stats.min || PROBE_NO_TIMING_VALUE;
-				let maxTiming = stats.max || PROBE_NO_TIMING_VALUE;
+				let minTiming = typeof stats.min === 'number' ? stats.min : PROBE_NO_TIMING_VALUE;
+				let maxTiming = typeof stats.max === 'number' ? stats.max : PROBE_NO_TIMING_VALUE;
 
-				let responseBodyDelimiter = /(?:\r?\n){2}/;
+				let rawOutput = res.result.rawOutput || '';
+				let rawBody = null;
+				let rawHeaders = rawOutput;
 
-				return {
+				if (res.type === 'http') {
+					({ rawBody, rawHeaders } = _.extractHttpRawOutput(rawOutput));
+				}
+
+				if (res.type === 'traceroute') {
+					let lastHopTimingStats = this.getLastHopTimingStats(res.result);
+
+					lastTiming = lastHopTimingStats.last;
+					minTiming = lastHopTimingStats.min;
+					avgTiming = lastHopTimingStats.avg;
+					maxTiming = lastHopTimingStats.max;
+				}
+
+				if (res.type === 'mtr') {
+					let lastHopStats = this.getLastHop(res.result)?.stats || {};
+
+					lastTiming = this.getLastHopLastTiming(res.result);
+					minTiming = typeof lastHopStats.min === 'number' ? lastHopStats.min : PROBE_NO_TIMING_VALUE;
+					maxTiming = typeof lastHopStats.max === 'number' ? lastHopStats.max : PROBE_NO_TIMING_VALUE;
+				}
+
+				let targetStats = {
 					...baseStat,
 					ipAddr: res.result.resolvedAddress,
 					lastTiming,
@@ -4050,11 +4475,17 @@
 					packetsRtt,
 					extraValues,
 					failureRawOutput: this.getFailureProbeRawOutput(res),
-					rawOutput: res.type === 'http' ? res.result.rawOutput.split(responseBodyDelimiter)[0] : res.result.rawOutput,
-					responseBody: res.type === 'http' ? res.result.rawOutput.split(responseBodyDelimiter).slice(1).join('\n\n') : null,
+					rawOutput: rawHeaders,
+					responseBody: rawBody,
 					qualityStr: this.createQualityString(isOffline, stats.total, stats.drop),
 					areTimingsReady: this.checkAreTimingsReady(lastTiming, maxTiming, minTiming, avgTiming, packetsTotal),
 					tls: res.result.tls,
+				};
+				let tableData = this.createTableDataForTarget(res.type, res, targetStats, dnsTraceEnabled);
+
+				return {
+					...targetStats,
+					...tableData,
 				};
 			};
 
@@ -4119,6 +4550,37 @@
 						measurementTimeCombined += clientSideMeasTime;
 					}
 
+					let targetStats = {
+						target: probeData.target,
+						ipAddr,
+						lastTiming,
+						minTiming,
+						avgTiming,
+						maxTiming,
+						statsTotal: packetsRttCombined.length,
+						statsDrop: packetsDropCombined,
+						isFailed: probeData.result.status === PROBE_STATUS_FAILED,
+						isOffline,
+						failureRawOutput: this.getFailureProbeRawOutput(probeData),
+						packetsRtt: packetsRttCombined,
+						qualityStr: this.createQualityString(isOffline, numericPacketsRttCombined.length + packetsDropCombined, packetsDropCombined),
+						areTimingsReady: this.checkAreTimingsReady(lastTiming, maxTiming, minTiming, avgTiming, packetsTotalCombined),
+						rawOutput: rawOutputCombined,
+						extraValues: lossValue !== null ? { loss: { text: 'Loss', value: lossValue, units: '%' } } : {},
+						rawFooter: this.createRawFooter(
+							probeData.target,
+							numericPacketsRttCombined,
+							packetsTotalCombined,
+							numericPacketsRttCombined.length,
+							lossValue,
+							minTiming,
+							avgTiming,
+							maxTiming,
+							measurementTimeCombined,
+							rawOutputCombined,
+						),
+					};
+
 					return {
 						...combinedProbeData,
 						lastLineIdx,
@@ -4131,34 +4593,8 @@
 						clientSideId: probeData.clientSideId,
 						...probeData.probe,
 						statsPerTarget: [{
-							target: probeData.target,
-							ipAddr,
-							lastTiming,
-							minTiming,
-							avgTiming,
-							maxTiming,
-							statsTotal: packetsRttCombined.length,
-							statsDrop: packetsDropCombined,
-							isFailed: probeData.result.status === PROBE_STATUS_FAILED,
-							isOffline,
-							failureRawOutput: this.getFailureProbeRawOutput(probeData),
-							packetsRtt: packetsRttCombined,
-							qualityStr: this.createQualityString(isOffline, numericPacketsRttCombined.length + packetsDropCombined, packetsDropCombined),
-							areTimingsReady: this.checkAreTimingsReady(lastTiming, maxTiming, minTiming, avgTiming, packetsTotalCombined),
-							rawOutput: rawOutputCombined,
-							extraValues: lossValue !== null ? { loss: { text: 'Loss', value: lossValue, units: '%' } } : {},
-							rawFooter: this.createRawFooter(
-								probeData.target,
-								numericPacketsRttCombined,
-								packetsTotalCombined,
-								numericPacketsRttCombined.length,
-								lossValue,
-								minTiming,
-								avgTiming,
-								maxTiming,
-								measurementTimeCombined,
-								rawOutputCombined,
-							),
+							...targetStats,
+							...this.createTableDataForTarget('ping', probeData, targetStats),
 						}],
 					};
 				}, {});

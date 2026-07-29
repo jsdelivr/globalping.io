@@ -1,27 +1,31 @@
-<div class="c-placeholder-skeleton">
+<span class="c-placeholder-skeleton">
 	{{#if type === "header"}}
-		<div class="skeleton-header">
-			<div class="skeleton_animated"></div>
-		</div>
+		<span class="skeleton-header">
+			<span class="skeleton_animated"></span>
+		</span>
 	{{elseif type === "subheader"}}
-		<div class="skeleton-subheader">
-			<div class="skeleton-subheader_content-wrapper">
-				<div class="skeleton_animated"></div>
-			</div>
-		</div>
+		<span class="skeleton-subheader">
+			<span class="skeleton-subheader_content-wrapper">
+				<span class="skeleton_animated"></span>
+			</span>
+		</span>
 	{{elseif type === "descr"}}
-		<div class="skeleton-descr">
-			<div class="skeleton_animated"></div>
-			<div class="skeleton_animated"></div>
-			<div class="skeleton_animated"></div>
-		</div>
+		<span class="skeleton-descr">
+			<span class="skeleton_animated"></span>
+			<span class="skeleton_animated"></span>
+			<span class="skeleton_animated"></span>
+		</span>
 	{{elseif type === "list"}}
-		<div class="skeleton-list">
+		<span class="skeleton-list">
 			{{#each content}}
-				<div class="skeleton-list_content-wrapper">
-					<li><div class="skeleton_animated"></div></li>
-				</div>
+				<span class="skeleton-list_content-wrapper">
+					<span><span class="skeleton_animated"></span></span>
+				</span>
 			{{/each}}
-		</div>
+		</span>
+	{{else}}
+		<span class="skeleton-base">
+			<span class="skeleton_animated"></span>
+		</span>
 	{{/if}}
-</div>
+</span>

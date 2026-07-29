@@ -506,6 +506,16 @@ module.exports = {
 		}, []);
 	},
 
+	extractHttpRawOutput (rawOutput = '') {
+		let raw = rawOutput || '';
+		let separator = /(?:\r?\n){2}/.exec(raw);
+
+		return {
+			rawBody: separator ? raw.slice(separator.index + separator[0].length) : '',
+			rawHeaders: separator ? raw.slice(0, separator.index) : raw,
+		};
+	},
+
 	parseGpRawOutputForTimings (raw) {
 		let packets = [];
 		let timeMatch, noAnswerMatch;
@@ -600,6 +610,14 @@ module.exports = {
 		return getColorFromGradient(pureTimingValue / probesMaxTiming, '#17d4a7', '#ffb800', '#e64e3d');
 	},
 
+	getGpTargetStatusColor (targetStats, testType) {
+		if (targetStats?.extraValues?.errorStatus) {
+			return this.getGpProbeStatusColor(targetStats.extraValues.errorStatus);
+		}
+
+		return this.getGpProbeStatusColor(targetStats?.avgTiming, testType === 'http' ? 1000 : 200);
+	},
+
 	pluralize (singular, countOrPlural, countOrUndefined) {
 		let count = typeof countOrPlural === 'string' ? countOrUndefined : countOrPlural;
 		let plural = typeof countOrPlural === 'string' ? countOrPlural : singular + 's';
@@ -688,8 +706,37 @@ module.exports = {
 			return `${loc.city}${loc.country}${loc.continent}${loc.network}`;
 		};
 
+		let normalizeSortValue = (value) => {
+			if (typeof value === 'number' && !Number.isNaN(value)) {
+				return value;
+			}
+
+			if (typeof value === 'string' && value) {
+				return value.toLowerCase();
+			}
+
+			return undefined;
+		};
+
+		let compareValues = (a, b, collator) => {
+			let lhs = normalizeSortValue(a);
+			let rhs = normalizeSortValue(b);
+
+			if (typeof lhs === 'undefined' || typeof rhs === 'undefined') {
+				if (lhs === rhs) { return 0; }
+
+				return typeof lhs === 'undefined' ? 1 : -1;
+			}
+
+			if (typeof lhs === 'string' || typeof rhs === 'string') {
+				return sortCoeff * collator.compare(String(lhs), String(rhs));
+			}
+
+			return sortCoeff * (lhs - rhs);
+		};
+
 		let getFieldVal = (loc, field) => {
-			let value = loc.statsPerTarget[targetIdx][field];
+			let value = loc.statsPerTarget[targetIdx]?.[field];
 
 			if (typeof value !== 'number' || Number.isNaN(value)) {
 				return Infinity;
@@ -698,9 +745,13 @@ module.exports = {
 			return value;
 		};
 
+		let getSortVal = loc => loc.statsPerTarget[targetIdx]?.sortValues?.[by];
+
 		switch (by) {
 			case 'location': {
-				return results.toSorted((a, b) => sortCoeff * getLocationStr(a).localeCompare(getLocationStr(b)));
+				let collator = new Intl.Collator();
+
+				return results.toSorted((a, b) => sortCoeff * collator.compare(getLocationStr(a), getLocationStr(b)));
 			}
 
 			case 'quality': {
@@ -717,6 +768,12 @@ module.exports = {
 			}
 
 			default: {
+				if (results.some(result => Object.hasOwn(result.statsPerTarget[targetIdx]?.sortValues || {}, by))) {
+					let collator = new Intl.Collator(undefined, { numeric: true });
+
+					return results.toSorted((a, b) => compareValues(getSortVal(a), getSortVal(b), collator));
+				}
+
 				if (!Object.hasOwn(sortToFieldMap, by)) {
 					return results;
 				}
