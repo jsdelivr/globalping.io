@@ -494,7 +494,7 @@
 		setProbeAsLocation (probeData = this.get('floatingSetLocationButton.probeData')) {
 			if (!this.get('showSetLocationButton') || !probeData) { return; }
 
-			this.set('currSearchLocation', `AS${probeData.asn}+${probeData.city}`);
+			this.set('currSearchLocation', `${probeData.city}+AS${probeData.asn}`);
 			this.set('floatingSetLocationButton.visible', false);
 		},
 		enableItemFocused (event, clientSideId) {

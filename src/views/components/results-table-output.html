@@ -52,6 +52,12 @@
 
 			{{#each preparedTestResults as result}}
 				<tbody class="results-table_row row-num-{{result.clientSideId}} item-id-{{result.clientSideId}}"
+					tabindex="0"
+					role="button"
+					aria-label="Set as location for the next test"
+					on-focus="@this.enableItemFocused(@event, result.clientSideId)"
+					on-blur="@this.hideSetLocationButton(@event)"
+					on-keydown="@this.headerKeydownHandler(@event, result.clientSideId)"
 					on-mouseenter="@this.showSetLocationButton(result.clientSideId)"
 					on-mouseleave="@this.hideSetLocationButton(@event)"
 					{{#if targetsCnt === 1}}
@@ -67,19 +73,14 @@
 									{{#if targetsCnt === 1}}
 										style="border-left: 0 solid {{_.getGpTargetStatusColor(result.statsPerTarget[0], testType)}};"
 									{{/if}}>
-									<button class="results-table_row_location_content"
-										type="button"
-										aria-label="Set as location for the next test"
-										on-focus="@this.enableItemFocused(@event, result.clientSideId)"
-										on-blur="@this.hideSetLocationButton(@event)"
-										on-click="@this.setProbeAsLocation(result.clientSideId)">
+									<div class="results-table_row_location_content">
 										<img width="28" height="20" alt="" src="https://cdn.jsdelivr.net/npm/country-flag-icons@1.5.5/3x2/{{result.country}}.svg">
 
-										<span class="results-table_row_location_data">
+										<div class="results-table_row_location_data">
 											<span>{{result.city}}, {{result.country}}, {{result.continent}}</span>
 											<span>{{result.network}}</span>
-										</span>
-									</button>
+										</div>
+									</div>
 								</td>
 							{{/if}}
 
@@ -119,10 +120,12 @@
 											{{#if column.type === 'timings'}}
 												<div class="timings-group">
 													{{#each column.timings as timing : timingIdx}}
-														<span class="timings {{#unless target.tableCells[columnIdx].timings[timingIdx].hasValue}}no-value{{/unless}} {{#if timing.sortable !== false}}is-sortable{{/if}}">
+														<span class="timings {{#if target.tableCells[columnIdx].timings[timingIdx].value === PROBE_NO_TIMING_VALUE || !target.tableCells[columnIdx].timings[timingIdx].hasValue}}no-value{{/if}} {{#if timing.sortable !== false}}is-sortable{{/if}}">
 															<span class="timings_header">{{timing.mobileLabel || timing.label}}</span>
 
-															{{#if target.tableCells[columnIdx].timings[timingIdx].hasValue}}
+															{{#if target.tableCells[columnIdx].timings[timingIdx].value === PROBE_NO_TIMING_VALUE}}
+																<span>&mdash;</span>
+															{{elseif target.tableCells[columnIdx].timings[timingIdx].hasValue}}
 																<span class="timings_value">
 																	{{@this.formatTimingValue(target.tableCells[columnIdx].timings[timingIdx].value)}}
 																	{{#if target.tableCells[columnIdx].timings[timingIdx].units}}
@@ -299,7 +302,7 @@
 			let activeElement = document.activeElement;
 
 			return (setLocationButton && setLocationButton.contains(activeElement))
-				|| activeElement?.classList.contains('results-table_row_location_content');
+				|| activeElement?.classList.contains('results-table_row');
 		},
 		showSetLocationButton (clientSideId) {
 			let rowNode = this.find(`.item-id-${clientSideId}`);
@@ -431,11 +434,11 @@
 				return;
 			}
 
-			this.set('currSearchLocation', `AS${probeData.asn}+${probeData.city}`);
+			this.set('currSearchLocation', `${probeData.city}+AS${probeData.asn}`);
 			this.set('floatingSetLocationButton.visible', false);
 		},
 		enableItemFocused (event, clientSideId) {
-			if (!event.target?.classList.contains('results-table_row_location_content')) {
+			if (!event.target?.classList.contains('results-table_row')) {
 				return;
 			}
 
@@ -446,6 +449,16 @@
 			requestAnimationFrame(() => {
 				this.set('justFocusedItem', false);
 			});
+		},
+		headerKeydownHandler (event, clientSideId) {
+			if (!event.target?.classList.contains('results-table_row')) {
+				return;
+			}
+
+			if (event.key === 'Enter' || event.key === ' ') {
+				event.preventDefault();
+				this.setProbeAsLocation(clientSideId);
+			}
 		},
 		setChartMaxHeight (results) {
 			let chartMaxHeight = 0;
