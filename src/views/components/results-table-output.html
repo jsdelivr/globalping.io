@@ -124,7 +124,7 @@
 															<span class="timings_header">{{timing.mobileLabel || timing.label}}</span>
 
 															{{#if target.tableCells[columnIdx].timings[timingIdx].value === PROBE_NO_TIMING_VALUE}}
-																<span class="timings_value">&mdash;</span>
+																<span class="timings_value timeout">{{PROBE_NO_TIMING_VALUE}}</span>
 															{{elseif target.tableCells[columnIdx].timings[timingIdx].hasValue}}
 																<span class="timings_value">
 																	{{@this.formatTimingValue(target.tableCells[columnIdx].timings[timingIdx].value)}}
