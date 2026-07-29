@@ -124,7 +124,7 @@
 															<span class="timings_header">{{timing.mobileLabel || timing.label}}</span>
 
 															{{#if target.tableCells[columnIdx].timings[timingIdx].value === PROBE_NO_TIMING_VALUE}}
-																<span>&mdash;</span>
+																<span class="timings_value">&mdash;</span>
 															{{elseif target.tableCells[columnIdx].timings[timingIdx].hasValue}}
 																<span class="timings_value">
 																	{{@this.formatTimingValue(target.tableCells[columnIdx].timings[timingIdx].value)}}
@@ -135,7 +135,7 @@
 															{{elseif testInProgress}}
 																<c-placeholder-skeleton type="base"></c-placeholder-skeleton>
 															{{else}}
-																<span>&mdash;</span>
+																<span class="timings_value">&mdash;</span>
 															{{/if}}
 														</span>
 
@@ -511,7 +511,7 @@
 		) {
 			let maxValue = this.get('chartMaxHeight');
 
-			if (!data || maxValue === 0) { return; }
+			if (!data?.length || (maxValue === 0 && !data.includes(PROBE_NO_TIMING_VALUE))) { return; }
 
 			let maxBars = Math.floor(svgWidth / (barWidth + gap));
 			let startIndex = Math.max(data.length - maxBars, 0);
@@ -549,7 +549,7 @@
 		) {
 			let maxValue = this.get('chartMaxHeight');
 
-			if (!data || data.length === 0 || maxValue === 0) { return; }
+			if (!data?.length || (maxValue === 0 && !data.includes(PROBE_NO_TIMING_VALUE))) { return; }
 
 			data = data.slice(-20);
 
