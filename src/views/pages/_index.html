@@ -1940,7 +1940,9 @@
 					this.set('shareResFlow', true);
 					this.set('prevProbesMeasId', qsMeasurementIdsArr[0]);
 
-					this.getMultipleTestMeasurementById(qsMeasurementIdsArr, isInfiniteMeas);
+					this.getMultipleTestMeasurementById(qsMeasurementIdsArr, isInfiniteMeas).catch(() => {
+						// The user-facing error state is handled by getTestMeasurementById().
+					});
 				}
 
 				// read the map and display URL params and apply them
@@ -3231,6 +3233,7 @@
 			return new Promise((resolve, reject) => {
 				let cancelled = false;
 				let timeout = null;
+				let failedAttempts = 0;
 
 				let cancel = () => {
 					cancelled = true;
@@ -3250,6 +3253,8 @@
 							resolve();
 							return;
 						}
+
+						failedAttempts = 0;
 
 						if (isShareResCase) {
 							let currentTargets = this.get('mainOptions.target');
@@ -3405,15 +3410,34 @@
 							return;
 						}
 
-						cancel();
-
-						if (e.responseStatusCode === 404) {
+						if (isShareResCase && e.responseStatusCode === 404) {
+							cancel();
 							this.set('shareResHeaderData', 'This measurement has expired!');
 							this.set('runTestBtnText', 'Run Test');
 							this.scrollMapIntoView();
+							reject(e);
+							return;
 						}
 
-						reject(e);
+						// Try again up to three times, waiting a little longer each time.
+						if (failedAttempts < 3) {
+							failedAttempts++;
+							timeout = setTimeout(fetch, 500 * failedAttempts);
+							return;
+						}
+
+						cancel();
+
+						if (isShareResCase) {
+							this.set('shareResHeaderData', 'An unexpected error occurred. Please try again later.');
+							this.set('runTestBtnText', 'Run Test');
+							reject(e);
+							return;
+						}
+
+						this.stopCurrentTest();
+						this.set('measurementErrMsg', 'An unexpected error occurred. Please try again later.');
+						resolve();
 					});
 				};
 
