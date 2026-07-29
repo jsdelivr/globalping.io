@@ -53,7 +53,6 @@
 			{{#each preparedTestResults as result}}
 				<tbody class="results-table_row row-num-{{result.clientSideId}} item-id-{{result.clientSideId}}"
 					tabindex="0"
-					role="button"
 					aria-label="Set as location for the next test"
 					on-focus="@this.enableItemFocused(@event, result.clientSideId)"
 					on-blur="@this.hideSetLocationButton(@event)"

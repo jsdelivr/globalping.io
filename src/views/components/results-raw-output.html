@@ -7,7 +7,6 @@
 			<div class="c-gp-results-raw-output_list_item item-id-{{this.clientSideId}}"
 				{{#if showSetLocationButton}}
 					tabindex="0"
-					role="button"
 					aria-label="Set as location for the next test"
 					on-focus="@this.enableItemFocused(@event, this.clientSideId)"
 					on-blur="@this.hideSetLocationButton(@event)"
