@@ -101,10 +101,32 @@
 				}
 			}
 
+			.results-table_header_cell.location,
+			.results-table_row_location {
+				@media (min-width: @screen-lg-min) {
+					max-width: 232px;
+					padding-right: 24px;
+				}
+			}
+
 			.results-table_row_location {
 				@media (max-width: @screen-md-max) {
 					grid-column: 1 / -1;
 					width: 100%;
+				}
+
+				&_data {
+					@media (min-width: @screen-lg-min) {
+						min-width: 0;
+						overflow: hidden;
+					}
+
+					> span {
+						@media (min-width: @screen-lg-min) {
+							overflow: hidden;
+							text-overflow: ellipsis;
+						}
+					}
 				}
 			}
 
