@@ -4202,41 +4202,57 @@
 			return hops.length ? hops[hops.length - 1] : null;
 		},
 		getLastHopRtts (result = {}) {
-			return (this.getLastHop(result)?.timings || [])
-				.map(timing => timing?.rtt)
-				.filter(rtt => typeof rtt === 'number' && Number.isFinite(rtt));
+			let lastHop = this.getLastHop(result);
+			let timings = lastHop?.timings || [];
+
+			if (timings.length) {
+				return timings.map((timing) => {
+					return typeof timing?.rtt === 'number' && Number.isFinite(timing.rtt)
+						? timing.rtt
+						: PROBE_NO_TIMING_VALUE;
+				});
+			}
+
+			let packetsTotal = lastHop?.stats?.total;
+
+			if (!Number.isInteger(packetsTotal) || packetsTotal < 0) {
+				packetsTotal = Math.max(0, ...(result.hops || []).map(hop => hop.timings?.length || 0));
+			}
+
+			return Array(packetsTotal).fill(PROBE_NO_TIMING_VALUE);
 		},
 		getLastHopTimingStats (result = {}) {
 			let rtts = this.getLastHopRtts(result);
+			let numericRtts = rtts.filter(rtt => typeof rtt === 'number' && Number.isFinite(rtt));
 
-			if (!rtts.length) {
+			if (!numericRtts.length) {
 				return {
-					last: null,
+					last: rtts[rtts.length - 1] ?? null,
 					min: PROBE_NO_TIMING_VALUE,
 					avg: PROBE_NO_TIMING_VALUE,
 					max: PROBE_NO_TIMING_VALUE,
 				};
 			}
 
-			let total = rtts.reduce((sum, rtt) => sum + rtt, 0);
+			let total = numericRtts.reduce((sum, rtt) => sum + rtt, 0);
 
 			return {
-				last: rtts[rtts.length - 1],
-				min: Math.min(...rtts),
-				avg: total / rtts.length,
-				max: Math.max(...rtts),
+				last: numericRtts[numericRtts.length - 1],
+				min: Math.min(...numericRtts),
+				avg: total / numericRtts.length,
+				max: Math.max(...numericRtts),
 			};
 		},
 		getLastHopLastTiming (result = {}) {
-			let timings = this.getLastHop(result)?.timings || [];
+			let rtts = this.getLastHopRtts(result);
 
-			for (let i = timings.length - 1; i >= 0; i--) {
-				if (typeof timings[i]?.rtt === 'number') {
-					return timings[i].rtt;
+			for (let i = rtts.length - 1; i >= 0; i--) {
+				if (typeof rtts[i] === 'number') {
+					return rtts[i];
 				}
 			}
 
-			return null;
+			return rtts[rtts.length - 1] ?? null;
 		},
 		getHttpStatusText (result = {}) {
 			let { statusCode, statusCodeName } = result;
@@ -4301,25 +4317,12 @@
 				});
 			} else if ([ 'traceroute', 'mtr' ].includes(lowCaseTestName)) {
 				let hops = res.result?.hops?.length ?? 0;
-				let timingValues;
-
-				if (lowCaseTestName === 'traceroute') {
-					timingValues = {
-						'rtt-last': targetStats.lastTiming,
-						'min': targetStats.minTiming,
-						'avg': targetStats.avgTiming,
-						'max': targetStats.maxTiming,
-					};
-				} else {
-					let lastHopStats = this.getLastHop(res.result)?.stats || {};
-
-					timingValues = {
-						'rtt-last': targetStats.lastTiming,
-						'min': lastHopStats.min,
-						'avg': lastHopStats.avg,
-						'max': lastHopStats.max,
-					};
-				}
+				let timingValues = {
+					'rtt-last': targetStats.lastTiming,
+					'min': targetStats.minTiming,
+					'avg': targetStats.avgTiming,
+					'max': targetStats.maxTiming,
+				};
 
 				sortValues = { ...timingValues, hops };
 
