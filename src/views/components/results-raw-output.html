@@ -101,7 +101,7 @@
 					</div>
 
 					<div class="c-gp-results-raw-output_list_item_header_metrics-controls">
-						{{#if !this.statsPerTarget[activeTargetIdx].rawOutput}}
+						{{#if !this.statsPerTarget[activeTargetIdx].rawOutput && !this.statsPerTarget[activeTargetIdx].isFailed}}
 							<c-dot-loader></c-dot-loader>
 						{{else}}
 							<div class="c-gp-results-raw-output_list_item_header_metrics-controls_metrics">
@@ -112,7 +112,11 @@
 									</span>
 								{{/each}}
 
-								{{#if _.getGpTargetTiming(this.statsPerTarget[activeTargetIdx])}}
+								{{#if this.statsPerTarget[activeTargetIdx].isFailed}}
+									<span class="c-gp-results-raw-output_list_item_header_metrics-controls_metric">
+										<b>{{_.getGpRawFailureStatusText(this.statsPerTarget[activeTargetIdx].failureSource)}}</b>
+									</span>
+								{{elseif _.getGpTargetTiming(this.statsPerTarget[activeTargetIdx])}}
 									<span class="c-gp-results-raw-output_list_item_header_metrics-controls_metric">
 										Time
 										<b>
@@ -131,12 +135,14 @@
 								{{/unless}}
 							</div>
 
-							<button on-click="@this.hideShowTestResult(this.clientSideId)"
-								role="button"
-								aria-label="{{#if hiddenTestResults[activeTargetIdx].includes(this.clientSideId)}}Expand{{else}}Collapse{{/if}} output"
-								class="c-gp-results-raw-output_list_item_header_metrics-controls_dropdown">
-								<i class="fa fa-chevron-{{#if hiddenTestResults[activeTargetIdx].includes(this.clientSideId)}}down{{else}}up{{/if}}" aria-hidden="true"/>
-							</button>
+							{{#if this.statsPerTarget[activeTargetIdx].rawOutput}}
+								<button on-click="@this.hideShowTestResult(this.clientSideId)"
+									role="button"
+									aria-label="{{#if hiddenTestResults[activeTargetIdx].includes(this.clientSideId)}}Expand{{else}}Collapse{{/if}} output"
+									class="c-gp-results-raw-output_list_item_header_metrics-controls_dropdown">
+									<i class="fa fa-chevron-{{#if hiddenTestResults[activeTargetIdx].includes(this.clientSideId)}}down{{else}}up{{/if}}" aria-hidden="true"/>
+								</button>
+							{{/if}}
 						{{/if}}
 					</div>
 				</div>

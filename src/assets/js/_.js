@@ -565,7 +565,7 @@ module.exports = {
 		// return default GREY color while probe has no timing yet
 		if (typeof timing === 'undefined' || timing === null) { return '#c0c0c0'; }
 
-		// return default color for timed out probe
+		// return default color for timed out, failed, or offline probe
 		if (
 			timing === PROBE_NO_TIMING_VALUE
 			|| timing === PROBE_STATUS_FAILED
@@ -610,12 +610,68 @@ module.exports = {
 		return getColorFromGradient(pureTimingValue / probesMaxTiming, '#17d4a7', '#ffb800', '#e64e3d');
 	},
 
+	getGpProbeResultStatusColor (timing, testType, failureSource, probesMaxTiming = 200, probesMinTiming = 5) {
+		if (timing === PROBE_STATUS_FAILED) {
+			return this.getGpFailureStatusColor(failureSource);
+		}
+
+		if (
+			timing === PROBE_NO_TIMING_VALUE
+			&& [ 'ping', 'traceroute', 'mtr' ].includes(testType?.toLowerCase())
+		) {
+			return '#f3002d';
+		}
+
+		return this.getGpProbeStatusColor(timing, probesMaxTiming, probesMinTiming);
+	},
+
 	getGpTargetStatusColor (targetStats, testType) {
 		if (targetStats?.extraValues?.errorStatus) {
 			return this.getGpProbeStatusColor(targetStats.extraValues.errorStatus);
 		}
 
-		return this.getGpProbeStatusColor(targetStats?.avgTiming, testType === 'http' ? 1000 : 200);
+		let timing = targetStats?.avgTiming;
+
+		if (targetStats?.isFailed) {
+			timing = PROBE_STATUS_FAILED;
+		} else if (targetStats?.isOffline && timing === PROBE_NO_TIMING_VALUE) {
+			timing = PROBE_STATUS_OFFLINE;
+		}
+
+		return this.getGpProbeResultStatusColor(
+			timing,
+			testType,
+			targetStats?.failureSource,
+			testType === 'http' ? 1000 : 200,
+		);
+	},
+
+	getGpFailureStatusText (failureSource) {
+		if (failureSource === 'target') {
+			return 'Target failed';
+		}
+
+		if (failureSource === 'resolver') {
+			return 'Resolver failed';
+		}
+
+		return 'Probe failed';
+	},
+
+	getGpRawFailureStatusText (failureSource) {
+		if (failureSource === 'target') {
+			return 'Failed at target';
+		}
+
+		if (failureSource === 'resolver') {
+			return 'Failed at resolver';
+		}
+
+		return 'Failed at probe';
+	},
+
+	getGpFailureStatusColor (failureSource) {
+		return failureSource === 'target' ? '#f3002d' : '#17233A';
 	},
 
 	pluralize (singular, countOrPlural, countOrUndefined) {
