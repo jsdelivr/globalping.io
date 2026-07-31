@@ -655,7 +655,7 @@ module.exports = {
 			return 'Resolver failed';
 		}
 
-		return 'Probe failed';
+		return failureSource === 'internal' ? 'Probe failed' : 'Failed';
 	},
 
 	getGpRawFailureStatusText (failureSource) {
@@ -667,7 +667,7 @@ module.exports = {
 			return 'Failed at resolver';
 		}
 
-		return 'Failed at probe';
+		return failureSource === 'internal' ? 'Failed at probe' : 'Failed';
 	},
 
 	getGpFailureStatusColor (failureSource) {
