@@ -988,7 +988,7 @@
 			return network?.name || network?.domain || null;
 		},
 		isTargetNetworkInfoLoading (ipAddr) {
-			return this.get('pendingNetworkLookups').has(ipAddr);
+			return !!ipAddr && !Object.hasOwn(this.get('networkDataByIp'), ipAddr);
 		},
 		getLocationByIp (ipAddr) {
 			return this.getNetworkDataByIp(ipAddr)?.location || null;
