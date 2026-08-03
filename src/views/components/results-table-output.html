@@ -2,7 +2,10 @@
 
 <div class="c-gp-results-table-output">
 	<div class="results-table-wrapper" on-scroll="@this.hideSetLocationButton(@event)">
-		<table class="results-table {{#if targetsCnt === 1}}single-target{{/if}}">
+		<table
+			class="results-table {{#if targetsCnt === 1}}single-target{{/if}}"
+			style="grid-template-columns: minmax(0, 300px) minmax(120px, 1fr) repeat({{tableColumns.length}}, auto);"
+		>
 			<thead class="results-table_header">
 				<tr>
 					<th class="results-table_header_cell location" scope="col">
@@ -52,11 +55,13 @@
 
 			{{#each preparedTestResults as result}}
 				<tbody class="results-table_row row-num-{{result.clientSideId}} item-id-{{result.clientSideId}}"
-					tabindex="0"
-					aria-label="Set as location for the next test"
-					on-focus="@this.enableItemFocused(@event, result.clientSideId)"
-					on-blur="@this.hideSetLocationButton(@event)"
-					on-keydown="@this.headerKeydownHandler(@event, result.clientSideId)"
+					{{#if targetsCnt === 1}}
+						tabindex="0"
+						aria-label="Set as location for the next test"
+						on-focus="@this.enableItemFocused(@event, result.clientSideId)"
+						on-blur="@this.hideSetLocationButton(@event)"
+						on-keydown="@this.headerKeydownHandler(@event, result.clientSideId)"
+					{{/if}}
 					on-mouseenter="@this.showSetLocationButton(result.clientSideId)"
 					on-mouseleave="@this.hideSetLocationButton(@event)"
 					{{#if targetsCnt === 1}}
@@ -69,6 +74,13 @@
 								<td
 									class="results-table_row_location {{#if targetsCnt === 1}}results-table_status-line-host{{/if}}"
 									rowspan="{{result.statsPerTarget.length}}"
+									{{#if targetsCnt > 1}}
+										tabindex="0"
+										aria-label="Set as location for the next test"
+										on-focus="@this.enableItemFocused(@event, result.clientSideId)"
+										on-blur="@this.hideSetLocationButton(@event)"
+										on-keydown="@this.headerKeydownHandler(@event, result.clientSideId)"
+									{{/if}}
 									{{#if targetsCnt === 1}}
 										style="border-left: 0 solid {{_.getGpTargetStatusColor(result.statsPerTarget[0], testType)}};"
 									{{/if}}>
@@ -100,14 +112,20 @@
 							{{/if}}
 
 							{{#if target.isFailed}}
-								<td class="results-table_row_stats_subrow_cell cell probe-failed" colspan="{{tableColumns.length}}">
+								<td
+									class="results-table_row_stats_subrow_cell cell probe-failed"
+									colspan="{{tableColumns.length}}"
+									style="grid-column: span {{tableColumns.length}};">
 									<span class="probe-failed_content">
 										<span>{{PROBE_FAILED_TEXT}}</span>
 										<img class="probe-failed_icon" width="20" height="20" alt="" src="{{@shared.assetsHost}}/img/target-icon.svg" as-tooltip="`${target.failureRawOutput}`, 'top', true">
 									</span>
 								</td>
 							{{elseif target.isOffline && !isInfiniteModeRes}}
-								<td class="results-table_row_stats_subrow_cell cell probe-offline" colspan="{{tableColumns.length}}">
+								<td
+									class="results-table_row_stats_subrow_cell cell probe-offline"
+									colspan="{{tableColumns.length}}"
+									style="grid-column: span {{tableColumns.length}};">
 									<span>{{PROBE_OFFLINE_TEXT}}</span>
 								</td>
 							{{else}}
@@ -301,7 +319,8 @@
 			let activeElement = document.activeElement;
 
 			return (setLocationButton && setLocationButton.contains(activeElement))
-				|| activeElement?.classList.contains('results-table_row');
+				|| activeElement?.classList.contains('results-table_row')
+				|| activeElement?.classList.contains('results-table_row_location');
 		},
 		showSetLocationButton (clientSideId) {
 			let rowNode = this.find(`.item-id-${clientSideId}`);
@@ -325,6 +344,11 @@
 			}
 
 			let rowRect = rowNode.getBoundingClientRect();
+
+			if (!rowRect.height) {
+				rowRect = rowLocationRect;
+			}
+
 			let containerRect = container.getBoundingClientRect();
 			let relativeTop = rowRect.top - containerRect.top;
 			let relativeLeft = rowLocationRect.left - containerRect.left;
@@ -357,6 +381,11 @@
 
 			let rowRect = rowNode.getBoundingClientRect();
 			let rowLocationRect = rowLocation.getBoundingClientRect();
+
+			if (!rowRect.height) {
+				rowRect = rowLocationRect;
+			}
+
 			let containerRect = container.getBoundingClientRect();
 			let top = rowRect.top - containerRect.top;
 			let left = rowLocationRect.left - containerRect.left - 26;
@@ -437,7 +466,8 @@
 			this.set('floatingSetLocationButton.visible', false);
 		},
 		enableItemFocused (event, clientSideId) {
-			if (!event.target?.classList.contains('results-table_row')) {
+			if (!event.target?.classList.contains('results-table_row')
+				&& !event.target?.classList.contains('results-table_row_location')) {
 				return;
 			}
 
@@ -450,7 +480,8 @@
 			});
 		},
 		headerKeydownHandler (event, clientSideId) {
-			if (!event.target?.classList.contains('results-table_row')) {
+			if (!event.target?.classList.contains('results-table_row')
+				&& !event.target?.classList.contains('results-table_row_location')) {
 				return;
 			}
 
