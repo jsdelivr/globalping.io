@@ -35,12 +35,12 @@ export const useAuth = defineStore('auth', {
 			return this.user;
 		},
 		async signIn () {
-			const { dashboardHost, serverHost } = useRuntimeConfig().public;
+			const { dashboardHost } = useRuntimeConfig().public;
 			const url = new URL(`${dashboardHost}/auth/login/github`);
 
 			url.searchParams.set(
 				'redirect',
-				`${serverHost}/auth/callback?redirect=${encodeURIComponent(window.location.href)}`,
+				`https://globalping.io/auth/callback?redirect=${encodeURIComponent(window.location.href)}`,
 			);
 
 			navigateTo(url.toString(), { external: true });
