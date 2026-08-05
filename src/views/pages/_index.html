@@ -4071,6 +4071,10 @@
 				return _.getGpFailureStatusText(failureSource);
 			}
 
+			if (timing === PROBE_STATUS_OFFLINE) {
+				return PROBE_OFFLINE_TEXT;
+			}
+
 			if (errorCode) {
 				return errorCode;
 			}
