@@ -118,10 +118,12 @@
 									</span>
 								{{elseif _.getGpTargetTiming(this.statsPerTarget[activeTargetIdx])}}
 									<span class="c-gp-results-raw-output_list_item_header_metrics-controls_metric">
-										Time
-										<strong>
-											{{_.getGpTargetTiming(this.statsPerTarget[activeTargetIdx])}}
-										</strong>
+										{{#if _.getGpTargetTiming(this.statsPerTarget[activeTargetIdx]) === 'time out'}}
+											<strong>Timed out</strong>
+										{{else}}
+											Time
+											<strong>{{_.getGpTargetTiming(this.statsPerTarget[activeTargetIdx])}}</strong>
+										{{/if}}
 									</span>
 								{{/if}}
 
