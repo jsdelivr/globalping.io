@@ -565,7 +565,7 @@ module.exports = {
 		// return default GREY color while probe has no timing yet
 		if (typeof timing === 'undefined' || timing === null) { return '#c0c0c0'; }
 
-		// return default color for timed out probe
+		// return default color for timed out, failed, or offline probe
 		if (
 			timing === PROBE_NO_TIMING_VALUE
 			|| timing === PROBE_STATUS_FAILED
@@ -610,12 +610,35 @@ module.exports = {
 		return getColorFromGradient(pureTimingValue / probesMaxTiming, '#17d4a7', '#ffb800', '#e64e3d');
 	},
 
-	getGpTargetStatusColor (targetStats, testType) {
+	getGpTargetStatusColor (targetStats, testType, isInfiniteModeRes = false) {
 		if (targetStats?.extraValues?.errorStatus) {
 			return this.getGpProbeStatusColor(targetStats.extraValues.errorStatus);
 		}
 
-		return this.getGpProbeStatusColor(targetStats?.avgTiming, testType === 'http' ? 1000 : 200);
+		let timing = isInfiniteModeRes && !targetStats?.areTimingsReady ? null : targetStats?.avgTiming;
+
+		if (targetStats?.isFailed) {
+			timing = PROBE_STATUS_FAILED;
+		} else if (targetStats?.isOffline && targetStats.avgTiming === PROBE_NO_TIMING_VALUE) {
+			timing = PROBE_STATUS_OFFLINE;
+		}
+
+		return this.getGpProbeStatusColor(
+			timing,
+			testType === 'http' ? 1000 : 200,
+		);
+	},
+
+	getGpFailureStatusText (failureSource) {
+		if (failureSource === 'target') {
+			return 'Target error';
+		}
+
+		if (failureSource === 'resolver') {
+			return 'Resolver error';
+		}
+
+		return failureSource === 'internal' ? 'Internal error' : 'Error';
 	},
 
 	pluralize (singular, countOrPlural, countOrUndefined) {

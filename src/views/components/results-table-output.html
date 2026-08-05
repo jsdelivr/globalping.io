@@ -65,7 +65,7 @@
 					on-mouseenter="@this.showSetLocationButton(result.clientSideId)"
 					on-mouseleave="@this.hideSetLocationButton(@event)"
 					{{#if targetsCnt === 1}}
-						style="background-image: linear-gradient(to right, {{_.getGpTargetStatusColor(result.statsPerTarget[0], testType)}}0C, transparent 50%);"
+						style="background-image: linear-gradient(to right, {{_.getGpTargetStatusColor(result.statsPerTarget[0], testType, isInfiniteModeRes)}}0C, transparent 50%);"
 					{{/if}}
 				>
 					{{#each result.statsPerTarget as target : targetIdx}}
@@ -82,7 +82,7 @@
 										on-keydown="@this.headerKeydownHandler(@event, result.clientSideId)"
 									{{/if}}
 									{{#if targetsCnt === 1}}
-										style="border-left: 0 solid {{_.getGpTargetStatusColor(result.statsPerTarget[0], testType)}};"
+										style="border-left: 0 solid {{_.getGpTargetStatusColor(result.statsPerTarget[0], testType, isInfiniteModeRes)}};"
 									{{/if}}>
 									<div class="results-table_row_location_content">
 										<img width="28" height="20" alt="" src="https://cdn.jsdelivr.net/npm/country-flag-icons@1.5.5/3x2/{{result.country}}.svg">
@@ -98,7 +98,7 @@
 							{{#if targetsCnt > 1}}
 								<td
 									class="results-table_row_stats_subrow_cell results-table_status-line-host cell targets"
-									style="border-left: 0 solid {{_.getGpTargetStatusColor(target, testType)}}; background-image: linear-gradient(to right, transparent 6px, {{_.getGpTargetStatusColor(target, testType)}}0C 12px, transparent 50%);">
+									style="border-left: 0 solid {{_.getGpTargetStatusColor(target, testType, isInfiniteModeRes)}}; background-image: linear-gradient(to right, transparent 6px, {{_.getGpTargetStatusColor(target, testType, isInfiniteModeRes)}}0C 12px, transparent 50%);">
 									<div class="cell-value">
 										{{#if target.target}}
 											<span>{{target.target}}</span>
@@ -117,7 +117,7 @@
 									colspan="{{tableColumns.length}}"
 									style="grid-column: span {{tableColumns.length}};">
 									<span class="probe-failed_content">
-										<span>{{PROBE_FAILED_TEXT}}</span>
+										<span>{{_.getGpFailureStatusText(target.failureSource)}}</span>
 										<img class="probe-failed_icon" width="20" height="20" alt="" src="{{@shared.assetsHost}}/img/target-icon.svg" as-tooltip="`${target.failureRawOutput}`, 'top', true">
 									</span>
 								</td>
@@ -233,7 +233,6 @@
 	const PROBE_MIN_TIMING = 5;
 	const PROBE_NO_TIMING_VALUE = _.getProbeTimeOutValue();
 	const PROBE_OFFLINE_TEXT = 'Probe offline';
-	const PROBE_FAILED_TEXT = 'Probe failed';
 
 	component.exports = {
 		decorators: {
@@ -244,7 +243,6 @@
 				_,
 				PROBE_NO_TIMING_VALUE,
 				PROBE_OFFLINE_TEXT,
-				PROBE_FAILED_TEXT,
 				splitIPv6 (address) {
 					let segments = address.split(':');
 
@@ -609,9 +607,8 @@
 			return svg.outerHTML;
 		},
 		pickBarColor (timing) {
-			// return default color for timed out probe
 			if (timing === PROBE_NO_TIMING_VALUE) {
-				return '#17233A';
+				return _.getGpProbeStatusColor(timing);
 			}
 
 			function getColorFromGradient (quotient, start, middle, end) {

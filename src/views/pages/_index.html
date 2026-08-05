@@ -2336,6 +2336,7 @@
 								lat: res.probe.latitude,
 								lng: res.probe.longitude,
 								targets: [ res.target ],
+								failureSources: [ res.result.failureSource ],
 							};
 
 							if (infiniteSwitchEnabled) {
@@ -2425,6 +2426,7 @@
 									timings: [ ...mD.timings, ...secReqMD.timings ],
 									errorCodes: [ ...mD.errorCodes, ...secReqMD.errorCodes ],
 									targets: [ ...mD.targets, ...secReqMD.targets ],
+									failureSources: [ ...mD.failureSources, ...secReqMD.failureSources ],
 								};
 							});
 						}
@@ -3586,7 +3588,6 @@
 			this.disableRunTestBtnForDelay();
 			this.get('testReqCancelFn')?.forEach(cancel => cancel?.());
 			this.set('testReqCancelFn', []);
-			this.set('testReqParams', null);
 			this.set('measurementsMetadata', null);
 			this.set('testInProgress', true);
 
@@ -3969,7 +3970,9 @@
 			let probesMinTiming = this.get('probesMinTiming');
 
 			for (let i = 0; i < targetsCnt; i++) {
-				svgFillColors.push(markerData.timings[i] ? _.getGpProbeStatusColor(markerData.timings[i], probesMaxTiming, probesMinTiming) : DEFAULT_MARKER_COLOR);
+				svgFillColors.push(markerData.timings[i]
+					? _.getGpProbeStatusColor(markerData.timings[i], probesMaxTiming, probesMinTiming)
+					: DEFAULT_MARKER_COLOR);
 			}
 
 			if (markerData.timings.length > 1) {
@@ -4027,7 +4030,12 @@
 			infoWindowContent += `<div class="gp-map_popup${targetsCnt > 1 ? '_multi' : '_single'}">`;
 
 			if (targetsCnt === 1) {
-				infoWindowContent += `<div class="gp-map_popup_single_timing">${markerData.errorCodes?.[0] || markerData.timings[0] || ''}</div>`;
+				infoWindowContent += `<div class="gp-map_popup_single_timing">${this.getMarkerTimingText(
+					markerData.timings[0],
+					markerData.errorCodes?.[0],
+					markerData.failureSources?.[0],
+				)}</div>`;
+
 				infoWindowContent += `<div class="gp-map_popup_single_network">${markerData.network}</div>`;
 				infoWindowContent += `<div class="gp-map_popup_single_location">(${markerData.city}, ${markerData.country})</div>`;
 			} else {
@@ -4039,7 +4047,11 @@
 					infoWindowContent += `<span class="gp-map_popup_multi_data_target">${target}</span>`;
 
 					infoWindowContent += `<span class="gp-map_popup_multi_data_timing"
-						style='color: ${_.getGpProbeStatusColor(markerData.timings[targetIdx], probesMaxTiming, probesMinTiming)}'>${markerData.errorCodes?.[targetIdx] || markerData.timings[targetIdx] || ''}</span>`;
+						style='color: ${_.getGpProbeStatusColor(markerData.timings[targetIdx], probesMaxTiming, probesMinTiming)}'>${this.getMarkerTimingText(
+							markerData.timings[targetIdx],
+							markerData.errorCodes?.[targetIdx],
+							markerData.failureSources?.[targetIdx],
+						)}</span>`;
 
 					infoWindowContent += '</div>';
 				});
@@ -4053,6 +4065,21 @@
 			infoWindowContent += '</div>';
 
 			return infoWindowContent;
+		},
+		getMarkerTimingText (timing, errorCode, failureSource) {
+			if (timing === PROBE_STATUS_FAILED) {
+				return _.getGpFailureStatusText(failureSource);
+			}
+
+			if (timing === PROBE_STATUS_OFFLINE) {
+				return PROBE_OFFLINE_TEXT;
+			}
+
+			if (errorCode) {
+				return errorCode;
+			}
+
+			return timing === PROBE_NO_TIMING_VALUE ? 'Timed out' : _.capitalizeFirstLetter(timing);
 		},
 		isDnsTraceEnabled () {
 			let testReqParams = this.get('testReqParams');
@@ -4474,6 +4501,7 @@
 					isOffline,
 					packetsRtt,
 					extraValues,
+					failureSource: res.result.failureSource,
 					failureRawOutput: this.getFailureProbeRawOutput(res),
 					rawOutput: rawHeaders,
 					responseBody: rawBody,
@@ -4561,6 +4589,7 @@
 						statsDrop: packetsDropCombined,
 						isFailed: probeData.result.status === PROBE_STATUS_FAILED,
 						isOffline,
+						failureSource: probeData.result.failureSource,
 						failureRawOutput: this.getFailureProbeRawOutput(probeData),
 						packetsRtt: packetsRttCombined,
 						qualityStr: this.createQualityString(isOffline, numericPacketsRttCombined.length + packetsDropCombined, packetsDropCombined),

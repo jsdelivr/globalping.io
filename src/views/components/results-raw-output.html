@@ -2,7 +2,7 @@
 <link rel="ractive" href="./dot-loader.html" name="c-dot-loader">
 
 <div class="c-gp-results-raw-output">
-	<div class="c-gp-results-raw-output_list {{#if testInProgress}}round-bottom{{/if}}" on-scroll="@this.hideSetLocationButton(@event)">
+	<div class="c-gp-results-raw-output_list {{#if preparedTestResults.length <= 3}}scroll-disabled{{/if}} {{#if testInProgress}}round-bottom{{/if}}" on-scroll="@this.hideSetLocationButton(@event)">
 		{{#each preparedTestResults}}
 			<div class="c-gp-results-raw-output_list_item item-id-{{this.clientSideId}}"
 				{{#if showSetLocationButton}}
@@ -108,16 +108,26 @@
 								{{#each @this.getHeaderPrimaryMetrics(this.statsPerTarget[activeTargetIdx].extraValues)}}
 									<span class="c-gp-results-raw-output_list_item_header_metrics-controls_metric">
 										{{this.text}}
-										<b>{{this.value}}{{this.units}}</b>
+										<strong>{{this.value}}{{this.units}}</strong>
 									</span>
 								{{/each}}
 
-								{{#if _.getGpTargetTiming(this.statsPerTarget[activeTargetIdx])}}
+								{{#if this.statsPerTarget[activeTargetIdx].isFailed}}
 									<span class="c-gp-results-raw-output_list_item_header_metrics-controls_metric">
-										Time
-										<b>
-											{{_.getGpTargetTiming(this.statsPerTarget[activeTargetIdx])}}
-										</b>
+										<strong>{{_.getGpFailureStatusText(this.statsPerTarget[activeTargetIdx].failureSource)}}</strong>
+									</span>
+								{{elseif _.getGpTargetTiming(this.statsPerTarget[activeTargetIdx])}}
+									<span class="c-gp-results-raw-output_list_item_header_metrics-controls_metric">
+										{{#if typeof this.statsPerTarget[activeTargetIdx].avgTiming === 'number' && !this.statsPerTarget[activeTargetIdx].isOffline}}
+											Time
+											<strong>{{_.getGpTargetTiming(this.statsPerTarget[activeTargetIdx])}}</strong>
+										{{elseif _.getGpTargetTiming(this.statsPerTarget[activeTargetIdx]) === PROBE_NO_TIMING_VALUE}}
+											<strong>Timed out</strong>
+										{{elseif _.getGpTargetTiming(this.statsPerTarget[activeTargetIdx]) === PROBE_STATUS_OFFLINE}}
+											<strong>{{PROBE_OFFLINE_TEXT}}</strong>
+										{{else}}
+											<strong>{{_.capitalizeFirstLetter(_.getGpTargetTiming(this.statsPerTarget[activeTargetIdx]))}}</strong>
+										{{/if}}
 									</span>
 								{{/if}}
 
@@ -125,18 +135,20 @@
 									{{#each @this.getHeaderSecondaryMetrics(this.statsPerTarget[activeTargetIdx].extraValues)}}
 										<span class="c-gp-results-raw-output_list_item_header_metrics-controls_metric">
 											{{this.text}}
-											<b>{{this.value}}{{this.units}}</b>
+											<strong>{{this.value}}{{this.units}}</strong>
 										</span>
 									{{/each}}
 								{{/unless}}
 							</div>
 
-							<button on-click="@this.hideShowTestResult(this.clientSideId)"
-								role="button"
-								aria-label="{{#if hiddenTestResults[activeTargetIdx].includes(this.clientSideId)}}Expand{{else}}Collapse{{/if}} output"
-								class="c-gp-results-raw-output_list_item_header_metrics-controls_dropdown">
-								<i class="fa fa-chevron-{{#if hiddenTestResults[activeTargetIdx].includes(this.clientSideId)}}down{{else}}up{{/if}}" aria-hidden="true"/>
-							</button>
+							{{#if this.statsPerTarget[activeTargetIdx].rawOutput}}
+								<button on-click="@this.hideShowTestResult(this.clientSideId)"
+									role="button"
+									aria-label="{{#if hiddenTestResults[activeTargetIdx].includes(this.clientSideId)}}Expand{{else}}Collapse{{/if}} output"
+									class="c-gp-results-raw-output_list_item_header_metrics-controls_dropdown">
+									<i class="fa fa-chevron-{{#if hiddenTestResults[activeTargetIdx].includes(this.clientSideId)}}down{{else}}up{{/if}}" aria-hidden="true"/>
+								</button>
+							{{/if}}
 						{{/if}}
 					</div>
 				</div>
@@ -199,8 +211,10 @@
 	const http = require('../../assets/js/utils/http');
 	const listeners = require('../../assets/js/utils/listeners');
 	const tooltip = require('../../assets/js/decorators/tooltip');
+	const PROBE_NO_TIMING_VALUE = _.getProbeTimeOutValue();
 	const PROBE_STATUS_FAILED = _.getProbeStatusFailedValue();
 	const PROBE_STATUS_OFFLINE = _.getProbeStatusOfflineValue();
+	const PROBE_OFFLINE_TEXT = 'Probe offline';
 	let MIN_OUTPUT_HEIGHT = 400;
 
 	component.exports = {
@@ -210,6 +224,7 @@
 		data () {
 			return {
 				_,
+				PROBE_NO_TIMING_VALUE,
 				activeTargetIdx: 0,
 				hiddenTestResults: {
 					0: [],
@@ -224,6 +239,7 @@
 				networkLookupsActive: false,
 				PROBE_STATUS_FAILED,
 				PROBE_STATUS_OFFLINE,
+				PROBE_OFFLINE_TEXT,
 				pendingNetworkLookups: new Set(),
 				showingNetworkLogos: false,
 				resultsBlockHeightShapeSignature: null,
@@ -982,7 +998,7 @@
 			return network?.name || network?.domain || null;
 		},
 		isTargetNetworkInfoLoading (ipAddr) {
-			return this.get('pendingNetworkLookups').has(ipAddr);
+			return !!ipAddr && !Object.hasOwn(this.get('networkDataByIp'), ipAddr);
 		},
 		getLocationByIp (ipAddr) {
 			return this.getNetworkDataByIp(ipAddr)?.location || null;
@@ -1015,7 +1031,7 @@
 		},
 		// --- Other functions ---
 		getStatusColor (targetStats) {
-			return _.getGpTargetStatusColor(targetStats, this.get('testReqParams').type);
+			return _.getGpTargetStatusColor(targetStats, this.get('testReqParams').type, this.get('isInfiniteModeRes'));
 		},
 		getHeaderPrimaryMetrics (extraValues = {}) {
 			return [
