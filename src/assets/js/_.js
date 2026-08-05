@@ -12,6 +12,7 @@ const PROBE_STATUS_OFFLINE = 'offline';
 const PROBE_STATUS_DNS_ERROR = 'dns-error';
 const PROBE_STATUS_HTTP_ERROR = 'http-error';
 const PROBE_STATUS_ERROR_COLOR = '#9b51e0';
+const PROBE_TARGET_FAILED_COLOR = '#eb3333';
 
 const COUNTRIES = require('../json/countries.json');
 
@@ -619,7 +620,7 @@ module.exports = {
 			timing === PROBE_NO_TIMING_VALUE
 			&& [ 'ping', 'traceroute', 'mtr' ].includes(testType?.toLowerCase())
 		) {
-			return '#f3002d';
+			return PROBE_TARGET_FAILED_COLOR;
 		}
 
 		return this.getGpProbeStatusColor(timing, probesMaxTiming, probesMinTiming);
@@ -671,7 +672,7 @@ module.exports = {
 	},
 
 	getGpFailureStatusColor (failureSource) {
-		return failureSource === 'target' ? '#f3002d' : '#17233A';
+		return failureSource === 'target' ? PROBE_TARGET_FAILED_COLOR : '#17233A';
 	},
 
 	pluralize (singular, countOrPlural, countOrUndefined) {
