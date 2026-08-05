@@ -123,6 +123,8 @@
 											<strong>{{_.getGpTargetTiming(this.statsPerTarget[activeTargetIdx])}}</strong>
 										{{elseif _.getGpTargetTiming(this.statsPerTarget[activeTargetIdx]) === PROBE_NO_TIMING_VALUE}}
 											<strong>Timed out</strong>
+										{{elseif _.getGpTargetTiming(this.statsPerTarget[activeTargetIdx]) === PROBE_STATUS_OFFLINE}}
+											<strong>{{PROBE_OFFLINE_TEXT}}</strong>
 										{{else}}
 											<strong>{{_.capitalizeFirstLetter(_.getGpTargetTiming(this.statsPerTarget[activeTargetIdx]))}}</strong>
 										{{/if}}
@@ -212,6 +214,7 @@
 	const PROBE_NO_TIMING_VALUE = _.getProbeTimeOutValue();
 	const PROBE_STATUS_FAILED = _.getProbeStatusFailedValue();
 	const PROBE_STATUS_OFFLINE = _.getProbeStatusOfflineValue();
+	const PROBE_OFFLINE_TEXT = 'Probe offline';
 	let MIN_OUTPUT_HEIGHT = 400;
 
 	component.exports = {
@@ -236,6 +239,7 @@
 				networkLookupsActive: false,
 				PROBE_STATUS_FAILED,
 				PROBE_STATUS_OFFLINE,
+				PROBE_OFFLINE_TEXT,
 				pendingNetworkLookups: new Set(),
 				showingNetworkLogos: false,
 				resultsBlockHeightShapeSignature: null,
