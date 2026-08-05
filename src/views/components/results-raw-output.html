@@ -118,11 +118,13 @@
 									</span>
 								{{elseif _.getGpTargetTiming(this.statsPerTarget[activeTargetIdx])}}
 									<span class="c-gp-results-raw-output_list_item_header_metrics-controls_metric">
-										{{#if _.getGpTargetTiming(this.statsPerTarget[activeTargetIdx]) === 'time out'}}
-											<strong>Timed out</strong>
-										{{else}}
+										{{#if typeof this.statsPerTarget[activeTargetIdx].avgTiming === 'number' && !this.statsPerTarget[activeTargetIdx].isOffline}}
 											Time
 											<strong>{{_.getGpTargetTiming(this.statsPerTarget[activeTargetIdx])}}</strong>
+										{{elseif _.getGpTargetTiming(this.statsPerTarget[activeTargetIdx]) === PROBE_NO_TIMING_VALUE}}
+											<strong>Timed out</strong>
+										{{else}}
+											<strong>{{_.capitalizeFirstLetter(_.getGpTargetTiming(this.statsPerTarget[activeTargetIdx]))}}</strong>
 										{{/if}}
 									</span>
 								{{/if}}
@@ -207,6 +209,7 @@
 	const http = require('../../assets/js/utils/http');
 	const listeners = require('../../assets/js/utils/listeners');
 	const tooltip = require('../../assets/js/decorators/tooltip');
+	const PROBE_NO_TIMING_VALUE = _.getProbeTimeOutValue();
 	const PROBE_STATUS_FAILED = _.getProbeStatusFailedValue();
 	const PROBE_STATUS_OFFLINE = _.getProbeStatusOfflineValue();
 	let MIN_OUTPUT_HEIGHT = 400;
@@ -218,6 +221,7 @@
 		data () {
 			return {
 				_,
+				PROBE_NO_TIMING_VALUE,
 				activeTargetIdx: 0,
 				hiddenTestResults: {
 					0: [],

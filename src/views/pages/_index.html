@@ -4030,9 +4030,11 @@
 			infoWindowContent += `<div class="gp-map_popup${targetsCnt > 1 ? '_multi' : '_single'}">`;
 
 			if (targetsCnt === 1) {
-				infoWindowContent += `<div class="gp-map_popup_single_timing">${markerData.timings[0] === PROBE_STATUS_FAILED
-					? _.getGpFailureStatusText(markerData.failureSources?.[0])
-					: markerData.errorCodes?.[0] || markerData.timings[0] || ''}</div>`;
+				infoWindowContent += `<div class="gp-map_popup_single_timing">${this.getMarkerTimingText(
+					markerData.timings[0],
+					markerData.errorCodes?.[0],
+					markerData.failureSources?.[0],
+				)}</div>`;
 
 				infoWindowContent += `<div class="gp-map_popup_single_network">${markerData.network}</div>`;
 				infoWindowContent += `<div class="gp-map_popup_single_location">(${markerData.city}, ${markerData.country})</div>`;
@@ -4045,9 +4047,11 @@
 					infoWindowContent += `<span class="gp-map_popup_multi_data_target">${target}</span>`;
 
 					infoWindowContent += `<span class="gp-map_popup_multi_data_timing"
-						style='color: ${_.getGpProbeResultStatusColor(markerData.timings[targetIdx], this.get('mainOptions.type'), markerData.failureSources?.[targetIdx], probesMaxTiming, probesMinTiming)}'>${markerData.timings[targetIdx] === PROBE_STATUS_FAILED
-							? _.getGpFailureStatusText(markerData.failureSources?.[targetIdx])
-							: markerData.errorCodes?.[targetIdx] || markerData.timings[targetIdx] || ''}</span>`;
+						style='color: ${_.getGpProbeResultStatusColor(markerData.timings[targetIdx], this.get('mainOptions.type'), markerData.failureSources?.[targetIdx], probesMaxTiming, probesMinTiming)}'>${this.getMarkerTimingText(
+							markerData.timings[targetIdx],
+							markerData.errorCodes?.[targetIdx],
+							markerData.failureSources?.[targetIdx],
+						)}</span>`;
 
 					infoWindowContent += '</div>';
 				});
@@ -4061,6 +4065,17 @@
 			infoWindowContent += '</div>';
 
 			return infoWindowContent;
+		},
+		getMarkerTimingText (timing, errorCode, failureSource) {
+			if (timing === PROBE_STATUS_FAILED) {
+				return _.getGpFailureStatusText(failureSource);
+			}
+
+			if (errorCode) {
+				return errorCode;
+			}
+
+			return timing === PROBE_NO_TIMING_VALUE ? 'Timed out' : _.capitalizeFirstLetter(timing);
 		},
 		isDnsTraceEnabled () {
 			let testReqParams = this.get('testReqParams');
