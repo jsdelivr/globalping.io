@@ -108,20 +108,20 @@
 								{{#each @this.getHeaderPrimaryMetrics(this.statsPerTarget[activeTargetIdx].extraValues)}}
 									<span class="c-gp-results-raw-output_list_item_header_metrics-controls_metric">
 										{{this.text}}
-										<b>{{this.value}}{{this.units}}</b>
+										<strong>{{this.value}}{{this.units}}</strong>
 									</span>
 								{{/each}}
 
 								{{#if this.statsPerTarget[activeTargetIdx].isFailed}}
 									<span class="c-gp-results-raw-output_list_item_header_metrics-controls_metric">
-										<b>{{_.getGpRawFailureStatusText(this.statsPerTarget[activeTargetIdx].failureSource)}}</b>
+										<strong>{{_.getGpRawFailureStatusText(this.statsPerTarget[activeTargetIdx].failureSource)}}</strong>
 									</span>
 								{{elseif _.getGpTargetTiming(this.statsPerTarget[activeTargetIdx])}}
 									<span class="c-gp-results-raw-output_list_item_header_metrics-controls_metric">
 										Time
-										<b>
+										<strong>
 											{{_.getGpTargetTiming(this.statsPerTarget[activeTargetIdx])}}
-										</b>
+										</strong>
 									</span>
 								{{/if}}
 
@@ -129,7 +129,7 @@
 									{{#each @this.getHeaderSecondaryMetrics(this.statsPerTarget[activeTargetIdx].extraValues)}}
 										<span class="c-gp-results-raw-output_list_item_header_metrics-controls_metric">
 											{{this.text}}
-											<b>{{this.value}}{{this.units}}</b>
+											<strong>{{this.value}}{{this.units}}</strong>
 										</span>
 									{{/each}}
 								{{/unless}}
