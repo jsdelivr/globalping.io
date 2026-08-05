@@ -4027,12 +4027,52 @@
 			}
 
 			let dnsTraceEnabled = this.get('testReqParams.measurementOptions.trace');
+			let getLastHop = result => result.hops?.[result.hops.length - 1];
+			let getLastHopRtts = (result) => {
+				let lastHop = getLastHop(result);
+				let timings = lastHop?.timings || [];
+
+				if (timings.length) {
+					return timings.map(timing => typeof timing?.rtt === 'number' && Number.isFinite(timing.rtt)
+						? timing.rtt
+						: PROBE_NO_TIMING_VALUE);
+				}
+
+				let packetsTotal = lastHop?.stats?.total;
+
+				if (!Number.isInteger(packetsTotal) || packetsTotal < 0) {
+					packetsTotal = Math.max(0, ...(result.hops || []).map(hop => hop.timings?.length || 0));
+				}
+
+				return Array(packetsTotal).fill(PROBE_NO_TIMING_VALUE);
+			};
 
 			let parseTargetStats = (res) => {
 				let baseStat = { target: res.target };
 
 				if (res.result.status === 'in-progress') {
 					return baseStat;
+				}
+
+				let testType = res.type.toLowerCase();
+				let lastHop = getLastHop(res.result);
+				let breakdownValues = {};
+
+				if (testType === 'dns') {
+					let dnsResult = dnsTraceEnabled ? lastHop || res.result : res.result;
+
+					breakdownValues.dnsAnswers = dnsResult.answers?.length ?? 0;
+					breakdownValues.dnsStatus = dnsResult.statusCodeName ?? dnsResult.statusCode;
+				} else if (testType === 'http') {
+					let { statusCode, statusCodeName } = res.result;
+					let hasStatusCode = statusCode !== null && typeof statusCode !== 'undefined' && statusCode !== '';
+					let hasStatusName = statusCodeName !== null && typeof statusCodeName !== 'undefined' && statusCodeName !== '';
+
+					breakdownValues.httpTotal = res.result.timings?.total;
+
+					breakdownValues.httpStatus = hasStatusCode && hasStatusName
+						? `${statusCode} ${statusCodeName}`
+						: hasStatusCode ? statusCode : hasStatusName ? statusCodeName : null;
 				}
 
 				let {
@@ -4045,11 +4085,28 @@
 				let { packetsRtt, packetsTotal } = _.parseGpRawOutputForTimings(res.result.rawOutput);
 				let stats = res.result?.stats || {};
 				let isOffline = res.result.status === PROBE_STATUS_OFFLINE;
-				let minTiming = stats.min || PROBE_NO_TIMING_VALUE;
-				let maxTiming = stats.max || PROBE_NO_TIMING_VALUE;
+				let minTiming = typeof stats.min === 'number' ? stats.min : PROBE_NO_TIMING_VALUE;
+				let maxTiming = typeof stats.max === 'number' ? stats.max : PROBE_NO_TIMING_VALUE;
 
 				let responseBodyDelimiter = /(?:\r?\n){2}/;
-				let lastHop = res.result.hops?.[res.result.hops.length - 1];
+
+				if (testType === 'traceroute') {
+					let lastHopRtts = getLastHopRtts(res.result);
+					let numericPacketsRtt = lastHopRtts.filter(rtt => typeof rtt === 'number' && Number.isFinite(rtt));
+
+					if (numericPacketsRtt.length) {
+						minTiming = Math.min(...numericPacketsRtt);
+						avgTiming = numericPacketsRtt.reduce((sum, rtt) => sum + rtt, 0) / numericPacketsRtt.length;
+						maxTiming = Math.max(...numericPacketsRtt);
+					} else {
+						minTiming = PROBE_NO_TIMING_VALUE;
+						avgTiming = PROBE_NO_TIMING_VALUE;
+						maxTiming = PROBE_NO_TIMING_VALUE;
+					}
+				} else if (testType === 'mtr') {
+					minTiming = typeof lastHop?.stats?.min === 'number' ? lastHop.stats.min : PROBE_NO_TIMING_VALUE;
+					maxTiming = typeof lastHop?.stats?.max === 'number' ? lastHop.stats.max : PROBE_NO_TIMING_VALUE;
+				}
 
 				return {
 					...baseStat,
@@ -4064,7 +4121,8 @@
 					isOffline,
 					packetsRtt,
 					extraValues,
-					packetLoss: res.type.toLowerCase() === 'mtr' && typeof lastHop?.stats?.loss === 'number'
+					breakdownValues,
+					packetLoss: testType === 'mtr' && typeof lastHop?.stats?.loss === 'number'
 						? lastHop.stats.loss
 						: extraValues.loss?.value ?? null,
 					failureRawOutput: this.getFailureProbeRawOutput(res),
@@ -4164,6 +4222,7 @@
 							qualityStr: this.createQualityString(isOffline, numericPacketsRttCombined.length + packetsDropCombined, packetsDropCombined),
 							areTimingsReady: this.checkAreTimingsReady(lastTiming, maxTiming, minTiming, avgTiming, packetsTotalCombined),
 							rawOutput: rawOutputCombined,
+							packetLoss: lossValue,
 							extraValues: lossValue !== null ? { loss: { text: 'Loss', value: lossValue, units: '%' } } : {},
 							rawFooter: this.createRawFooter(
 								probeData.target,

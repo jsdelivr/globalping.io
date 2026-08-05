@@ -1,36 +1,55 @@
-{{#if locationBreakdown.length}}
+{{#if comparisons.length}}
 	<div class="c-measurement-breakdown">
 		<div class="c-measurement-breakdown_header">
-			<span>Location breakdown</span>
+			<span id="measurement-breakdown-title">Location breakdown</span>
 		</div>
 
-		<div class="c-measurement-breakdown_locations">
-			{{#each locationBreakdown}}
-				<section class="c-measurement-breakdown_location">
-					<h3>
-						<i class="fa fa-map-marker" aria-hidden="true"></i>
-						{{this.location}}
-					</h3>
-
-					<div class="c-measurement-breakdown_targets {{#if this.targets.length > 1}}multi-target{{/if}}">
+		<div class="c-measurement-breakdown_targets" role="region" aria-label="Location breakdown by target" tabindex="0">
+			{{#each comparisons}}
+				<div
+					class="c-measurement-breakdown_comparison"
+					role="table"
+					aria-labelledby="measurement-breakdown-title"
+					style="width: {{this.widthPercent}}%; grid-template-columns: repeat({{this.columns.length}}, minmax(0, 1fr));">
+					<div class="c-measurement-breakdown_target-row" role="row">
 						{{#each this.targets}}
-							<div class="c-measurement-breakdown_target">
-								{{#if this.showTarget}}
-									<div class="c-measurement-breakdown_target_name" title="{{this.target}}">{{this.target}}</div>
-								{{/if}}
+							<header class="c-measurement-breakdown_target_header" role="columnheader" aria-colspan="{{this.locationCount}}" style="grid-column: span {{this.locationCount}};">
+								<i class="fa fa-crosshairs" aria-hidden="true"></i>
+								<h3 title="{{this.target}}">{{this.target}}</h3>
+							</header>
+						{{/each}}
+					</div>
 
-								<div class="c-measurement-breakdown_metrics">
-									{{#each this.metrics}}
-										<div class="c-measurement-breakdown_metric">
-											<span>{{this.label}}</span>
-											<strong>{{this.value}}</strong>
-										</div>
-									{{/each}}
-								</div>
+					<div class="c-measurement-breakdown_location-row" role="row">
+						{{#each this.columns}}
+							<div class="c-measurement-breakdown_location" role="columnheader">
+								<h4 class="c-measurement-breakdown_location_header">
+									<span title="{{this.location}}">{{this.location}}</span>
+									<span class="c-measurement-breakdown_location_probe-count">{{this.probeCount}} probes</span>
+								</h4>
 							</div>
 						{{/each}}
 					</div>
-				</section>
+
+					{{#each this.metricRows}}
+						<div class="c-measurement-breakdown_metric-row" role="row">
+							{{#each this.cells}}
+								<div class="c-measurement-breakdown_metric" role="cell">
+									<span class="c-measurement-breakdown_metric_label">{{this.label}}</span>
+									{{#if this.items.length}}
+										<span class="c-measurement-breakdown_metric_items">
+											{{#each this.items}}
+												<span class="{{#if this.isProblem}}is-problem{{/if}}">{{this.label}} {{this.count}}</span>
+											{{/each}}
+										</span>
+									{{else}}
+										<span class="c-measurement-breakdown_metric_value {{#if this.isProblem}}is-problem{{/if}}">{{this.value}}</span>
+									{{/if}}
+								</div>
+							{{/each}}
+						</div>
+					{{/each}}
+				</div>
 			{{/each}}
 		</div>
 	</div>
@@ -40,6 +59,7 @@
 	const countries = require('../../assets/json/countries.json');
 	const continents = require('../../assets/json/continents.json');
 	const states = require('../../assets/json/usa-states.json');
+	const _ = require('../../assets/js/_');
 
 	const COUNTRIES_BY_CODE = Object.fromEntries(countries.map(country => [ country.code, country.name ]));
 	const CONTINENTS_BY_CODE = Object.fromEntries(continents.map(continent => [ continent.code, continent.name ]));
@@ -188,34 +208,35 @@
 				let preparedTestResults = this.get('preparedTestResults') || [];
 				let targetsArr = this.get('targets') || [];
 				let testType = this.get('testType')?.toLowerCase();
+				let requestedLocations = this.get('locations');
+				requestedLocations = Array.isArray(requestedLocations) ? requestedLocations : [];
+				requestedLocations = requestedLocations.filter(location => normalizeValue(location.magic) !== 'world');
 
-				if (!preparedTestResults.length || !testType) {
+				if (!preparedTestResults.length || !testType || requestedLocations.length <= 1) {
 					return [];
 				}
 
 				let formatNumber = value => Math.round(value * 10) / 10;
+				let numericValues = values => values.filter(value => typeof value === 'number' && Number.isFinite(value));
 				let average = (values) => {
-					let numericValues = values.filter(value => typeof value === 'number' && Number.isFinite(value));
+					values = numericValues(values);
 
-					if (!numericValues.length) {
+					if (!values.length) {
 						return null;
 					}
 
-					return formatNumber(numericValues.reduce((sum, value) => sum + value, 0) / numericValues.length);
+					return formatNumber(values.reduce((sum, value) => sum + value, 0) / values.length);
 				};
-				let range = (values, units = '') => {
-					let numericValues = values.filter(value => typeof value === 'number' && Number.isFinite(value));
+				let aggregateStats = (minValues, avgValues, maxValues, units) => {
+					minValues = numericValues(minValues);
+					maxValues = numericValues(maxValues);
+					let min = minValues.length ? formatNumber(Math.min(...minValues)) : '\u2014';
+					let avg = average(avgValues) ?? '\u2014';
+					let max = maxValues.length ? formatNumber(Math.max(...maxValues)) : '\u2014';
 
-					if (!numericValues.length) {
-						return null;
-					}
-
-					let min = formatNumber(Math.min(...numericValues));
-					let max = formatNumber(Math.max(...numericValues));
-
-					return `${min}${min === max ? '' : ` - ${max}`}${units}`;
+					return `${min} / ${avg} / ${max}${units}`;
 				};
-				let countValues = (values) => {
+				let countValues = (values, isProblem) => {
 					let counts = values.reduce((result, value) => {
 						if (value !== null && typeof value !== 'undefined' && value !== '') {
 							result[value] = (result[value] || 0) + 1;
@@ -226,139 +247,177 @@
 
 					return Object.entries(counts)
 						.sort((a, b) => b[1] - a[1] || String(a[0]).localeCompare(String(b[0])))
-						.map(([ value, count ]) => `${value} \u00d7 ${count}`)
-						.join(', ');
+						.map(([ label, count ]) => ({ label, count, isProblem: isProblem(label) }));
 				};
-				let requestedLocations = this.get('locations');
-				requestedLocations = Array.isArray(requestedLocations) ? requestedLocations : [];
-				let unmatchedResults = [ ...preparedTestResults ];
 				let groups = requestedLocations.map((location) => {
 					let results = location.magic
-						? filterProbesByMagic(unmatchedResults, location.magic)
-						: unmatchedResults.filter(result => doesProbeMatchLocation(result, location));
-					let matchedResults = new Set(results);
-
-					unmatchedResults = unmatchedResults.filter(result => !matchedResults.has(result));
+						? filterProbesByMagic(preparedTestResults, location.magic)
+						: preparedTestResults.filter(result => doesProbeMatchLocation(result, location));
 
 					return {
 						location: getLocationLabel(location),
 						results,
 					};
-				});
-
-				if (unmatchedResults.length) {
-					groups.push({
-						location: requestedLocations.length ? 'Other matched probes' : 'All locations',
-						results: unmatchedResults,
-					});
-				}
+				}).sort((a, b) => b.results.length - a.results.length || a.location.localeCompare(b.location));
 
 				let observedTargetCount = Math.max(0, ...preparedTestResults.map(result => result.statsPerTarget?.length || 0));
 				let targetCount = Math.max(targetsArr.length, observedTargetCount);
-
-				return groups.map((group) => {
+				let breakdown = groups.map((group) => {
 					let targets = [];
 
 					for (let targetIdx = 0; targetIdx < targetCount; targetIdx++) {
 						let targetStats = group.results
 							.map(result => result.statsPerTarget?.[targetIdx])
 							.filter(Boolean);
-						let metrics = [{
-							label: 'Probes',
-							value: group.results.length,
-						}];
-						let readyCount = targetStats.filter(stats => Object.hasOwn(stats, 'rawOutput')).length;
-						let failedCount = targetStats.filter(stats => stats.isFailed).length;
 						let offlineCount = targetStats.filter(stats => stats.isOffline).length;
-						let avgTiming = average(targetStats.map(stats => stats.avgTiming));
-						let addAverageMetric = (label, values, units = '') => {
-							let value = average(values);
+						let failedCount = targetStats.filter(stats => !stats.isOffline && stats.isFailed).length;
+						let timeoutCount = targetStats.filter((stats) => {
+							let timing = testType === 'http' && Number.isFinite(stats.breakdownValues?.httpTotal)
+								? stats.breakdownValues.httpTotal
+								: stats.avgTiming;
 
-							if (value !== null) {
-								metrics.push({ label, value: `${value}${units}` });
-							}
-						};
+							return !stats.isOffline && !stats.isFailed && timing === _.getProbeTimeOutValue();
+						}).length;
+						let tlsErrorCount = targetStats.filter(stats => stats.tls?.authorized === false).length;
+						let zeroAnswersCount = targetStats.filter(stats => stats.breakdownValues?.dnsAnswers === 0).length;
+						let metrics = [];
 
-						metrics.push({ label: 'Results ready', value: `${readyCount} / ${group.results.length}` });
-
-						if (avgTiming !== null) {
+						if ([ 'ping', 'traceroute', 'mtr' ].includes(testType)) {
 							metrics.push({
-								label: testType === 'dns' ? 'Avg query time' : testType === 'http' ? 'Avg total time' : 'Avg latency',
-								value: `${avgTiming} ms`,
+								label: 'Latency (min / avg / max)',
+								value: aggregateStats(
+									targetStats.map(stats => stats.minTiming),
+									targetStats.map(stats => stats.avgTiming),
+									targetStats.map(stats => stats.maxTiming),
+									' ms',
+								),
+							});
+
+							if ([ 'ping', 'mtr' ].includes(testType)) {
+								let packetLoss = targetStats.map(stats => stats.packetLoss);
+
+								metrics.push({
+									label: 'Packet loss (min / avg / max)',
+									value: aggregateStats(packetLoss, packetLoss, packetLoss, '%'),
+								});
+							}
+						} else if (testType === 'dns') {
+							metrics.push({
+								label: 'DNS status',
+								value: '\u2014',
+								items: countValues(
+									targetStats.map(stats => stats.breakdownValues?.dnsStatus),
+									status => String(status).toUpperCase() !== 'NOERROR' && Number(status) !== 0,
+								),
+							});
+						} else if (testType === 'http') {
+							let totalTimes = targetStats.map(stats => stats.breakdownValues?.httpTotal);
+
+							metrics.push({
+								label: 'HTTP status',
+								value: '\u2014',
+								items: countValues(
+									targetStats.map(stats => stats.breakdownValues?.httpStatus),
+									status => Number.parseInt(status, 10) >= 400,
+								),
+							}, {
+								label: 'Response time (min / avg / max)',
+								value: aggregateStats(totalTimes, totalTimes, totalTimes, ' ms'),
 							});
 						}
 
-						if (testType === 'ping') {
-							let timingRange = range([
-								...targetStats.map(stats => stats.minTiming),
-								...targetStats.map(stats => stats.maxTiming),
-							], ' ms');
-
-							if (timingRange) {
-								metrics.push({ label: 'Latency range', value: timingRange });
-							}
-
-							addAverageMetric('Avg packet loss', targetStats.map(stats => stats.packetLoss), '%');
-						} else if (testType === 'traceroute') {
-							let hopsRange = range(targetStats.map(stats => stats.extraValues?.hops?.value));
-
-							if (hopsRange) {
-								metrics.push({ label: 'Hop count', value: hopsRange });
-							}
-						} else if (testType === 'mtr') {
-							addAverageMetric('Avg packet loss', targetStats.map(stats => stats.packetLoss), '%');
-
-							let hopsRange = range(targetStats.map(stats => stats.extraValues?.hops?.value));
-
-							if (hopsRange) {
-								metrics.push({ label: 'Hop count', value: hopsRange });
-							}
-						} else if (testType === 'dns') {
-							addAverageMetric('Avg answers', targetStats.map(stats => stats.extraValues?.answers?.value));
-
-							let statuses = countValues(targetStats.map(stats => stats.extraValues?.dnsStatus?.value));
-
-							if (statuses) {
-								metrics.push({ label: 'DNS status', value: statuses });
-							}
-						} else if (testType === 'http') {
-							let statuses = countValues(targetStats.map(stats => stats.extraValues?.httpStatus?.value));
-
-							if (statuses) {
-								metrics.push({ label: 'HTTP status', value: statuses });
-							}
-
-							[
-								[ 'Avg DNS', 'dns' ],
-								[ 'Avg TCP', 'tcp' ],
-								[ 'Avg TLS', 'tls' ],
-								[ 'Avg TTFB', 'firstByte' ],
-								[ 'Avg download', 'download' ],
-							].forEach(([ label, key ]) => addAverageMetric(label, targetStats.map(stats => stats.extraValues?.[key]?.value), ' ms'));
-						}
-
-						if (failedCount || offlineCount) {
-							let unavailable = [];
-
-							if (failedCount) {
-								unavailable.push(`${failedCount} failed`);
-							}
-
-							if (offlineCount) {
-								unavailable.push(`${offlineCount} offline`);
-							}
-
-							metrics.push({ label: 'Unavailable', value: unavailable.join(', ') });
-						}
-
 						targets.push({
-							showTarget: targetCount > 1,
 							target: targetsArr[targetIdx] || targetStats[0]?.target || `Target ${targetIdx + 1}`,
 							metrics,
+							failures: { timeout: timeoutCount, offline: offlineCount, failed: failedCount },
+							tlsErrorCount,
+							zeroAnswersCount,
 						});
 					}
 
-					return { location: group.location, targets };
+					return { location: group.location, probeCount: group.results.length, targets };
+				});
+				let allTargets = breakdown.flatMap(group => group.targets);
+				let showFailures = allTargets.some(target => Object.values(target.failures).some(Boolean));
+				let showTlsErrors = allTargets.some(target => target.tlsErrorCount > 0);
+				let showZeroAnswers = allTargets.some(target => target.zeroAnswersCount > 0);
+
+				allTargets.forEach((target) => {
+					if (testType === 'dns' && showZeroAnswers) {
+						target.metrics.push({
+							label: 'Zero-answer locations',
+							value: target.zeroAnswersCount,
+							isProblem: target.zeroAnswersCount > 0,
+						});
+					}
+
+					if (testType === 'http' && showTlsErrors) {
+						target.metrics.splice(1, 0, {
+							label: 'TLS errors',
+							value: target.tlsErrorCount,
+							isProblem: target.tlsErrorCount > 0,
+						});
+					}
+
+					if (showFailures) {
+						target.metrics.push({
+							label: 'Failures',
+							items: [
+								{ label: 'Timeout', count: target.failures.timeout, isProblem: target.failures.timeout > 0 },
+								{ label: 'Offline', count: target.failures.offline, isProblem: target.failures.offline > 0 },
+								{ label: 'Failed', count: target.failures.failed, isProblem: target.failures.failed > 0 },
+							],
+						});
+					}
+				});
+
+				return breakdown;
+			},
+			comparisons () {
+				let locationBreakdown = this.get('locationBreakdown') || [];
+				let targetCount = Math.max(0, ...locationBreakdown.map(group => group.targets.length));
+				let targets = Array.from({ length: targetCount }, (_, targetIdx) => {
+					let firstTarget = locationBreakdown.find(group => group.targets[targetIdx])?.targets[targetIdx];
+
+					return {
+						target: firstTarget?.target || `Target ${targetIdx + 1}`,
+						targetIdx,
+						locationCount: locationBreakdown.length,
+					};
+				});
+				let targetsPerRow = Math.max(1, Math.floor(4 / locationBreakdown.length));
+				let targetRows = [];
+
+				for (let targetIdx = 0; targetIdx < targets.length; targetIdx += targetsPerRow) {
+					targetRows.push(targets.slice(targetIdx, targetIdx + targetsPerRow));
+				}
+
+				return targetRows.map((rowTargets) => {
+					let columns = rowTargets.flatMap((target) => {
+						return locationBreakdown.map(group => ({
+							target: target.target,
+							targetIdx: target.targetIdx,
+							location: group.location,
+							probeCount: group.probeCount,
+							metrics: group.targets[target.targetIdx]?.metrics || [],
+						}));
+					});
+					let metricLabels = columns[0]?.metrics.map(metric => metric.label) || [];
+					let metricRows = metricLabels.map(label => ({
+						label,
+						cells: columns.map((column) => {
+							let metric = column.metrics.find(item => item.label === label) || {};
+
+							return { ...metric, label };
+						}),
+					}));
+
+					return {
+						targets: rowTargets,
+						columns,
+						metricRows,
+						widthPercent: columns.length * 25,
+					};
 				});
 			},
 		},

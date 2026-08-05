@@ -1,131 +1,167 @@
 @import "../variables.less";
 
 .c-measurement-breakdown {
-	display: flex;
-	flex-direction: column;
-	gap: 10px;
 	width: 100%;
 	padding: 12px;
 	border-top: 1px solid #e7e7ee;
-	border-bottom: 1px solid #e7e7ee;
 	background: #fff;
 
 	@media (min-width: @screen-sm-min) {
-		padding: 24px;
+		padding: 24px 24px 12px;
 	}
 
 	&_header {
 		display: flex;
-		flex-direction: column;
+		align-items: center;
+		margin-bottom: 10px;
 		color: #17233a;
 
-		> span:first-child {
-			font-size: 18px;
-			font-weight: 600;
-			line-height: 24px;
-		}
-	}
-
-	&_locations {
-		display: grid;
-		grid-template-columns: minmax(0, 1fr);
-		gap: 10px;
-	}
-
-	&_location {
-		display: flex;
-		flex-direction: column;
-		gap: 10px;
-		min-width: 0;
-		padding: 12px;
-		border: 1px solid #e7e7ee;
-		border-radius: 8px;
-		background: #fff;
-
-		h3 {
-			display: flex;
-			align-items: center;
-			gap: 8px;
-			margin: 0;
-			color: #17233a;
+		> span {
 			font-size: 16px;
 			font-weight: 600;
-			line-height: 24px;
-
-			.fa {
-				color: #17d4a7;
-			}
+			line-height: 22px;
 		}
 	}
 
 	&_targets {
-		display: grid;
-		grid-template-columns: minmax(0, 1fr);
-		gap: 10px;
+		min-width: 0;
+		border-top: 1px solid #e7e7ee;
+		overflow-x: auto;
+	}
 
-		&:not(.multi-target) {
-			@media (min-width: @screen-md-min) {
-				.c-measurement-breakdown_metrics {
-					grid-template-columns: repeat(6, minmax(0, 1fr));
-				}
-			}
+	&_comparison {
+		box-sizing: border-box;
+		display: grid;
+		align-items: stretch;
+		padding-bottom: 10px;
+
+		& + & {
+			border-top: 1px solid #e7e7ee;
 		}
 
-		&.multi-target {
-			@media (min-width: @screen-md-min) {
-				grid-template-columns: repeat(2, minmax(0, 1fr));
-			}
+		> * {
+			box-sizing: border-box;
 		}
 	}
 
-	&_target {
+	&_target_header {
 		display: flex;
-		flex-direction: column;
-		gap: 6px;
-		min-width: 0;
+		align-items: center;
+		gap: 7px;
+		padding: 12px 18px 8px;
+		color: #303f52;
 
-		&_name {
+		& + & {
+			border-left: 1px solid #e7e7ee;
+		}
+
+		.fa {
+			flex: 0 0 auto;
+			color: #17d4a7;
+			font-size: 11px;
+		}
+
+		h3 {
+			min-width: 0;
+			margin: 0;
 			overflow: hidden;
-			color: #17233a;
-			font-size: 14px;
+			font-size: 13px;
 			font-weight: 600;
-			line-height: 20px;
+			line-height: 18px;
 			text-overflow: ellipsis;
 			white-space: nowrap;
-			padding-bottom: 4px;
 		}
 	}
 
-	&_metrics {
-		display: grid;
-		grid-template-columns: repeat(2, minmax(0, 1fr));
-		gap: 12px 16px;
+	&_location {
+		min-width: 0;
+		padding: 0 18px 7px;
 
-		@media (min-width: @screen-sm-min) {
-			grid-template-columns: repeat(3, minmax(0, 1fr));
+		& + & {
+			border-left: 1px solid #e7e7ee;
 		}
+
+		&_header {
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			gap: 10px;
+			min-width: 0;
+			margin: 0;
+			color: #303f52;
+			font-size: 12px;
+			font-weight: 600;
+			line-height: 17px;
+
+			span {
+				min-width: 0;
+				overflow: hidden;
+				text-overflow: ellipsis;
+				white-space: nowrap;
+			}
+		}
+
+		&_probe-count {
+			flex: 0 0 auto;
+			color: #6b7588;
+			font-weight: 400;
+		}
+	}
+
+	&_target-row,
+	&_location-row,
+	&_metric-row {
+		display: contents;
 	}
 
 	&_metric {
 		display: flex;
-		flex-direction: column;
-		gap: 1px;
+		align-items: baseline;
+		justify-content: space-between;
+		gap: 10px;
 		min-width: 0;
-		border-radius: 6px;
-		background: #fff;
+		padding: 1px 18px;
 
-		> span {
-			color: #79849a;
-			font-size: 12px;
+		& + & {
+			border-left: 1px solid #e7e7ee;
+		}
+
+		&_label {
+			min-width: 0;
+			color: #6b7588;
+			font-size: 11px;
+			font-weight: 400;
 			line-height: 16px;
 		}
 
-		> strong {
+		&_value,
+		&_items {
 			color: #17233a;
-			font-size: 14px;
-			font-weight: 600;
-			line-height: 20px;
+			font-size: 12px;
+			font-weight: 400;
+			font-variant-numeric: tabular-nums;
+			line-height: 17px;
 			overflow-wrap: anywhere;
+			text-align: right;
+
+			&.is-problem,
+			.is-problem {
+				color: #d62222;
+				font-weight: 600;
+			}
+		}
+
+		&_items {
+			display: flex;
+			flex-wrap: wrap;
+			justify-content: flex-end;
+
+			span + span:before {
+				margin: 0 4px;
+				color: #6b7588;
+				content: "\00b7";
+				font-weight: 400;
+			}
 		}
 	}
 }
