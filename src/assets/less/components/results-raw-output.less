@@ -36,6 +36,10 @@
 		max-height: fit-content;
 		overflow-y: auto;
 
+		&.scroll-disabled {
+			overflow-y: hidden;
+		}
+
 		@media (min-width: @screen-sm-min) {
 			&.round-bottom {
 				border-bottom-left-radius: 8px;

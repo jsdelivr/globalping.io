@@ -631,11 +631,11 @@ module.exports = {
 			return this.getGpProbeStatusColor(targetStats.extraValues.errorStatus);
 		}
 
-		let timing = targetStats?.avgTiming;
+		let timing = !targetStats?.areTimingsReady ? null : targetStats?.avgTiming;
 
 		if (targetStats?.isFailed) {
 			timing = PROBE_STATUS_FAILED;
-		} else if (targetStats?.isOffline && timing === PROBE_NO_TIMING_VALUE) {
+		} else if (targetStats?.isOffline && targetStats.avgTiming === PROBE_NO_TIMING_VALUE) {
 			timing = PROBE_STATUS_OFFLINE;
 		}
 

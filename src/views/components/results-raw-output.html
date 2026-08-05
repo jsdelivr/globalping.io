@@ -2,7 +2,7 @@
 <link rel="ractive" href="./dot-loader.html" name="c-dot-loader">
 
 <div class="c-gp-results-raw-output">
-	<div class="c-gp-results-raw-output_list {{#if testInProgress}}round-bottom{{/if}}" on-scroll="@this.hideSetLocationButton(@event)">
+	<div class="c-gp-results-raw-output_list {{#if preparedTestResults.length <= 3}}scroll-disabled{{/if}} {{#if testInProgress}}round-bottom{{/if}}" on-scroll="@this.hideSetLocationButton(@event)">
 		{{#each preparedTestResults}}
 			<div class="c-gp-results-raw-output_list_item item-id-{{this.clientSideId}}"
 				{{#if showSetLocationButton}}
