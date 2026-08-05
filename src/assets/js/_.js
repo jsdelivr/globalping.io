@@ -649,26 +649,14 @@ module.exports = {
 
 	getGpFailureStatusText (failureSource) {
 		if (failureSource === 'target') {
-			return 'Target failed';
+			return 'Target error';
 		}
 
 		if (failureSource === 'resolver') {
-			return 'Resolver failed';
+			return 'Resolver error';
 		}
 
-		return failureSource === 'internal' ? 'Probe failed' : 'Failed';
-	},
-
-	getGpRawFailureStatusText (failureSource) {
-		if (failureSource === 'target') {
-			return 'Failed at target';
-		}
-
-		if (failureSource === 'resolver') {
-			return 'Failed at resolver';
-		}
-
-		return failureSource === 'internal' ? 'Failed at probe' : 'Failed';
+		return failureSource === 'internal' ? 'Internal error' : 'Error';
 	},
 
 	getGpFailureStatusColor (failureSource) {

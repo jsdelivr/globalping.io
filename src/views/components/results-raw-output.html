@@ -114,7 +114,7 @@
 
 								{{#if this.statsPerTarget[activeTargetIdx].isFailed}}
 									<span class="c-gp-results-raw-output_list_item_header_metrics-controls_metric">
-										<strong>{{_.getGpRawFailureStatusText(this.statsPerTarget[activeTargetIdx].failureSource)}}</strong>
+										<strong>{{_.getGpFailureStatusText(this.statsPerTarget[activeTargetIdx].failureSource)}}</strong>
 									</span>
 								{{elseif _.getGpTargetTiming(this.statsPerTarget[activeTargetIdx])}}
 									<span class="c-gp-results-raw-output_list_item_header_metrics-controls_metric">
