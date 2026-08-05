@@ -1023,7 +1023,7 @@
 		},
 		// --- Other functions ---
 		getStatusColor (targetStats) {
-			return _.getGpTargetStatusColor(targetStats, this.get('testReqParams').type);
+			return _.getGpTargetStatusColor(targetStats, this.get('testReqParams').type, this.get('isInfiniteModeRes'));
 		},
 		getHeaderPrimaryMetrics (extraValues = {}) {
 			return [

@@ -626,12 +626,12 @@ module.exports = {
 		return this.getGpProbeStatusColor(timing, probesMaxTiming, probesMinTiming);
 	},
 
-	getGpTargetStatusColor (targetStats, testType) {
+	getGpTargetStatusColor (targetStats, testType, isInfiniteModeRes = false) {
 		if (targetStats?.extraValues?.errorStatus) {
 			return this.getGpProbeStatusColor(targetStats.extraValues.errorStatus);
 		}
 
-		let timing = !targetStats?.areTimingsReady ? null : targetStats?.avgTiming;
+		let timing = isInfiniteModeRes && !targetStats?.areTimingsReady ? null : targetStats?.avgTiming;
 
 		if (targetStats?.isFailed) {
 			timing = PROBE_STATUS_FAILED;

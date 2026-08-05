@@ -65,7 +65,7 @@
 					on-mouseenter="@this.showSetLocationButton(result.clientSideId)"
 					on-mouseleave="@this.hideSetLocationButton(@event)"
 					{{#if targetsCnt === 1}}
-						style="background-image: linear-gradient(to right, {{_.getGpTargetStatusColor(result.statsPerTarget[0], testType)}}0C, transparent 50%);"
+						style="background-image: linear-gradient(to right, {{_.getGpTargetStatusColor(result.statsPerTarget[0], testType, isInfiniteModeRes)}}0C, transparent 50%);"
 					{{/if}}
 				>
 					{{#each result.statsPerTarget as target : targetIdx}}
@@ -82,7 +82,7 @@
 										on-keydown="@this.headerKeydownHandler(@event, result.clientSideId)"
 									{{/if}}
 									{{#if targetsCnt === 1}}
-										style="border-left: 0 solid {{_.getGpTargetStatusColor(result.statsPerTarget[0], testType)}};"
+										style="border-left: 0 solid {{_.getGpTargetStatusColor(result.statsPerTarget[0], testType, isInfiniteModeRes)}};"
 									{{/if}}>
 									<div class="results-table_row_location_content">
 										<img width="28" height="20" alt="" src="https://cdn.jsdelivr.net/npm/country-flag-icons@1.5.5/3x2/{{result.country}}.svg">
@@ -98,7 +98,7 @@
 							{{#if targetsCnt > 1}}
 								<td
 									class="results-table_row_stats_subrow_cell results-table_status-line-host cell targets"
-									style="border-left: 0 solid {{_.getGpTargetStatusColor(target, testType)}}; background-image: linear-gradient(to right, transparent 6px, {{_.getGpTargetStatusColor(target, testType)}}0C 12px, transparent 50%);">
+									style="border-left: 0 solid {{_.getGpTargetStatusColor(target, testType, isInfiniteModeRes)}}; background-image: linear-gradient(to right, transparent 6px, {{_.getGpTargetStatusColor(target, testType, isInfiniteModeRes)}}0C 12px, transparent 50%);">
 									<div class="cell-value">
 										{{#if target.target}}
 											<span>{{target.target}}</span>
