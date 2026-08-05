@@ -608,7 +608,7 @@
 		},
 		pickBarColor (timing) {
 			if (timing === PROBE_NO_TIMING_VALUE) {
-				return _.getGpProbeResultStatusColor(timing, this.get('testType'));
+				return _.getGpProbeStatusColor(timing);
 			}
 
 			function getColorFromGradient (quotient, start, middle, end) {

@@ -3971,7 +3971,7 @@
 
 			for (let i = 0; i < targetsCnt; i++) {
 				svgFillColors.push(markerData.timings[i]
-					? _.getGpProbeResultStatusColor(markerData.timings[i], this.get('mainOptions.type'), markerData.failureSources?.[i], probesMaxTiming, probesMinTiming)
+					? _.getGpProbeStatusColor(markerData.timings[i], probesMaxTiming, probesMinTiming)
 					: DEFAULT_MARKER_COLOR);
 			}
 
@@ -4047,7 +4047,7 @@
 					infoWindowContent += `<span class="gp-map_popup_multi_data_target">${target}</span>`;
 
 					infoWindowContent += `<span class="gp-map_popup_multi_data_timing"
-						style='color: ${_.getGpProbeResultStatusColor(markerData.timings[targetIdx], this.get('mainOptions.type'), markerData.failureSources?.[targetIdx], probesMaxTiming, probesMinTiming)}'>${this.getMarkerTimingText(
+						style='color: ${_.getGpProbeStatusColor(markerData.timings[targetIdx], probesMaxTiming, probesMinTiming)}'>${this.getMarkerTimingText(
 							markerData.timings[targetIdx],
 							markerData.errorCodes?.[targetIdx],
 							markerData.failureSources?.[targetIdx],

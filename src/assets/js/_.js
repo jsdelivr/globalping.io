@@ -12,7 +12,6 @@ const PROBE_STATUS_OFFLINE = 'offline';
 const PROBE_STATUS_DNS_ERROR = 'dns-error';
 const PROBE_STATUS_HTTP_ERROR = 'http-error';
 const PROBE_STATUS_ERROR_COLOR = '#9b51e0';
-const PROBE_TARGET_FAILED_COLOR = '#eb3333';
 
 const COUNTRIES = require('../json/countries.json');
 
@@ -611,21 +610,6 @@ module.exports = {
 		return getColorFromGradient(pureTimingValue / probesMaxTiming, '#17d4a7', '#ffb800', '#e64e3d');
 	},
 
-	getGpProbeResultStatusColor (timing, testType, failureSource, probesMaxTiming = 200, probesMinTiming = 5) {
-		if (timing === PROBE_STATUS_FAILED) {
-			return this.getGpFailureStatusColor(failureSource);
-		}
-
-		if (
-			timing === PROBE_NO_TIMING_VALUE
-			&& [ 'ping', 'traceroute', 'mtr' ].includes(testType?.toLowerCase())
-		) {
-			return PROBE_TARGET_FAILED_COLOR;
-		}
-
-		return this.getGpProbeStatusColor(timing, probesMaxTiming, probesMinTiming);
-	},
-
 	getGpTargetStatusColor (targetStats, testType, isInfiniteModeRes = false) {
 		if (targetStats?.extraValues?.errorStatus) {
 			return this.getGpProbeStatusColor(targetStats.extraValues.errorStatus);
@@ -639,10 +623,8 @@ module.exports = {
 			timing = PROBE_STATUS_OFFLINE;
 		}
 
-		return this.getGpProbeResultStatusColor(
+		return this.getGpProbeStatusColor(
 			timing,
-			testType,
-			targetStats?.failureSource,
 			testType === 'http' ? 1000 : 200,
 		);
 	},
@@ -657,10 +639,6 @@ module.exports = {
 		}
 
 		return failureSource === 'internal' ? 'Internal error' : 'Error';
-	},
-
-	getGpFailureStatusColor (failureSource) {
-		return failureSource === 'target' ? PROBE_TARGET_FAILED_COLOR : '#17233A';
 	},
 
 	pluralize (singular, countOrPlural, countOrUndefined) {
