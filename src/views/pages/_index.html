@@ -4442,7 +4442,10 @@
 			let dnsTraceEnabled = this.isDnsTraceEnabled();
 
 			let parseTargetStats = (res) => {
-				let baseStat = { target: res.target };
+				let baseStat = {
+					target: res.target,
+					isInProgress: res.result.status === 'in-progress',
+				};
 
 				if (res.result.status === 'in-progress') {
 					return {
@@ -4594,6 +4597,7 @@
 						maxTiming,
 						statsTotal: packetsRttCombined.length,
 						statsDrop: packetsDropCombined,
+						isInProgress: probeData.result.status === 'in-progress',
 						isFailed: probeData.result.status === PROBE_STATUS_FAILED,
 						isOffline,
 						failureSource: probeData.result.failureSource,

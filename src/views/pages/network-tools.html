@@ -886,6 +886,7 @@
 					clientSideId: res.clientSideId ?? resIdx,
 					statsPerTarget: [{
 						target: res.target,
+						isInProgress: res.result.status === 'in-progress',
 					}],
 				};
 
