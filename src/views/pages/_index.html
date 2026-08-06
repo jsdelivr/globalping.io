@@ -2341,7 +2341,8 @@
 
 							if (infiniteSwitchEnabled) {
 								let { packetsRtt } = _.parseGpRawOutputForTimings(res.result.rawOutput);
-								let prevPacketsRtt = tResIdx - 1 >= 0 ? mData[tResIdx - 1][resIdx].packetsRtt : [];
+								let prevData = tResIdx - 1 >= 0 ? mData[tResIdx - 1][resIdx] : null;
+								let prevPacketsRtt = prevData ? prevData.packetsRtt : [];
 								let allCurrPacketsRtt = [ ...prevPacketsRtt, ...packetsRtt ];
 								let numericPacketsRtt = allCurrPacketsRtt.filter(v => typeof v === 'number');
 
@@ -2369,8 +2370,10 @@
 									};
 								} else {
 									calcTiming = {
-										value: tResIdx - 1 >= 0 ? mData[tResIdx - 1][resIdx].timings[0] : null,
+										value: prevData ? prevData.timings[0] : null,
 									};
+
+									data.failureSources = [ prevData?.failureSources?.[0] ];
 								}
 							} else if (res.result.status !== 'in-progress') {
 								calcTiming = _.calcGpTestResTiming(testType, res, dnsTraceEnabled);
@@ -2980,8 +2983,12 @@
 
 				// create a new marker and add it to the map or update existing with new data
 				if (markerIdToReplace !== null) {
+					let prevMarkerData = prevMarkersData[markerIdToReplace];
+					let markerStatusChanged = !_.isEqual(markerData.timings, prevMarkerData.timings)
+						|| !_.isEqual(markerData.failureSources, prevMarkerData.failureSources);
+
 					mapMarkers.forEach((mm, mmIdx) => {
-						if (markerIdToReplace === mmIdx && JSON.stringify(markerData.timings) !== JSON.stringify(prevMarkersData[markerIdToReplace].timings)) {
+						if (markerIdToReplace === mmIdx && markerStatusChanged) {
 							this.updateMapMarkerWithIW(mm, markerData, currentMarkerIdx);
 						}
 					});
