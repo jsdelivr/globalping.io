@@ -101,7 +101,7 @@
 					</div>
 
 					<div class="c-gp-results-raw-output_list_item_header_metrics-controls">
-						{{#if !this.statsPerTarget[activeTargetIdx].rawOutput}}
+						{{#if this.statsPerTarget[activeTargetIdx].isInProgress && !this.statsPerTarget[activeTargetIdx].rawOutput}}
 							<c-dot-loader></c-dot-loader>
 						{{else}}
 							<div class="c-gp-results-raw-output_list_item_header_metrics-controls_metrics">
