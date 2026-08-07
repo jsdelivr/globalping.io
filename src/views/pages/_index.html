@@ -845,7 +845,7 @@
 		</div>
 
 		{{#if focusModeActive && focusModeNavigationVisible}}
-			<nav class="gp_focus-mode-navigation" aria-label="Focus mode navigation" style-top="{{focusModeNavigationTop}}px">
+			<nav class="gp_focus-mode-navigation" aria-label="Focus mode navigation" style-bottom="{{focusModeNavigationBottom}}px">
 				<button
 					type="button"
 					aria-label="Scroll to top of measurement"
@@ -1866,7 +1866,7 @@
 				testReqParams: null,
 				focusModeTransition: null,
 				focusModeTransitionTimeout: null,
-				focusModeNavigationTop: 24,
+				focusModeNavigationBottom: 24,
 				focusModeNavigationVisible: false,
 				pendingResultId: null,
 				showMeasurementLoadingInfo: false,
@@ -4010,10 +4010,17 @@
 			let mapBlockEl = this.find('.gp_map-block');
 
 			if (mapBlockEl) {
-				mapBlockEl.classList.add('gp_map-block_measure-content');
 				let mapBlockRect = mapBlockEl.getBoundingClientRect();
+
+				if (mapBlockRect.bottom <= window.innerHeight + 1) {
+					return;
+				}
+
+				mapBlockEl.classList.add('gp_map-block_measure-content');
+				mapBlockRect = mapBlockEl.getBoundingClientRect();
 				let targetScrollTop = Math.max(0, window.scrollY + mapBlockRect.bottom - window.innerHeight);
 				mapBlockEl.classList.remove('gp_map-block_measure-content');
+				targetScrollTop = Math.max(window.scrollY, targetScrollTop);
 
 				window.scrollTo({
 					top: targetScrollTop,
@@ -4023,7 +4030,7 @@
 		},
 		updateFocusModeNavigationVisibility () {
 			let isVisible = false;
-			let top = 24;
+			let bottom = 24;
 
 			if (this.get('focusModeActive')) {
 				let mapBlockEl = this.find('.gp_map-block');
@@ -4031,17 +4038,13 @@
 				if (mapBlockEl) {
 					let mapBlockRect = mapBlockEl.getBoundingClientRect();
 					isVisible = mapBlockRect.bottom > 0 && mapBlockRect.top < window.innerHeight;
-
-					top = Math.min(
-						Math.max((window.innerHeight - 134) / 2, mapBlockRect.top + 24),
-						mapBlockRect.bottom - 134 - 24,
-					);
+					bottom = Math.max(24, window.innerHeight - mapBlockRect.bottom + 24);
 				}
 			}
 
-			if (top !== this.get('focusModeNavigationTop') || isVisible !== this.get('focusModeNavigationVisible')) {
+			if (bottom !== this.get('focusModeNavigationBottom') || isVisible !== this.get('focusModeNavigationVisible')) {
 				this.set({
-					focusModeNavigationTop: top,
+					focusModeNavigationBottom: bottom,
 					focusModeNavigationVisible: isVisible,
 				});
 			}
