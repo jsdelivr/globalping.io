@@ -10,7 +10,7 @@
 					class="c-measurement-breakdown_comparison"
 					role="table"
 					aria-labelledby="measurement-breakdown-title"
-					style="width: {{this.widthPercent}}%; grid-template-columns: repeat({{this.columns.length}}, minmax(0, 1fr));">
+					style="width: {{this.widthPercent}}%; grid-template-columns: repeat({{this.columns.length}}, minmax(max-content, 1fr));">
 					<div class="c-measurement-breakdown_target-row" role="row">
 						{{#each this.targets}}
 							<header class="c-measurement-breakdown_target_header" role="columnheader" aria-colspan="{{this.locationCount}}" style="grid-column: span {{this.locationCount}};">
