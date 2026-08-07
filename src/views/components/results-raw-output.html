@@ -1,6 +1,5 @@
 <link rel="ractive" href="./tls-details.html" name="c-gp-tls-details">
 <link rel="ractive" href="./dot-loader.html" name="c-dot-loader">
-<link rel="ractive" href="./placeholder-skeleton.html" name="c-placeholder-skeleton">
 
 <div class="c-gp-results-raw-output {{#if allowResultsBlockShrink}}is-height-shrink-enabled{{/if}}">
 	<div class="c-gp-results-raw-output_list {{#if testInProgress}}round-bottom{{/if}}" on-scroll="@this.hideSetLocationButton(@event)">
@@ -175,36 +174,6 @@
 				{{/if}}
 			</div>
 		{{/each}}
-
-		{{#if testInProgress}}
-			{{#each loadingProbeResults}}
-				<div class="c-gp-results-raw-output_list_item c-gp-results-raw-output_list_item_loading" aria-hidden="true">
-					<div class="c-gp-results-raw-output_list_item_header">
-						<div class="c-gp-results-raw-output_list_item_header_info">
-							<div class="c-gp-results-raw-output_list_item_header_info_entity">
-								<span class="c-gp-results-raw-output_list_item_header_info_entity_field">
-									<span class="c-gp-results-raw-output_list_item_header_info_entity_loading-placeholder"></span>
-								</span>
-								<span class="c-gp-results-raw-output_list_item_header_info_entity_field">
-									<span class="c-gp-results-raw-output_list_item_header_info_entity_loading-placeholder"></span>
-								</span>
-								<span class="c-gp-results-raw-output_list_item_header_info_entity_field">
-									<span class="c-gp-results-raw-output_list_item_header_info_entity_loading-placeholder"></span>
-								</span>
-							</div>
-						</div>
-
-						<div class="c-gp-results-raw-output_list_item_header_metrics-controls">
-							<c-dot-loader></c-dot-loader>
-						</div>
-					</div>
-
-					<div class="c-gp-results-raw-output_list_item_output">
-						<c-placeholder-skeleton type="descr"></c-placeholder-skeleton>
-					</div>
-				</div>
-			{{/each}}
-		{{/if}}
 	</div>
 
 	{{#if showSetLocationButton && floatingSetLocationButton.visible}}
@@ -242,7 +211,6 @@
 		data () {
 			return {
 				_,
-				loadingProbeResults: [],
 				activeTargetIdx: 0,
 				hiddenTestResults: {
 					0: [],

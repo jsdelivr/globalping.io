@@ -39,10 +39,6 @@
 			border-bottom: 1.5px solid #202f4a;
 			backface-visibility: hidden;
 
-			@media (min-width: @screen-sm-min) {
-				transition: box-shadow .42s ease;
-			}
-
 			&:after {
 				content: "";
 				position: absolute;
@@ -51,12 +47,6 @@
 				bottom: -.5px;
 				left: 0;
 				background: #17233a;
-			}
-		}
-
-		@media (min-width: @screen-sm-min) {
-			&.focus-mode-open .navbar.navbar-filled {
-				box-shadow: 0 4px 8px -2px rgba(23, 35, 59, .24);
 			}
 		}
 
