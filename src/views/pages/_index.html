@@ -845,7 +845,7 @@
 		</div>
 
 		{{#if focusModeActive && focusModeNavigationVisible}}
-			<nav class="gp_focus-mode-navigation" aria-label="Focus mode navigation" style-bottom="{{focusModeNavigationBottom}}px">
+			<nav class="gp_focus-mode-navigation" aria-label="Focus mode navigation" style-top="{{focusModeNavigationTop}}px">
 				<button
 					type="button"
 					aria-label="Scroll to top of measurement"
@@ -1866,7 +1866,7 @@
 				testReqParams: null,
 				focusModeTransition: null,
 				focusModeTransitionTimeout: null,
-				focusModeNavigationBottom: 24,
+				focusModeNavigationTop: 24,
 				focusModeNavigationVisible: false,
 				pendingResultId: null,
 				showMeasurementLoadingInfo: false,
@@ -4023,7 +4023,7 @@
 		},
 		updateFocusModeNavigationVisibility () {
 			let isVisible = false;
-			let bottom = 24;
+			let top = 24;
 
 			if (this.get('focusModeActive')) {
 				let mapBlockEl = this.find('.gp_map-block');
@@ -4031,13 +4031,17 @@
 				if (mapBlockEl) {
 					let mapBlockRect = mapBlockEl.getBoundingClientRect();
 					isVisible = mapBlockRect.bottom > 0 && mapBlockRect.top < window.innerHeight;
-					bottom = Math.max(24, window.innerHeight - mapBlockRect.bottom + 24);
+
+					top = Math.min(
+						Math.max((window.innerHeight - 134) / 2, mapBlockRect.top + 24),
+						mapBlockRect.bottom - 134 - 24,
+					);
 				}
 			}
 
-			if (bottom !== this.get('focusModeNavigationBottom') || isVisible !== this.get('focusModeNavigationVisible')) {
+			if (top !== this.get('focusModeNavigationTop') || isVisible !== this.get('focusModeNavigationVisible')) {
 				this.set({
-					focusModeNavigationBottom: bottom,
+					focusModeNavigationTop: top,
 					focusModeNavigationVisible: isVisible,
 				});
 			}
