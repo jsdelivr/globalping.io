@@ -846,26 +846,29 @@
 
 		{{#if focusModeActive && focusModeNavigationVisible}}
 			<nav class="gp_focus-mode-navigation" aria-label="Focus mode navigation" style-bottom="{{focusModeNavigationBottom}}px">
+				<div class="gp_focus-mode-navigation_scroll">
+					<button
+						type="button"
+						aria-label="Scroll to top of measurement"
+						title="Scroll to top"
+						on-click="@this.scrollToMapBlockTop()">
+						<svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+							<path d="M10 15V5M6 9l4-4 4 4"></path>
+						</svg>
+					</button>
+					<button
+						type="button"
+						aria-label="Scroll to bottom of measurement"
+						title="Scroll to bottom"
+						on-click="@this.scrollToMapBlockBottom()">
+						<svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+							<path d="M10 5v10m4-4-4 4-4-4"></path>
+						</svg>
+					</button>
+				</div>
 				<button
 					type="button"
-					aria-label="Scroll to top of measurement"
-					title="Scroll to top"
-					on-click="@this.scrollToMapBlockTop()">
-					<svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
-						<path d="M10 15V5M6 9l4-4 4 4"></path>
-					</svg>
-				</button>
-				<button
-					type="button"
-					aria-label="Scroll to bottom of measurement"
-					title="Scroll to bottom"
-					on-click="@this.scrollToMapBlockBottom()">
-					<svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
-						<path d="M10 5v10m4-4-4 4-4-4"></path>
-					</svg>
-				</button>
-				<button
-					type="button"
+					class="gp_focus-mode-navigation_close"
 					aria-label="Close measurement focus mode"
 					title="Close focus mode"
 					on-click="@this.closeFocusMode(@event)">
