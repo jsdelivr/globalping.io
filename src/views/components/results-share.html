@@ -1,4 +1,4 @@
-<div class="c-gp-results-share {{#if stickyEnabled}}c-gp-results-share_sticky{{/if}}">
+<div class="c-gp-results-share">
 	<div class="c-gp-results-share_content">
 		<button as-clipboard data-clipboard-text="{{measurementLink}}">
 			<img width="20" height="20" src="{{@shared.assetsHost}}/img/url-icon.svg">
@@ -26,15 +26,6 @@
 				<img width="20" height="20" src="{{@shared.assetsHost}}/img/copy-icon-black.svg">
 			</button>
 		</div>
-
-		<button
-			type="button"
-			class="c-gp-results-share_content_scroll-to-map"
-			aria-label="Scroll to top of measurement tool"
-			title="Scroll to top of measurement tool"
-			on-click="scrollToMapBlock()">
-			<i class="fa fa-arrow-up" aria-hidden="true"></i>
-		</button>
 	</div>
 
 	{{#if shareResMsg}}
@@ -60,15 +51,11 @@
 				measurementLink: '',
 				cliCommand: '',
 				showMarkdownResults: false,
-				stickyEnabled: false,
 			};
 		},
 		onrender () {
 			if (!Ractive.isServer) {
 				addManagedListener(this, window, 'historyChange', this.createMeasLink.bind(this));
-				addManagedListener(this, window, 'scroll', this.updateStickyState.bind(this));
-				addManagedListener(this, window, 'resize', this.updateStickyState.bind(this));
-				this.updateStickyState();
 
 				// select all share-res text of link on click
 				this.observe('testInProgress', (testInProgress) => {
@@ -92,19 +79,6 @@
 				this.observe('preparedTestResults testReqParams measurementsMetadata measurementLink', () => {
 					this.createMarkdownResults();
 				});
-			}
-		},
-		updateStickyState () {
-			let shareEl = this.find('.c-gp-results-share');
-			let resultsEl = shareEl?.closest('.gp_map-block_test-output_results-preview-content');
-			let firstResultEl = resultsEl?.querySelector('.c-gp-results-raw-output_list_item, .results-table_row');
-			let firstResultRect = firstResultEl?.getBoundingClientRect();
-			let stickyTop = window.innerHeight - (shareEl?.getBoundingClientRect().height || 0) - 24;
-			let requiredVisibleHeight = Math.min(24, firstResultRect?.height || 0);
-			let stickyEnabled = !!firstResultEl && firstResultRect.top < stickyTop - requiredVisibleHeight;
-
-			if (stickyEnabled !== this.get('stickyEnabled')) {
-				this.set('stickyEnabled', stickyEnabled);
 			}
 		},
 		createMeasLink () {

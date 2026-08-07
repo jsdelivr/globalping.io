@@ -1,49 +1,18 @@
 @import "../variables.less";
 
 .c-gp-results-share {
-	position: relative;
 	display: flex;
 	flex-direction: column;
 	gap: 8px;
 	padding: 24px 24px 0;
 	width: 100%;
-	background-color: #fff;
+	border-radius: 0 0 8px 8px;
 	font-family: Lexend, sans-serif;
 	font-style: normal;
 	font-weight: 400;
 	color: #17233a;
 	-webkit-font-smoothing: antialiased;
 	font-size: 13px;
-
-	&_sticky {
-		position: sticky;
-		bottom: 24px;
-		z-index: 2;
-	}
-
-	&:before {
-		position: absolute;
-		inset: 0;
-		z-index: 0;
-		background-color: #fff;
-		content: "";
-	}
-
-	&:after {
-		position: absolute;
-		top: 100%;
-		left: -2px;
-		width: calc(100% + 4px);
-		height: 24px;
-		z-index: 0;
-		background-color: #fff;
-		content: "";
-	}
-
-	> * {
-		position: relative;
-		z-index: 1;
-	}
 
 	button:focus, button:active, button:active:focus {
 		outline: none;
@@ -56,16 +25,9 @@
 	}
 
 	@media (min-width: @screen-sm-min) {
-		margin-left: -1.5px;
 		padding: 16px 26px;
-		width: calc(100% + 3px);
-
-		&:before {
-			background-color: #fbfbfb;
-			border: 1.5px solid #e7e7ee;
-			border-top-width: 1px;
-			border-radius: 0 0 8px 8px;
-		}
+		background-color: #fbfbfb;
+		border-top: 1px solid #e7e7ee;
 	}
 
 	&_warning {
@@ -100,14 +62,6 @@
 			&:hover {
 				background-color: #eaeaea;
 			}
-		}
-
-		&_scroll-to-map {
-			align-self: flex-end;
-			width: 40px;
-			height: 40px;
-			flex-shrink: 0;
-			padding: 0;
 		}
 
 		&_command {

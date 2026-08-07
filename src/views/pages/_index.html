@@ -51,9 +51,9 @@
 
 	<c-notification></c-notification>
 
-	<c-gp-header additionalClasses="header-with-globalping-bg no-border"></c-gp-header>
+	<c-gp-header additionalClasses="header-with-globalping-bg no-border {{#if focusModeActive}}focus-mode-open{{/if}}"></c-gp-header>
 
-	<div class="p-globalping {{#if focusModeActive}}focus-mode-open{{/if}}">
+	<div class="p-globalping {{#if focusModeActive}}focus-mode-open{{/if}}" on-click="@this.handleFocusModeSideClick(@event)">
 		<c-gp-jumbotron className="main" gridType="globe"></c-gp-jumbotron>
 
 		<div class="gp_main-info">
@@ -737,7 +737,7 @@
 								<p>{{{measurementErrMsg}}}</p>
 							</div>
 						</div>
-					{{elseif testResults && (rawOutputMode || tableOutputReady)}}
+					{{elseif (testResults && (rawOutputMode || tableOutputReady)) || (focusModeSupported && testInProgress && !shareResFlow && remainingLoadingProbeResults.length)}}
 						<div class="gp_map-block_test-output gp_map-block_test-output_focused-content {{#if focusModeResultsPreviewAvailable && !focusModeActive}}gp_map-block_test-output_results-preview{{/if}}">
 							<div class="gp_map-block_test-output_results-preview-content {{#if focusModeResultsPreviewAvailable && focusModeTransition === 'opening'}}gp_map-block_test-output_results-preview-content_expanding{{/if}}" {{#if focusModeResultsPreviewAvailable && !focusModeActive}}inert aria-hidden="true"{{/if}}>
 								<c-gp-results-controls
@@ -773,6 +773,7 @@
 											sortBy="{{sortBy}}"
 											showingNetworkLogos="{{showingNetworkLogos}}"
 											responseBodyCharWidth="{{responseBodyCharWidth}}"
+											loadingProbeResults="{{focusModeSupported && !shareResFlow ? remainingLoadingProbeResults : []}}"
 											expandAllRawOutput="{{@this.expandAllRawOutput}}">
 										</c-gp-results-raw-output>
 									</div>
@@ -781,6 +782,8 @@
 										<c-gp-results-table-output
 											testInProgress="{{testInProgress}}"
 											preparedTestResults="{{preparedTestResults}}"
+											loadingProbeResults="{{focusModeSupported && !shareResFlow ? remainingLoadingProbeResults : []}}"
+											targets="{{targetsArr}}"
 											targetsCnt="{{targetsArr.length}}"
 											currSearchLocation="{{mainOptions.location}}"
 											isInfiniteModeRes="{{isInfiniteModeRes}}"
@@ -797,8 +800,7 @@
 										isInfiniteModeRes="{{isInfiniteModeRes}}"
 										testInProgress="{{testInProgress}}"
 										preparedTestResults="{{preparedTestResults}}"
-										activeTargetIdx="{{activeTargetIdx}}"
-										scrollToMapBlock="{{@this.scrollToMapBlockTop}}">
+										activeTargetIdx="{{activeTargetIdx}}">
 									</c-gp-results-share>
 								{{/if}}
 							</div>
@@ -1866,6 +1868,7 @@
 				isInfiniteModeRes: false,
 				prevProbesMeasId: null,
 				preparedTestResults: [],
+				loadingProbeResults: [],
 				ddHandlerSet: false,
 				showCreditsData: false,
 				rateCreditsData: null,
@@ -1978,14 +1981,19 @@
 			focusModeResultsPreviewAvailable () {
 				let testResults = Object.values(this.get('testResults') || {});
 				let hasTestResults = testResults.some(results => results?.length);
+				let hasLoadingProbeResults = this.get('remainingLoadingProbeResults.length') > 0;
+				let testInProgress = this.get('testInProgress');
+				let localLoadingPreviewAvailable = testInProgress
+					&& !this.get('shareResFlow')
+					&& (hasLoadingProbeResults || hasTestResults);
 
 				return this.get('focusModeSupported')
 					&& !this.get('measurementErrMsg')
-					&& !this.get('testInProgress')
 					&& !this.get('sharedMeasurementInitialLoading')
 					&& !this.get('isInfiniteMeasStopped')
-					&& hasTestResults
-					&& (this.get('rawOutputMode') || this.get('tableOutputReady'));
+					&& (!testInProgress || localLoadingPreviewAvailable)
+					&& (hasTestResults || hasLoadingProbeResults)
+					&& (this.get('rawOutputMode') || this.get('tableOutputReady') || hasLoadingProbeResults);
 			},
 			focusModeSupported () {
 				return Ractive.isServer || this.get('screenWidth') >= 768;
@@ -2002,6 +2010,11 @@
 			},
 			focusModeActive () {
 				return this.get('focusModeSupported') && this.get('view') === FOCUS_MODE_VIEW;
+			},
+			remainingLoadingProbeResults () {
+				let preparedResultIds = new Set((this.get('preparedTestResults') || []).map(result => result.clientSideId));
+
+				return (this.get('loadingProbeResults') || []).filter(result => !preparedResultIds.has(result.clientSideId));
 			},
 			anyResponseBodyCollapsible () {
 				if (Ractive.isServer) {
@@ -2590,7 +2603,9 @@
 				});
 
 				// prepare results for gp-results-raw-output and gp-results-table-output, regular or infinite flow
-				this.observe('testResults', (testResults) => {
+				this.observe('testResults targetsArr', () => {
+					let testResults = this.get('testResults');
+
 					if (!testResults) { return; }
 
 					let testType = this.get('testReqParams.type');
@@ -2811,7 +2826,7 @@
 
 			this.focusFocusModeToggleButton();
 		},
-		closeFocusMode (event) {
+		closeFocusMode (event, restoreFocus = true) {
 			event?.preventDefault?.();
 
 			if (!this.get('focusModeActive')) {
@@ -2823,7 +2838,28 @@
 
 			this.clearFocusModeTransition();
 			app.router.replaceQueryParam('view', null, this);
-			this.focusFocusModeToggleButton();
+
+			if (restoreFocus) {
+				this.focusFocusModeToggleButton();
+			}
+		},
+		handleFocusModeSideClick (event) {
+			let mapBlockEl = this.find('.gp_map-block');
+
+			if (!this.get('focusModeActive') || !mapBlockEl) {
+				return;
+			}
+
+			let mapBlockRect = mapBlockEl.getBoundingClientRect();
+			let isBesideMapBlock = event.clientX < mapBlockRect.left || event.clientX > mapBlockRect.right;
+			let isWithinMapBlockHeight = event.clientY >= mapBlockRect.top && event.clientY <= mapBlockRect.bottom;
+
+			if (!isBesideMapBlock || !isWithinMapBlockHeight) {
+				return;
+			}
+
+			this.closeFocusMode(event, false);
+			this.scrollFocusModeRootAfterRender();
 		},
 		handleFocusModeKeyDown (event) {
 			if (this.get('focusModeActive') && event.key === 'Escape') {
@@ -2915,11 +2951,23 @@
 				};
 			}
 
+			let requestedProbesCount = Number(reqParams.limit);
+			requestedProbesCount = Number.isFinite(requestedProbesCount) && requestedProbesCount > 0
+				? Math.max(1, Math.floor(requestedProbesCount))
+				: 1;
+
 			// clear all data from the previous test, close additional options menu, show spinner, set up Map's data etc.
 			this.set('testResults', null);
 			this.set('markersData', null);
 			this.set('probesResponse', null);
 			this.set('showMeasurementOpts', false);
+			this.set('preparedTestResults', []);
+
+			this.set('loadingProbeResults', Array.from(
+				{ length: requestedProbesCount },
+				(_, clientSideId) => ({ clientSideId }),
+			));
+
 			this.set('testInProgress', true);
 			this.set('measurementErrMsg', null);
 			this.set('testReqParams', null);
@@ -2934,7 +2982,6 @@
 			this.set('isInfiniteMeasStopped', false);
 			this.set('showCreditsData', true);
 			this.set('prevProbesMeasId', null);
-			this.set('preparedTestResults', []);
 			this.set('rateCreditsData', null);
 			this.set('probesMaxTiming', type.toLowerCase() === 'http' ? 1000 : 200);
 			this.set('_measurementOgTitle', null);
@@ -2978,6 +3025,11 @@
 
 				// set measurement ID for re-use probes case
 				this.set('prevProbesMeasId', res.response.id);
+
+				this.set('loadingProbeResults', Array.from(
+					{ length: res.response.probesCount || 0 },
+					(_, clientSideId) => ({ clientSideId }),
+				));
 
 				// Update the URL.
 				this.set('measurement', res.response.id);
@@ -3850,6 +3902,18 @@
 				sharedMeasurementInitialLoading: false,
 			});
 
+			let requestedProbesCount = Number(this.get('mainOptions.limit') || DEFAULT_LIMIT);
+			requestedProbesCount = Number.isFinite(requestedProbesCount) && requestedProbesCount > 0
+				? Math.max(1, Math.floor(requestedProbesCount))
+				: 1;
+
+			this.set('preparedTestResults', []);
+
+			this.set('loadingProbeResults', Array.from(
+				{ length: requestedProbesCount },
+				(_, clientSideId) => ({ clientSideId }),
+			));
+
 			this.get('testReqCancelFn')?.forEach(cancel => cancel?.());
 			this.set('testReqCancelFn', []);
 			this.disableRunTestBtnForDelay();
@@ -3965,15 +4029,22 @@
 				});
 			}
 		},
-		scrollToMapBlockTop () {
-			let mapBlockEl = this.find('.gp_map-block');
+		scrollFocusModeRootAfterRender () {
+			this.update().then(() => {
+				requestAnimationFrame(() => {
+					let mapBlockEl = this.find('.gp_map-block');
 
-			if (mapBlockEl) {
-				window.scrollTo({
-					top: this.getFocusModeRootScrollTop(mapBlockEl),
-					behavior: 'smooth',
+					if (!mapBlockEl) {
+						return;
+					}
+
+					let targetScrollTop = this.getFocusModeRootScrollTop(mapBlockEl);
+
+					if (targetScrollTop < window.scrollY) {
+						window.scrollTo({ top: targetScrollTop, behavior: 'smooth' });
+					}
 				});
-			}
+			});
 		},
 		getFocusModeRootScrollTop (mapBlockEl, scrollOffset = FOCUS_MODE_SCROLL_OFFSET) {
 			return Math.max(0, window.scrollY + mapBlockEl.getBoundingClientRect().top - scrollOffset);
@@ -4103,6 +4174,13 @@
 
 				// set response headers for gp-credits/gp-credits-message
 				this.set('rateCreditsData', { ...res.responseHeaders, probesCount: res.response.probesCount });
+
+				if (resNumber === 0) {
+					this.set('loadingProbeResults', Array.from(
+						{ length: res.response.probesCount || 0 },
+						(_, clientSideId) => ({ clientSideId }),
+					));
+				}
 
 				// set measurement ID for re-use probes case
 				this.set('prevProbesMeasId', res.response.id);
@@ -4357,7 +4435,7 @@
 			return infoWindowContent;
 		},
 		prepareRegularResults (testResults) {
-			if (!testResults || testResults.length === 0) {
+			if (!testResults?.[0]?.length) {
 				return [];
 			}
 
@@ -4407,18 +4485,23 @@
 				};
 			};
 
+			let targets = this.get('targetsArr');
+			let localMeasurementInProgress = this.get('testInProgress') && !this.get('shareResFlow');
+			let targetCount = localMeasurementInProgress ? targets.length : testResults.length;
 			let prepResults = testResults[0].map(res => ({
 				clientSideId: res.clientSideId,
 				...res.probe,
 				statsPerTarget: [ parseTargetStats(res) ],
 			}));
 
-			for (let i = 1; i < testResults.length; i++) {
+			for (let i = 1; i < targetCount; i++) {
 				prepResults.forEach((pR) => {
-					let nextRes = testResults[i].find(r => r.clientSideId === pR.clientSideId);
+					let nextRes = testResults[i]?.find(r => r.clientSideId === pR.clientSideId);
 
 					if (nextRes) {
 						pR.statsPerTarget.push(parseTargetStats(nextRes));
+					} else if (localMeasurementInProgress) {
+						pR.statsPerTarget.push({ target: targets[i] });
 					}
 				});
 			}

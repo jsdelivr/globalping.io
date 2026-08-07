@@ -11,6 +11,7 @@
 }
 
 .p-globalping {
+	isolation: isolate;
 	font-family: Lexend, sans-serif;
 	font-style: normal;
 	font-weight: 400;
@@ -26,10 +27,29 @@
 	@media (min-width: @screen-sm-min) {
 		margin-bottom: 0;
 		padding-bottom: 88px;
+		background-color: #fff;
+		transition: background-color .42s ease;
+
+		.c-gp-jumbotron.main:after {
+			position: absolute;
+			inset: 0;
+			z-index: -2;
+			opacity: 0;
+			background: linear-gradient(180deg, #131d31 0%, #131d31 44%, #18233d 58%, #273555 73%, #414d6a 84%, #586072 92%, #626977 97%, #676c78 100%);
+			pointer-events: none;
+			transition: opacity .42s ease;
+			content: "";
+		}
 	}
 
 	&.focus-mode-open {
 		@media (min-width: @screen-sm-min) {
+			background-color: #676c78;
+
+			.c-gp-jumbotron.main:after {
+				opacity: 1;
+			}
+
 			.gp_details, .gp_integrations, .gp_features, .gp_installation, .gp_our-users, .gp_join-network, .gp_join-community, .gp_gh-links, .gp_probe, .gp_sponsors {
 				display: none;
 			}
