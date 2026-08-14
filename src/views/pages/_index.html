@@ -103,21 +103,6 @@
 				{{#if shareResHeaderData}}
 					<span class="gp_map-block_header_share-res-msg">{{shareResHeaderData}}</span>
 				{{/if}}
-				{{#if focusModeAvailable || focusModeActive}}
-					<span class="gp_map-block_header_actions">
-						{{#unless focusModeActive}}
-							<button
-								type="button"
-								class="gp_map-block_header_focus-toggle"
-								aria-label="Open measurement focus mode"
-								on-click="@this.openFocusMode(@event)">
-								<i class="fa fa-expand" aria-hidden="true"></i>
-								<span class="hidden-xs">Focus mode</span>
-								<span class="mobile-only">Enter focus mode</span>
-							</button>
-						{{/unless}}
-					</span>
-				{{/if}}
 			</div>
 
 			<div class="gp_map-block_settings-wrapper">
@@ -706,7 +691,7 @@
 							</div>
 							<button
 								type="button"
-								class="gp_btn_green"
+								class="gp_btn_green gp_focus-mode-toggle"
 								aria-label="Open measurement focus mode"
 								on-click="@this.openFocusMode(@event)">
 								<i class="fa fa-expand" aria-hidden="true"></i>
@@ -796,7 +781,7 @@
 							{{#if focusModeResultsPreviewAvailable && !focusModeActive}}
 								<div class="gp_map-block_test-output_results-preview-action">
 									<button type="button"
-										class="gp_map-block_test-output_results-preview-action_button"
+										class="gp_map-block_test-output_results-preview-action_button gp_focus-mode-toggle"
 										on-click="@this.openFocusMode(@event)">
 										<i class="fa fa-expand" aria-hidden="true"></i>
 										View all results
@@ -845,30 +830,27 @@
 		</div>
 
 		{{#if focusModeActive && focusModeNavigationVisible}}
-			<nav class="gp_focus-mode-navigation" aria-label="Focus mode navigation" style-bottom="{{focusModeNavigationBottom}}px">
-				<div class="gp_focus-mode-navigation_scroll">
-					<button
-						type="button"
-						aria-label="Scroll to top of measurement"
-						title="Scroll to top"
-						on-click="@this.scrollToMapBlockTop()">
-						<svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
-							<path d="M10 15V5M6 9l4-4 4 4"></path>
-						</svg>
-					</button>
-					<button
-						type="button"
-						aria-label="Scroll to bottom of measurement"
-						title="Scroll to bottom"
-						on-click="@this.scrollToMapBlockBottom()">
-						<svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
-							<path d="M10 5v10m4-4-4 4-4-4"></path>
-						</svg>
-					</button>
-				</div>
+			<nav class="gp_focus-mode-navigation" aria-label="Focus mode navigation" style-top="{{focusModeNavigationTop}}px">
 				<button
 					type="button"
-					class="gp_focus-mode-navigation_close"
+					aria-label="Scroll to top of measurement"
+					title="Scroll to top"
+					on-click="@this.scrollToMapBlockTop()">
+					<svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+						<path d="M10 15V5M6 9l4-4 4 4"></path>
+					</svg>
+				</button>
+				<button
+					type="button"
+					aria-label="Scroll to bottom of measurement"
+					title="Scroll to bottom"
+					on-click="@this.scrollToMapBlockBottom()">
+					<svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+						<path d="M10 5v10m4-4-4 4-4-4"></path>
+					</svg>
+				</button>
+				<button
+					type="button"
 					aria-label="Close measurement focus mode"
 					title="Close focus mode"
 					on-click="@this.closeFocusMode(@event)">
@@ -1869,7 +1851,7 @@
 				testReqParams: null,
 				focusModeTransition: null,
 				focusModeTransitionTimeout: null,
-				focusModeNavigationBottom: 24,
+				focusModeNavigationTop: 0,
 				focusModeNavigationVisible: false,
 				pendingResultId: null,
 				showMeasurementLoadingInfo: false,
@@ -2842,7 +2824,7 @@
 				}, FOCUS_MODE_RESULTS_EXPAND_MS));
 			}
 
-			this.focusFocusModeToggleButton();
+			this.scrollToMapBlockTopAfterRender();
 		},
 		closeFocusMode (event) {
 			event?.preventDefault?.();
@@ -2872,7 +2854,7 @@
 					return;
 				}
 
-				this.focusWithoutScroll(this.find('.gp_map-block_header_focus-toggle'));
+				this.focusWithoutScroll(this.find('.gp_focus-mode-toggle'));
 			});
 		},
 		focusWithoutScroll (element) {
@@ -2976,7 +2958,12 @@
 			this.set('showingNetworkLogos', false);
 			this.set('activeTestRunId', testRunId);
 			this.clearFocusModeTransition();
-			app.router.replaceQueryParam('view', _.isMobileViewport() ? null : FOCUS_MODE_VIEW, this);
+			let isMobileViewport = _.isMobileViewport();
+			app.router.replaceQueryParam('view', isMobileViewport ? null : FOCUS_MODE_VIEW, this);
+
+			if (!isMobileViewport) {
+				this.scrollToMapBlockTopAfterRender();
+			}
 
 			this.expandAllRawOutput();
 
@@ -4009,19 +3996,24 @@
 				});
 			}
 		},
+		scrollToMapBlockTopAfterRender () {
+			this.update().then(() => {
+				requestAnimationFrame(() => this.scrollToMapBlockTop());
+			});
+		},
 		scrollToMapBlockBottom () {
 			let mapBlockEl = this.find('.gp_map-block');
 
 			if (mapBlockEl) {
 				let mapBlockRect = mapBlockEl.getBoundingClientRect();
 
-				if (mapBlockRect.bottom <= window.innerHeight + 1) {
+				if (mapBlockRect.bottom + FOCUS_MODE_SCROLL_OFFSET <= window.innerHeight + 1) {
 					return;
 				}
 
 				mapBlockEl.classList.add('gp_map-block_measure-content');
 				mapBlockRect = mapBlockEl.getBoundingClientRect();
-				let targetScrollTop = Math.max(0, window.scrollY + mapBlockRect.bottom - window.innerHeight);
+				let targetScrollTop = Math.max(0, window.scrollY + mapBlockRect.bottom - window.innerHeight + FOCUS_MODE_SCROLL_OFFSET);
 				mapBlockEl.classList.remove('gp_map-block_measure-content');
 				targetScrollTop = Math.max(window.scrollY, targetScrollTop);
 
@@ -4033,21 +4025,29 @@
 		},
 		updateFocusModeNavigationVisibility () {
 			let isVisible = false;
-			let bottom = 24;
+			let top = window.innerHeight / 2;
 
 			if (this.get('focusModeActive')) {
-				let mapBlockEl = this.find('.gp_map-block');
+				let resultsOutputEl = this.find('.gp_map-block_test-output_raw-output') || this.find('.gp_map-block_test-output_table-output');
 
-				if (mapBlockEl) {
-					let mapBlockRect = mapBlockEl.getBoundingClientRect();
-					isVisible = mapBlockRect.bottom > 0 && mapBlockRect.top < window.innerHeight;
-					bottom = Math.max(24, window.innerHeight - mapBlockRect.bottom + 24);
+				if (resultsOutputEl) {
+					let resultsOutputRect = resultsOutputEl.getBoundingClientRect();
+					let navigationHeight = this.find('.gp_focus-mode-navigation')?.offsetHeight || 114;
+					let navigationHalfHeight = navigationHeight / 2;
+
+					if (resultsOutputRect.height >= navigationHeight) {
+						top = Math.min(Math.max(top, resultsOutputRect.top + navigationHalfHeight), resultsOutputRect.bottom - navigationHalfHeight);
+					} else {
+						top = resultsOutputRect.top + resultsOutputRect.height / 2;
+					}
+
+					isVisible = true;
 				}
 			}
 
-			if (bottom !== this.get('focusModeNavigationBottom') || isVisible !== this.get('focusModeNavigationVisible')) {
+			if (top !== this.get('focusModeNavigationTop') || isVisible !== this.get('focusModeNavigationVisible')) {
 				this.set({
-					focusModeNavigationBottom: bottom,
+					focusModeNavigationTop: top,
 					focusModeNavigationVisible: isVisible,
 				});
 			}
