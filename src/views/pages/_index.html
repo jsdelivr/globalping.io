@@ -139,16 +139,10 @@
 					<span></span>
 					<span></span>
 				</span>
-				{{#if focusModeAvailable && !focusModeActive}}
-					<span class="gp_map-block_header_actions">
-						<button
-							type="button"
-							class="gp_map-block_header_focus-toggle gp_map-block_header_focus-toggle_open"
-							aria-label="Open measurement focus mode"
-							on-click="@this.openFocusMode(@event)">
-							<i class="fa fa-expand" aria-hidden="true"></i>
-							<span>Focus mode</span>
-						</button>
+				{{#if measurementDate && !focusModeActive}}
+					<span class="gp_map-block_header_measurement-date">
+						<i class="fa fa-calendar" aria-hidden="true"></i>
+						<span>{{measurementDate}}</span>
 					</span>
 				{{/if}}
 			</div>
@@ -732,7 +726,7 @@
 							</div>
 							<button
 								type="button"
-								class="gp_btn_green"
+								class="gp_btn_green gp_focus-mode-toggle"
 								aria-label="Open measurement focus mode"
 								on-click="@this.openFocusMode(@event)">
 								<i class="fa fa-expand" aria-hidden="true"></i>
@@ -826,7 +820,7 @@
 							{{#if focusModeResultsPreviewAvailable && !focusModeActive && focusModeTransition !== 'content-leaving'}}
 								<div class="gp_map-block_test-output_results-preview-action">
 									<button type="button"
-										class="gp_map-block_test-output_results-preview-action_button"
+										class="gp_map-block_test-output_results-preview-action_button gp_focus-mode-toggle"
 										on-click="@this.openFocusMode(@event)">
 										<i class="fa fa-expand" aria-hidden="true"></i>
 										View all results
@@ -2875,12 +2869,12 @@
 			app.router.replaceQueryParam('view', null, this);
 			this.set('focusModeTransition', 'content-leaving');
 
-			if (restoreFocus) {
-				this.focusFocusModeToggleButton();
-			}
-
 			this.set('focusModeTransitionTimeout', setTimeout(() => {
 				this.set('focusModeTransition', 'prompt-entering');
+
+				if (restoreFocus) {
+					this.focusFocusModeToggleButton();
+				}
 
 				this.set('focusModeTransitionTimeout', setTimeout(() => {
 					this.set('focusModeTransition', null);
@@ -2940,7 +2934,7 @@
 
 				let focusToggleSelector = this.get('focusModeActive')
 					? '.gp_map-block_focus-bar_return'
-					: '.gp_map-block_header_focus-toggle_open';
+					: '.gp_focus-mode-toggle';
 
 				this.focusWithoutScroll(this.find(focusToggleSelector));
 			});

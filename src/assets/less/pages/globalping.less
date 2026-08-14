@@ -507,13 +507,10 @@
 					border-radius: 8px 8px 0 0;
 				}
 
-				&_dots, &_actions {
+				&_dots {
 					display: flex;
 					align-items: center;
 					flex: 1 1 0;
-				}
-
-				&_dots {
 					column-gap: 9px;
 
 					> span {
@@ -525,8 +522,18 @@
 					}
 				}
 
-				&_actions {
-					justify-content: flex-end;
+				&_measurement-date {
+					display: flex;
+					align-items: center;
+					gap: 6px;
+					color: #79849a;
+					font-size: 11px;
+					line-height: 14px;
+					white-space: nowrap;
+
+					@media (min-width: @screen-sm-min) {
+						margin-right: 10.5px;
+					}
 				}
 
 				&_focus-toggle {
@@ -549,12 +556,6 @@
 					&:focus-visible {
 						outline: none;
 						box-shadow: 0 2px 2px rgba(0, 0, 0, .04), 0 0 0 1px #fff, 0 0 0 4px rgba(23, 212, 167, .48);
-					}
-
-					&_open {
-						@media (min-width: @screen-sm-min) {
-							margin-right: 10.5px;
-						}
 					}
 				}
 
@@ -1223,6 +1224,11 @@
 						background: linear-gradient(to top, #fff 0, #ffffffb3 55%, #fff6 100%);
 						z-index: 2;
 						pointer-events: none;
+
+						@media (min-width: @screen-sm-min) {
+							top: 50px;
+							height: calc(100% - 50px);
+						}
 
 						&_button {
 							display: flex;
