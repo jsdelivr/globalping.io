@@ -89,7 +89,7 @@
 					</a>
 				</div>
 
-				<c-gp-video-modal view="{{view}}"></c-gp-video-modal>
+				<c-gp-video-modal view="{{view}}" measurement="{{measurement}}"></c-gp-video-modal>
 			</div>
 		</div>
 
@@ -1727,7 +1727,6 @@
 	const DEFAULT_SORT_BY = 'location';
 	const DEFAULT_SORT_ORDER = 'asc';
 	const SORT_ORDER_OPTS = [ 'asc', 'desc' ];
-	const FOCUS_MODE_VIEW = 'measurement';
 	const FOCUS_MODE_CONTENT_SWAP_MS = 150;
 	const FOCUS_MODE_RESULTS_EXPAND_MS = 420;
 	const FOCUS_MODE_CONTENT_EXIT_MS = 180;
@@ -2021,7 +2020,7 @@
 				);
 			},
 			focusModeActive () {
-				return this.get('focusModeSupported') && this.get('view') === FOCUS_MODE_VIEW;
+				return this.get('focusModeSupported') && !this.get('view') && this.get('focusModeAvailable');
 			},
 			focusModeSupported () {
 				return this.get('screenWidth') >= 768;
@@ -2092,9 +2091,14 @@
 				// check if ids are present in query string
 				// if so - it is a share-results-flow
 				let measurement = this.get('measurement');
+				let view = this.get('view');
 				let qsMeasurementIdsArr = [];
 				let isInfiniteMeas = false;
 				let isMultiEpMeas = false;
+
+				if (view === 'measurement' || (!measurement && view === 'home')) {
+					app.router.replaceQueryParam('view', null, this);
+				}
 
 				// A separator for IDs for regular link is a comma, for infinite one - plus sign
 				if (measurement && measurement.includes(',')) {
@@ -2189,13 +2193,6 @@
 								this.set('showMeasurementLoadingInfo', true);
 							}
 						}, 300);
-					}
-				});
-
-				this.observe('screenWidth', (screenWidth) => {
-					if (screenWidth < 768 && this.get('view') === FOCUS_MODE_VIEW) {
-						this.clearFocusModeTransition();
-						app.router.replaceQueryParam('view', null, this);
 					}
 				});
 
@@ -2842,7 +2839,7 @@
 
 			this.clearFocusModeTransition();
 			this.set('focusModeTransition', 'opening');
-			app.router.replaceQueryParam('view', FOCUS_MODE_VIEW, this);
+			app.router.replaceQueryParam('view', null, this);
 
 			if (this.get('pendingResultId') === null) {
 				this.scrollFocusModeRootAfterRender();
@@ -2866,7 +2863,7 @@
 			this.set('pendingResultId', null);
 
 			this.clearFocusModeTransition();
-			app.router.replaceQueryParam('view', null, this);
+			app.router.replaceQueryParam('view', 'home', this);
 			this.set('focusModeTransition', 'content-leaving');
 
 			this.set('focusModeTransitionTimeout', setTimeout(() => {
@@ -3040,7 +3037,7 @@
 			this.set('showingNetworkLogos', false);
 			this.set('activeTestRunId', testRunId);
 			this.clearFocusModeTransition();
-			app.router.replaceQueryParam('view', this.get('focusModeSupported') ? FOCUS_MODE_VIEW : null, this);
+			app.router.replaceQueryParam('view', null, this);
 
 			if (this.get('focusModeSupported')) {
 				this.scrollFocusModeRootAfterRender();
