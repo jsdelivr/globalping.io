@@ -31,6 +31,10 @@
 	{{#if shareResMsg}}
 		<div class="c-gp-results-share_warning">{{shareResMsg}}</div>
 	{{/if}}
+
+	{{#if showLogoDevAttribution}}
+		<a class="c-gp-results-share_logo-dev" href="https://logo.dev" target="_blank" rel="noopener noreferrer">Network logos provided by Logo.dev</a>
+	{{/if}}
 </div>
 
 
@@ -51,6 +55,7 @@
 				measurementLink: '',
 				cliCommand: '',
 				showMarkdownResults: false,
+				showLogoDevAttribution: false,
 			};
 		},
 		onrender () {

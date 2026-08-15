@@ -397,7 +397,7 @@
 					box-shadow: 0 28px 90px rgba(0, 0, 0, .22), 0 0 0 1px rgba(255, 255, 255, .42);
 				}
 
-				.c-gp-credits, .c-gp-credits-message, .gp_map-block_logo-dev-link {
+				.c-gp-credits, .c-gp-credits-message {
 					animation: gp-focus-details-enter .42s cubic-bezier(.16, 1, .3, 1) both;
 				}
 
@@ -1404,25 +1404,6 @@
 
 				&_raw-output, &_table-output {
 					width: 100%;
-				}
-			}
-
-			&_logo-dev-link {
-				position: absolute;
-				bottom: -21px;
-				right: 34px;
-				font-size: 10.5px;
-				color: #79849a;
-				transition: color 100ms ease-in-out;
-
-				&:hover {
-					color: #17233a;
-				}
-
-				@media (max-width: @screen-xs-max) {
-					position: static;
-					align-self: flex-end;
-					margin: 8px 12px 0;
 				}
 			}
 

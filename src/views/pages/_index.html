@@ -812,7 +812,8 @@
 										isInfiniteModeRes="{{isInfiniteModeRes}}"
 										testInProgress="{{testInProgress}}"
 										preparedTestResults="{{preparedTestResults}}"
-										activeTargetIdx="{{activeTargetIdx}}">
+										activeTargetIdx="{{activeTargetIdx}}"
+										showLogoDevAttribution="{{rawOutputMode && showingNetworkLogos}}">
 									</c-gp-results-share>
 								{{/if}}
 							</div>
@@ -863,9 +864,6 @@
 					{{/if}}
 				{{/if}}
 			</div>
-			{{#if rawOutputMode && showingNetworkLogos && (focusModeActive || !focusModeAvailable)}}
-				<a class="gp_map-block_logo-dev-link" href="https://logo.dev" target="_blank" rel="noopener noreferrer">Network logos provided by Logo.dev</a>
-			{{/if}}
 		</div>
 
 		<div class="gp_details">
