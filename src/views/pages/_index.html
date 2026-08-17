@@ -4028,6 +4028,24 @@
 
 			let dnsTraceEnabled = this.get('testReqParams.measurementOptions.trace');
 			let getLastHop = result => result.hops?.[result.hops.length - 1];
+			let getLastRespondingHop = result => [ ...result.hops || [] ].reverse().find(hop => hop?.resolvedAddress);
+			let getContentLength = (headers) => {
+				let rawValues = Object.entries(headers || {})
+					.filter(([ name ]) => name.toLowerCase() === 'content-length')
+					.flatMap(([ , value ]) => Array.isArray(value) ? value : [ value ])
+					.flatMap(value => typeof value === 'string' ? value.split(',') : [])
+					.map(value => value.trim());
+
+				if (!rawValues.length || rawValues.some(value => !/^\d+$/.test(value))) {
+					return null;
+				}
+
+				let parsedValues = rawValues.map(Number);
+
+				return parsedValues.every(value => Number.isSafeInteger(value) && value >= 0 && value === parsedValues[0])
+					? parsedValues[0]
+					: null;
+			};
 			let getLastHopRtts = (result) => {
 				let lastHop = getLastHop(result);
 				let timings = lastHop?.timings || [];
@@ -4048,7 +4066,12 @@
 			};
 
 			let parseTargetStats = (res) => {
-				let baseStat = { target: res.target };
+				let baseStat = {
+					target: res.target,
+					targetStatus: res.status,
+					resultStatus: res.result.status,
+					failureSource: res.result.failureSource,
+				};
 
 				if (res.result.status === 'in-progress') {
 					return baseStat;
@@ -4056,23 +4079,59 @@
 
 				let testType = res.type.toLowerCase();
 				let lastHop = getLastHop(res.result);
+				let lastRespondingHop = getLastRespondingHop(res.result);
 				let breakdownValues = {};
 
 				if (testType === 'dns') {
 					let dnsResult = dnsTraceEnabled ? lastHop || res.result : res.result;
+					let hasAnswers = Array.isArray(dnsResult.answers);
+					let hasTotal = typeof dnsResult.timings?.total === 'number' && Number.isFinite(dnsResult.timings.total);
+					let hasStatus = Number.isInteger(dnsResult.statusCode)
+						|| Boolean(typeof dnsResult.statusCodeName === 'string' && dnsResult.statusCodeName.trim());
+
+					breakdownValues.dnsComplete = res.result.status === 'finished'
+						&& hasAnswers
+						&& hasTotal
+						&& (dnsTraceEnabled ? Boolean(typeof dnsResult.resolver === 'string' && dnsResult.resolver.trim()) : hasStatus);
 
 					breakdownValues.dnsAnswers = dnsResult.answers?.length ?? 0;
-					breakdownValues.dnsStatus = dnsResult.statusCodeName ?? dnsResult.statusCode;
+					breakdownValues.dnsStatus = dnsTraceEnabled ? null : dnsResult.statusCodeName ?? dnsResult.statusCode;
+					breakdownValues.dnsTotal = hasTotal ? dnsResult.timings.total : null;
 				} else if (testType === 'http') {
-					let { statusCode, statusCodeName } = res.result;
-					let hasStatusCode = statusCode !== null && typeof statusCode !== 'undefined' && statusCode !== '';
-					let hasStatusName = statusCodeName !== null && typeof statusCodeName !== 'undefined' && statusCodeName !== '';
-
 					breakdownValues.httpTotal = res.result.timings?.total;
+					breakdownValues.httpStatus = Number.isInteger(res.result.statusCode) ? res.result.statusCode : null;
 
-					breakdownValues.httpStatus = hasStatusCode && hasStatusName
-						? `${statusCode} ${statusCodeName}`
-						: hasStatusCode ? statusCode : hasStatusName ? statusCodeName : null;
+					breakdownValues.httpStatusDisplay = Number.isInteger(res.result.statusCode) && res.result.statusCodeName
+						? `${res.result.statusCode} ${res.result.statusCodeName}`
+						: breakdownValues.httpStatus;
+
+					breakdownValues.contentLength = getContentLength(res.result.headers);
+				}
+
+				if ([ 'traceroute', 'mtr' ].includes(testType)) {
+					let destinationReached = res.result.status === 'finished'
+						&& typeof res.result.resolvedAddress === 'string'
+						&& lastRespondingHop?.resolvedAddress === res.result.resolvedAddress;
+
+					breakdownValues.destinationReached = destinationReached;
+					breakdownValues.destinationAvg = null;
+					breakdownValues.destinationLoss = null;
+
+					if (destinationReached && testType === 'traceroute') {
+						let destinationRtts = (lastRespondingHop.timings || [])
+							.map(timing => timing?.rtt)
+							.filter(timing => typeof timing === 'number' && Number.isFinite(timing));
+
+						breakdownValues.destinationAvg = destinationRtts.length
+							? destinationRtts.reduce((sum, timing) => sum + timing, 0) / destinationRtts.length
+							: null;
+					} else if (destinationReached) {
+						breakdownValues.destinationAvg = typeof lastRespondingHop.stats?.avg === 'number'
+							&& Number.isFinite(lastRespondingHop.stats.avg) ? lastRespondingHop.stats.avg : null;
+
+						breakdownValues.destinationLoss = typeof lastRespondingHop.stats?.loss === 'number'
+							&& Number.isFinite(lastRespondingHop.stats.loss) ? lastRespondingHop.stats.loss : null;
+					}
 				}
 
 				let {

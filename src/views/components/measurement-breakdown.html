@@ -1,10 +1,16 @@
 {{#if comparisons.length}}
 	<div class="c-measurement-breakdown">
 		<div class="c-measurement-breakdown_header">
-			<span id="measurement-breakdown-title">Location breakdown</span>
+			<span id="measurement-breakdown-title">{{breakdownTitle}}</span>
+			{{#if comparisonLabel}}
+				<span class="c-measurement-breakdown_comparison-label">{{comparisonLabel}}</span>
+			{{/if}}
+			{{#if offlineMessage}}
+				<span class="c-measurement-breakdown_offline-message">{{offlineMessage}}</span>
+			{{/if}}
 		</div>
 
-		<div class="c-measurement-breakdown_targets" role="region" aria-label="Location breakdown by target" tabindex="0">
+		<div class="c-measurement-breakdown_targets" role="region" aria-label="{{breakdownTitle}} by target" tabindex="0">
 			{{#each comparisons}}
 				<div
 					class="c-measurement-breakdown_comparison"
@@ -35,7 +41,15 @@
 						<div class="c-measurement-breakdown_metric-row" role="row">
 							{{#each this.cells}}
 								<div class="c-measurement-breakdown_metric" role="cell">
-									<span class="c-measurement-breakdown_metric_label">{{this.label}}</span>
+									<span class="c-measurement-breakdown_metric_label">
+										{{#if this.isNotable}}
+											<span class="c-measurement-breakdown_notable-icon">
+												<i class="fa fa-asterisk" aria-hidden="true"></i>
+												<span class="sr-only">Notable difference:</span>
+											</span>
+										{{/if}}
+										{{this.label}}
+									</span>
 									{{#if this.items.length}}
 										<span class="c-measurement-breakdown_metric_items">
 											{{#each this.items}}
@@ -52,6 +66,13 @@
 				</div>
 			{{/each}}
 		</div>
+
+		{{#if inferredBreakdown}}
+			<div class="c-measurement-breakdown_notable-explanation">
+				<i class="fa fa-asterisk" aria-hidden="true"></i>
+				<span>Notable difference</span>
+			</div>
+		{{/if}}
 	</div>
 {{/if}}
 
@@ -60,6 +81,7 @@
 	const continents = require('../../assets/json/continents.json');
 	const states = require('../../assets/json/usa-states.json');
 	const _ = require('../../assets/js/_');
+	const measurementBreakdownInference = require('../../assets/js/utils/measurement-breakdown-inference');
 
 	const COUNTRIES_BY_CODE = Object.fromEntries(countries.map(country => [ country.code, country.name ]));
 	const CONTINENTS_BY_CODE = Object.fromEntries(continents.map(continent => [ continent.code, continent.name ]));
@@ -67,6 +89,12 @@
 	const LOCATION_FIELDS = [ 'continent', 'region', 'country', 'state', 'city', 'asn', 'network', 'tags' ];
 	const escapePattern = string => string.replace(/[\\^$.*+?()[\]{}|]/g, '\\$&');
 	const normalizeValue = value => String(value ?? '').trim().toLowerCase();
+	const {
+		getMetricDefinitions,
+		getMetricValue,
+		getStableProbeEntries,
+		inferMeasurementBreakdown,
+	} = measurementBreakdownInference;
 
 	const getProbeValues = (probe) => {
 		let countryCode = String(probe.country || '').toUpperCase();
@@ -194,6 +222,91 @@
 		}).join(' \u00b7 ') || 'All locations';
 	};
 
+	const buildInferredLocationBreakdown = ({ decision, preparedTestResults, targets, testType }) => {
+		if (!decision) {
+			return [];
+		}
+
+		let entriesByKey = new Map(getStableProbeEntries(preparedTestResults).map(entry => [ entry.key, entry.result ]));
+		let observedTargetCount = Math.max(0, ...preparedTestResults.map(result => result.statsPerTarget?.length || 0));
+		let targetCount = Math.max(targets.length, observedTargetCount);
+		let formatNumber = value => Math.round(value * 10) / 10;
+		let numericValues = values => values.filter(value => typeof value === 'number' && Number.isFinite(value));
+		let aggregateValues = (values, units) => {
+			values = numericValues(values).sort((a, b) => a - b);
+
+			if (!values.length) {
+				return '\u2014';
+			}
+
+			let average = values.reduce((sum, value) => sum + value, 0) / values.length;
+
+			return `${formatNumber(values[0])} / ${formatNumber(average)} / ${formatNumber(values[values.length - 1])}${units}`;
+		};
+		let countValues = (values, metric) => {
+			let counts = values.reduce((result, value) => {
+				if (value !== null && typeof value !== 'undefined' && value !== '') {
+					result[value] = (result[value] || 0) + 1;
+				}
+
+				return result;
+			}, {});
+
+			return Object.entries(counts)
+				.sort((a, b) => b[1] - a[1]
+					|| (metric.numericCategory && Number(a[0]) - Number(b[0]))
+					|| String(a[0]).localeCompare(String(b[0])))
+				.map(([ label, count ]) => {
+					let isProblem = metric.key === 'outcome' ? label !== 'Success'
+						: metric.key === 'dnsStatus' ? String(label).toUpperCase() !== 'NOERROR' && Number(label) !== 0
+							: metric.key === 'httpStatus' && Number(label) >= 400;
+
+					return { label, count, isProblem };
+				});
+		};
+
+		return decision.groups.map((decisionGroup) => {
+			let results = decisionGroup.probeKeys.map(key => entriesByKey.get(key)).filter(Boolean);
+			let groupTargets = [];
+
+			for (let targetIndex = 0; targetIndex < targetCount; targetIndex++) {
+				let targetStats = results.map(result => result.statsPerTarget?.[targetIndex]).filter(Boolean);
+				let metrics = getMetricDefinitions(testType).map((metric) => {
+					let values = targetStats.map(stats => getMetricValue(testType, metric, stats));
+					let isNotable = targetIndex === decision.supportingTargetIndex && metric.key === decision.supportingMetric.key;
+
+					if (metric.kind === 'categorical') {
+						return {
+							key: metric.key,
+							label: metric.label,
+							value: '\u2014',
+							items: countValues(values, metric),
+							isNotable,
+						};
+					}
+
+					return {
+						key: metric.key,
+						label: metric.label,
+						value: aggregateValues(values, metric.units),
+						isNotable,
+					};
+				});
+
+				groupTargets.push({
+					target: targets[targetIndex] || targetStats[0]?.target || `Target ${targetIndex + 1}`,
+					metrics,
+				});
+			}
+
+			return {
+				location: decisionGroup.label,
+				probeCount: decisionGroup.probeCount,
+				targets: groupTargets,
+			};
+		});
+	};
+
 	component.exports = {
 		data () {
 			return {
@@ -204,12 +317,41 @@
 			};
 		},
 		computed: {
+			inferredBreakdown () {
+				return inferMeasurementBreakdown({
+					locations: this.get('locations'),
+					preparedTestResults: this.get('preparedTestResults'),
+					targets: this.get('targets'),
+					testType: this.get('testType')?.toLowerCase(),
+				});
+			},
+			breakdownTitle () {
+				return this.get('inferredBreakdown')?.title || 'Location breakdown';
+			},
+			comparisonLabel () {
+				return this.get('inferredBreakdown')?.comparisonLabel;
+			},
+			offlineMessage () {
+				let offlineCount = this.get('inferredBreakdown')?.offlineCount || 0;
+
+				return offlineCount ? `${offlineCount} offline probe${offlineCount === 1 ? '' : 's'} excluded` : '';
+			},
 			locationBreakdown () {
 				let preparedTestResults = this.get('preparedTestResults') || [];
 				let targetsArr = this.get('targets') || [];
 				let testType = this.get('testType')?.toLowerCase();
 				let requestedLocations = this.get('locations');
 				requestedLocations = Array.isArray(requestedLocations) ? requestedLocations : [];
+
+				if (requestedLocations.length === 1) {
+					return buildInferredLocationBreakdown({
+						decision: this.get('inferredBreakdown'),
+						preparedTestResults,
+						targets: targetsArr,
+						testType,
+					});
+				}
+
 				requestedLocations = requestedLocations.filter(location => normalizeValue(location.magic) !== 'world');
 
 				if (!preparedTestResults.length || !testType || requestedLocations.length <= 1) {
@@ -317,7 +459,7 @@
 								label: 'HTTP status',
 								value: '\u2014',
 								items: countValues(
-									targetStats.map(stats => stats.breakdownValues?.httpStatus),
+									targetStats.map(stats => stats.breakdownValues?.httpStatusDisplay ?? stats.breakdownValues?.httpStatus),
 									status => Number.parseInt(status, 10) >= 400,
 								),
 							}, {

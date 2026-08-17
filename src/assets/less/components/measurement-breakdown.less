@@ -13,14 +13,33 @@
 	&_header {
 		display: flex;
 		align-items: center;
+		gap: 10px;
+		min-width: 0;
+		max-width: 100%;
 		margin-bottom: 10px;
 		color: #17233a;
 
-		> span {
+		@media (max-width: @screen-xs-max) {
+			flex-wrap: wrap;
+		}
+
+		> #measurement-breakdown-title {
 			font-size: 16px;
 			font-weight: 600;
 			line-height: 22px;
+			white-space: nowrap;
 		}
+	}
+
+	&_comparison-label, &_offline-message {
+		color: #6b7588;
+		font-size: 12px;
+		font-weight: 400;
+		white-space: nowrap;
+	}
+
+	&_offline-message {
+		margin-left: auto;
 	}
 
 	&_targets {
@@ -158,6 +177,29 @@
 				content: "\00b7";
 				font-weight: 400;
 			}
+		}
+	}
+
+	&_notable-icon {
+		margin-right: 3px;
+		color: #078569;
+		font-size: 8px;
+		vertical-align: 1px;
+	}
+
+	&_notable-explanation {
+		display: flex;
+		align-items: center;
+		justify-content: end;
+		gap: 4px;
+		margin-top: 5px;
+		color: #6b7588;
+		font-size: 10px;
+		line-height: 14px;
+
+		.fa {
+			color: #078569;
+			font-size: 8px;
 		}
 	}
 }
