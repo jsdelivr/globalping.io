@@ -103,11 +103,7 @@
 					<div class="c-gp-results-raw-output_list_item_header_metrics-controls">
 						{{#if this.statsPerTarget[activeTargetIdx].isInProgress && !this.statsPerTarget[activeTargetIdx].rawOutput}}
 							{{#if isTestStopped}}
-								<div class="c-gp-results-raw-output_list_item_header_metrics-controls_metrics">
-									<span class="c-gp-results-raw-output_list_item_header_metrics-controls_metric">
-										<strong>Stopped</strong>
-									</span>
-								</div>
+								<span class="c-gp-results-raw-output_list_item_header_metrics-controls_stopped">Stopped</span>
 							{{else}}
 								<c-dot-loader></c-dot-loader>
 							{{/if}}
