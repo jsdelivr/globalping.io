@@ -3,7 +3,7 @@
 <div class="c-gp-results-table-output">
 	<div class="results-table-wrapper" on-scroll="@this.hideSetLocationButton(@event)">
 		<table
-			class="results-table {{#if targetsCnt === 1}}single-target{{/if}}"
+			class="results-table {{#if targetsCnt === 1}}single-target{{/if}} {{#if testType === 'dns'}}dns-results{{/if}}"
 			style="grid-template-columns: minmax(0, 300px) minmax(120px, 1fr) repeat({{tableColumns.length}}, auto);"
 		>
 			<thead class="results-table_header">
@@ -164,6 +164,21 @@
 
 												{{#if target.tableCells[columnIdx].showDesktopUnits}}
 													<span class="lg-screen-units">ms</span>
+												{{/if}}
+											{{elseif column.type === 'dns-answers'}}
+												{{#if target.tableCells[columnIdx].hasValue}}
+													<span class="answers-list">
+														{{#each target.tableCells[columnIdx].value as answer}}
+															<span class="answers-list_row">
+																<span class="answers-list_type">{{answer.type}}</span>
+																<span class="answers-list_value">{{answer.value}}</span>
+															</span>
+														{{/each}}
+													</span>
+												{{elseif testInProgress}}
+													<c-placeholder-skeleton type="base"></c-placeholder-skeleton>
+												{{else}}
+													<span>&mdash;</span>
 												{{/if}}
 											{{elseif column.type === 'ip'}}
 												{{#if target.tableCells[columnIdx].hasValue}}

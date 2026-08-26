@@ -93,6 +93,25 @@
 			}
 		}
 
+		&.dns-results {
+			@media (min-width: @screen-lg-min) {
+				.results-table_header_cell.answers,
+				.results-table_row_stats_subrow_cell.answers {
+					min-width: 360px;
+					padding-left: 24px;
+				}
+			}
+
+			.results-table_row_stats_subrow_cell {
+				@media (min-width: @screen-lg-min) {
+					height: auto;
+					min-height: 44px;
+					padding-top: 12px;
+					padding-bottom: 12px;
+				}
+			}
+		}
+
 		&:not(.single-target) {
 			@media (min-width: @screen-lg-min) {
 				display: grid;
@@ -600,6 +619,33 @@
 					&.total {
 						> .cell-value {
 							min-width: 48px;
+						}
+					}
+
+					&.answers {
+						.answers-list {
+							display: flex;
+							flex-direction: column;
+							width: 100%;
+							min-width: 0;
+							font-family: "Source Code Pro", monospace;
+							font-size: 12px;
+							line-height: 18px;
+							text-align: left;
+
+							&_row {
+								display: grid;
+								grid-template-columns: 6ch minmax(0, 1fr);
+								column-gap: 8px;
+							}
+
+							&_type {
+								text-align: right;
+							}
+
+							&_value {
+								white-space: nowrap;
+							}
 						}
 					}
 

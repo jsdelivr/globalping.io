@@ -4168,7 +4168,7 @@
 			} else if (lowCaseTestName === 'dns') {
 				tableColumns = [
 					...dnsTraceEnabled ? [] : [{ key: 'dns-status', label: 'Status', className: 'status' }],
-					{ key: 'answers', label: 'Answers', className: 'answers' },
+					{ key: 'answers', type: 'dns-answers', label: 'Answers', className: 'answers' },
 					{ key: 'total', label: 'Time', className: 'total' },
 					{ key: 'resolver', label: 'Resolver', className: 'resolver', sortable: false },
 				];
@@ -4409,12 +4409,12 @@
 			} else if (lowCaseTestName === 'dns') {
 				let dnsResult = dnsTraceEnabled ? this.getLastHop(res.result) || res.result : res.result;
 				let statusText = dnsResult.statusCodeName ?? dnsResult.statusCode;
-				let answers = dnsResult.answers?.length ?? 0;
+				let answers = dnsResult.answers || [];
 				let total = dnsResult.timings?.total;
 				let resolver = dnsResult.resolver;
 
 				sortValues['dns-status'] = typeof dnsResult.statusCode === 'number' ? dnsResult.statusCode : statusText;
-				sortValues.answers = answers;
+				sortValues.answers = answers.length;
 				sortValues.total = total;
 
 				tableCells = tableColumns.map((column) => {
@@ -4423,7 +4423,13 @@
 					}
 
 					if (column.key === 'answers') {
-						return this.createMetricTableCell(answers);
+						return {
+							value: answers.map(answer => ({
+								type: answer.type,
+								value: answer.value,
+							})),
+							hasValue: answers.length > 0,
+						};
 					}
 
 					if (column.key === 'total') {
