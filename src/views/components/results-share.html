@@ -74,7 +74,7 @@
 					this.createCliCommand();
 				});
 
-				this.observe('preparedTestResults testReqParams measurementsMetadata measurementLink realTimeTestResResponse isInfiniteMeasStopped testInProgress expectedTargetsCnt', () => {
+				this.observe('preparedTestResults testReqParams measurementsMetadata measurementLink realTimeTestResResponse isTestStopped testInProgress expectedTargetsCnt', () => {
 					this.createMarkdownResults();
 				});
 			}
@@ -247,7 +247,7 @@
 				return false;
 			}
 
-			if (isInfiniteModeRes && this.get('isInfiniteMeasStopped')) {
+			if (isInfiniteModeRes && this.get('isTestStopped')) {
 				return true;
 			}
 
