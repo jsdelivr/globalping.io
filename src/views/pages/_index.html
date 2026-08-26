@@ -713,6 +713,7 @@
 								hiddenTestResults="{{hiddenTestResults}}"
 								hiddenResponseBodies="{{hiddenResponseBodies}}"
 								testInProgress="{{testInProgress}}"
+								isTestStopped="{{isTestStopped}}"
 								scrolledToResId="{{scrolledToResId}}"
 								currSearchLocation="{{mainOptions.location}}"
 								measurementsMetadata="{{measurementsMetadata}}"
@@ -772,7 +773,7 @@
 					realTimeTestResResponse="{{realTimeTestResResponse}}"
 					expectedTargetsCnt="{{targetsArr.length || qsMeasurementIdsArr.length}}"
 					isInfiniteModeRes="{{isInfiniteModeRes}}"
-					isInfiniteMeasStopped="{{isInfiniteMeasStopped}}"
+					isTestStopped="{{isTestStopped}}"
 					testInProgress="{{testInProgress}}"
 					preparedTestResults="{{preparedTestResults}}"
 					activeTargetIdx="{{activeTargetIdx}}">
@@ -1797,7 +1798,7 @@
 				qsMeasurementIdsArr: [],
 				showCreditsErrorBar: false,
 				infiniteMeasIds: [],
-				isInfiniteMeasStopped: false,
+				isTestStopped: false,
 				isInfiniteModeRes: false,
 				prevProbesMeasId: null,
 				preparedTestResults: [],
@@ -2352,6 +2353,7 @@
 								lng: res.probe.longitude,
 								targets: [ res.target ],
 								failureSources: [ res.result.failureSource ],
+								isInProgress: [ res.result.status === 'in-progress' ],
 							};
 
 							if (infiniteSwitchEnabled) {
@@ -2445,6 +2447,7 @@
 									errorCodes: [ ...mD.errorCodes, ...secReqMD.errorCodes ],
 									targets: [ ...mD.targets, ...secReqMD.targets ],
 									failureSources: [ ...mD.failureSources, ...secReqMD.failureSources ],
+									isInProgress: [ ...mD.isInProgress, ...secReqMD.isInProgress ],
 								};
 							});
 						}
@@ -2628,7 +2631,14 @@
 			this.get('testReqCancelFn')?.forEach(cancel => cancel?.());
 			this.set('testReqCancelFn', []);
 			this.set('testInProgress', false);
-			this.set('isInfiniteMeasStopped', true);
+			this.set('isTestStopped', true);
+
+			this.get('markersData')?.forEach((markerData) => {
+				let markerIdx = markerData.clientSideId;
+
+				infoWindows[markerIdx]?.setContent(this.createInfoWindowContent(markerData, markerIdx));
+			});
+
 			this.set('runTestBtnText', 'Run Again');
 			this.enableRunTestBtn();
 		},
@@ -2721,7 +2731,7 @@
 			this.set('measurementsMetadata', null);
 			this.set('showCreditsErrorBar', false);
 			this.set('infiniteMeasIds', []);
-			this.set('isInfiniteMeasStopped', false);
+			this.set('isTestStopped', false);
 			this.set('showCreditsData', true);
 			this.set('prevProbesMeasId', null);
 			this.set('preparedTestResults', []);
@@ -3347,10 +3357,10 @@
 							}
 						}
 
-						let isInfiniteMeasStopped = this.get('isInfiniteMeasStopped');
+						let isTestStopped = this.get('isTestStopped');
 
 						// check if infinite measurement was stopped
-						if (isInfiniteMeas && isInfiniteMeasStopped) {
+						if (isInfiniteMeas && isTestStopped) {
 							cancel();
 							resolve();
 						}
@@ -3405,7 +3415,7 @@
 							if (!infiniteMeasIds.includes(testRes.id)) {
 								this.set('infiniteMeasIds', [ ...infiniteMeasIds, testRes.id ]);
 
-								if (!isInfiniteMeasStopped) {
+								if (!isTestStopped) {
 									this.postInfiniteGlobalpingMeasurement({
 										reqParams,
 										target: testRes.target,
@@ -4056,6 +4066,7 @@
 					markerData.timings[0],
 					markerData.errorCodes?.[0],
 					markerData.failureSources?.[0],
+					markerData.isInProgress?.[0],
 				)}</div>`;
 
 				infoWindowContent += `<div class="gp-map_popup_single_network">${markerData.network}</div>`;
@@ -4073,6 +4084,7 @@
 							markerData.timings[targetIdx],
 							markerData.errorCodes?.[targetIdx],
 							markerData.failureSources?.[targetIdx],
+							markerData.isInProgress?.[targetIdx],
 						)}</span>`;
 
 					infoWindowContent += '</div>';
@@ -4088,7 +4100,11 @@
 
 			return infoWindowContent;
 		},
-		getMarkerTimingText (timing, errorCode, failureSource) {
+		getMarkerTimingText (timing, errorCode, failureSource, isInProgress) {
+			if (this.get('isTestStopped') && isInProgress && !timing) {
+				return 'Stopped';
+			}
+
 			if (timing === PROBE_STATUS_FAILED) {
 				return _.getGpFailureStatusText(failureSource);
 			}

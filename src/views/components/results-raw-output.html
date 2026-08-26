@@ -102,7 +102,11 @@
 
 					<div class="c-gp-results-raw-output_list_item_header_metrics-controls">
 						{{#if this.statsPerTarget[activeTargetIdx].isInProgress && !this.statsPerTarget[activeTargetIdx].rawOutput}}
-							<c-dot-loader></c-dot-loader>
+							{{#if isTestStopped}}
+								<span class="c-gp-results-raw-output_list_item_header_metrics-controls_stopped">Stopped</span>
+							{{else}}
+								<c-dot-loader></c-dot-loader>
+							{{/if}}
 						{{else}}
 							<div class="c-gp-results-raw-output_list_item_header_metrics-controls_metrics">
 								{{#each @this.getHeaderPrimaryMetrics(this.statsPerTarget[activeTargetIdx].extraValues)}}
