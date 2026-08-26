@@ -77,6 +77,24 @@
 			.results-table_header_cell.location,
 			.results-table_row_location {
 				width: 100%;
+
+				@media (min-width: @screen-lg-min) {
+					max-width: 0;
+				}
+			}
+
+			.results-table_row_location_data {
+				@media (min-width: @screen-lg-min) {
+					min-width: 0;
+					overflow: hidden;
+				}
+
+				> span {
+					@media (min-width: @screen-lg-min) {
+						overflow: hidden;
+						text-overflow: ellipsis;
+					}
+				}
 			}
 
 			.results-table_row_location.results-table_status-line-host:before {
