@@ -70,6 +70,20 @@
 	}
 }
 
+@keyframes gp-focus-backdrop-enter {
+	from {
+		opacity: 0;
+		backdrop-filter: blur(0) contrast(1);
+	}
+}
+
+@keyframes gp-focus-backdrop-leave {
+	from {
+		opacity: 1;
+		backdrop-filter: blur(24px) contrast(.95);
+	}
+}
+
 .p-globalping {
 	font-family: Lexend, sans-serif;
 	font-style: normal;
@@ -339,22 +353,18 @@
 				z-index: 1040;
 				opacity: 0;
 				background: rgba(0, 0, 0, .2);
-				backdrop-filter: blur(0);
+				backdrop-filter: blur(0) contrast(1);
 				pointer-events: none;
-				transition:
-					opacity .42s ease,
-					backdrop-filter .42s ease;
 
 				&.active {
 					opacity: 1;
-					backdrop-filter: blur(8px);
+					backdrop-filter: blur(24px) contrast(.95);
 					pointer-events: auto;
+					animation: gp-focus-backdrop-enter .42s ease;
 				}
 
 				&_closing {
-					opacity: 0;
-					backdrop-filter: blur(0);
-					transition: none;
+					animation: gp-focus-backdrop-leave .18s ease-in;
 				}
 			}
 		}
