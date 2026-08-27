@@ -2003,7 +2003,6 @@
 				return this.get('focusModeSupported')
 					&& !this.get('measurementErrMsg')
 					&& !this.get('sharedMeasurementInitialLoading')
-					&& !this.get('isInfiniteMeasStopped')
 					&& (!testInProgress || localLoadingPreviewAvailable)
 					&& (hasTestResults || hasLoadingProbeResults)
 					&& (this.get('rawOutputMode') || this.get('tableOutputReady') || hasLoadingProbeResults);
@@ -2025,6 +2024,10 @@
 				return this.get('screenWidth') >= 768;
 			},
 			remainingLoadingProbeResults () {
+				if (this.get('isInfiniteMeasStopped')) {
+					return [];
+				}
+
 				let preparedResultIds = new Set((this.get('preparedTestResults') || []).map(result => result.clientSideId));
 
 				return (this.get('loadingProbeResults') || []).filter(result => !preparedResultIds.has(result.clientSideId));
