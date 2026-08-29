@@ -116,7 +116,7 @@
 				.results-table_header_cell.answers,
 				.results-table_row_stats_subrow_cell.answers {
 					min-width: 360px;
-					padding-left: 24px;
+					padding-left: 48px;
 				}
 			}
 
@@ -553,14 +553,20 @@
 					}
 
 					&.probe-failed, &.probe-offline {
+						justify-content: center;
 						column-gap: 8px;
+						padding-right: 16px;
+						padding-left: 16px;
 						font-size: 14px;
 						font-weight: 400;
 						line-height: 20px;
 						color: #17233a;
+						text-align: center;
 
 						@media (min-width: @screen-lg-min) {
 							width: auto;
+							padding-right: 24px;
+							padding-left: 24px;
 						}
 					}
 
@@ -600,24 +606,6 @@
 						}
 					}
 
-					&.is-sortable {
-						> .cell-value {
-							> span:last-child {
-								@media (min-width: @screen-lg-min) {
-									margin-right: 12px;
-								}
-							}
-
-							> .c-placeholder-skeleton {
-								@media (min-width: @screen-lg-min) {
-									width: calc(100% - 12px);
-									flex: 0 0 calc(100% - 12px);
-									margin-right: 12px;
-								}
-							}
-						}
-					}
-
 					&.status {
 						&.http-status {
 							> .cell-value > span:last-child {
@@ -642,8 +630,9 @@
 
 					&.answers {
 						.answers-list {
-							display: flex;
-							flex-direction: column;
+							display: grid;
+							grid-template-columns: minmax(0, 1fr) max-content max-content minmax(0, 1fr);
+							column-gap: 8px;
 							width: 100%;
 							min-width: 0;
 							font-family: "Source Code Pro", monospace;
@@ -652,17 +641,21 @@
 							text-align: left;
 
 							&_row {
-								display: grid;
-								grid-template-columns: 6ch minmax(0, 1fr);
-								column-gap: 8px;
+								display: contents;
 							}
 
-							&_type {
-								text-align: right;
-							}
-
-							&_value {
+							&_row > span {
 								white-space: nowrap;
+							}
+
+							&_name, &_value {
+								min-width: 0;
+								overflow: hidden;
+								text-overflow: ellipsis;
+							}
+
+							&_ttl {
+								text-align: right;
 							}
 						}
 					}
@@ -754,28 +747,6 @@
 							&.no-value {
 								@media (min-width: @screen-lg-min) {
 									width: auto;
-								}
-							}
-
-							&.is-sortable {
-								.timings_value {
-									@media (min-width: @screen-lg-min) {
-										margin-right: 12px;
-									}
-
-									&.timeout {
-										@media (min-width: @screen-lg-min) {
-											margin-right: -4px;
-										}
-									}
-								}
-
-								.c-placeholder-skeleton {
-									@media (min-width: @screen-lg-min) {
-										margin-right: 12px;
-										width: calc(100% - 12px);
-										flex: 0 0 calc(100% - 12px);
-									}
 								}
 							}
 

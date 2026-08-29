@@ -4425,6 +4425,8 @@
 					if (column.key === 'answers') {
 						return {
 							value: answers.map(answer => ({
+								name: answer.name,
+								ttl: answer.ttl,
 								type: answer.type,
 								value: answer.value,
 							})),
