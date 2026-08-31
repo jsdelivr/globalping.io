@@ -3,7 +3,7 @@ const screenType = {
 	mobile: 480,
 	tablet: 768,
 	mdDesktop: 992,
-	lgDesktop: 1200,
+	lgDesktop: 1272,
 	xlDesktop: 1400,
 };
 const PROBE_NO_TIMING_VALUE = 'time out';

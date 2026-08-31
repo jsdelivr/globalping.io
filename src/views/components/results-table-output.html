@@ -322,8 +322,9 @@
 					});
 				});
 
-				let useTargetWidths = this.get('screenWidth') && !Ractive.isServer
-					&& this.get('targetsCnt') > 1 && _.isTabletScreen();
+				let screenWidth = this.get('screenWidth');
+				let useTargetWidths = screenWidth >= _.screenType.tablet
+					&& screenWidth < _.screenType.lgDesktop && this.get('targetsCnt') > 1;
 
 				return useTargetWidths ? widthsByTarget : widthsByTarget.map(() => sharedWidths);
 			},
