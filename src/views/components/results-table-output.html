@@ -54,7 +54,7 @@
 			</thead>
 
 			{{#each preparedTestResults as result}}
-				<tbody class="results-table_row row-num-{{result.clientSideId}} item-id-{{result.clientSideId}}"
+				<tbody class="results-table_row row-num-{{result.clientSideId}} item-id-{{result.clientSideId}} {{#if @this.hasMultilineDnsAnswers(result)}}has-multiline-answers{{/if}}"
 					{{#if targetsCnt === 1}}
 						tabindex="0"
 						aria-label="Set as location for the next test"
@@ -176,7 +176,7 @@
 													<span class="answers-count">{{target.tableCells[columnIdx].value.length}}</span>
 													<span
 														class="answers-list"
-														style="grid-template-columns: minmax(0, {{dnsAnswerGridWidths.name}}ch) minmax(0, {{dnsAnswerGridWidths.ttl}}ch) minmax(0, {{dnsAnswerGridWidths.type}}ch) minmax(0, {{dnsAnswerGridWidths.value}}ch);">
+														style="grid-template-columns: minmax(0, {{dnsAnswerGridWidths[targetIdx].name}}ch) minmax(0, {{dnsAnswerGridWidths[targetIdx].ttl}}ch) minmax(0, {{dnsAnswerGridWidths[targetIdx].type}}ch) minmax(0, {{dnsAnswerGridWidths[targetIdx].value}}ch);">
 														{{#each target.tableCells[columnIdx].value as answer}}
 															<span class="answers-list_row">
 																<span class="answers-list_name">{{answer.name}}</span>
@@ -299,28 +299,40 @@
 			dnsAnswerGridWidths () {
 				let columns = this.get('tableColumns') || [];
 				let answersColumnIdx = columns.findIndex(column => column.type === 'dns-answers');
-				let widths = { name: 1, ttl: 1, type: 1, value: 1 };
+				let createWidths = () => ({ name: 1, ttl: 1, type: 1, value: 1 });
+				let sharedWidths = createWidths();
+				let widthsByTarget = Array.from({ length: this.get('targetsCnt') || 1 }, createWidths);
 
 				if (answersColumnIdx < 0) {
-					return widths;
+					return widthsByTarget;
 				}
 
 				(this.get('preparedTestResults') || []).forEach((result) => {
-					(result.statsPerTarget || []).forEach((target) => {
+					(result.statsPerTarget || []).forEach((target, targetIdx) => {
 						let answers = target.tableCells?.[answersColumnIdx]?.value || [];
 
 						answers.forEach((answer) => {
-							Object.keys(widths).forEach((key) => {
+							Object.keys(sharedWidths).forEach((key) => {
 								let length = String(answer[key] ?? '').length;
 
-								widths[key] = Math.min(Math.max(widths[key], length), DNS_ANSWER_COLUMN_WIDTH_LIMITS[key]);
+								sharedWidths[key] = Math.min(Math.max(sharedWidths[key], length), DNS_ANSWER_COLUMN_WIDTH_LIMITS[key]);
+								widthsByTarget[targetIdx][key] = Math.min(Math.max(widthsByTarget[targetIdx][key], length), DNS_ANSWER_COLUMN_WIDTH_LIMITS[key]);
 							});
 						});
 					});
 				});
 
-				return widths;
+				let useTargetWidths = this.get('screenWidth') && !Ractive.isServer
+					&& this.get('targetsCnt') > 1 && _.isTabletScreen();
+
+				return useTargetWidths ? widthsByTarget : widthsByTarget.map(() => sharedWidths);
 			},
+		},
+		hasMultilineDnsAnswers (result) {
+			let answersColumnIdx = (this.get('tableColumns') || []).findIndex(column => column.type === 'dns-answers');
+
+			return answersColumnIdx >= 0 && (result.statsPerTarget || [])
+				.some(target => (target.tableCells?.[answersColumnIdx]?.value?.length || 0) > 1);
 		},
 		onrender () {
 			if (!Ractive.isServer) {

@@ -442,6 +442,15 @@
 				}
 			}
 
+			&.has-multiline-answers {
+				.results-table_row_stats_subrow_cell.answers {
+					@media (min-width: @screen-sm-min) and (max-width: @screen-md-max) {
+						align-items: flex-start;
+						padding-top: 6px;
+					}
+				}
+			}
+
 			&:nth-last-child(1) {
 				.results-table_row_location,
 				.results-table_row_stats_subrow:last-child .results-table_row_stats_subrow_cell {
