@@ -589,34 +589,24 @@
 					return;
 				}
 
-				let getRenderedHeight = (element, childSelector) => {
-					let elementRect = element?.getBoundingClientRect();
+				let limit = Math.min(itemEls.length, 8);
+				let lastItemEl = itemEls[limit - 1];
+				let lastItemRect = lastItemEl.getBoundingClientRect();
+				let lastItemEnd = lastItemRect.bottom;
 
-					if (elementRect?.height) {
-						return elementRect.height;
-					}
-
-					let childEls = element?.querySelectorAll(childSelector) || [];
-					let childRects = [ ...childEls ]
-						.map(child => child.getBoundingClientRect())
+				// fallback for rows using display: contents
+				if (!lastItemRect.height) {
+					let renderedCellRects = [ ...lastItemEl.querySelectorAll('td') ]
+						.map(cell => cell.getBoundingClientRect())
 						.filter(rect => rect.height);
 
-					if (!childRects.length) {
-						return 0;
-					}
+					if (!renderedCellRects.length) { return; }
 
-					let top = Math.min(...childRects.map(rect => rect.top));
-					let bottom = Math.max(...childRects.map(rect => rect.bottom));
-
-					return bottom - top;
-				};
-				let headerEl = listWrapperEl.querySelector('.results-table_header');
-				let targetHeight = getRenderedHeight(headerEl, 'th');
-				let limit = Math.min(itemEls.length, 8);
-
-				for (let i = 0; i < limit; i++) {
-					targetHeight += getRenderedHeight(itemEls[i], 'td');
+					lastItemEnd = Math.max(...renderedCellRects.map(rect => rect.bottom));
 				}
+
+				let wrapperTop = listWrapperEl.getBoundingClientRect().top;
+				let targetHeight = lastItemEnd - wrapperTop + listWrapperEl.scrollTop;
 
 				listWrapperEl.style.height = `${Math.ceil(targetHeight)}px`;
 			});
