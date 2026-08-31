@@ -167,7 +167,10 @@
 												{{/if}}
 											{{elseif column.type === 'dns-answers'}}
 												{{#if target.tableCells[columnIdx].hasValue}}
-													<span class="answers-list">
+													<span class="answers-count">{{target.tableCells[columnIdx].value.length}}</span>
+													<span
+														class="answers-list"
+														style="grid-template-columns: minmax(0, {{dnsAnswerGridWidths.name}}ch) minmax(0, {{dnsAnswerGridWidths.ttl}}ch) minmax(0, {{dnsAnswerGridWidths.type}}ch) minmax(0, {{dnsAnswerGridWidths.value}}ch);">
 														{{#each target.tableCells[columnIdx].value as answer}}
 															<span class="answers-list_row">
 																<span class="answers-list_name">{{answer.name}}</span>
@@ -180,7 +183,8 @@
 												{{elseif testInProgress}}
 													<c-placeholder-skeleton type="base"></c-placeholder-skeleton>
 												{{else}}
-													<span>&mdash;</span>
+													<span class="answers-count">0</span>
+													<span class="answers-empty">&mdash;</span>
 												{{/if}}
 											{{elseif column.type === 'ip'}}
 												{{#if target.tableCells[columnIdx].hasValue}}
@@ -250,6 +254,7 @@
 	const PROBE_MIN_TIMING = 5;
 	const PROBE_NO_TIMING_VALUE = _.getProbeTimeOutValue();
 	const PROBE_OFFLINE_TEXT = 'Probe offline';
+	const DNS_ANSWER_COLUMN_WIDTH_LIMITS = { name: 36, ttl: 10, type: 10, value: 40 };
 
 	component.exports = {
 		decorators: {
@@ -285,6 +290,33 @@
 				itemFocused: false,
 				justFocusedItem: false,
 			};
+		},
+		computed: {
+			dnsAnswerGridWidths () {
+				let columns = this.get('tableColumns') || [];
+				let answersColumnIdx = columns.findIndex(column => column.type === 'dns-answers');
+				let widths = { name: 1, ttl: 1, type: 1, value: 1 };
+
+				if (answersColumnIdx < 0) {
+					return widths;
+				}
+
+				(this.get('preparedTestResults') || []).forEach((result) => {
+					(result.statsPerTarget || []).forEach((target) => {
+						let answers = target.tableCells?.[answersColumnIdx]?.value || [];
+
+						answers.forEach((answer) => {
+							Object.keys(widths).forEach((key) => {
+								let length = String(answer[key] ?? '').length;
+
+								widths[key] = Math.min(Math.max(widths[key], length), DNS_ANSWER_COLUMN_WIDTH_LIMITS[key]);
+							});
+						});
+					});
+				});
+
+				return widths;
+			},
 		},
 		onrender () {
 			if (!Ractive.isServer) {

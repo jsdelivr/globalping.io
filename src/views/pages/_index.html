@@ -4168,7 +4168,7 @@
 			} else if (lowCaseTestName === 'dns') {
 				tableColumns = [
 					...dnsTraceEnabled ? [] : [{ key: 'dns-status', label: 'Status', className: 'status' }],
-					{ key: 'answers', type: 'dns-answers', label: 'Answers', className: 'answers' },
+					{ key: 'answers', type: 'dns-answers', label: 'Answers', sortName: 'Answer count', className: 'answers' },
 					{ key: 'total', label: 'Time', className: 'total' },
 					{ key: 'resolver', label: 'Resolver', className: 'resolver', sortable: false },
 				];

@@ -112,11 +112,31 @@
 		}
 
 		&.dns-results {
-			@media (min-width: @screen-lg-min) {
-				.results-table_header_cell.answers,
-				.results-table_row_stats_subrow_cell.answers {
-					min-width: 360px;
-					padding-left: 48px;
+			@media (max-width: @screen-xs-max) {
+				&.single-target {
+					.results-table_row_stats_subrow_cell.answers {
+						margin-top: 8px;
+						order: 1;
+						width: 100%;
+
+						> .cell-value {
+							align-items: flex-start;
+							flex-direction: column;
+							justify-content: flex-start;
+							gap: 8px;
+						}
+					}
+				}
+
+				&:not(.single-target) {
+					.answers-count {
+						display: inline;
+					}
+
+					.answers-list,
+					.answers-empty {
+						display: none;
+					}
 				}
 			}
 
@@ -629,16 +649,41 @@
 					}
 
 					&.answers {
+						> .cell-value {
+							@media (min-width: @screen-sm-min) and (max-width: @screen-md-max) {
+								align-items: flex-start;
+							}
+						}
+
+						.answers-count {
+							display: none;
+						}
+
 						.answers-list {
 							display: grid;
-							grid-template-columns: minmax(0, 1fr) max-content max-content minmax(0, 1fr);
-							column-gap: 8px;
-							width: 100%;
+							grid-template-columns: minmax(0, 20ch) 5ch 6ch minmax(0, 20ch);
+							column-gap: 12px;
+							width: max-content;
+							margin-left: auto;
 							min-width: 0;
 							font-family: "Source Code Pro", monospace;
 							font-size: 12px;
 							line-height: 18px;
 							text-align: left;
+
+							@media (min-width: @screen-lg-min) {
+								max-width: 480px;
+							}
+
+							@media (min-width: @screen-sm-min) and (max-width: @screen-md-max) {
+								max-width: calc(100% - 62px);
+							}
+
+							@media (max-width: @screen-xs-max) {
+								grid-template-columns: minmax(0, 1fr) 5ch 6ch minmax(0, 1fr) !important;
+								width: 100%;
+								max-width: 100%;
+							}
 
 							&_row {
 								display: contents;
@@ -655,6 +700,10 @@
 							}
 
 							&_ttl {
+								text-align: right;
+							}
+
+							&_value {
 								text-align: right;
 							}
 						}
