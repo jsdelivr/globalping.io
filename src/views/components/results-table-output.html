@@ -165,6 +165,12 @@
 												{{#if target.tableCells[columnIdx].showDesktopUnits}}
 													<span class="lg-screen-units">ms</span>
 												{{/if}}
+											{{elseif column.type === 'dns-answers' && target.isInProgress}}
+												{{#if testInProgress}}
+													<c-placeholder-skeleton type="base"></c-placeholder-skeleton>
+												{{else}}
+													<span>&mdash;</span>
+												{{/if}}
 											{{elseif column.type === 'dns-answers'}}
 												{{#if target.tableCells[columnIdx].hasValue}}
 													<span class="answers-count">{{target.tableCells[columnIdx].value.length}}</span>
@@ -180,8 +186,6 @@
 															</span>
 														{{/each}}
 													</span>
-												{{elseif testInProgress}}
-													<c-placeholder-skeleton type="base"></c-placeholder-skeleton>
 												{{else}}
 													<span class="answers-count">0</span>
 													<span class="answers-empty">&mdash;</span>
@@ -557,8 +561,6 @@
 				cancelAnimationFrame(this.resultsBlockHeightAnimationFrame);
 			}
 
-			let itemsAmount = results.length;
-
 			this.resultsBlockHeightAnimationFrame = requestAnimationFrame(() => {
 				this.resultsBlockHeightAnimationFrame = null;
 				this.hideSetLocationButtonIfMoved();
@@ -567,15 +569,43 @@
 
 				if (!listWrapperEl) { return; }
 
-				if (!itemsAmount) {
+				let itemEls = listWrapperEl.querySelectorAll('.results-table_row');
+
+				if (!results.length || !itemEls.length) {
 					listWrapperEl.style.height = '';
 					return;
 				}
 
-				let listElScrollHeight = listWrapperEl.scrollHeight;
-				let avgItemElHeight = Math.ceil(listElScrollHeight / itemsAmount);
+				let getRenderedHeight = (element, childSelector) => {
+					let elementRect = element?.getBoundingClientRect();
 
-				listWrapperEl.style.height = `${itemsAmount < 8 ? avgItemElHeight * itemsAmount : avgItemElHeight * 8}px`;
+					if (elementRect?.height) {
+						return elementRect.height;
+					}
+
+					let childEls = element?.querySelectorAll(childSelector) || [];
+					let childRects = [ ...childEls ]
+						.map(child => child.getBoundingClientRect())
+						.filter(rect => rect.height);
+
+					if (!childRects.length) {
+						return 0;
+					}
+
+					let top = Math.min(...childRects.map(rect => rect.top));
+					let bottom = Math.max(...childRects.map(rect => rect.bottom));
+
+					return bottom - top;
+				};
+				let headerEl = listWrapperEl.querySelector('.results-table_header');
+				let targetHeight = getRenderedHeight(headerEl, 'th');
+				let limit = Math.min(itemEls.length, 8);
+
+				for (let i = 0; i < limit; i++) {
+					targetHeight += getRenderedHeight(itemEls[i], 'td');
+				}
+
+				listWrapperEl.style.height = `${Math.ceil(targetHeight)}px`;
 			});
 		},
 		createRealTimeGraph (
