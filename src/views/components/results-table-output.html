@@ -130,7 +130,7 @@
 								</td>
 							{{else}}
 								{{#each tableColumns as column : columnIdx}}
-									<td class="results-table_row_stats_subrow_cell cell {{column.className}} {{#if column.type !== 'timings' && column.sortable !== false}}is-sortable{{/if}}">
+									<td class="results-table_row_stats_subrow_cell cell {{column.className}} {{#if column.type !== 'timings' && column.sortable !== false}}is-sortable{{/if}} {{#if column.type === 'dns-response' && target.tableCells[columnIdx].hasStatus}}has-dns-status{{/if}}">
 										<div class="cell-value">
 											<span class="cell-label">{{column.mobileLabel || column.label}}</span>
 
@@ -165,6 +165,47 @@
 												{{#if target.tableCells[columnIdx].showDesktopUnits}}
 													<span class="lg-screen-units">ms</span>
 												{{/if}}
+											{{elseif column.type === 'dns-response'}}
+												<span class="dns-response_content">
+													<span class="dns-response_status-field">
+														<span class="dns-response_mobile-label">Status</span>
+														{{#if target.tableCells[columnIdx].hasStatus}}
+															<span class="dns-response_status">{{target.tableCells[columnIdx].status}}</span>
+														{{elseif testInProgress}}
+															<c-placeholder-skeleton type="base"></c-placeholder-skeleton>
+														{{else}}
+															<span class="dns-response_status">&mdash;</span>
+														{{/if}}
+													</span>
+
+													<span class="dns-response_answers-field">
+														<span class="dns-response_mobile-label">Answers</span>
+														{{#if target.isInProgress}}
+															{{#if testInProgress}}
+																<c-placeholder-skeleton type="base"></c-placeholder-skeleton>
+															{{else}}
+																<span>&mdash;</span>
+															{{/if}}
+														{{elseif target.tableCells[columnIdx].hasValue}}
+															<span class="answers-count">{{target.tableCells[columnIdx].value.length}}</span>
+															<span
+																class="answers-list"
+																style="grid-template-columns: minmax(0, {{dnsAnswerGridWidths[targetIdx].name}}ch) minmax(0, {{dnsAnswerGridWidths[targetIdx].ttl}}ch) minmax(0, {{dnsAnswerGridWidths[targetIdx].type}}ch) minmax(0, {{dnsAnswerGridWidths[targetIdx].value}}ch);">
+																{{#each target.tableCells[columnIdx].value as answer}}
+																	<span class="answers-list_row">
+																		<span class="answers-list_name">{{answer.name}}</span>
+																		<span class="answers-list_ttl">{{answer.ttl}}</span>
+																		<span class="answers-list_type">{{answer.type}}</span>
+																		<span class="answers-list_value">{{answer.value}}</span>
+																	</span>
+																{{/each}}
+															</span>
+														{{else}}
+															<span class="answers-count">0</span>
+															<span class="answers-empty dns-response_empty">No answers</span>
+														{{/if}}
+													</span>
+												</span>
 											{{elseif column.type === 'dns-answers' && target.isInProgress}}
 												{{#if testInProgress}}
 													<c-placeholder-skeleton type="base"></c-placeholder-skeleton>
@@ -298,7 +339,7 @@
 		computed: {
 			dnsAnswerGridWidths () {
 				let columns = this.get('tableColumns') || [];
-				let answersColumnIdx = columns.findIndex(column => column.type === 'dns-answers');
+				let answersColumnIdx = columns.findIndex(column => [ 'dns-response', 'dns-answers' ].includes(column.type));
 				let createWidths = () => ({ name: 1, ttl: 1, type: 1, value: 1 });
 				let sharedWidths = createWidths();
 				let widthsByTarget = Array.from({ length: this.get('targetsCnt') || 1 }, createWidths);
@@ -330,7 +371,7 @@
 			},
 		},
 		hasMultilineDnsAnswers (result) {
-			let answersColumnIdx = (this.get('tableColumns') || []).findIndex(column => column.type === 'dns-answers');
+			let answersColumnIdx = (this.get('tableColumns') || []).findIndex(column => [ 'dns-response', 'dns-answers' ].includes(column.type));
 
 			return answersColumnIdx >= 0 && (result.statsPerTarget || [])
 				.some(target => (target.tableCells?.[answersColumnIdx]?.value?.length || 0) > 1);

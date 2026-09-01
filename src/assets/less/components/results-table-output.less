@@ -138,10 +138,41 @@
 					.answers-empty {
 						display: none;
 					}
+
+					.has-dns-status {
+						> .cell-value > .cell-label {
+							display: none;
+						}
+
+						.dns-response {
+							&_status-field, &_answers-field {
+								align-items: center;
+								justify-content: space-between;
+								min-height: 32px;
+							}
+
+							&_mobile-label {
+								display: inline;
+							}
+
+							&_status {
+								font-family: inherit;
+								font-size: inherit;
+								line-height: inherit;
+							}
+						}
+					}
 				}
 			}
 
 			.results-table_row_stats_subrow_cell {
+				&.dns-response {
+					@media (min-width: @screen-sm-min) and (max-width: @screen-md-max) {
+						align-items: flex-start;
+						padding-top: 6px;
+					}
+				}
+
 				@media (min-width: @screen-lg-min) {
 					height: auto;
 					min-height: 44px;
@@ -668,6 +699,47 @@
 
 						.answers-count {
 							display: none;
+						}
+
+						.dns-response {
+							&_content {
+								display: flex;
+								flex-direction: column;
+								align-items: flex-start;
+								flex-grow: 1;
+								gap: 0;
+								min-width: 0;
+								width: 100%;
+
+								@media (min-width: @screen-sm-min) and (max-width: @screen-md-max) {
+									width: 0;
+								}
+
+								@media (min-width: @screen-lg-min) {
+									align-items: flex-end;
+								}
+							}
+
+							&_status-field, &_answers-field {
+								display: flex;
+								justify-content: flex-end;
+								min-width: 0;
+								width: 100%;
+							}
+
+							&_mobile-label {
+								display: none;
+								font-family: "Source Sans Pro", sans-serif;
+								font-size: 13px;
+								font-weight: 600;
+								line-height: 20px;
+							}
+
+							&_status, &_empty {
+								font-family: "Source Code Pro", monospace;
+								font-size: 12px;
+								line-height: 18px;
+							}
 						}
 
 						.answers-list {

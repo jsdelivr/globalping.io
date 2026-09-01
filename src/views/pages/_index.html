@@ -4167,8 +4167,9 @@
 				];
 			} else if (lowCaseTestName === 'dns') {
 				tableColumns = [
-					...dnsTraceEnabled ? [] : [{ key: 'dns-status', label: 'Status', className: 'status' }],
-					{ key: 'answers', type: 'dns-answers', label: 'Answers', sortName: 'Answer count', className: 'answers' },
+					...dnsTraceEnabled
+						? [{ key: 'answers', type: 'dns-answers', label: 'Answers', sortName: 'Answer count', className: 'answers' }]
+						: [{ key: 'dns-status', type: 'dns-response', label: 'Response', className: 'answers dns-response' }],
 					{ key: 'total', label: 'Time', className: 'total' },
 					{ key: 'resolver', label: 'Resolver', className: 'resolver', sortable: false },
 				];
@@ -4413,24 +4414,30 @@
 					.every(key => this.hasTableValue(answer[key])));
 				let total = dnsResult.timings?.total;
 				let resolver = dnsResult.resolver;
+				let answerValues = answers.map(answer => ({
+					name: answer.name,
+					ttl: answer.ttl,
+					type: answer.type,
+					value: answer.value,
+				}));
 
 				sortValues['dns-status'] = typeof dnsResult.statusCode === 'number' ? dnsResult.statusCode : statusText;
 				sortValues.answers = answers.length;
 				sortValues.total = total;
 
 				tableCells = tableColumns.map((column) => {
-					if (column.key === 'dns-status') {
-						return this.createMetricTableCell(statusText);
+					if (column.type === 'dns-response') {
+						return {
+							value: answerValues,
+							hasValue: answers.length > 0,
+							status: statusText,
+							hasStatus: this.hasTableValue(statusText),
+						};
 					}
 
-					if (column.key === 'answers') {
+					if (column.type === 'dns-answers') {
 						return {
-							value: answers.map(answer => ({
-								name: answer.name,
-								ttl: answer.ttl,
-								type: answer.type,
-								value: answer.value,
-							})),
+							value: answerValues,
 							hasValue: answers.length > 0,
 						};
 					}
