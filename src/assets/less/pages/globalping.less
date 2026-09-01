@@ -104,6 +104,10 @@
 	&.focus-mode-open {
 		padding-bottom: 60px;
 
+		.c-gp-jumbotron.main {
+			background: linear-gradient(180deg, #26354b 0%, #2c3b52 72%, #3a4960 100%);
+		}
+
 		.gp_main-info {
 			opacity: 0;
 			filter: blur(8px);
@@ -113,7 +117,7 @@
 			transition: opacity .42s ease, filter .42s ease, height .42s ease, margin .42s ease, visibility 0s linear .42s;
 
 			@media (min-width: @screen-sm-min) {
-				height: 292px;
+				height: 372px;
 				margin: 82px 24px 48px;
 			}
 		}
@@ -146,18 +150,18 @@
 
 			@media (min-width: @screen-sm-min) {
 				text-align: center;
-				height: 300px;
+				height: 380px;
 			}
 
 			@media (min-width: @screen-md-min) {
 				row-gap: 32px;
 				margin: 82px 24px 48px;
 				max-width: 980px;
-				height: 380px;
+				height: 460px;
 			}
 
 			@media (min-width: @screen-lg-min) {
-				height: 292px;
+				height: 372px;
 			}
 
 			&_descr {
@@ -400,9 +404,9 @@
 				}
 
 				@media (min-width: @screen-sm-min) {
-					--focus-mode-offset-y: -398px;
+					--focus-mode-offset-y: -478px;
 					transform: translateY(var(--focus-mode-offset-y));
-					margin-bottom: -398px;
+					margin-bottom: -478px;
 					border: none;
 					box-shadow: 0 28px 90px rgba(0, 0, 0, .22), 0 0 0 1px rgba(255, 255, 255, .42);
 				}
@@ -487,6 +491,11 @@
 						color: #79849a;
 						font-size: 11px;
 						line-height: 14px;
+						cursor: default;
+
+						> .fa {
+							cursor: default;
+						}
 					}
 				}
 
@@ -540,6 +549,11 @@
 					font-size: 11px;
 					line-height: 14px;
 					white-space: nowrap;
+					cursor: default;
+
+					> .fa {
+						cursor: default;
+					}
 
 					@media (min-width: @screen-sm-min) {
 						margin-right: 10.5px;

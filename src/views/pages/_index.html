@@ -693,7 +693,7 @@
 				</c-gp-credits-message>
 			{{/if}}
 
-			<div class="gp_map-block_map-wrapper {{#unless transitionMap}}transition-none{{/unless}} {{#unless showMap || forceMapOpen || !focusModeActive}}gp_map-block_map-wrapper_hidden{{/unless}}">
+			<div class="gp_map-block_map-wrapper {{#unless transitionMap}}transition-none{{/unless}} {{#unless showMap || !focusModeActive}}gp_map-block_map-wrapper_hidden{{/unless}}">
 				<div id="gp-map" class="gp_map-block_map-wrapper_map"></div>
 
 				{{#if testResults}}
@@ -707,7 +707,7 @@
 
 			{{#if showCreditsData && (focusModeActive || !focusModeAvailable)}}
 				<c-gp-credits
-					mapOpened="{{showMap || forceMapOpen}}"
+					mapOpened="{{showMap}}"
 					testInProgress="{{testInProgress}}"
 					isInfiniteModeRes="{{isInfiniteModeRes}}"
 					rateCreditsData="{{rateCreditsData}}"
@@ -824,7 +824,7 @@
 										class="gp_map-block_test-output_results-preview-action_button gp_focus-mode-toggle"
 										on-click="@this.openFocusMode(@event)">
 										<i class="fa fa-expand" aria-hidden="true"></i>
-										View all results
+										View results
 									</button>
 								</div>
 							{{/if}}
@@ -1820,7 +1820,6 @@
 				},
 				showMap: true,
 				originalShowMap: true,
-				forceMapOpen: false,
 				transitionMap: true,
 				infiniteSwitchEnabled: false,
 				showMeasurementOpts: false,
@@ -3025,7 +3024,6 @@
 			this.set('activeTargetIdx', 0);
 			this.set('measurementsMetadata', null);
 			this.set('showCreditsErrorBar', false);
-			this.set('forceMapOpen', false);
 			this.set('targetsArr', targetsArr);
 			this.set('infiniteMeasIds', []);
 			this.set('isInfiniteMeasStopped', false);
@@ -4316,8 +4314,6 @@
 			this.set('rateCreditsData', err.responseHeaders);
 
 			if (err.responseStatusCode === 429) {
-				this.set('forceMapOpen', true);
-
 				let measurementErrMsg = _.createMeasCreditsErrMsg(
 					err.responseHeaders,
 					this.get('@shared.user'),
@@ -4347,7 +4343,6 @@
 				}
 			} else {
 				this.set('measurementErrMsg', err.error.message);
-				this.set('showMap', false);
 			}
 		},
 		reUseProbesRunTest () {
