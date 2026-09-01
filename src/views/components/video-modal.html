@@ -224,7 +224,7 @@
 			this.resetVideoModalPlayback();
 
 			if (this.get('view') === VIDEO_MODAL_VIEW) {
-				app.router.replaceQueryParam('view', null);
+				app.router.replaceQueryParam('view', this.get('measurement') ? 'home' : null);
 			}
 
 			if (restoreFocus && hasReturnFocusEl && !shouldClearReturnFocusEl) {
