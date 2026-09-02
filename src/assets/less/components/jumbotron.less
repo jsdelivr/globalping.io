@@ -56,8 +56,19 @@
 	// styles for a specific GP pages
 	&.main {
 		overflow: clip;
-		height: 760px;
+		height: 680px;
 		background: linear-gradient(180deg, #17233a 0%, #17233a 44%, #24345a 58%, #4d659f 73%, #97a7d8 84%, #d7ddef 92%, #f3f5fb 97%, #fff 100%);
+		transition: height .42s ease;
+
+		&:before {
+			content: "";
+			position: absolute;
+			inset: 0;
+			z-index: -2;
+			background: linear-gradient(180deg, #26354b 0%, #29384d 32%, #2f3e53 48%, #3b4a5f 60%, #566478 70%, #788496 79%, #9da6b4 86%, #bdc4ce 91%, #d9dde3 95%, #eff1f4 98%, #fff 100%);
+			opacity: 0;
+			transition: opacity .42s ease;
+		}
 
 		.jumbotron_blur {
 			display: none;
