@@ -31,17 +31,19 @@
 	.gp {
 		&_focus-mode-navigation {
 			position: fixed;
-			right: 5px;
-			bottom: 5px;
+			left: 50%;
+			right: auto;
+			bottom: auto;
 			z-index: 4;
 			display: flex;
-			flex-direction: column;
+			flex-direction: row;
 			gap: 0;
 			padding: 2px;
 			background: #fff;
 			border: 1px solid #e7e7ee;
 			border-radius: 999px;
 			box-shadow: 0 4px 12px rgba(23, 35, 59, .08), 0 1px 3px rgba(23, 35, 59, .05);
+			transform: translate(-50%, -50%);
 
 			button {
 				display: flex;
@@ -66,14 +68,11 @@
 				}
 			}
 
-			@media (max-width: @screen-xs-max) {
-				top: auto !important;
-			}
-
 			@media (min-width: @screen-sm-min) {
 				left: calc(50% + 664px);
 				right: auto;
 				bottom: auto;
+				flex-direction: column;
 				transform: translateY(-50%);
 			}
 
@@ -390,9 +389,24 @@
 					width: 100%;
 					padding: 0 24px;
 
-					&_dots, &_share-res-msg {
+					&_dots, &_measurement-date, &_share-res-msg {
 						display: none;
 					}
+				}
+			}
+
+			&_test-details {
+				width: 100%;
+				padding: 12px 16px;
+				margin-bottom: 0;
+				color: #17233a;
+				background-color: #f8f9fa;
+				font-size: 14px;
+				line-height: 20px;
+				text-align: center;
+
+				@media (min-width: @screen-sm-min) {
+					display: none;
 				}
 			}
 

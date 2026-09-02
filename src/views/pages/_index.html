@@ -656,6 +656,13 @@
 				</c-gp-credits-message>
 			{{/if}}
 
+			{{#if mobileShareResHeaderData}}
+				<p class="gp_map-block_test-details">
+					<i class="fa fa-info-circle" aria-hidden="true"></i>
+					Showing <strong>{{mobileShareResHeaderData.type}}</strong> test results for <strong>{{mobileShareResHeaderData.target}}</strong> from {{mobileShareResHeaderData.date}}.
+				</p>
+			{{/if}}
+
 			<div class="gp_map-block_map-wrapper {{#unless transitionMap}}transition-none{{/unless}} {{#unless showMap || !focusModeActive}}gp_map-block_map-wrapper_hidden{{/unless}}">
 				<div id="gp-map" class="gp_map-block_map-wrapper_map"></div>
 
@@ -827,7 +834,7 @@
 			{{/if}}
 		</div>
 
-		{{#if focusModeActive && focusModeNavigationVisible}}
+		{{#if focusModeActive && !sharedMeasurementInitialLoading && focusModeNavigationVisible}}
 			<nav class="gp_focus-mode-navigation" aria-label="Focus mode navigation" style-top="{{focusModeNavigationTop}}px">
 				<button
 					type="button"
@@ -1718,7 +1725,12 @@
 	const SORT_ORDER_OPTS = [ 'asc', 'desc' ];
 	const FOCUS_MODE_RESULTS_EXPAND_MS = 420;
 	const FOCUS_MODE_SCROLL_OFFSET = 30;
+	const FOCUS_MODE_NAVIGATION_DESKTOP_HEIGHT = 114;
+	const FOCUS_MODE_NAVIGATION_MOBILE_HEIGHT = 42;
+	const FOCUS_MODE_NAVIGATION_VIEWPORT_GAP = 5;
 	const PENDING_RESULT_SCROLL_TIMEOUT_MS = 500;
+	const SMOOTH_SCROLL_SETTLE_DELAY_MS = 120;
+	const SMOOTH_SCROLL_MAX_DURATION_MS = 2000;
 	const SORT_BY_OPTS = [
 		{
 			value: 'location',
@@ -1844,6 +1856,7 @@
 				appliedMeasOpts: {},
 				measurementDate: null,
 				shareResHeaderData: null,
+				mobileShareResHeaderData: null,
 				runTestBtnText: 'Run Test',
 				testReqParams: null,
 				focusModeTransition: null,
@@ -2054,6 +2067,8 @@
 		},
 		oninit () {
 			this.pendingResultScrollFrame = null;
+			this.pendingResultScrollCancel = null;
+			this.mapBlockBottomScrollCancel = null;
 
 			if (!Ractive.isServer) {
 				this.on('c-header.main-logo-click', () => {
@@ -2751,6 +2766,8 @@
 			this.focusModeNavigationResizeObserver?.disconnect();
 			this.focusModeNavigationResizeObserver = null;
 			this.cancelPendingResultScrollFrame();
+			this.mapBlockBottomScrollCancel?.();
+			this.mapBlockBottomScrollCancel = null;
 			this.set('pendingResultId', null);
 			this.get('testReqCancelFn')?.forEach(cancel => cancel?.());
 			this.set('testReqCancelFn', []);
@@ -2825,7 +2842,9 @@
 				}, FOCUS_MODE_RESULTS_EXPAND_MS));
 			}
 
-			this.scrollToMapBlockTopAfterRender();
+			if (this.get('pendingResultId') === null) {
+				this.scrollToMapBlockTopAfterRender();
+			}
 		},
 		closeFocusMode (event) {
 			event?.preventDefault?.();
@@ -2942,6 +2961,7 @@
 			this.set('testReqParams', null);
 			this.set('measurementDate', null);
 			this.set('shareResHeaderData', null);
+			this.set('mobileShareResHeaderData', null);
 			this.set('realTimeTestResResponse', null);
 			this.set('activeTargetIdx', 0);
 			this.set('measurementsMetadata', null);
@@ -3368,6 +3388,8 @@
 			});
 		},
 		handleSeeResults (clientSideId) {
+			this.mapBlockBottomScrollCancel?.();
+			this.mapBlockBottomScrollCancel = null;
 			this.set('pendingResultId', clientSideId);
 
 			if (this.get('focusModeSupported') && !this.get('focusModeActive')) {
@@ -3429,11 +3451,36 @@
 
 						if (el && !mapIsCollapsing) {
 							let focusModeRoot = this.find('.gp_map-block');
-							let resultOffset = el.getBoundingClientRect().top - focusModeRoot.getBoundingClientRect().top;
-							let scrollTop = this.getFocusModeRootScrollTop(focusModeRoot) + resultOffset;
+							let shouldMeasureRawOutput = this.get('rawOutputMode');
 
-							window.scrollTo({ top: scrollTop, behavior: 'smooth' });
-							this.set('pendingResultId', null);
+							if (shouldMeasureRawOutput) {
+								focusModeRoot.classList.add('gp_map-block_measure-content');
+								focusModeRoot.getBoundingClientRect();
+							}
+
+							let getScrollTop = () => {
+								let resultOffset = el.getBoundingClientRect().top - focusModeRoot.getBoundingClientRect().top;
+								return this.getFocusModeRootScrollTop(focusModeRoot) + resultOffset;
+							};
+							let cancelSmoothScroll;
+							let cancelPendingResultScroll = () => cancelSmoothScroll();
+
+							cancelSmoothScroll = this.smoothScrollToLatestPosition(
+								getScrollTop,
+								() => this.finishRawOutputMeasurement(focusModeRoot),
+								() => {
+									if (this.pendingResultScrollCancel === cancelPendingResultScroll) {
+										this.pendingResultScrollCancel = null;
+									}
+
+									if (isCurrentNavigation()) {
+										this.set('pendingResultId', null);
+									}
+								},
+							);
+
+							this.pendingResultScrollCancel = cancelPendingResultScroll;
+
 							return;
 						}
 
@@ -3455,6 +3502,77 @@
 				cancelAnimationFrame(this.pendingResultScrollFrame);
 				this.pendingResultScrollFrame = null;
 			}
+
+			this.pendingResultScrollCancel?.();
+			this.pendingResultScrollCancel = null;
+		},
+		finishRawOutputMeasurement (focusModeRoot) {
+			if (!focusModeRoot.classList.contains('gp_map-block_measure-content')) {
+				return;
+			}
+
+			focusModeRoot.querySelectorAll('.c-gp-results-raw-output_list_item').forEach((item) => {
+				let itemStyle = getComputedStyle(item);
+				let verticalInsets = [
+					itemStyle.paddingTop,
+					itemStyle.paddingBottom,
+					itemStyle.borderTopWidth,
+					itemStyle.borderBottomWidth,
+				].reduce((total, value) => total + (Number.parseFloat(value) || 0), 0);
+				let height = Number.parseFloat(itemStyle.height);
+
+				if (itemStyle.boxSizing === 'border-box') {
+					height -= verticalInsets;
+				}
+
+				if (!Number.isFinite(height)) {
+					height = item.getBoundingClientRect().height - verticalInsets;
+				}
+
+				if (Number.isFinite(height) && height > 0) {
+					item.style.containIntrinsicSize = `auto ${height}px`;
+				}
+			});
+
+			focusModeRoot.classList.remove('gp_map-block_measure-content');
+		},
+		smoothScrollToLatestPosition (getTargetScrollTop, beforeComplete, onComplete) {
+			let settleTimeout;
+			let maxDurationTimeout;
+			let finished = false;
+			let clearListeners = () => {
+				clearTimeout(settleTimeout);
+				clearTimeout(maxDurationTimeout);
+				window.removeEventListener('scroll', scheduleCompletion);
+			};
+			let finish = () => {
+				if (finished) {
+					return;
+				}
+
+				finished = true;
+				clearListeners();
+				beforeComplete?.();
+				onComplete?.();
+			};
+			let scheduleCompletion = () => {
+				clearTimeout(settleTimeout);
+				settleTimeout = setTimeout(finish, SMOOTH_SCROLL_SETTLE_DELAY_MS);
+			};
+
+			window.addEventListener('scroll', scheduleCompletion, { passive: true });
+			window.scrollTo({ top: getTargetScrollTop(), behavior: 'smooth' });
+			scheduleCompletion();
+			maxDurationTimeout = setTimeout(finish, SMOOTH_SCROLL_MAX_DURATION_MS);
+
+			return () => {
+				if (finished) {
+					return;
+				}
+
+				window.scrollTo({ top: window.scrollY, behavior: 'auto' });
+				finish();
+			};
 		},
 		initResponseBodyCharWidth () {
 			let measureNode = document.createElement('span');
@@ -3596,6 +3714,12 @@
 								this.set('targetsArr', updTargetsArr);
 								this.set('mainOptions.type', this.translateTestTypeName(testRes.type));
 								this.set('mainOptions.limit', testRes.limit || DEFAULT_LIMIT);
+
+								this.set('mobileShareResHeaderData', {
+									date: _.formatDateTime(new Date(testRes.createdAt)),
+									target: updTargetsArr.join(', '),
+									type: this.translateTestTypeName(testRes.type),
+								});
 
 								// handle map max timing for HTTP measurement
 								if (testRes.type.toLowerCase() === 'http') {
@@ -3866,6 +3990,7 @@
 			this.set({
 				shareResFlow: false,
 				sharedMeasurementInitialLoading: false,
+				mobileShareResHeaderData: null,
 			});
 
 			this.get('testReqCancelFn')?.forEach(cancel => cancel?.());
@@ -3971,15 +4096,23 @@
 		},
 		scrollMapIntoView () {
 			let mapBlockEl = this.find('.gp_map-block');
+			let mobileTestDetails = this.find('.gp_map-block_test-details');
 
-			mapBlockEl.scrollIntoView({
-				behavior: 'smooth',
-			});
+			if (mobileTestDetails?.checkVisibility?.()) {
+				mobileTestDetails.scrollIntoView({ behavior: 'smooth' });
+			} else {
+				mapBlockEl.scrollIntoView({ behavior: 'smooth' });
+			}
 		},
 		scrollToMapBlockTop () {
 			let mapBlockEl = this.find('.gp_map-block');
 
 			if (mapBlockEl) {
+				this.mapBlockBottomScrollCancel?.();
+				this.mapBlockBottomScrollCancel = null;
+				this.cancelPendingResultScrollFrame();
+				this.set('pendingResultId', null);
+
 				window.scrollTo({
 					top: this.getFocusModeRootScrollTop(mapBlockEl),
 					behavior: 'smooth',
@@ -3995,42 +4128,81 @@
 			let mapBlockEl = this.find('.gp_map-block');
 
 			if (mapBlockEl) {
+				this.mapBlockBottomScrollCancel?.();
+				this.mapBlockBottomScrollCancel = null;
+				this.cancelPendingResultScrollFrame();
+				this.set('pendingResultId', null);
+
+				let shouldMeasureRawOutput = this.get('rawOutputMode');
+
+				if (shouldMeasureRawOutput) {
+					mapBlockEl.classList.add('gp_map-block_measure-content');
+					mapBlockEl.getBoundingClientRect();
+				}
+
 				let mapBlockRect = mapBlockEl.getBoundingClientRect();
 
 				if (mapBlockRect.bottom + FOCUS_MODE_SCROLL_OFFSET <= window.innerHeight + 1) {
+					this.finishRawOutputMeasurement(mapBlockEl);
 					return;
 				}
 
-				mapBlockEl.classList.add('gp_map-block_measure-content');
-				mapBlockRect = mapBlockEl.getBoundingClientRect();
-				let targetScrollTop = Math.max(0, window.scrollY + mapBlockRect.bottom - window.innerHeight + FOCUS_MODE_SCROLL_OFFSET);
-				mapBlockEl.classList.remove('gp_map-block_measure-content');
-				targetScrollTop = Math.max(window.scrollY, targetScrollTop);
+				let initialScrollY = window.scrollY;
+				let getScrollTop = () => {
+					let currentRect = mapBlockEl.getBoundingClientRect();
+					let targetScrollTop = window.scrollY + currentRect.bottom - window.innerHeight + FOCUS_MODE_SCROLL_OFFSET;
+					return Math.max(initialScrollY, targetScrollTop);
+				};
+				let cancelSmoothScroll;
+				let cancelMapBlockBottomScroll = () => cancelSmoothScroll();
 
-				window.scrollTo({
-					top: targetScrollTop,
-					behavior: 'smooth',
-				});
+				cancelSmoothScroll = this.smoothScrollToLatestPosition(
+					getScrollTop,
+					() => this.finishRawOutputMeasurement(mapBlockEl),
+					() => {
+						if (this.mapBlockBottomScrollCancel === cancelMapBlockBottomScroll) {
+							this.mapBlockBottomScrollCancel = null;
+						}
+					},
+				);
+
+				this.mapBlockBottomScrollCancel = cancelMapBlockBottomScroll;
 			}
 		},
 		updateFocusModeNavigationVisibility () {
 			let isVisible = false;
 			let top = window.innerHeight / 2;
 
-			if (this.get('focusModeActive')) {
-				isVisible = true;
-
+			if (this.get('focusModeActive') && !this.get('sharedMeasurementInitialLoading')) {
 				let resultsOutputEl = this.find('.gp_map-block_test-output_raw-output') || this.find('.gp_map-block_test-output_table-output');
+				let measurementErrorVisible = this.get('measurementErrMsg') && !this.get('showCreditsErrorBar');
+				let resultsExpected = !measurementErrorVisible && this.get('testResults') && (this.get('rawOutputMode') || this.get('tableOutputReady'));
+				let contentEl = resultsOutputEl || (!resultsExpected && this.find('.gp_map-block_test-output_focused-content'));
 
-				if (resultsOutputEl) {
-					let resultsOutputRect = resultsOutputEl.getBoundingClientRect();
-					let navigationHeight = this.find('.gp_focus-mode-navigation')?.offsetHeight || 114;
+				if (contentEl) {
+					let contentRect = contentEl.getBoundingClientRect();
+					let controlsRect = this.find('.c-gp-results-controls')?.getBoundingClientRect() || contentRect;
+					let shareRect = this.find('.c-gp-results-share')?.getBoundingClientRect();
+					let boundsTop = controlsRect.top;
+					let mobileNavigation = window.matchMedia('(max-width: 767px)').matches;
+					let defaultNavigationHeight = mobileNavigation ? FOCUS_MODE_NAVIGATION_MOBILE_HEIGHT : FOCUS_MODE_NAVIGATION_DESKTOP_HEIGHT;
+					let navigationHeight = this.find('.gp_focus-mode-navigation')?.offsetHeight || defaultNavigationHeight;
 					let navigationHalfHeight = navigationHeight / 2;
+					let boundsBottom = shareRect
+						? shareRect.top + (mobileNavigation ? navigationHalfHeight : 0)
+						: contentRect.bottom;
+					let boundsHeight = boundsBottom - boundsTop;
 
-					if (resultsOutputRect.height >= navigationHeight) {
-						top = Math.min(Math.max(top, resultsOutputRect.top + navigationHalfHeight), resultsOutputRect.bottom - navigationHalfHeight);
-					} else {
-						top = resultsOutputRect.top + resultsOutputRect.height / 2;
+					if (mobileNavigation) {
+						top = window.innerHeight - navigationHalfHeight - FOCUS_MODE_NAVIGATION_VIEWPORT_GAP;
+					}
+
+					if (contentRect.width > 0 && boundsHeight >= navigationHeight) {
+						top = Math.min(Math.max(top, boundsTop + navigationHalfHeight), boundsBottom - navigationHalfHeight);
+						isVisible = true;
+					} else if (contentRect.width > 0 && boundsHeight > 0) {
+						top = boundsTop + boundsHeight / 2;
+						isVisible = true;
 					}
 				}
 			}
@@ -4157,6 +4329,7 @@
 					: 'Unable to load this measurement. Please try again later.',
 				measurementDate: null,
 				shareResHeaderData: null,
+				mobileShareResHeaderData: null,
 				runTestBtnText: 'Run Test',
 			});
 		},
