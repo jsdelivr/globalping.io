@@ -3,7 +3,7 @@
 <div class="c-gp-results-table-output">
 	<div class="results-table-wrapper" on-scroll="@this.hideSetLocationButton(@event)">
 		<table
-			class="results-table {{#if targetsCnt === 1}}single-target{{/if}}"
+			class="results-table {{#if targetsCnt === 1}}single-target{{/if}} {{#if testType === 'dns'}}dns-results{{/if}}"
 			style="grid-template-columns: minmax(0, 300px) minmax(120px, 1fr) repeat({{tableColumns.length}}, auto);"
 		>
 			<thead class="results-table_header">
@@ -54,7 +54,7 @@
 			</thead>
 
 			{{#each preparedTestResults as result}}
-				<tbody class="results-table_row row-num-{{result.clientSideId}} item-id-{{result.clientSideId}}"
+				<tbody class="results-table_row row-num-{{result.clientSideId}} item-id-{{result.clientSideId}} {{#if @this.hasMultilineDnsAnswers(result)}}has-multiline-answers{{/if}}"
 					{{#if targetsCnt === 1}}
 						tabindex="0"
 						aria-label="Set as location for the next test"
@@ -130,7 +130,7 @@
 								</td>
 							{{else}}
 								{{#each tableColumns as column : columnIdx}}
-									<td class="results-table_row_stats_subrow_cell cell {{column.className}} {{#if column.type !== 'timings' && column.sortable !== false}}is-sortable{{/if}}">
+									<td class="results-table_row_stats_subrow_cell cell {{column.className}} {{#if column.type !== 'timings' && column.sortable !== false}}is-sortable{{/if}} {{#if column.type === 'dns-response' && target.tableCells[columnIdx].hasStatus}}has-dns-status{{/if}}">
 										<div class="cell-value">
 											<span class="cell-label">{{column.mobileLabel || column.label}}</span>
 
@@ -164,6 +164,72 @@
 
 												{{#if target.tableCells[columnIdx].showDesktopUnits}}
 													<span class="lg-screen-units">ms</span>
+												{{/if}}
+											{{elseif column.type === 'dns-response'}}
+												<span class="dns-response_content">
+													<span class="dns-response_status-field">
+														<span class="dns-response_mobile-label">Status</span>
+														{{#if target.tableCells[columnIdx].hasStatus}}
+															<span class="dns-response_status">{{target.tableCells[columnIdx].status}}</span>
+														{{elseif testInProgress}}
+															<c-placeholder-skeleton type="base"></c-placeholder-skeleton>
+														{{else}}
+															<span class="dns-response_status">&mdash;</span>
+														{{/if}}
+													</span>
+
+													<span class="dns-response_answers-field">
+														<span class="dns-response_mobile-label">Answers</span>
+														{{#if target.isInProgress}}
+															{{#if testInProgress}}
+																<c-placeholder-skeleton type="base"></c-placeholder-skeleton>
+															{{else}}
+																<span>&mdash;</span>
+															{{/if}}
+														{{elseif target.tableCells[columnIdx].hasValue}}
+															<span class="answers-count">{{target.tableCells[columnIdx].value.length}}</span>
+															<span
+																class="answers-list"
+																style="grid-template-columns: minmax(0, {{dnsAnswerGridWidths[targetIdx].name}}ch) minmax(0, {{dnsAnswerGridWidths[targetIdx].ttl}}ch) minmax(0, {{dnsAnswerGridWidths[targetIdx].type}}ch) minmax(0, {{dnsAnswerGridWidths[targetIdx].value}}ch);">
+																{{#each target.tableCells[columnIdx].value as answer}}
+																	<span class="answers-list_row">
+																		<span class="answers-list_name">{{answer.name}}</span>
+																		<span class="answers-list_ttl">{{answer.ttl}}</span>
+																		<span class="answers-list_type">{{answer.type}}</span>
+																		<span class="answers-list_value">{{answer.value}}</span>
+																	</span>
+																{{/each}}
+															</span>
+														{{else}}
+															<span class="answers-count">0</span>
+															<span class="answers-empty dns-response_empty">No answers</span>
+														{{/if}}
+													</span>
+												</span>
+											{{elseif column.type === 'dns-answers' && target.isInProgress}}
+												{{#if testInProgress}}
+													<c-placeholder-skeleton type="base"></c-placeholder-skeleton>
+												{{else}}
+													<span>&mdash;</span>
+												{{/if}}
+											{{elseif column.type === 'dns-answers'}}
+												{{#if target.tableCells[columnIdx].hasValue}}
+													<span class="answers-count">{{target.tableCells[columnIdx].value.length}}</span>
+													<span
+														class="answers-list"
+														style="grid-template-columns: minmax(0, {{dnsAnswerGridWidths[targetIdx].name}}ch) minmax(0, {{dnsAnswerGridWidths[targetIdx].ttl}}ch) minmax(0, {{dnsAnswerGridWidths[targetIdx].type}}ch) minmax(0, {{dnsAnswerGridWidths[targetIdx].value}}ch);">
+														{{#each target.tableCells[columnIdx].value as answer}}
+															<span class="answers-list_row">
+																<span class="answers-list_name">{{answer.name}}</span>
+																<span class="answers-list_ttl">{{answer.ttl}}</span>
+																<span class="answers-list_type">{{answer.type}}</span>
+																<span class="answers-list_value">{{answer.value}}</span>
+															</span>
+														{{/each}}
+													</span>
+												{{else}}
+													<span class="answers-count">0</span>
+													<span class="answers-empty">No answers</span>
 												{{/if}}
 											{{elseif column.type === 'ip'}}
 												{{#if target.tableCells[columnIdx].hasValue}}
@@ -233,6 +299,7 @@
 	const PROBE_MIN_TIMING = 5;
 	const PROBE_NO_TIMING_VALUE = _.getProbeTimeOutValue();
 	const PROBE_OFFLINE_TEXT = 'Probe offline';
+	const DNS_ANSWER_COLUMN_WIDTH_LIMITS = { name: 36, ttl: 10, type: 10, value: 40 };
 
 	component.exports = {
 		decorators: {
@@ -268,6 +335,46 @@
 				itemFocused: false,
 				justFocusedItem: false,
 			};
+		},
+		computed: {
+			dnsAnswerGridWidths () {
+				let columns = this.get('tableColumns') || [];
+				let answersColumnIdx = columns.findIndex(column => [ 'dns-response', 'dns-answers' ].includes(column.type));
+				let createWidths = () => ({ name: 1, ttl: 1, type: 1, value: 1 });
+				let sharedWidths = createWidths();
+				let widthsByTarget = Array.from({ length: this.get('targetsCnt') || 1 }, createWidths);
+
+				if (answersColumnIdx < 0) {
+					return widthsByTarget;
+				}
+
+				(this.get('preparedTestResults') || []).forEach((result) => {
+					(result.statsPerTarget || []).forEach((target, targetIdx) => {
+						let answers = target.tableCells?.[answersColumnIdx]?.value || [];
+
+						answers.forEach((answer) => {
+							Object.keys(sharedWidths).forEach((key) => {
+								let length = String(answer[key] ?? '').length;
+
+								sharedWidths[key] = Math.min(Math.max(sharedWidths[key], length), DNS_ANSWER_COLUMN_WIDTH_LIMITS[key]);
+								widthsByTarget[targetIdx][key] = Math.min(Math.max(widthsByTarget[targetIdx][key], length), DNS_ANSWER_COLUMN_WIDTH_LIMITS[key]);
+							});
+						});
+					});
+				});
+
+				let screenWidth = this.get('screenWidth');
+				let useTargetWidths = screenWidth >= _.screenType.tablet
+					&& screenWidth < _.screenType.lgDesktop && this.get('targetsCnt') > 1;
+
+				return useTargetWidths ? widthsByTarget : widthsByTarget.map(() => sharedWidths);
+			},
+		},
+		hasMultilineDnsAnswers (result) {
+			let answersColumnIdx = (this.get('tableColumns') || []).findIndex(column => [ 'dns-response', 'dns-answers' ].includes(column.type));
+
+			return answersColumnIdx >= 0 && (result.statsPerTarget || [])
+				.some(target => (target.tableCells?.[answersColumnIdx]?.value?.length || 0) > 1);
 		},
 		onrender () {
 			if (!Ractive.isServer) {
@@ -508,8 +615,6 @@
 				cancelAnimationFrame(this.resultsBlockHeightAnimationFrame);
 			}
 
-			let itemsAmount = results.length;
-
 			this.resultsBlockHeightAnimationFrame = requestAnimationFrame(() => {
 				this.resultsBlockHeightAnimationFrame = null;
 				this.hideSetLocationButtonIfMoved();
@@ -518,15 +623,33 @@
 
 				if (!listWrapperEl) { return; }
 
-				if (!itemsAmount) {
+				let itemEls = listWrapperEl.querySelectorAll('.results-table_row');
+
+				if (!results.length || !itemEls.length) {
 					listWrapperEl.style.height = '';
 					return;
 				}
 
-				let listElScrollHeight = listWrapperEl.scrollHeight;
-				let avgItemElHeight = Math.ceil(listElScrollHeight / itemsAmount);
+				let limit = Math.min(itemEls.length, 8);
+				let lastItemEl = itemEls[limit - 1];
+				let lastItemRect = lastItemEl.getBoundingClientRect();
+				let lastItemEnd = lastItemRect.bottom;
 
-				listWrapperEl.style.height = `${itemsAmount < 8 ? avgItemElHeight * itemsAmount : avgItemElHeight * 8}px`;
+				// fallback for rows using display: contents
+				if (!lastItemRect.height) {
+					let renderedCellRects = [ ...lastItemEl.querySelectorAll('td') ]
+						.map(cell => cell.getBoundingClientRect())
+						.filter(rect => rect.height);
+
+					if (!renderedCellRects.length) { return; }
+
+					lastItemEnd = Math.max(...renderedCellRects.map(rect => rect.bottom));
+				}
+
+				let wrapperTop = listWrapperEl.getBoundingClientRect().top;
+				let targetHeight = lastItemEnd - wrapperTop + listWrapperEl.scrollTop;
+
+				listWrapperEl.style.height = `${Math.ceil(targetHeight)}px`;
 			});
 		},
 		createRealTimeGraph (
