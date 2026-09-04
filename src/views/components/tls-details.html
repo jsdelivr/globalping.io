@@ -18,7 +18,7 @@
 				return this.get('screenWidth') >= 1200 ? 'right' : 'top';
 			},
 			template () {
-				return `<div class="popover ${this.get('tls.authorized') ? '' : 'popover-danger'}" role="tooltip"><div class="arrow"></div><h3 class="popover-title"></h3><div class="popover-content"></div></div>`;
+				return `<div class="popover shadow-lg ${this.get('tls.authorized') ? '' : 'popover-danger'}" role="tooltip"><div class="arrow"></div><h3 class="popover-title"></h3><div class="popover-content"></div></div>`;
 			},
 		},
 		onrender () {
