@@ -111,6 +111,77 @@
 			}
 		}
 
+		&.dns-results {
+			@media (max-width: @screen-xs-max) {
+				&.single-target {
+					.results-table_row_stats_subrow_cell.answers {
+						margin-top: 8px;
+						order: 1;
+						width: 100%;
+
+						> .cell-value {
+							align-items: flex-start;
+							flex-direction: column;
+							justify-content: flex-start;
+							gap: 4px;
+							padding-bottom: 8px;
+						}
+					}
+				}
+
+				&:not(.single-target) {
+					.answers-count {
+						display: inline;
+					}
+
+					.answers-list,
+					.answers-empty {
+						display: none;
+					}
+
+					.has-dns-status {
+						> .cell-value > .cell-label {
+							display: none;
+						}
+
+						.dns-response {
+							&_status-field, &_answers-field {
+								align-items: center;
+								justify-content: space-between;
+								min-height: 32px;
+							}
+
+							&_mobile-label {
+								display: inline;
+							}
+
+							&_status {
+								font-family: inherit;
+								font-size: inherit;
+								line-height: inherit;
+							}
+						}
+					}
+				}
+			}
+
+			.results-table_row_stats_subrow_cell {
+				&.dns-response {
+					@media (min-width: @screen-sm-min) and (max-width: @screen-md-max) {
+						align-items: flex-start;
+						padding-top: 6px;
+					}
+				}
+
+				@media (min-width: @screen-lg-min) {
+					height: auto;
+					min-height: 44px;
+					padding-top: 12px;
+					padding-bottom: 12px;
+				}
+			}
+		}
+
 		&:not(.single-target) {
 			@media (min-width: @screen-lg-min) {
 				display: grid;
@@ -356,6 +427,7 @@
 							display: inline-flex;
 							justify-self: center;
 							justify-content: center;
+							transform: translateX(4px);
 							width: auto;
 						}
 					}
@@ -398,6 +470,15 @@
 				&:hover {
 					.results-table_row_location_actions {
 						display: flex;
+					}
+				}
+			}
+
+			&.has-multiline-answers {
+				.results-table_row_stats_subrow_cell.answers {
+					@media (min-width: @screen-sm-min) and (max-width: @screen-md-max) {
+						align-items: flex-start;
+						padding-top: 6px;
 					}
 				}
 			}
@@ -534,14 +615,20 @@
 					}
 
 					&.probe-failed, &.probe-offline {
+						justify-content: center;
 						column-gap: 8px;
+						padding-right: 16px;
+						padding-left: 16px;
 						font-size: 14px;
 						font-weight: 400;
 						line-height: 20px;
 						color: #17233a;
+						text-align: center;
 
 						@media (min-width: @screen-lg-min) {
 							width: auto;
+							padding-right: 24px;
+							padding-left: 24px;
 						}
 					}
 
@@ -581,24 +668,6 @@
 						}
 					}
 
-					&.is-sortable {
-						> .cell-value {
-							> span:last-child {
-								@media (min-width: @screen-lg-min) {
-									margin-right: 12px;
-								}
-							}
-
-							> .c-placeholder-skeleton {
-								@media (min-width: @screen-lg-min) {
-									width: calc(100% - 12px);
-									flex: 0 0 calc(100% - 12px);
-									margin-right: 12px;
-								}
-							}
-						}
-					}
-
 					&.status {
 						&.http-status {
 							> .cell-value > span:last-child {
@@ -618,6 +687,114 @@
 					&.total {
 						> .cell-value {
 							min-width: 48px;
+						}
+					}
+
+					&.answers {
+						> .cell-value {
+							@media (min-width: @screen-sm-min) and (max-width: @screen-md-max) {
+								align-items: flex-start;
+							}
+						}
+
+						.answers-count {
+							display: none;
+						}
+
+						.dns-response {
+							&_content {
+								display: flex;
+								flex-direction: column;
+								align-items: flex-start;
+								flex-grow: 1;
+								gap: 0;
+								min-width: 0;
+								width: 100%;
+
+								@media (min-width: @screen-sm-min) and (max-width: @screen-md-max) {
+									width: 0;
+								}
+
+								@media (min-width: @screen-lg-min) {
+									align-items: flex-end;
+								}
+							}
+
+							&_status-field, &_answers-field {
+								display: flex;
+								justify-content: flex-end;
+								min-width: 0;
+								width: 100%;
+							}
+
+							&_mobile-label {
+								display: none;
+								font-family: "Source Sans Pro", sans-serif;
+								font-size: 13px;
+								font-weight: 600;
+								line-height: 20px;
+							}
+
+							&_status, &_empty {
+								font-family: "Source Code Pro", monospace;
+								font-size: 12px;
+								line-height: 18px;
+							}
+
+							&_content .answers-list {
+								@media (min-width: @screen-lg-min) {
+									max-width: 626px;
+								}
+							}
+						}
+
+						.answers-list {
+							display: grid;
+							grid-template-columns: minmax(0, 20ch) 5ch 6ch minmax(0, 20ch);
+							column-gap: 12px;
+							width: max-content;
+							margin-left: auto;
+							min-width: 0;
+							font-family: "Source Code Pro", monospace;
+							font-size: 12px;
+							line-height: 18px;
+							text-align: left;
+
+							@media (min-width: @screen-lg-min) {
+								max-width: 480px;
+							}
+
+							@media (min-width: @screen-sm-min) and (max-width: @screen-md-max) {
+								max-width: calc(100% - 62px);
+							}
+
+							@media (max-width: @screen-xs-max) {
+								grid-template-columns: minmax(0, 1fr) 10ch 6ch minmax(0, 1fr) !important;
+								width: 100%;
+								max-width: 100%;
+							}
+
+							&_row {
+								display: contents;
+							}
+
+							&_row > span {
+								white-space: nowrap;
+							}
+
+							&_name, &_value {
+								min-width: 0;
+								overflow: hidden;
+								text-overflow: ellipsis;
+							}
+
+							&_ttl {
+								text-align: right;
+							}
+
+							&_value {
+								text-align: right;
+							}
 						}
 					}
 
@@ -711,28 +888,6 @@
 								}
 							}
 
-							&.is-sortable {
-								.timings_value {
-									@media (min-width: @screen-lg-min) {
-										margin-right: 12px;
-									}
-
-									&.timeout {
-										@media (min-width: @screen-lg-min) {
-											margin-right: -4px;
-										}
-									}
-								}
-
-								.c-placeholder-skeleton {
-									@media (min-width: @screen-lg-min) {
-										margin-right: 12px;
-										width: calc(100% - 12px);
-										flex: 0 0 calc(100% - 12px);
-									}
-								}
-							}
-
 							.c-placeholder-skeleton {
 								@media (min-width: @screen-lg-min) {
 									min-width: 0;
@@ -772,6 +927,7 @@
 									display: inline-flex;
 									justify-self: center;
 									justify-content: center;
+									transform: translateX(4px);
 									width: auto;
 								}
 							}
