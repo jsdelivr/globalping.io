@@ -51,9 +51,9 @@
 
 	<c-notification></c-notification>
 
-	<c-gp-header additionalClasses="header-with-globalping-bg no-border" isInert="{{focusModeActive}}"></c-gp-header>
+	<c-gp-header additionalClasses="header-with-globalping-bg no-border {{#if focusModeActive || focusModeTransition || focusModePosition === 'preparing-close'}}focus-mode-background{{/if}}" isInert="{{focusModeActive || focusModeTransition || focusModePosition === 'preparing-close'}}"></c-gp-header>
 
-	<div class="p-globalping {{#if focusModeActive}}focus-mode-open{{/if}}">
+	<div class="p-globalping {{#if focusModeActive || focusModePosition === 'preparing-close'}}focus-mode-open{{/if}}">
 		<c-gp-jumbotron className="main" gridType="globe"></c-gp-jumbotron>
 
 		<div class="gp_main-info">
@@ -93,19 +93,21 @@
 			</div>
 		</div>
 
-		{{#if focusModeAvailable || focusModeActive}}
-			<div
-				class="gp_focus-mode-backdrop {{#if focusModeActive}}active{{elseif focusModeTransition}}gp_focus-mode-backdrop_closing{{/if}}"
-				aria-hidden="true"
-				on-click="@this.closeFocusModeFromBackdrop(@event)"></div>
-		{{/if}}
-
 		<div
-			class="gp_map-block {{#if focusModeActive}}gp_map-block_focus-mode{{elseif focusModeTransition === 'content-leaving'}}gp_map-block_results-leaving{{/if}}"
+			class="gp_map-block {{#if focusModeActive || focusModePosition === 'preparing-close'}}gp_map-block_focus-mode {{#if focusModePosition === 'entering'}}gp_map-block_focus-mode_entering{{elseif focusModePosition === 'preparing-close'}}gp_map-block_focus-mode_preparing-close{{/if}}{{elseif focusModeTransition === 'content-leaving' || focusModePosition === 'leaving'}}gp_map-block_results-leaving{{/if}}"
+			on-transitionend="@this.handleFocusModePositionTransitionEnd(@event)"
 			{{#if focusModeActive}}role="dialog" aria-modal="true" aria-label="Globalping measurement tool" tabindex="-1"{{/if}}>
-			{{#if focusModeActive || focusModeTransition === 'content-leaving'}}
+			{{#if focusModeAvailable || focusModeActive || focusModeTransition || focusModePosition}}
 				<div
-					class="gp_map-block_focus-bar {{#if focusModeTransition === 'opening'}}gp_map-block_focus-bar_entering{{elseif focusModeTransition === 'content-leaving'}}gp_map-block_focus-bar_leaving{{/if}}"
+					class="gp_focus-mode-backdrop {{#if focusModePosition}}gp_focus-mode-backdrop_moving{{else}}gp_focus-mode-backdrop_settled{{/if}} {{#if focusModeActive || focusModePosition === 'preparing-close'}}active{{elseif focusModeTransition}}gp_focus-mode-backdrop_closing{{/if}}"
+					aria-hidden="true"
+					on-transitionend="@this.handleFocusModeBackdropTransitionEnd(@event)"
+					on-click="@this.closeFocusModeFromBackdrop(@event)"></div>
+			{{/if}}
+			{{#if focusModeActive || focusModeTransition === 'content-leaving' || focusModePosition}}
+				<div class="gp_map-block_focus-backing" aria-hidden="true"></div>
+				<div
+					class="gp_map-block_focus-bar {{#if focusModeTransition === 'opening'}}gp_map-block_focus-bar_entering{{elseif focusModeTransition === 'content-leaving' || focusModePosition === 'leaving'}}gp_map-block_focus-bar_leaving{{/if}}"
 					{{#unless focusModeActive}}inert aria-hidden="true"{{/unless}}>
 					<img
 						class="gp_map-block_focus-bar_logo"
@@ -1736,6 +1738,8 @@
 	const FOCUS_MODE_RESULTS_EXPAND_MS = 420;
 	const FOCUS_MODE_CONTENT_EXIT_MS = 180;
 	const FOCUS_MODE_PROMPT_ENTER_MS = 180;
+	const FOCUS_MODE_POSITION_MS = 420;
+	const FOCUS_MODE_EXIT_SCROLL_MS = FOCUS_MODE_POSITION_MS + FOCUS_MODE_CONTENT_EXIT_MS;
 	const FOCUS_MODE_SCROLL_OFFSET = 30;
 	const PENDING_RESULT_SCROLL_TIMEOUT_MS = 500;
 	const SMOOTH_SCROLL_SETTLE_DELAY_MS = 120;
@@ -1869,6 +1873,8 @@
 				testReqParams: null,
 				focusModeTransition: null,
 				focusModeTransitionTimeout: null,
+				focusModePosition: null,
+				focusModePositionTimeout: null,
 				pendingResultId: null,
 				showMeasurementLoadingInfo: false,
 				sharedMeasurementInitialLoading: false,
@@ -2088,6 +2094,7 @@
 
 				listeners.screenWidthListener(this);
 				listeners.addManagedListener(this, document, 'keydown', event => this.handleFocusModeKeyDown(event));
+				listeners.addManagedListener(this, document, 'click', event => this.handleFocusModeDocumentClick(event));
 			}
 		},
 		oninit () {
@@ -2188,6 +2195,29 @@
 				}
 
 				this.initResponseBodyCharWidth();
+
+				this.observe('focusModeActive', (focusModeActive, previousFocusModeActive) => {
+					if (focusModeActive && this.get('focusModePosition') !== 'entering') {
+						this.cancelFocusModeExitScroll();
+
+						if (this.focusModeAvailabilityClosePending) {
+							this.focusModeAvailabilityClosePending = false;
+							this.focusModeClosePending = false;
+							this.clearFocusModeTransition();
+
+							if (this.get('focusModePosition') === 'preparing-close') {
+								this.set('focusModePosition', null);
+								this.moveFocusModeBackdrop(false);
+								return;
+							}
+						}
+
+						this.startFocusModePositionEntry();
+					} else if (previousFocusModeActive && this.get('focusModeSupported')
+						&& this.get('focusModePosition') !== 'leaving' && !this.focusModeClosePending) {
+						this.closeFocusMode(null, false, true);
+					}
+				}, { init: false });
 
 				this.observe('focusModeActive testInProgress shareResFlow measurement testReqParams sharedMeasurementInitialLoading', () => {
 					clearTimeout(this.measurementLoadingInfoTimeout);
@@ -2773,6 +2803,7 @@
 		},
 		onunrender () {
 			this.focusModeRenderId = (this.focusModeRenderId || 0) + 1;
+			this.moveFocusModeBackdrop(false);
 			this.set('activeTestRunId', this.get('activeTestRunId') + 1);
 			let gmapsIdleListener = this.get('gmapsIdleListener');
 
@@ -2783,9 +2814,11 @@
 
 			clearTimeout(this.get('runTestBtnDelayTimeout'));
 			clearTimeout(this.get('focusModeTransitionTimeout'));
+			clearTimeout(this.get('focusModePositionTimeout'));
 			clearTimeout(this.measurementLoadingInfoTimeout);
 			this.measurementLoadingInfoTimeout = null;
 			this.cancelPendingResultScrollFrame();
+			this.cancelFocusModeExitScroll();
 			this.set('pendingResultId', null);
 			this.get('testReqCancelFn')?.forEach(cancel => cancel?.());
 			this.set('testReqCancelFn', []);
@@ -2840,6 +2873,126 @@
 				focusModeTransitionTimeout: null,
 			});
 		},
+		moveFocusModeBackdrop (moving) {
+			let focusModeRoot = this.find('.gp_map-block');
+			let backdrop = this.find('.gp_focus-mode-backdrop');
+
+			if (!focusModeRoot || !backdrop) {
+				return false;
+			}
+
+			if (moving) {
+				focusModeRoot.parentNode.insertBefore(backdrop, focusModeRoot);
+			} else if (backdrop.parentNode !== focusModeRoot) {
+				focusModeRoot.insertBefore(backdrop, focusModeRoot.firstChild);
+			}
+
+			return true;
+		},
+		startFocusModePositionEntry () {
+			clearTimeout(this.get('focusModePositionTimeout'));
+			this.set('focusModePosition', 'entering');
+
+			if (!this.moveFocusModeBackdrop(true)) {
+				this.update().then(() => {
+					if (this.get('focusModePosition') === 'entering') {
+						this.moveFocusModeBackdrop(true);
+					}
+				});
+			}
+
+			this.scheduleFocusModePositionTimeout('entering');
+		},
+		prepareFocusModePositionEntry () {
+			this.startFocusModePositionEntry();
+			this.find('.gp_map-block').getBoundingClientRect();
+		},
+		freezeFocusModeBackdrop () {
+			let backdrop = this.find('.gp_focus-mode-backdrop');
+
+			if (!backdrop) {
+				return () => {};
+			}
+
+			let style = getComputedStyle(backdrop);
+			let opacity = style.opacity;
+			let backdropFilter = style.backdropFilter;
+
+			backdrop.style.transition = 'none';
+			backdrop.style.opacity = opacity;
+			backdrop.style.backdropFilter = backdropFilter;
+
+			return () => {
+				if (!backdrop.isConnected) {
+					return;
+				}
+
+				backdrop.style.transition = '';
+				backdrop.getBoundingClientRect();
+				backdrop.style.opacity = '';
+				backdrop.style.backdropFilter = '';
+			};
+		},
+		scheduleFocusModePositionTimeout (position) {
+			requestAnimationFrame(() => {
+				if (this.get('focusModePosition') !== position) {
+					return;
+				}
+
+				this.set('focusModePositionTimeout', setTimeout(() => {
+					if (this.get('focusModePosition') === position) {
+						this.set('focusModePosition', null);
+						this.moveFocusModeBackdrop(false);
+					}
+
+					this.set('focusModePositionTimeout', null);
+				}, FOCUS_MODE_POSITION_MS + 50));
+			});
+		},
+		handleFocusModePositionTransitionEnd (event) {
+			if (event.target !== event.currentTarget || event.propertyName !== 'transform') {
+				return;
+			}
+
+			this.finishFocusModePositionTransition();
+		},
+		handleFocusModeBackdropTransitionEnd (event) {
+			if (event.target !== event.currentTarget || event.propertyName !== 'opacity') {
+				return;
+			}
+
+			this.finishFocusModePositionTransition();
+		},
+		finishFocusModePositionTransition () {
+			let position = this.get('focusModePosition');
+
+			if (position !== 'entering' && (position !== 'leaving' || this.get('focusModeActive'))) {
+				return;
+			}
+
+			let focusModeRoot = this.find('.gp_map-block');
+			let style = getComputedStyle(focusModeRoot);
+			let matrixMatch = style.transform.match(/^matrix(3d)?\((.+)\)$/);
+			let transformValues = matrixMatch?.[2].split(',').map(value => Number.parseFloat(value));
+			let currentTransformY = matrixMatch ? transformValues[matrixMatch[1] ? 13 : 5] : 0;
+			let expectedTransformY = position === 'entering'
+				? Number.parseFloat(style.getPropertyValue('--focus-mode-offset-y')) || 0
+				: 0;
+			let backdropOpacity = Number.parseFloat(getComputedStyle(this.find('.gp_focus-mode-backdrop')).opacity);
+			let expectedBackdropOpacity = position === 'entering' ? 1 : 0;
+
+			if (Math.abs(currentTransformY - expectedTransformY) < 1
+				&& Math.abs(backdropOpacity - expectedBackdropOpacity) < .01) {
+				clearTimeout(this.get('focusModePositionTimeout'));
+
+				this.set({
+					focusModePosition: null,
+					focusModePositionTimeout: null,
+				});
+
+				this.moveFocusModeBackdrop(false);
+			}
+		},
 		openFocusMode (event) {
 			event?.preventDefault?.();
 
@@ -2848,13 +3001,25 @@
 			}
 
 			let isResultsPreviewOpening = !!this.find('.gp_map-block_test-output_results-preview');
+			let isReversingClose = [ 'leaving', 'preparing-close' ].includes(this.get('focusModePosition'));
+			let releaseBackdrop = this.freezeFocusModeBackdrop();
 
+			this.cancelFocusModeExitScroll();
 			this.clearFocusModeTransition();
+			this.focusModeClosePending = false;
+
+			if (isReversingClose) {
+				this.startFocusModePositionEntry();
+			} else {
+				this.prepareFocusModePositionEntry();
+			}
+
 			this.set('focusModeTransition', 'opening');
 			app.router.replaceQueryParam('view', null, this);
+			releaseBackdrop();
 
 			if (this.get('pendingResultId') === null) {
-				this.scrollFocusModeRootAfterRender();
+				this.scrollFocusModeRootAfterRender(FOCUS_MODE_SCROLL_OFFSET, !isReversingClose);
 			}
 
 			this.set('focusModeTransitionTimeout', setTimeout(() => {
@@ -2864,36 +3029,109 @@
 
 			this.focusFocusModeToggleButton();
 		},
-		closeFocusMode (event, restoreFocus = true) {
+		closeFocusMode (event, restoreFocus = true, availabilityLost = false) {
 			event?.preventDefault?.();
 
-			if (!this.get('focusModeActive')) {
+			if ((!this.get('focusModeActive') && !availabilityLost) || this.focusModeClosePending) {
 				return;
 			}
 
+			this.focusModeClosePending = true;
+			this.focusModeAvailabilityClosePending = availabilityLost;
+
 			this.cancelPendingResultScrollFrame();
+			this.cancelFocusModeExitScroll();
 			this.set('pendingResultId', null);
+			this.startFocusModeExitScroll();
 
 			this.clearFocusModeTransition();
-			app.router.replaceQueryParam('view', 'home', this);
-			this.set('focusModeTransition', 'content-leaving');
+			let renderId = this.focusModeRenderId;
 
-			this.set('focusModeTransitionTimeout', setTimeout(() => {
-				this.set('focusModeTransition', 'prompt-entering');
-
-				if (restoreFocus) {
-					this.focusFocusModeToggleButton();
+			let finishClose = () => {
+				if (this.focusModeRenderId !== renderId || (availabilityLost && this.get('focusModeActive'))) {
+					this.focusModeClosePending = false;
+					this.focusModeAvailabilityClosePending = false;
+					return;
 				}
 
+				clearTimeout(this.get('focusModePositionTimeout'));
+				this.set('focusModePosition', 'leaving');
+
+				if (!availabilityLost) {
+					app.router.replaceQueryParam('view', 'home', this);
+				}
+
+				this.set('focusModeTransition', 'content-leaving');
+				this.focusModeClosePending = false;
+
+				if (!availabilityLost) {
+					this.focusModeAvailabilityClosePending = false;
+				}
+
+				this.scheduleFocusModePositionTimeout('leaving');
+
 				this.set('focusModeTransitionTimeout', setTimeout(() => {
-					this.set('focusModeTransition', null);
-					this.set('focusModeTransitionTimeout', null);
-				}, FOCUS_MODE_PROMPT_ENTER_MS));
-			}, FOCUS_MODE_CONTENT_EXIT_MS));
+					this.set('focusModeTransition', 'prompt-entering');
+
+					if (restoreFocus) {
+						this.focusFocusModeToggleButton();
+					}
+
+					this.set('focusModeTransitionTimeout', setTimeout(() => {
+						this.set('focusModeTransition', null);
+						this.set('focusModeTransitionTimeout', null);
+
+						if (availabilityLost) {
+							this.focusModeAvailabilityClosePending = false;
+						}
+					}, FOCUS_MODE_PROMPT_ENTER_MS));
+				}, FOCUS_MODE_CONTENT_EXIT_MS));
+			};
+
+			if (this.get('focusModePosition') === 'entering') {
+				finishClose();
+				return;
+			}
+
+			this.set('focusModePosition', 'preparing-close');
+			this.moveFocusModeBackdrop(true);
+
+			this.update().then(() => {
+				if (this.focusModeRenderId !== renderId || (availabilityLost && this.get('focusModeActive'))) {
+					this.focusModeClosePending = false;
+					this.focusModeAvailabilityClosePending = false;
+					return;
+				}
+
+				this.find('.gp_map-block')?.getBoundingClientRect();
+				requestAnimationFrame(finishClose);
+			});
 		},
 		closeFocusModeFromBackdrop (event) {
+			if (document.body.classList.contains('modal-open')) {
+				return;
+			}
+
 			this.closeFocusMode(event, false);
-			this.scrollFocusModeRootAfterRender();
+		},
+		handleFocusModeDocumentClick (event) {
+			if (!this.get('focusModeActive') || document.body.classList.contains('modal-open')) {
+				return;
+			}
+
+			if (event.target.classList?.contains('gp_focus-mode-backdrop')) {
+				return;
+			}
+
+			let focusModeRoot = this.find('.gp_map-block');
+			let focusModeRootRect = focusModeRoot?.getBoundingClientRect();
+			let clickedFocusModeSurface = event.composedPath().includes(focusModeRoot)
+				|| (focusModeRootRect && event.clientX >= focusModeRootRect.left && event.clientX <= focusModeRootRect.right
+					&& event.clientY >= focusModeRootRect.top && event.clientY <= focusModeRootRect.bottom);
+
+			if (!clickedFocusModeSurface) {
+				this.closeFocusModeFromBackdrop(event);
+			}
 		},
 		handleFocusModeKeyDown (event) {
 			if (!this.get('focusModeActive')) {
@@ -3023,11 +3261,19 @@
 			}
 
 			// clear all data from the previous test, close additional options menu, show spinner, set up Map's data etc.
+			let releaseFocusModeBackdrop;
+
+			if (this.get('focusModeSupported') && !this.get('focusModeActive')) {
+				this.prepareFocusModePositionEntry();
+				releaseFocusModeBackdrop = this.freezeFocusModeBackdrop();
+			}
+
 			this.set('testResults', null);
 			this.set('markersData', null);
 			this.set('probesResponse', null);
 			this.set('showMeasurementOpts', false);
 			this.set('testInProgress', true);
+			releaseFocusModeBackdrop?.();
 			this.set('measurementErrMsg', null);
 			this.set('testReqParams', null);
 			this.set('measurementDate', null);
@@ -4206,9 +4452,78 @@
 				top: targetScrollTop,
 			});
 		},
+		cancelFocusModeExitScroll () {
+			let cancelScroll = this.focusModeExitScrollCancel;
+
+			this.focusModeExitScrollCancel = null;
+			cancelScroll?.();
+		},
+		startFocusModeExitScroll () {
+			this.cancelFocusModeExitScroll();
+			let focusModeRoot = this.find('.gp_map-block');
+			let pageRoot = this.find('.p-globalping');
+			let mainInfo = this.find('.gp_main-info');
+			let focusModeOffsetY = Number.parseFloat(getComputedStyle(focusModeRoot).getPropertyValue('--focus-mode-offset-y')) || 0;
+			let mainInfoTransition = mainInfo.style.transition;
+			let isFocusModeOpen = pageRoot.classList.contains('focus-mode-open');
+
+			if (isFocusModeOpen) {
+				mainInfo.style.transition = 'none';
+				pageRoot.classList.remove('focus-mode-open');
+			}
+
+			let targetScrollTop = this.getFocusModeRootScrollTop(focusModeRoot, FOCUS_MODE_SCROLL_OFFSET + focusModeOffsetY);
+
+			if (isFocusModeOpen) {
+				pageRoot.classList.add('focus-mode-open');
+				focusModeRoot.getBoundingClientRect();
+				mainInfo.style.transition = mainInfoTransition;
+			}
+
+			let startScrollTop = window.scrollY;
+
+			if (targetScrollTop >= startScrollTop) {
+				return;
+			}
+
+			let renderId = this.focusModeRenderId;
+			let startTime = performance.now();
+			let frame;
+			let cancelScroll = () => {
+				cancelAnimationFrame(frame);
+				window.scrollTo({ top: window.scrollY, behavior: 'auto' });
+
+				if (this.focusModeExitScrollCancel === cancelScroll) {
+					this.focusModeExitScrollCancel = null;
+				}
+			};
+			let scroll = (timestamp) => {
+				if (this.focusModeRenderId !== renderId) {
+					cancelScroll();
+					return;
+				}
+
+				let progress = Math.min(1, (timestamp - startTime) / FOCUS_MODE_EXIT_SCROLL_MS);
+				let easedProgress = 1 - Math.pow(1 - progress, 3);
+				let scrollTop = startScrollTop + (targetScrollTop - startScrollTop) * easedProgress;
+
+				window.scrollTo({ top: scrollTop, behavior: 'auto' });
+
+				if (progress < 1) {
+					frame = requestAnimationFrame(scroll);
+				} else if (this.focusModeExitScrollCancel === cancelScroll) {
+					this.focusModeExitScrollCancel = null;
+				}
+			};
+
+			this.focusModeExitScrollCancel = cancelScroll;
+			window.scrollTo({ top: targetScrollTop, behavior: 'smooth' });
+			frame = requestAnimationFrame(scroll);
+		},
 		getFocusModeRootScrollTop (mapBlockEl, scrollOffset = FOCUS_MODE_SCROLL_OFFSET) {
 			let style = getComputedStyle(mapBlockEl);
 			let focusModeOffsetY = Number.parseFloat(style.getPropertyValue('--focus-mode-offset-y')) || 0;
+			let currentMarginTop = Number.parseFloat(style.marginTop) || 0;
 			let currentTransformY = 0;
 			let matrixMatch = style.transform.match(/^matrix(3d)?\((.+)\)$/);
 
@@ -4218,9 +4533,9 @@
 				currentTransformY = Number.isFinite(currentTransformY) ? currentTransformY : 0;
 			}
 
-			return Math.max(0, window.scrollY + mapBlockEl.getBoundingClientRect().top - currentTransformY + focusModeOffsetY - scrollOffset);
+			return Math.max(0, window.scrollY + mapBlockEl.getBoundingClientRect().top - currentTransformY - currentMarginTop + focusModeOffsetY - scrollOffset);
 		},
-		scrollFocusModeRootAfterRender (scrollOffset = FOCUS_MODE_SCROLL_OFFSET) {
+		scrollFocusModeRootAfterRender (scrollOffset = FOCUS_MODE_SCROLL_OFFSET, cancelIfScrolled = true) {
 			let scheduledScrollY = window.scrollY;
 			let renderId = this.focusModeRenderId;
 
@@ -4230,7 +4545,7 @@
 				}
 
 				requestAnimationFrame(() => {
-					if (this.focusModeRenderId === renderId && window.scrollY === scheduledScrollY) {
+					if (this.focusModeRenderId === renderId && (!cancelIfScrolled || window.scrollY === scheduledScrollY)) {
 						let focusBar = this.get('focusModeActive') && this.find('.gp_map-block_focus-bar');
 
 						this.scrollFocusModeRootIntoView(scrollOffset - (focusBar?.offsetTop || 0));

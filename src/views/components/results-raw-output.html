@@ -500,6 +500,10 @@
 			}
 
 			if (event?.type === 'scroll') {
+				if (!this.get('itemFocused') && !this.get('floatingSetLocationButton.visible')) {
+					return;
+				}
+
 				this.set('itemFocused', false);
 				this.set('floatingSetLocationButton.visible', false);
 				return;
