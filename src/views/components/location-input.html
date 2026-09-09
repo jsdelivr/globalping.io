@@ -535,6 +535,10 @@
 							normalizedProbe.country += `\nUK\nGreat Britain\nEngland`.toLowerCase();
 						}
 
+						if (probe.location.country === 'TR') {
+							normalizedProbe.country += `\nTurkey\nTurkiye`.toLowerCase();
+						}
+
 						return {
 							...normalizedProbe,
 							original: probe,
