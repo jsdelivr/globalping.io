@@ -523,8 +523,9 @@
 				let cityNameLC = location.city.toLowerCase();
 				let cityNameAsUrlPart = cityNameLC.split(' ').join('-');
 				let countryCodeLC = location.country.toLowerCase();
-				let countryNameLC = countries.find(i => i.code.toLowerCase() === countryCodeLC).name.toLowerCase();
-				let countryNameAsUrlPart = countryNameLC.split(' ').join('-');
+				let country = countries.find(i => i.code.toLowerCase() === countryCodeLC);
+				let countryNameLC = country.name.toLowerCase();
+				let countryNameAsUrlPart = (country.nameAscii || country.name).toLowerCase().split(' ').join('-');
 				let asnName = `as${location.asn}`;
 				let networkNameAsKey = _.networkNameToKey(location.network);
 				let continentCodeLC = location.continent.toLowerCase();

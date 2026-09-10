@@ -15,13 +15,11 @@ const PROBE_STATUS_ERROR_COLOR = '#9b51e0';
 
 const COUNTRIES = require('../json/countries.json');
 
-const COUNTRIES_MAP = COUNTRIES.reduce((acc, country) => {
-	acc[country.code] = country.name;
-	return acc;
-}, {});
-
 const COUNTRY_CODE_MAP = COUNTRIES.reduce((acc, country) => {
-	acc[country.name] = country.code;
+	for (let value of [ country.code, country.name, ...country.aliases || [] ]) {
+		acc[value.toLowerCase()] = country.code;
+	}
+
 	return acc;
 }, {});
 
@@ -838,18 +836,21 @@ module.exports = {
 	createLocationString (newLocation, locationFilter) {
 		let targetLoc;
 		let locations = locationFilter.replace(/^world$/i, '').split(',').map(location => location.trim()).filter(Boolean);
+		let newLocationParts = new Set(newLocation.split(/[+%]/).map(part => part.trim().toLowerCase()));
+		let newLocationCountryCodes = new Set(Array.from(newLocationParts)
+			.map(part => COUNTRY_CODE_MAP[part])
+			.filter(Boolean));
 
 		if (!locations.length) {
 			targetLoc = newLocation;
 		} else {
 			targetLoc = locations.reduce((shortestLoc, location) => {
 				let filteredParts = location.split(/[+%]/).map(part => part.trim()).filter((part) => {
-					let countryCode = COUNTRIES_MAP[part];
-					let countryName = COUNTRY_CODE_MAP[part];
+					let partLC = part.toLowerCase();
+					let countryCode = COUNTRY_CODE_MAP[partLC];
 
-					let isRedundant = newLocation.includes(part)
-						|| (countryCode && newLocation.includes(countryCode))
-						|| (countryName && newLocation.includes(countryName));
+					let isRedundant = newLocationParts.has(partLC)
+						|| (countryCode && newLocationCountryCodes.has(countryCode));
 
 					return !isRedundant;
 				});
