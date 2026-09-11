@@ -518,26 +518,19 @@
 
 				let createNormalizedProbeList = (probes) => {
 					normalizedProbes = probes.map((probe) => {
-						let countryName = countriesByCode[probe.location.country]?.name || probe.location.country;
+						let country = countriesByCode[probe.location.country];
+						let countryName = country?.name || probe.location.country;
 						let continentName = continentsByCode[probe.location.continent]?.name || probe.location.continent;
 
 						let normalizedProbe = {
 							city: `${probe.location.city}\n${probe.location.state ? `US-${probe.location.state}\n` : '\n'}${countryName}\n${probe.location.country}`,
 							region: probe.location.region,
 							state: probe.location.state ? `US-${probe.location.state}` : '',
-							country: `${countryName}\n${probe.location.country}`,
+							country: [ countryName, probe.location.country, ...country?.aliases || [] ].join('\n'),
 							continent: `${continentName}\n${probe.location.continent}`,
 							network: probe.location.network.trim(),
 							tags: probe.tags.filter(tag => !tag.startsWith('u-')),
 						};
-
-						if (probe.location.country === 'GB') {
-							normalizedProbe.country += `\nUK\nGreat Britain\nEngland`.toLowerCase();
-						}
-
-						if (probe.location.country === 'TR') {
-							normalizedProbe.country += `\nTurkey\nTurkiye`.toLowerCase();
-						}
 
 						return {
 							...normalizedProbe,

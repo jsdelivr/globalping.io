@@ -76,8 +76,8 @@ const parseRawProbeData = () => {
 
 	let parsedData = rawProbeData.reduce((res, { tags, location }) => {
 		let cityNameAsUrlPart = location.city.split(' ').join('-').toLowerCase();
-		let countryNameLC = countries.find(i => i.code.toLowerCase() === location.country.toLowerCase()).name.toLowerCase();
-		let countryNameAsUrlPart = countryNameLC.split(' ').join('-');
+		let country = countries.find(i => i.code.toLowerCase() === location.country.toLowerCase());
+		let countryNameAsUrlPart = (country.nameAscii || country.name).toLowerCase().split(' ').join('-');
 		let asnName = `as${location.asn}`;
 		let networkNameAsUrlPart = location.network.replace(/\./g, '').replace(/[\W]|_/g, ' ').replace(/\s\s+|_/g, ' ').trim().split(' ').join('-').toLowerCase();
 		let continentNameLC = continents.find(i => i.code.toLowerCase() === location.continent.toLowerCase()).name.toLowerCase();
