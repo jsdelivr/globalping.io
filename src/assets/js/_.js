@@ -707,7 +707,8 @@ module.exports = {
 				fieldName = 'location';
 			}
 
-			res[fieldName] = `${prefix}${this.capitalizeFirstLetter(errorBody.params[key].replace(/".*"/, fieldName))}`;
+			let label = `the ${fieldName}`;
+			res[fieldName] = `${prefix}${this.capitalizeFirstLetter(errorBody.params[key].replace(/".*"/, label))}`;
 
 			return res;
 		}, {});

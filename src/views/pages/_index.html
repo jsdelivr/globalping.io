@@ -574,6 +574,10 @@
 												labelText="Headers"
 												classList="gp_input">
 											</c-controlled-textarea>
+
+											{{#if inputErrors.request}}
+												<span class="c-controlled-input_error" role="alert">{{inputErrors.request}}</span>
+											{{/if}}
 										</div>
 									{{/if}}
 
