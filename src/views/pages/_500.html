@@ -1,0 +1,42 @@
+<link rel="ractive" href="../r-page.html" name="r-page">
+<link rel="ractive" href="../components/header.html" name="c-gp-header">
+<link rel="ractive" href="../components/notification.html" name="c-notification">
+
+<r-page noYield="{{noYield}}" title="{{title}}" description="{{description}}">
+	<c-notification></c-notification>
+	<c-gp-header mainLogoName="globalping-full-white.svg" additionalClasses="gp-404-header"></c-gp-header>
+
+	<div class="p-globalping-404">
+		<div class="gp-404">
+			<div class="gp-404_text-block">
+				<div class="gp-404_text-block_title">
+					Oops! Something went wrong on our end.
+				</div>
+
+				<div class="gp-404_text-block_descr">
+					Please try again in a moment.
+				</div>
+
+				<a href="/" class="gp-404_text-block_btn gp_btn_green">Back to Homepage</a>
+			</div>
+
+			<div class="gp-404_img-block">
+				<img style="width: 100%"
+					src="{{@shared.assetsHost}}/img/500.svg"
+					alt="500"
+					loading="lazy">
+			</div>
+		</div>
+	</div>
+</r-page>
+
+<script>
+	component.exports = {
+		data () {
+			return {
+				title: 'Server error - Globalping',
+				description: 'An error occurred while loading this page. Please try again in a moment.',
+			};
+		},
+	};
+</script>

@@ -41,10 +41,6 @@ const isDev = process.env.NODE_ENV === 'development';
 let app = new Koa();
 let router = new KoaRouter();
 
-const shouldLogRenderError = (ctx, error) => {
-	return !(ctx.path.startsWith('/.well-known') && error?.code === 'ENOENT');
-};
-
 const serverHost = app.env === 'production'
 	? coolifyUrl || serverConfig.host
 	: '';
@@ -275,27 +271,43 @@ koaElasticUtils.addRoutes(router, [
 	[ '{/*path}', '{/*path}' ],
 ], async (ctx) => {
 	let path = ctx.path.startsWith('/_') ? '/_404' : ctx.path;
-	let root = '';
+	let template = 'pages/' + (path === '/' ? '_index' : path) + '.html';
 	let data = {
 		...lodash.pick(ctx.query, [ 'docs', 'limit', 'page', 'query', 'type', 'style', 'measurement' ]),
 	};
 
 	try {
-		ctx.body = await ctx.render(`pages/${root}` + (path === '/' ? '_index' : path) + '.html', data);
+		ctx.body = await ctx.render(template, data);
 		ctx.maxAge = 5 * 60;
 	} catch (e) {
-		if (app.env === 'development' && shouldLogRenderError(ctx, e)) {
-			console.error(e);
+		if (e.code !== 'ENOENT' || e.path !== resolve(__dirname, 'views', template)) {
+			throw e;
 		}
 
 		ctx.status = 404;
-		ctx.body = await ctx.render(`pages/${root}_404.html`);
+		ctx.body = await ctx.render('pages/_404.html');
 	}
 });
 
 /**
  * Routing.
  */
+app.use(async (ctx, next) => {
+	try {
+		await next();
+	} catch (error) {
+		if (error.status && error.status < 500) {
+			throw error;
+		}
+
+		ctx.app.emit('error', error, ctx);
+		ctx.status = 500;
+		ctx.maxAge = 0;
+		ctx.expires = null;
+		ctx.body = await ctx.render('pages/_500.html');
+	}
+});
+
 app.use(router.routes()).use(router.allowedMethods());
 
 /**

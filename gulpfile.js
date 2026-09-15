@@ -177,6 +177,10 @@ gulp.task('nuxt:ractive:components', gulp.parallel(
 		.pipe(source('404.js'))
 		.pipe(buffer())
 		.pipe(gulp.dest(`${dstAppDir}/ractive`)),
+	() => getRollupStreamRactiveComp('/pages/_500.html')
+		.pipe(source('500.js'))
+		.pipe(buffer())
+		.pipe(gulp.dest(`${dstAppDir}/ractive`)),
 ));
 
 gulp.task('build', gulp.series('clean', 'copy', 'less:prod', 'js:prod', 'nuxt:less', 'nuxt:ractive:components'));

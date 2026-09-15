@@ -7,7 +7,6 @@
 	import type { NuxtError } from '#app';
 	import type Ractive from 'ractive';
 	import usePageHead from '~/composables/usePageHead';
-	import ErrPage from '~/ractive/404';
 
 	const { error } = defineProps({
 		error: {
@@ -18,8 +17,12 @@
 
 	const errPageInstance = ref<Ractive<Ractive>>();
 	const errPageHtml = ref('');
+	const isNotFound = error?.statusCode === 404;
 
-	usePageHead({ prefix: 'Page not found', description: 'Page not found - Globalping' });
+	usePageHead(isNotFound
+		? { prefix: 'Page not found', description: 'You may have mistyped the address or the page may have moved.' }
+		: { prefix: 'Server error', description: 'An error occurred while loading this page. Please try again in a moment.' });
+
 	const route = useRoute();
 
 	const {
@@ -29,12 +32,12 @@
 		assetsVersion,
 	} = useRuntimeConfig().public;
 
-	if (error?.statusCode !== 404) {
-		navigateTo('/', { external: true });
-	}
-
 	// SSR
 	if (import.meta.server) {
+		const ErrPage = isNotFound
+			? (await import('~/ractive/404')).default
+			: (await import('~/ractive/500')).default;
+
 		errPageInstance.value = new ErrPage();
 		errPageInstance.value?.set('@shared.serverHost', serverHost);
 		errPageInstance.value?.set('@shared.assetsHost', assetsHost);
