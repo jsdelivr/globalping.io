@@ -30,17 +30,8 @@ koaElasticUtils.addRoutes(router, [
 		currentPolicy: ctx.params.currentPolicy,
 	};
 
-	try {
-		ctx.body = await ctx.render('pages/terms.html', data);
-		ctx.maxAge = 5 * 60;
-	} catch (e) {
-		if (ctx.app.env === 'development') {
-			console.error(e);
-		}
-
-		ctx.status = 301;
-		return ctx.redirect('/');
-	}
+	ctx.body = await ctx.render('pages/terms.html', data);
+	ctx.maxAge = 5 * 60;
 });
 
 /**
@@ -67,17 +58,8 @@ koaElasticUtils.addRoutes(router, [
 		username,
 	};
 
-	try {
-		ctx.body = await ctx.render('pages/_users.html', data);
-		ctx.maxAge = 5 * 60;
-	} catch (e) {
-		if (ctx.app.env === 'development') {
-			console.error(e);
-		}
-
-		ctx.status = 301;
-		return ctx.redirect('/');
-	}
+	ctx.body = await ctx.render('pages/_users.html', data);
+	ctx.maxAge = 5 * 60;
 });
 
 /**
@@ -133,9 +115,6 @@ koaElasticUtils.addRoutes(router, [
 
 			throw new Error(`Measurement type ${testType} is incorrect! Redirecting to ${newPath}!`);
 		}
-
-		ctx.body = await ctx.render('pages/network-tools.html', data);
-		ctx.maxAge = 5 * 60;
 	} catch (e) {
 		if (ctx.app.env === 'development') {
 			console.error(e);
@@ -145,6 +124,9 @@ koaElasticUtils.addRoutes(router, [
 
 		return ctx.redirect(`/network-tools/${newPath}`);
 	}
+
+	ctx.body = await ctx.render('pages/network-tools.html', data);
+	ctx.maxAge = 5 * 60;
 });
 
 /**
@@ -168,17 +150,8 @@ koaElasticUtils.addRoutes(router, [
 		networkName,
 	};
 
-	try {
-		ctx.body = await ctx.render('pages/_networks.html', data);
-		ctx.maxAge = 5 * 60;
-	} catch (e) {
-		if (ctx.app.env === 'development') {
-			console.error(e);
-		}
-
-		ctx.status = 301;
-		return ctx.redirect('/');
-	}
+	ctx.body = await ctx.render('pages/_networks.html', data);
+	ctx.maxAge = 5 * 60;
 });
 
 /**
@@ -324,17 +297,8 @@ koaElasticUtils.addRoutes(router, [
 		}
 	}
 
-	try {
-		ctx.body = await ctx.render(`pages/` + (path === '/' ? '_index' : path) + '.html', data);
-		ctx.maxAge = 5 * 60;
-	} catch (e) {
-		if (ctx.app.env === 'development') {
-			console.error(e);
-		}
-
-		ctx.status = 404;
-		ctx.body = await ctx.render(`pages/_404.html`);
-	}
+	ctx.body = await ctx.render(`pages/` + (path === '/' ? '_index' : path) + '.html', data);
+	ctx.maxAge = 5 * 60;
 });
 
 module.exports = router;

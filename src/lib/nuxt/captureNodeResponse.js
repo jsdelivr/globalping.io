@@ -118,7 +118,7 @@ module.exports = async (handler, ctx) => {
 		console.error(err);
 		capturedStatusCode = 500;
 		bodyChunks.length = 0;
-		bodyChunks.push(Buffer.from('Internal Server Error'));
+		bodyBuffer = Buffer.from('Internal Server Error');
 		requestFinished();
 	};
 
