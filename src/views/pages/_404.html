@@ -5,23 +5,23 @@
 <r-page noYield="{{noYield}}" title="{{title}}" description="{{description}}">
 	<c-notification></c-notification>
 
-	<c-gp-header mainLogoName="globalping-full-white.svg" additionalClasses="gp-404-header" hideAuthentication="{{true}}"></c-gp-header>
+	<c-gp-header mainLogoName="globalping-full-white.svg" additionalClasses="gp-error-header" hideAuthentication="{{true}}"></c-gp-header>
 
-	<div class="p-globalping-404" error-page>
-		<div class="gp-404">
-			<div class="gp-404_text-block">
-				<div class="gp-404_text-block_title">
+	<div class="p-globalping-error" error-page>
+		<div class="gp-error">
+			<div class="gp-error_text-block">
+				<div class="gp-error_text-block_title">
 					Oops! The page you were looking for doesn’t exist.
 				</div>
 
-				<div class="gp-404_text-block_descr">
+				<div class="gp-error_text-block_descr">
 					You may have mistyped the address or the page may have moved.
 				</div>
 
-				<a href="/" class="gp-404_text-block_btn gp_btn_green">Back to Homepage</a>
+				<a href="/" class="gp-error_text-block_btn gp_btn_green">Back to Homepage</a>
 			</div>
 
-			<div class="gp-404_img-block">
+			<div class="gp-error_img-block">
 				<img style="width: 100%"
 					src="{{@shared.assetsHost}}/img/404.svg"
 					loading="lazy">
