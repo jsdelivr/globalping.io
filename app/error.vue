@@ -32,20 +32,17 @@
 		assetsVersion,
 	} = useRuntimeConfig().public;
 
-	// SSR
-	if (import.meta.server) {
-		const ErrPage = isNotFound
-			? (await import('~/ractive/404')).default
-			: (await import('~/ractive/500')).default;
+	const ErrPage = isNotFound
+		? (await import('~/ractive/404')).default
+		: (await import('~/ractive/500')).default;
 
-		errPageInstance.value = new ErrPage();
-		errPageInstance.value?.set('@shared.serverHost', serverHost);
-		errPageInstance.value?.set('@shared.assetsHost', assetsHost);
-		errPageInstance.value?.set('@shared.apiDocsHost', apiDocsHost);
-		errPageInstance.value?.set('@shared.assetsVersion', assetsVersion);
-		errPageInstance.value?.set('@shared.actualPath', route.path);
-		errPageHtml.value = errPageInstance.value.toHTML();
-	}
+	errPageInstance.value = new ErrPage();
+	errPageInstance.value?.set('@shared.serverHost', serverHost);
+	errPageInstance.value?.set('@shared.assetsHost', assetsHost);
+	errPageInstance.value?.set('@shared.apiDocsHost', apiDocsHost);
+	errPageInstance.value?.set('@shared.assetsVersion', assetsVersion);
+	errPageInstance.value?.set('@shared.actualPath', route.path);
+	errPageHtml.value = errPageInstance.value.toHTML();
 
 	onBeforeUnmount(() => {
 		errPageInstance.value?.teardown?.();
