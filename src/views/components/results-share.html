@@ -36,6 +36,7 @@
 	const _ = require('../../assets/js/_');
 	const PROBE_STATUS_OFFLINE = _.getProbeStatusOfflineValue();
 	const clipboard = require('../../assets/js/decorators/clipboard');
+	const ipRegex = require('../../assets/js/utils/ip-regex');
 	const { addManagedListener } = require('../../assets/js/utils/listeners');
 
 	component.exports = {
@@ -182,8 +183,16 @@
 								case 'protocol':
 									str += ` --protocol ${this.quoteShellArg(params.measurementOptions.protocol)}`; break;
 
-								case 'type':
-									str += ` --type ${this.quoteShellArg(params.measurementOptions.type)}`; break;
+								case 'query':
+									str += ` --type ${this.quoteShellArg(params.measurementOptions.query.type)}`; break;
+
+								case 'ipVersion':
+									if (!targets.some(target => ipRegex({ exact: true, allowBrackets: true }).test(target))
+										&& !ipRegex({ exact: true, allowBrackets: true }).test(params.measurementOptions.resolver || '')) {
+										str += ` --ipv${params.measurementOptions.ipVersion}`;
+									}
+
+									break;
 
 								case 'trace':
 									if (params.type.toLowerCase() === 'dns' && params.measurementOptions.trace) {
@@ -196,6 +205,10 @@
 									str += ` --resolver ${this.quoteShellArg(params.measurementOptions.resolver)}`; break;
 
 								case 'request':
+									Object.entries(params.measurementOptions.request.headers || {}).forEach(([ name, value ]) => {
+										str += ` --header ${this.quoteShellArg(`${name}: ${value}`)}`;
+									});
+
 									if (params.measurementOptions.request.host) {
 										str += ` --host ${this.quoteShellArg(params.measurementOptions.request.host)}`;
 									}
