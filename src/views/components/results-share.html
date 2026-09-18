@@ -127,20 +127,27 @@
 			let expectedTargetsCnt = this.get('expectedTargetsCnt') || 0;
 			let isInfiniteModeRes = this.get('isInfiniteModeRes');
 
-			if (!params.type) {
+			if (!params.type || expectedTargetsCnt > 2) {
 				this.set('cliCommand', '');
 				return;
 			}
 
-			if (expectedTargetsCnt >= 2 && !isInfiniteModeRes) {
-				this.set('cliCommand', 'Not supported yet');
-				return;
+			let targets = [ params.target ];
+
+			if (expectedTargetsCnt === 2 && !isInfiniteModeRes) {
+				let metadata = Object.values(this.get('measurementsMetadata') || {});
+				targets = metadata.map(measurement => measurement.target);
+
+				if (targets.length !== expectedTargetsCnt) {
+					this.set('cliCommand', '');
+					return;
+				}
 			}
 
 			let cmd = Object.keys(params).reduce((cmd, key) => {
 				// test type part
 				if (key === 'type') {
-					cmd.typePart += ` ${params[key]} ${params.target}`;
+					cmd.typePart += ` ${params[key]} ${targets.join(',')}`;
 
 					if (params.locations && params.locations.length) {
 						let locationStr = params.locations.reduce((str, loc, idx) => {
