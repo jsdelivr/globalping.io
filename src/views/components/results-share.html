@@ -36,6 +36,7 @@
 	const _ = require('../../assets/js/_');
 	const PROBE_STATUS_OFFLINE = _.getProbeStatusOfflineValue();
 	const clipboard = require('../../assets/js/decorators/clipboard');
+	const ipRegex = require('../../assets/js/utils/ip-regex');
 	const { addManagedListener } = require('../../assets/js/utils/listeners');
 
 	component.exports = {
@@ -122,25 +123,44 @@
 
 			this.set('measurementLink', `${origin}?${urlSearchParams.toString()}`);
 		},
+		quoteShellArg (value) {
+			// keep simple args unquoted
+			if (/^[a-zA-Z0-9_.,:/@%+=-]+$/.test(value)) {
+				return value;
+			}
+
+			return `'${value.replaceAll('\'', '\'\\\'\'')}'`;
+		},
 		createCliCommand () {
 			let params = this.get('testReqParams') || {};
 			let expectedTargetsCnt = this.get('expectedTargetsCnt') || 0;
 			let isInfiniteModeRes = this.get('isInfiniteModeRes');
 
-			if (!params.type) {
+			if (!params.type || expectedTargetsCnt > 2) {
 				this.set('cliCommand', '');
 				return;
 			}
 
-			if (expectedTargetsCnt >= 2 && !isInfiniteModeRes) {
-				this.set('cliCommand', 'Not supported yet');
-				return;
+			let targets = [ params.target ];
+
+			if (expectedTargetsCnt === 2 && !isInfiniteModeRes) {
+				let metadata = Object.values(this.get('measurementsMetadata') || {});
+				targets = metadata.map(measurement => measurement.target);
+
+				if (targets.length !== expectedTargetsCnt) {
+					this.set('cliCommand', '');
+					return;
+				}
+			}
+
+			if (params.type.toLowerCase() === 'http') {
+				targets = targets.map(target => ipRegex.v6({ exact: true }).test(target) ? `[${target}]` : target);
 			}
 
 			let cmd = Object.keys(params).reduce((cmd, key) => {
 				// test type part
 				if (key === 'type') {
-					cmd.typePart += ` ${params[key]} ${params.target}`;
+					cmd.typePart += ` ${params.type.toLowerCase()} ${this.quoteShellArg(targets.join(','))}`;
 
 					if (params.locations && params.locations.length) {
 						let locationStr = params.locations.reduce((str, loc, idx) => {
@@ -153,7 +173,7 @@
 							return str += `, ${locPart}`;
 						}, '');
 
-						cmd.typePart += ` from ${locationStr}`;
+						cmd.typePart += ` from ${this.quoteShellArg(locationStr)}`;
 					}
 
 					if (params.measurementOptions) {
@@ -170,10 +190,18 @@
 									str += ` --port ${params.measurementOptions.port}`; break;
 
 								case 'protocol':
-									str += ` --protocol ${params.measurementOptions.protocol}`; break;
+									str += ` --protocol ${this.quoteShellArg(params.measurementOptions.protocol)}`; break;
 
-								case 'type':
-									str += ` --type ${params.measurementOptions.type}`; break;
+								case 'query':
+									str += ` --type ${this.quoteShellArg(params.measurementOptions.query.type)}`; break;
+
+								case 'ipVersion':
+									if (!targets.some(target => ipRegex({ exact: true, allowBrackets: true }).test(target))
+										&& !ipRegex({ exact: true, allowBrackets: true }).test(params.measurementOptions.resolver || '')) {
+										str += ` --ipv${params.measurementOptions.ipVersion}`;
+									}
+
+									break;
 
 								case 'trace':
 									if (params.type.toLowerCase() === 'dns' && params.measurementOptions.trace) {
@@ -183,26 +211,30 @@
 									break;
 
 								case 'resolver':
-									str += ` --resolver ${params.measurementOptions.resolver}`; break;
+									str += ` --resolver ${this.quoteShellArg(params.measurementOptions.resolver)}`; break;
 
 								case 'request':
+									Object.entries(params.measurementOptions.request.headers || {}).forEach(([ name, value ]) => {
+										str += ` --header ${this.quoteShellArg(`${name}: ${value}`)}`;
+									});
+
 									if (params.measurementOptions.request.host) {
-										str += ` --host ${params.measurementOptions.request.host}`;
+										str += ` --host ${this.quoteShellArg(params.measurementOptions.request.host)}`;
 									}
 
 									if (params.measurementOptions.request.path) {
 										let path = params.measurementOptions.request.path;
 
 										path = path[0] === '/' ? path : `/${path}`;
-										str += ` --path '${path}'`;
+										str += ` --path ${this.quoteShellArg(path)}`;
 									}
 
 									if (params.measurementOptions.request.query) {
-										str += ` --query '${params.measurementOptions.request.query}'`;
+										str += ` --query ${this.quoteShellArg(params.measurementOptions.request.query)}`;
 									}
 
 									if (params.measurementOptions.request.method) {
-										str += ` --method ${params.measurementOptions.request.method}`;
+										str += ` --method ${this.quoteShellArg(params.measurementOptions.request.method)}`;
 									}
 
 									break;
