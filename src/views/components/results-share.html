@@ -148,6 +148,10 @@
 				}
 			}
 
+			if (params.type.toLowerCase() === 'http') {
+				targets = targets.map(target => ipRegex.v6({ exact: true }).test(target) ? `[${target}]` : target);
+			}
+
 			let cmd = Object.keys(params).reduce((cmd, key) => {
 				// test type part
 				if (key === 'type') {
