@@ -155,7 +155,7 @@
 			let cmd = Object.keys(params).reduce((cmd, key) => {
 				// test type part
 				if (key === 'type') {
-					cmd.typePart += ` ${params.type.toLowerCase()} ${this.quoteShellArg(targets.join(','))}`;
+					cmd.typePart += ` ${params.type.toLowerCase()} ${this.quoteShellArg(targets.join(', '))}`;
 
 					if (params.locations && params.locations.length) {
 						let locationStr = params.locations.reduce((str, loc, idx) => {
