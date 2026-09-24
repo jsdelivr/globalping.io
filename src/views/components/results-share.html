@@ -124,11 +124,6 @@
 			this.set('measurementLink', `${origin}?${urlSearchParams.toString()}`);
 		},
 		quoteShellArg (value) {
-			// keep simple args unquoted
-			if (/^[a-zA-Z0-9_.,:/@%+=-]+$/.test(value)) {
-				return value;
-			}
-
 			return `'${value.replaceAll('\'', '\'\\\'\'')}'`;
 		},
 		createCliCommand () {
@@ -190,10 +185,10 @@
 									str += ` --port ${params.measurementOptions.port}`; break;
 
 								case 'protocol':
-									str += ` --protocol ${this.quoteShellArg(params.measurementOptions.protocol)}`; break;
+									str += ` --protocol ${params.measurementOptions.protocol}`; break;
 
 								case 'query':
-									str += ` --type ${this.quoteShellArg(params.measurementOptions.query.type)}`; break;
+									str += ` --type ${params.measurementOptions.query.type}`; break;
 
 								case 'ipVersion':
 									if (!targets.some(target => ipRegex({ exact: true, allowBrackets: true }).test(target))
@@ -211,7 +206,7 @@
 									break;
 
 								case 'resolver':
-									str += ` --resolver ${this.quoteShellArg(params.measurementOptions.resolver)}`; break;
+									str += ` --resolver ${params.measurementOptions.resolver}`; break;
 
 								case 'request':
 									Object.entries(params.measurementOptions.request.headers || {}).forEach(([ name, value ]) => {
@@ -234,7 +229,7 @@
 									}
 
 									if (params.measurementOptions.request.method) {
-										str += ` --method ${this.quoteShellArg(params.measurementOptions.request.method)}`;
+										str += ` --method ${params.measurementOptions.request.method}`;
 									}
 
 									break;
