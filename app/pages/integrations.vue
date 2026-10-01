@@ -238,7 +238,7 @@
 		},
 		{
 			header: 'Globalping Probe for Unraid',
-			description: 'Run the Globalping probe on Unraid',
+			description: 'Run a Globalping probe on Unraid',
 			author: 'joaogalaghar',
 			href: 'https://ca.unraid.net/apps/globalping-probe-1d9khwh1cggkol',
 			img: 'community/globalping-unraid.png',
