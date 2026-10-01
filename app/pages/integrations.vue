@@ -202,6 +202,8 @@
 			description: 'Open-source infrastructure monitoring for uptime and servers with Globalping.',
 			href: 'https://blog.globalping.io/global-uptime-monitoring-with-checkmate-and-globalping/',
 			docsLink: 'https://checkmate.so/',
+			img: 'feature/checkmate.svg',
+			imgClass: 'p-1',
 		},
 	];
 
@@ -249,4 +251,3 @@
 		max-width: min(90vw, 1064px);
 	}
 </style>
-
