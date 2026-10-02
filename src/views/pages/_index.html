@@ -3298,6 +3298,8 @@
 							return;
 						}
 
+						let ipVersion = testRes.measurementOptions?.ipVersion;
+
 						if (isShareResCase) {
 							let currentTargets = this.get('mainOptions.target');
 							let currTargetsArr = _.removeDuplicatedTargets(currentTargets ? currentTargets.split(',') : []);
@@ -3393,6 +3395,7 @@
 							measurementOptions: {
 								trace: false,
 								...testReqParams.measurementOptions,
+								...ipVersion && { ipVersion },
 							},
 						};
 
