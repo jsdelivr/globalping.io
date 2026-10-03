@@ -20,8 +20,6 @@
 	noYield="{{noYield}}"
 	title="{{title}}"
 	description="{{description}}"
-	ogTitle="{{ogTitle}}"
-	ogDescription="{{ogDescription}}"
 	openGraphImage="{{#if measurement}}{{@shared.serverHost}}/open-graph/image/measurement/{{measurement}}{{/if}}"
 >
 	<script src="https://cdn.jsdelivr.net/npm/@googlemaps/markerclusterer@2.5.3/dist/index.umd.min.js"></script>
@@ -1853,10 +1851,10 @@
 			};
 		},
 		computed: {
-			ogTitle () {
+			title () {
 				return this.get('_measurementOgTitle');
 			},
-			ogDescription () {
+			description () {
 				return this.get('_measurementOgDescription');
 			},
 			disablePort () {
