@@ -1936,8 +1936,9 @@
 		},
 		oninit () {
 			if (!Ractive.isServer) {
-				this.on('c-header.main-logo-click', () => {
-					this.set('measurement', '');
+				this.on('c-gp-header.main-logo-click', () => {
+					app.router.history.pushState({}, document.title, '/');
+					app.router.dispatch('/', { reload: true, noHistory: true });
 					return false;
 				});
 
@@ -3422,6 +3423,11 @@
 
 						// should be after the mainOptions.type was set
 						this.set(`realTimeTestResResponse[${resNumber}]`, testResUpd);
+
+						if (isShareResCase) {
+							let responses = this.get('realTimeTestResResponse').filter(Boolean);
+							this.set('_measurementOgTitle', getMeasurementTitle(isInfiniteMeas ? responses.slice(0, 1) : responses));
+						}
 
 						// handle infinite test flow, once at least one probe is finished we should run measurement again
 						if (this.get('shareResFlow') === false && isInfiniteMeas && testRes.results.some(r => r.result.status === 'finished')) {
