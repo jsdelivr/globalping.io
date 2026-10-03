@@ -1937,8 +1937,7 @@
 		oninit () {
 			if (!Ractive.isServer) {
 				this.on('c-gp-header.main-logo-click', () => {
-					this.set('measurement', '');
-					this.set({ _measurementOgTitle: null, _measurementOgDescription: null });
+					this.set({ measurement: '', _measurementOgTitle: null, _measurementOgDescription: null });
 					return false;
 				});
 
