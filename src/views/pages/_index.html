@@ -1936,8 +1936,9 @@
 		},
 		oninit () {
 			if (!Ractive.isServer) {
-				this.on('c-header.main-logo-click', () => {
-					this.set('measurement', '');
+				this.on('c-gp-header.main-logo-click', () => {
+					app.router.replaceQueryParam('measurement', null, this);
+					this.set({ _measurementOgTitle: null, _measurementOgDescription: null });
 					return false;
 				});
 
