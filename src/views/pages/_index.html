@@ -1937,7 +1937,7 @@
 		oninit () {
 			if (!Ractive.isServer) {
 				this.on('c-gp-header.main-logo-click', () => {
-					app.router.replaceQueryParam('measurement', null, this);
+					this.set('measurement', '');
 					this.set({ _measurementOgTitle: null, _measurementOgDescription: null });
 					return false;
 				});
