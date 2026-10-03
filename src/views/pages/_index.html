@@ -1853,12 +1853,6 @@
 		},
 		computed: {
 			title () {
-				let responses = this.get('realTimeTestResResponse')?.filter(Boolean);
-
-				if (responses?.length) {
-					return getMeasurementTitle(this.get('isInfiniteModeRes') ? responses.slice(0, 1) : responses);
-				}
-
 				return this.get('_measurementOgTitle');
 			},
 			description () {
@@ -2755,7 +2749,6 @@
 			this.set('preparedTestResults', []);
 			this.set('rateCreditsData', null);
 			this.set('probesMaxTiming', type.toLowerCase() === 'http' ? 1000 : 200);
-			this.set('_measurementOgTitle', null);
 			this.set('_measurementOgDescription', null);
 			this.set('showingNetworkLogos', false);
 			this.set('activeTestRunId', testRunId);
@@ -2770,6 +2763,7 @@
 
 			// is designed to prevent the way the test results are displayed from changing when the user toggles the infinite switch
 			this.set('isInfiniteModeRes', infiniteSwitchEnabled);
+			let titleData = targetsArr.map(target => ({ ...reqParams, target }));
 
 			// re-use probes case
 			if (prevProbesMeasId) {
@@ -2781,7 +2775,7 @@
 
 			// run Infinite type of the measurement
 			if (type === 'ping' && targetsArr.length === 1 && infiniteSwitchEnabled) {
-				this.postInfiniteGlobalpingMeasurement({ reqParams, target: targetsArr[0], testRunId });
+				this.postInfiniteGlobalpingMeasurement({ reqParams, target: targetsArr[0], testRunId, measurementTitle: getMeasurementTitle(titleData) });
 
 				return;
 			}
@@ -2797,6 +2791,7 @@
 
 				// Update the URL.
 				this.set('measurement', res.response.id);
+				this.set('_measurementOgTitle', getMeasurementTitle(titleData.slice(0, 1)));
 
 				this.set('testReqParams.id', res.response.id);
 
@@ -2849,6 +2844,7 @@
 
 						// Update the URL without creating a new history entry.
 						app.router.replaceQueryParam('measurement', `${this.get('measurement')},${res1.response.id}`);
+						this.set('_measurementOgTitle', getMeasurementTitle(titleData));
 					}).catch((err) => {
 						if (!this.isActiveTestRun(testRunId)) {
 							return;
@@ -2875,6 +2871,7 @@
 				}
 
 				this.set('measurement', null);
+				this.set('_measurementOgTitle', null);
 				this.handlePostGPMeasError(err);
 			});
 		},
@@ -3833,7 +3830,7 @@
 				});
 			}
 		},
-		postInfiniteGlobalpingMeasurement ({ reqParams, target, isInfiniteMeas = true, resNumber = 0, testRunId = null }) {
+		postInfiniteGlobalpingMeasurement ({ reqParams, target, isInfiniteMeas = true, resNumber = 0, testRunId = null, measurementTitle = null }) {
 			this.set('runTestBtnText', 'Stop');
 
 			http.postGlobalpingMeasurement({ ...reqParams, target }, RATE_LIMIT_HEADERS).then((res) => {
@@ -3850,6 +3847,7 @@
 				// Update the URL.
 				if (resNumber === 0) {
 					this.set('measurement', res.response.id);
+					this.set('_measurementOgTitle', measurementTitle);
 					this.set('testReqParams.id', res.response.id);
 				} else {
 					app.router.replaceQueryParam('measurement', `${this.get('measurement').split('.').slice(-9).join('.')}.${res.response.id}`);
@@ -3874,6 +3872,7 @@
 
 				if (resNumber === 0) {
 					this.set('measurement', null);
+					this.set('_measurementOgTitle', null);
 				}
 
 				this.handlePostGPMeasError(err);
