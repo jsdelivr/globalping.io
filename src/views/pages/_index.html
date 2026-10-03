@@ -2763,7 +2763,7 @@
 
 			// is designed to prevent the way the test results are displayed from changing when the user toggles the infinite switch
 			this.set('isInfiniteModeRes', infiniteSwitchEnabled);
-			let titleData = targetsArr.map(target => ({ ...reqParams, target }));
+			let titleData = targetsArr.map(target => ({ ...reqParams, type: type.toLowerCase(), target }));
 
 			// re-use probes case
 			if (prevProbesMeasId) {
