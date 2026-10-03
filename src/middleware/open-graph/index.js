@@ -1,3 +1,4 @@
+const getMeasurementTitle = require('../../assets/js/utils/measurement-title');
 const { pluralize } = require('../../assets/js/_');
 const {
 	fetchGlobalpingStats,
@@ -167,42 +168,6 @@ function getOgDescription (data) {
 	return gpDescFunctions[data[0].type](data) + ' Click to view more details or run another test.';
 }
 
-const gpTitles = {
-	dns: 'DNS resolve',
-	http: 'HTTP',
-	mtr: 'MTR to',
-	ping: 'Ping',
-	traceroute: 'Traceroute to',
-};
-
-function getOgTitle (data) {
-	let firstMeas = data[0];
-	let locationCount = firstMeas.locations?.length;
-	let locationStr = '';
-
-	if (locationCount) {
-		locationStr = 'from ';
-
-		locationStr += firstMeas.locations?.slice(0, 3).map((location) => {
-			return Object.values(location).join('+').trim();
-		}).join(', ');
-
-		if (locationCount > 3) {
-			locationStr += `... (+${locationCount - 3})`;
-		}
-	}
-
-	let measType = gpTitles[firstMeas.type];
-
-	if (firstMeas.type === 'http') {
-		measType += ` ${firstMeas.measurementOptions?.request?.method ?? 'HEAD'}`;
-	}
-
-	let targetString = data.map(meas => meas.target).join(', ');
-
-	return `${measType} ${targetString} ${locationStr} - Globalping`;
-}
-
 module.exports = async (ctx) => {
 	let measData = await fetchGlobalpingStats(ctx.query.measurement, ctx.app.env);
 
@@ -211,6 +176,6 @@ module.exports = async (ctx) => {
 	}
 
 	if (measData.length) {
-		return { title: getOgTitle(measData), description: getOgDescription(measData) };
+		return { title: getMeasurementTitle(measData), description: getOgDescription(measData) };
 	}
 };

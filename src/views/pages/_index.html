@@ -1532,6 +1532,7 @@
 	const clipboard = require('../../assets/js/decorators/clipboard');
 	const http = require('../../assets/js/utils/http');
 	const dataCache = require('../../assets/js/utils/data-cache');
+	const getMeasurementTitle = require('../../assets/js/utils/measurement-title');
 
 	const CLIENT_DEFAULT_PING_OPTS = {
 		protocol: 'ICMP',
@@ -1852,6 +1853,12 @@
 		},
 		computed: {
 			title () {
+				let responses = this.get('realTimeTestResResponse')?.filter(Boolean);
+
+				if (responses?.length) {
+					return getMeasurementTitle(this.get('isInfiniteModeRes') ? responses.slice(0, 1) : responses);
+				}
+
 				return this.get('_measurementOgTitle');
 			},
 			description () {
