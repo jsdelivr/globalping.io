@@ -202,6 +202,8 @@
 			description: 'Open-source infrastructure monitoring for uptime and servers with Globalping.',
 			href: 'https://blog.globalping.io/global-uptime-monitoring-with-checkmate-and-globalping/',
 			docsLink: 'https://checkmate.so/',
+			img: 'feature/checkmate.svg',
+			imgClass: 'p-1',
 		},
 	];
 
@@ -234,6 +236,13 @@
 			href: 'https://github.com/EvotecIT/Globalping',
 			img: 'community/globalping-dotnet.jpg',
 		},
+		{
+			header: 'Globalping Probe for Unraid',
+			description: 'Run a Globalping probe on Unraid',
+			author: 'joaogalaghar',
+			href: 'https://ca.unraid.net/apps/globalping-probe-1d9khwh1cggkol',
+			img: 'community/globalping-unraid.png',
+		},
 	];
 </script>
 
@@ -242,4 +251,3 @@
 		max-width: min(90vw, 1064px);
 	}
 </style>
-

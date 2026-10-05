@@ -38,6 +38,7 @@ ENV NODE_ENV=production \
 COPY --from=build --chown=node:node /app/package.json /app/package-lock.json /app/elastic-apm-node.js /app/nuxt.config.ts ./
 COPY --from=build --chown=node:node /app/.output ./.output
 COPY --from=build --chown=node:node /app/node_modules ./node_modules
+COPY --from=build --chown=node:node /app/app/pages ./app/pages
 COPY --from=build --chown=node:node /app/config ./config
 COPY --from=build --chown=node:node /app/data ./data
 COPY --from=build --chown=node:node /app/dist ./dist

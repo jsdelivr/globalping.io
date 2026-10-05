@@ -20,8 +20,6 @@
 	noYield="{{noYield}}"
 	title="{{title}}"
 	description="{{description}}"
-	ogTitle="{{ogTitle}}"
-	ogDescription="{{ogDescription}}"
 	openGraphImage="{{#if measurement}}{{@shared.serverHost}}/open-graph/image/measurement/{{measurement}}{{/if}}"
 >
 	<script src="https://cdn.jsdelivr.net/npm/@googlemaps/markerclusterer@2.5.3/dist/index.umd.min.js"></script>
@@ -1489,6 +1487,15 @@
 							</a>
 						</div>
 
+						<div class="gp_sponsors_content_list_tier-one_row">
+							<a target="_blank" rel="noopener noreferrer" href="https://synthient.com/">
+								<img title="Sponsored by Synthient"
+									width="156"
+									height="40"
+									src="{{@shared.assetsHost}}/img/sponsors/synthient.svg">
+							</a>
+						</div>
+
 						<!-- <div class="gp_sponsors_content_list_tier-two">
 							<div class="gp_sponsors_content_list_tier-two_row">
 								<div class="gp_person-sponsor">Robert  Kowalski</div>
@@ -1525,6 +1532,7 @@
 	const clipboard = require('../../assets/js/decorators/clipboard');
 	const http = require('../../assets/js/utils/http');
 	const dataCache = require('../../assets/js/utils/data-cache');
+	const getMeasurementTitle = require('../../assets/js/utils/measurement-title');
 
 	const CLIENT_DEFAULT_PING_OPTS = {
 		protocol: 'ICMP',
@@ -1844,10 +1852,10 @@
 			};
 		},
 		computed: {
-			ogTitle () {
+			title () {
 				return this.get('_measurementOgTitle');
 			},
-			ogDescription () {
+			description () {
 				return this.get('_measurementOgDescription');
 			},
 			disablePort () {
@@ -1928,8 +1936,9 @@
 		},
 		oninit () {
 			if (!Ractive.isServer) {
-				this.on('c-header.main-logo-click', () => {
-					this.set('measurement', '');
+				this.on('c-gp-header.main-logo-click', () => {
+					app.router.history.pushState({}, document.title, '/');
+					app.router.dispatch('/', { reload: true, noHistory: true });
 					return false;
 				});
 
@@ -2741,7 +2750,6 @@
 			this.set('preparedTestResults', []);
 			this.set('rateCreditsData', null);
 			this.set('probesMaxTiming', type.toLowerCase() === 'http' ? 1000 : 200);
-			this.set('_measurementOgTitle', null);
 			this.set('_measurementOgDescription', null);
 			this.set('showingNetworkLogos', false);
 			this.set('activeTestRunId', testRunId);
@@ -2756,6 +2764,7 @@
 
 			// is designed to prevent the way the test results are displayed from changing when the user toggles the infinite switch
 			this.set('isInfiniteModeRes', infiniteSwitchEnabled);
+			let titleData = targetsArr.map(target => ({ ...reqParams, type: type.toLowerCase(), target }));
 
 			// re-use probes case
 			if (prevProbesMeasId) {
@@ -2767,7 +2776,7 @@
 
 			// run Infinite type of the measurement
 			if (type === 'ping' && targetsArr.length === 1 && infiniteSwitchEnabled) {
-				this.postInfiniteGlobalpingMeasurement({ reqParams, target: targetsArr[0], testRunId });
+				this.postInfiniteGlobalpingMeasurement({ reqParams, target: targetsArr[0], testRunId, measurementTitle: getMeasurementTitle(titleData) });
 
 				return;
 			}
@@ -2783,6 +2792,7 @@
 
 				// Update the URL.
 				this.set('measurement', res.response.id);
+				this.set('_measurementOgTitle', getMeasurementTitle(titleData.slice(0, 1)));
 
 				this.set('testReqParams.id', res.response.id);
 
@@ -2835,6 +2845,7 @@
 
 						// Update the URL without creating a new history entry.
 						app.router.replaceQueryParam('measurement', `${this.get('measurement')},${res1.response.id}`);
+						this.set('_measurementOgTitle', getMeasurementTitle(titleData));
 					}).catch((err) => {
 						if (!this.isActiveTestRun(testRunId)) {
 							return;
@@ -2861,6 +2872,7 @@
 				}
 
 				this.set('measurement', null);
+				this.set('_measurementOgTitle', null);
 				this.handlePostGPMeasError(err);
 			});
 		},
@@ -3415,6 +3427,11 @@
 						// should be after the mainOptions.type was set
 						this.set(`realTimeTestResResponse[${resNumber}]`, testResUpd);
 
+						if (isShareResCase) {
+							let responses = this.get('realTimeTestResResponse').filter(Boolean);
+							this.set('_measurementOgTitle', getMeasurementTitle(isInfiniteMeas ? responses.slice(0, 1) : responses));
+						}
+
 						// handle infinite test flow, once at least one probe is finished we should run measurement again
 						if (this.get('shareResFlow') === false && isInfiniteMeas && testRes.results.some(r => r.result.status === 'finished')) {
 							let infiniteMeasIds = this.get('infiniteMeasIds');
@@ -3822,7 +3839,7 @@
 				});
 			}
 		},
-		postInfiniteGlobalpingMeasurement ({ reqParams, target, isInfiniteMeas = true, resNumber = 0, testRunId = null }) {
+		postInfiniteGlobalpingMeasurement ({ reqParams, target, isInfiniteMeas = true, resNumber = 0, testRunId = null, measurementTitle = null }) {
 			this.set('runTestBtnText', 'Stop');
 
 			http.postGlobalpingMeasurement({ ...reqParams, target }, RATE_LIMIT_HEADERS).then((res) => {
@@ -3839,6 +3856,7 @@
 				// Update the URL.
 				if (resNumber === 0) {
 					this.set('measurement', res.response.id);
+					this.set('_measurementOgTitle', measurementTitle);
 					this.set('testReqParams.id', res.response.id);
 				} else {
 					app.router.replaceQueryParam('measurement', `${this.get('measurement').split('.').slice(-9).join('.')}.${res.response.id}`);
@@ -3863,6 +3881,7 @@
 
 				if (resNumber === 0) {
 					this.set('measurement', null);
+					this.set('_measurementOgTitle', null);
 				}
 
 				this.handlePostGPMeasError(err);
