@@ -44,7 +44,7 @@ module.exports = async (ctx) => {
 		ctx.type = 'image/png';
 		ctx.maxAge = 24 * 60 * 60;
 	} catch (error) {
-		if (error?.statusCode === 404) {
+		if (error?.response?.statusCode === 404) {
 			return; // 404 response
 		}
 
