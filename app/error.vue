@@ -37,14 +37,15 @@
 		: (await import('~/ractive/500')).default;
 
 	errPageInstance.value = new ErrPage();
-	errPageInstance.value?.set('@shared.serverHost', serverHost);
-	errPageInstance.value?.set('@shared.assetsHost', assetsHost);
-	errPageInstance.value?.set('@shared.apiDocsHost', apiDocsHost);
-	errPageInstance.value?.set('@shared.assetsVersion', assetsVersion);
-	errPageInstance.value?.set('@shared.actualPath', route.path);
-	errPageHtml.value = errPageInstance.value.toHTML();
 
-	onBeforeUnmount(() => {
-		errPageInstance.value?.teardown?.();
-	});
+	try {
+		errPageInstance.value?.set('@shared.serverHost', serverHost);
+		errPageInstance.value?.set('@shared.assetsHost', assetsHost);
+		errPageInstance.value?.set('@shared.apiDocsHost', apiDocsHost);
+		errPageInstance.value?.set('@shared.assetsVersion', assetsVersion);
+		errPageInstance.value?.set('@shared.actualPath', route.path);
+		errPageHtml.value = errPageInstance.value.toHTML();
+	} finally {
+		await errPageInstance.value.teardown();
+	}
 </script>
