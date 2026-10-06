@@ -3395,6 +3395,8 @@
 							inProgressUpdates: isInfiniteMeas,
 							limit: DEFAULT_LIMIT,
 							...testReqParams,
+							// follow-up measurements reuse the first measurement's probes, so keep its locations instead of the measurement ID
+							...Number(resNumber) > 0 && { locations: this.get('testReqParams.locations') },
 							measurementOptions: {
 								trace: false,
 								...testReqParams.measurementOptions,
