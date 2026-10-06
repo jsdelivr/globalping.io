@@ -36,6 +36,7 @@
 	const _ = require('../../assets/js/_');
 	const PROBE_STATUS_OFFLINE = _.getProbeStatusOfflineValue();
 	const clipboard = require('../../assets/js/decorators/clipboard');
+	const ipRegex = require('../../assets/js/utils/ip-regex');
 	const { addManagedListener } = require('../../assets/js/utils/listeners');
 
 	component.exports = {
@@ -122,38 +123,66 @@
 
 			this.set('measurementLink', `${origin}?${urlSearchParams.toString()}`);
 		},
+		quoteShellArg (value, alwaysQuote = true) {
+			if (!alwaysQuote && /^[a-zA-Z0-9_.,:/@%+=-]+$/.test(value)) {
+				return value;
+			}
+
+			let escapedValue = value.replace(/["\\$`]/g, '\\$&');
+
+			// Escape ! outside double quotes: "a"\!"b" becomes a!b in Bash and Zsh.
+			return `"${escapedValue.replaceAll('!', '"\\!"')}"`;
+		},
+		createHttpTargetUrl (target, { protocol = 'HTTPS', port, request = {} } = {}) {
+			let host = ipRegex.v6({ exact: true }).test(target) ? `[${target}]` : target;
+			let query = request.query?.startsWith('?') ? request.query : request.query ? `?${request.query}` : '';
+
+			let path = request.path?.startsWith('/') ? request.path : `/${request.path || ''}`;
+			// encode % without double-encoding existing URL escapes
+			path = path.replace(/%(?![a-f\d]{2})/gi, '%25');
+
+			// Literal commas must not become comparison target separators in the CLI.
+			return `${protocol.toLowerCase()}://${host}${port ? `:${port}` : ''}${path}${query}`.replaceAll(',', '%2C');
+		},
 		createCliCommand () {
 			let params = this.get('testReqParams') || {};
 			let expectedTargetsCnt = this.get('expectedTargetsCnt') || 0;
 			let isInfiniteModeRes = this.get('isInfiniteModeRes');
+			let type = params.type?.toLowerCase();
+			let isHttp = type === 'http';
 
-			if (!params.type) {
+			if (!type || expectedTargetsCnt > 2) {
 				this.set('cliCommand', '');
 				return;
 			}
 
-			if (expectedTargetsCnt >= 2 && !isInfiniteModeRes) {
-				this.set('cliCommand', 'Not supported yet');
-				return;
+			let targets = [ params.target ];
+
+			if (expectedTargetsCnt === 2 && !isInfiniteModeRes) {
+				let metadata = Object.values(this.get('measurementsMetadata') || {});
+				targets = metadata.map(measurement => measurement.target);
+
+				if (targets.length !== expectedTargetsCnt) {
+					this.set('cliCommand', '');
+					return;
+				}
 			}
+
+			let cliTargets = targets.map(target => isHttp ? this.quoteShellArg(this.createHttpTargetUrl(target, params.measurementOptions)) : target);
+			let isIp = value => ipRegex({ exact: true, allowBrackets: true }).test(value);
 
 			let cmd = Object.keys(params).reduce((cmd, key) => {
 				// test type part
 				if (key === 'type') {
-					cmd.typePart += ` ${params[key]} ${params.target}`;
+					cmd.typePart += ` ${type} ${cliTargets.join(', ')}`;
 
 					if (params.locations && params.locations.length) {
-						let locationStr = params.locations.reduce((str, loc, idx) => {
-							let locPart = loc.magic.trim();
+						// measurements that reuse probes store the source measurement ID instead of locations
+						let locationStr = typeof params.locations === 'string'
+							? params.locations
+							: params.locations.map(loc => loc.magic.trim()).join(', ');
 
-							if (idx === 0) {
-								return str += locPart;
-							}
-
-							return str += `, ${locPart}`;
-						}, '');
-
-						cmd.typePart += ` from ${locationStr}`;
+						cmd.typePart += ` from ${this.quoteShellArg(locationStr, false)}`;
 					}
 
 					if (params.measurementOptions) {
@@ -167,16 +196,32 @@
 									break;
 
 								case 'port':
-									str += ` --port ${params.measurementOptions.port}`; break;
+									if (!isHttp) {
+										str += ` --port ${params.measurementOptions.port}`;
+									}
+
+									break;
 
 								case 'protocol':
-									str += ` --protocol ${params.measurementOptions.protocol}`; break;
+									if (!isHttp) {
+										str += ` --protocol ${params.measurementOptions.protocol}`;
+									}
 
-								case 'type':
-									str += ` --type ${params.measurementOptions.type}`; break;
+									break;
+
+								case 'query':
+									str += ` --type ${params.measurementOptions.query.type}`; break;
+
+								case 'ipVersion':
+									// the CLI rejects --ipv4/--ipv6 with IP targets or resolvers
+									if (!targets.some(isIp) && !isIp(params.measurementOptions.resolver || '')) {
+										str += ` --ipv${params.measurementOptions.ipVersion}`;
+									}
+
+									break;
 
 								case 'trace':
-									if (params.type.toLowerCase() === 'dns' && params.measurementOptions.trace) {
+									if (type === 'dns' && params.measurementOptions.trace) {
 										str += ' --trace';
 									}
 
@@ -186,19 +231,12 @@
 									str += ` --resolver ${params.measurementOptions.resolver}`; break;
 
 								case 'request':
+									Object.entries(params.measurementOptions.request.headers || {}).forEach(([ name, value ]) => {
+										str += ` --header ${this.quoteShellArg(`${name}: ${value}`)}`;
+									});
+
 									if (params.measurementOptions.request.host) {
-										str += ` --host ${params.measurementOptions.request.host}`;
-									}
-
-									if (params.measurementOptions.request.path) {
-										let path = params.measurementOptions.request.path;
-
-										path = path[0] === '/' ? path : `/${path}`;
-										str += ` --path '${path}'`;
-									}
-
-									if (params.measurementOptions.request.query) {
-										str += ` --query '${params.measurementOptions.request.query}'`;
+										str += ` --host ${this.quoteShellArg(params.measurementOptions.request.host, false)}`;
 									}
 
 									if (params.measurementOptions.request.method) {
