@@ -128,7 +128,10 @@
 				return value;
 			}
 
-			return `"${value.replace(/["\\$`]/g, '\\$&')}"`;
+			let escapedValue = value.replace(/["\\$`]/g, '\\$&');
+
+			// Escape ! outside double quotes: "a"\!"b" becomes a!b in Bash and Zsh.
+			return `"${escapedValue.replaceAll('!', '"\\!"')}"`;
 		},
 		createHttpTargetUrl (target, { protocol = 'HTTPS', port, request = {} } = {}) {
 			let scheme = protocol.toLowerCase();
