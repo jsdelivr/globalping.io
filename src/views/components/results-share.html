@@ -123,15 +123,36 @@
 
 			this.set('measurementLink', `${origin}?${urlSearchParams.toString()}`);
 		},
-		quoteShellArg (value) {
-			return `'${value.replaceAll('\'', '\'\\\'\'')}'`;
+		quoteShellArg (value, alwaysQuote = true) {
+			if (!alwaysQuote && /^[a-zA-Z0-9_.,:/@%+=-]+$/.test(value)) {
+				return value;
+			}
+
+			return `"${value.replace(/["\\$`]/g, '\\$&')}"`;
+		},
+		createHttpTargetUrl (target, { protocol = 'HTTPS', port, request = {} } = {}) {
+			let scheme = protocol.toLowerCase();
+			let host = ipRegex.v6({ exact: true }).test(target) ? `[${target}]` : target;
+			let query = request.query?.startsWith('?') ? request.query : request.query ? `?${request.query}` : '';
+
+			let path = request.path?.startsWith('/') ? request.path : `/${request.path || ''}`;
+			// encode % without double-encoding existing URL escapes
+			path = path.replace(/%(?![a-f\d]{2})/gi, '%25');
+
+			// HTTP2 uses the same URL normalization as HTTPS.
+			let url = new URL(`${scheme === 'http2' ? 'https' : scheme}://${host}${port ? `:${port}` : ''}${path}${query}`);
+
+			// Literal commas must not become comparison target separators in the CLI.
+			return `${scheme}://${url.host}${url.pathname}${url.search}`.replaceAll(',', '%2C');
 		},
 		createCliCommand () {
 			let params = this.get('testReqParams') || {};
 			let expectedTargetsCnt = this.get('expectedTargetsCnt') || 0;
 			let isInfiniteModeRes = this.get('isInfiniteModeRes');
+			let type = params.type?.toLowerCase();
+			let isHttp = type === 'http';
 
-			if (!params.type || expectedTargetsCnt > 2) {
+			if (!type || expectedTargetsCnt > 2) {
 				this.set('cliCommand', '');
 				return;
 			}
@@ -148,14 +169,12 @@
 				}
 			}
 
-			if (params.type.toLowerCase() === 'http') {
-				targets = targets.map(target => ipRegex.v6({ exact: true }).test(target) ? `[${target}]` : target);
-			}
+			let cliTargets = targets.map(target => isHttp ? this.quoteShellArg(this.createHttpTargetUrl(target, params.measurementOptions)) : target);
 
 			let cmd = Object.keys(params).reduce((cmd, key) => {
 				// test type part
 				if (key === 'type') {
-					cmd.typePart += ` ${params.type.toLowerCase()} ${this.quoteShellArg(targets.join(', '))}`;
+					cmd.typePart += ` ${type} ${cliTargets.join(', ')}`;
 
 					if (params.locations && params.locations.length) {
 						let locationStr = params.locations.reduce((str, loc, idx) => {
@@ -168,7 +187,7 @@
 							return str += `, ${locPart}`;
 						}, '');
 
-						cmd.typePart += ` from ${this.quoteShellArg(locationStr)}`;
+						cmd.typePart += ` from ${this.quoteShellArg(locationStr, false)}`;
 					}
 
 					if (params.measurementOptions) {
@@ -182,10 +201,18 @@
 									break;
 
 								case 'port':
-									str += ` --port ${params.measurementOptions.port}`; break;
+									if (!isHttp) {
+										str += ` --port ${params.measurementOptions.port}`;
+									}
+
+									break;
 
 								case 'protocol':
-									str += ` --protocol ${params.measurementOptions.protocol}`; break;
+									if (!isHttp) {
+										str += ` --protocol ${params.measurementOptions.protocol}`;
+									}
+
+									break;
 
 								case 'query':
 									str += ` --type ${params.measurementOptions.query.type}`; break;
@@ -199,7 +226,7 @@
 									break;
 
 								case 'trace':
-									if (params.type.toLowerCase() === 'dns' && params.measurementOptions.trace) {
+									if (type === 'dns' && params.measurementOptions.trace) {
 										str += ' --trace';
 									}
 
@@ -214,18 +241,7 @@
 									});
 
 									if (params.measurementOptions.request.host) {
-										str += ` --host ${this.quoteShellArg(params.measurementOptions.request.host)}`;
-									}
-
-									if (params.measurementOptions.request.path) {
-										let path = params.measurementOptions.request.path;
-
-										path = path[0] === '/' ? path : `/${path}`;
-										str += ` --path ${this.quoteShellArg(path)}`;
-									}
-
-									if (params.measurementOptions.request.query) {
-										str += ` --query ${this.quoteShellArg(params.measurementOptions.request.query)}`;
+										str += ` --host ${this.quoteShellArg(params.measurementOptions.request.host, false)}`;
 									}
 
 									if (params.measurementOptions.request.method) {
