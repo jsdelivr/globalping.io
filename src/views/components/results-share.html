@@ -134,7 +134,6 @@
 			return `"${escapedValue.replaceAll('!', '"\\!"')}"`;
 		},
 		createHttpTargetUrl (target, { protocol = 'HTTPS', port, request = {} } = {}) {
-			let scheme = protocol.toLowerCase();
 			let host = ipRegex.v6({ exact: true }).test(target) ? `[${target}]` : target;
 			let query = request.query?.startsWith('?') ? request.query : request.query ? `?${request.query}` : '';
 
@@ -142,11 +141,8 @@
 			// encode % without double-encoding existing URL escapes
 			path = path.replace(/%(?![a-f\d]{2})/gi, '%25');
 
-			// HTTP2 uses the same URL normalization as HTTPS.
-			let url = new URL(`${scheme === 'http2' ? 'https' : scheme}://${host}${port ? `:${port}` : ''}${path}${query}`);
-
 			// Literal commas must not become comparison target separators in the CLI.
-			return `${scheme}://${url.host}${url.pathname}${url.search}`.replaceAll(',', '%2C');
+			return `${protocol.toLowerCase()}://${host}${port ? `:${port}` : ''}${path}${query}`.replaceAll(',', '%2C');
 		},
 		createCliCommand () {
 			let params = this.get('testReqParams') || {};
@@ -173,6 +169,7 @@
 			}
 
 			let cliTargets = targets.map(target => isHttp ? this.quoteShellArg(this.createHttpTargetUrl(target, params.measurementOptions)) : target);
+			let isIp = value => ipRegex({ exact: true, allowBrackets: true }).test(value);
 
 			let cmd = Object.keys(params).reduce((cmd, key) => {
 				// test type part
@@ -180,15 +177,10 @@
 					cmd.typePart += ` ${type} ${cliTargets.join(', ')}`;
 
 					if (params.locations && params.locations.length) {
-						let locationStr = params.locations.reduce((str, loc, idx) => {
-							let locPart = loc.magic.trim();
-
-							if (idx === 0) {
-								return str += locPart;
-							}
-
-							return str += `, ${locPart}`;
-						}, '');
+						// measurements that reuse probes store the source measurement ID instead of locations
+						let locationStr = typeof params.locations === 'string'
+							? params.locations
+							: params.locations.map(loc => loc.magic.trim()).join(', ');
 
 						cmd.typePart += ` from ${this.quoteShellArg(locationStr, false)}`;
 					}
@@ -221,8 +213,8 @@
 									str += ` --type ${params.measurementOptions.query.type}`; break;
 
 								case 'ipVersion':
-									if (!targets.some(target => ipRegex({ exact: true, allowBrackets: true }).test(target))
-										&& !ipRegex({ exact: true, allowBrackets: true }).test(params.measurementOptions.resolver || '')) {
+									// the CLI rejects --ipv4/--ipv6 with IP targets or resolvers
+									if (!targets.some(isIp) && !isIp(params.measurementOptions.resolver || '')) {
 										str += ` --ipv${params.measurementOptions.ipVersion}`;
 									}
 
