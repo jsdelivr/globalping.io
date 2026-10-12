@@ -13,6 +13,7 @@ const cGlobalpingNetworks = require('../../views/pages/_networks.html');
 const cGlobalpingUsers = require('../../views/pages/_users.html');
 const cPP = require('../../views/pages/terms.html');
 const { getGlobalpingUser } = require('./utils/http');
+const { getAccountName } = require('./utils/account-name');
 const awaitScriptLoad = require('./utils/await-script-load');
 
 const initApp = () => {
@@ -87,8 +88,9 @@ const initApp = () => {
 				.replace(/\u2029/g, '\\u2029');
 		}
 
+		// The account name is matched against the active account cookie on every render, never cached with the user.
 		let setUser = (user) => {
-			ractive.set('@shared.user', user);
+			ractive.set('@shared.user', user && { ...user, account_name: getAccountName(user) });
 		};
 
 		getGlobalpingUser(setUser).then(setUser);
