@@ -7,7 +7,17 @@ const readActiveAccountId = (userId) => {
 };
 
 module.exports.getAccountName = (user) => {
-	let accountId = readActiveAccountId(user.id);
-	let membership = accountId && user.memberships?.find(({ org }) => org.account[0] === accountId);
-	return membership ? `${membership.org.name} (${user.github_username})` : user.github_username;
+	for (let accountId of [ readActiveAccountId(user.id), user.default_account ]) {
+		if (accountId === user.account) {
+			return user.github_username;
+		}
+
+		let membership = user.memberships.find(({ org }) => org.account === accountId);
+
+		if (membership) {
+			return `${membership.org.name} (${user.github_username})`;
+		}
+	}
+
+	return user.github_username;
 };

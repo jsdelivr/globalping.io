@@ -33,6 +33,13 @@ module.exports.getGPBlogRss = () => {
 	return _.makeHTTPRequest({ url: `https://blog.globalping.io/rss/`, rawResponse: true });
 };
 
+// Directus returns the reverse relations to gp_accounts as one-item arrays.
+const toUser = user => user && {
+	...user,
+	account: user.account[0],
+	memberships: user.memberships.map(membership => ({ ...membership, org: { ...membership.org, account: membership.org.account[0] } })),
+};
+
 module.exports.getGlobalpingUser = (onRevalidate) => {
 	// Note: The authentication won't work out of the box on localhost because the cookie is set with SameSite=Strict
 	// If you need to test the page as an authenticated user (and don't want to set up a local dash and API),
@@ -44,7 +51,7 @@ module.exports.getGlobalpingUser = (onRevalidate) => {
 			url: `${DASH_HOST}/users/me`,
 			body: { fields: '*,memberships.role,memberships.org.name,memberships.org.account' },
 			withCredentials: true,
-		}).then(body => body.data).catch(() => null),
+		}).then(body => toUser(body.data)).catch(() => null),
 		true,
 		onRevalidate,
 	);
