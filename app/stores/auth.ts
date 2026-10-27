@@ -4,15 +4,16 @@ import { getSessionStorageData, setSessionStorageData } from '~/utils/sessionSto
 
 const STORAGE_KEY = 'gp-user';
 
-type DirectusUser = Omit<User, 'account' | 'memberships'> & {
+type DirectusUser = Omit<User, 'account' | 'active_account' | 'memberships'> & {
 	account: string[];
 	memberships: { role: Membership['role']; org: { name: string; account: string[] } }[];
 };
 
-// Directus returns the reverse relations to gp_accounts as one-item arrays.
-const toUser = (user: DirectusUser): User => ({
+const toUser = (user: DirectusUser, activeAccount: string): User => ({
 	...user,
+	// Directus returns the reverse relations to gp_accounts as one-item arrays.
 	account: user.account[0]!,
+	active_account: activeAccount,
 	memberships: user.memberships.map(membership => ({ ...membership, org: { ...membership.org, account: membership.org.account[0]! } })),
 });
 
@@ -39,7 +40,8 @@ export const useAuth = defineStore('auth', {
 					credentials: 'include',
 					retry: 0,
 				});
-				this.user = res?.data ? toUser(res.data) : null;
+				const active = await $fetch<{ accountId: string }>(`${dashboardHost}/accounts/active`, { credentials: 'include', retry: 0 });
+				this.user = res?.data ? toUser(res.data, active.accountId) : null;
 			} catch (error) {
 				if ((error as FetchError).statusCode === 401) {
 					this.user = null;

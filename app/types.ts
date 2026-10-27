@@ -14,6 +14,7 @@ declare global {
 		default_prefix: string;
 		account: string;
 		default_account: string | null;
+		active_account: string;
 		memberships: Membership[];
 	};
 
