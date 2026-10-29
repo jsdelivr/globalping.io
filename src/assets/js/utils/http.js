@@ -35,8 +35,6 @@ module.exports.getGPBlogRss = () => {
 
 const toUser = (user, activeAccount) => user && {
 	...user,
-	// Directus returns the reverse relations to gp_accounts as one-item arrays.
-	account: user.account[0],
 	active_account: activeAccount,
 	memberships: user.memberships.map(membership => ({ ...membership, org: { ...membership.org, account: membership.org.account[0] } })),
 };
@@ -51,7 +49,7 @@ module.exports.getGlobalpingUser = (onRevalidate) => {
 		() => Promise.all([
 			_.makeHTTPRequest({
 				url: `${DASH_HOST}/users/me`,
-				body: { fields: '*,memberships.role,memberships.org.name,memberships.org.account' },
+				body: { fields: '*,memberships.org.name,memberships.org.account' },
 				withCredentials: true,
 			}),
 			// The account the session acts as, set on the dashboard.

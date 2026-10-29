@@ -3,9 +3,8 @@ const { expect } = require('@playwright/test');
 
 const USER = {
 	id: 'user-1',
-	account: [ 'personal-account-1' ],
 	github_username: 'john',
-	memberships: [{ role: 'admin', org: { name: 'john-org', account: [ 'org-account-1' ] } }],
+	memberships: [{ org: { name: 'john-org', account: [ 'org-account-1' ] } }],
 };
 
 const CORS_HEADERS = route => ({ 'Access-Control-Allow-Origin': route.request().headers().origin, 'Access-Control-Allow-Credentials': 'true' });
@@ -38,7 +37,7 @@ test.describe('Header account name', () => {
 	});
 
 	test('drops a saved user when signed out and /accounts/active fails first', async ({ page }) => {
-		let savedUser = { ...USER, account: 'personal-account-1', active_account: 'org-account-1', memberships: [{ role: 'admin', org: { name: 'john-org', account: 'org-account-1' } }] };
+		let savedUser = { ...USER, active_account: 'org-account-1', memberships: [{ org: { name: 'john-org', account: 'org-account-1' } }] };
 		let releaseUser;
 		let userReleased = new Promise(resolve => releaseUser = resolve);
 

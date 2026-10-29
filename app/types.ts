@@ -12,14 +12,11 @@ declare global {
 		public_probes: boolean;
 		adoption_token: string;
 		default_prefix: string;
-		account: string;
-		default_account: string | null;
 		active_account: string;
 		memberships: Membership[];
 	};
 
 	type Membership = {
-		role: 'admin' | 'member' | 'viewer';
 		org: { name: string; account: string };
 	};
 
