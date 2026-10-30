@@ -33,6 +33,12 @@ module.exports.getGPBlogRss = () => {
 	return _.makeHTTPRequest({ url: `https://blog.globalping.io/rss/`, rawResponse: true });
 };
 
+const toUser = (user, activeAccount) => user && {
+	...user,
+	active_account: activeAccount,
+	memberships: user.memberships.map(membership => ({ ...membership, org: { ...membership.org, account: membership.org.account[0] } })),
+};
+
 module.exports.getGlobalpingUser = (onRevalidate) => {
 	// Note: The authentication won't work out of the box on localhost because the cookie is set with SameSite=Strict
 	// If you need to test the page as an authenticated user (and don't want to set up a local dash and API),
@@ -40,7 +46,15 @@ module.exports.getGlobalpingUser = (onRevalidate) => {
 	return getCache(
 		'gp-user',
 		1000 * 60 * 60 * 24,
-		() => _.makeHTTPRequest({ url: `${DASH_HOST}/users/me`, withCredentials: true }).then(body => body.data).catch(() => null),
+		() => Promise.all([
+			_.makeHTTPRequest({
+				url: `${DASH_HOST}/users/me`,
+				body: { fields: '*,memberships.org.name,memberships.org.account' },
+				withCredentials: true,
+			}),
+			// The account the session acts as, set on the dashboard.
+			_.makeHTTPRequest({ url: `${DASH_HOST}/accounts/active`, withCredentials: true }),
+		]).then(([ user, active ]) => toUser(user.data, active.accountId)).catch(() => null),
 		true,
 		onRevalidate,
 	);

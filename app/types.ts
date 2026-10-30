@@ -12,6 +12,12 @@ declare global {
 		public_probes: boolean;
 		adoption_token: string;
 		default_prefix: string;
+		active_account: string;
+		memberships: Membership[];
+	};
+
+	type Membership = {
+		org: { name: string; account: string };
 	};
 
 	type ServerConfig = {
