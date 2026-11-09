@@ -93,7 +93,7 @@
 										<span class="sr-only">Toggle Dropdown</span>
 									</button>
 									<ul class="dropdown-menu">
-										<li class="current-user">{{@shared.user.github_username}}</li>
+										<li class="current-user">{{accountName}}</li>
 										<li role="separator" class="divider"></li>
 										<li><a on-click="@global.app.signOut()">Sign Out</a></li>
 									</ul>
@@ -119,9 +119,17 @@
 </header>
 
 <script>
+	const { getAccountName } = require('../../assets/js/utils/account-name');
+
 	component.exports = {
 		data () {
 			return {};
+		},
+		computed: {
+			accountName () {
+				let user = this.get('@shared.user');
+				return user && getAccountName(user);
+			},
 		},
 	};
 </script>

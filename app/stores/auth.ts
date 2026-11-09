@@ -4,6 +4,16 @@ import { getSessionStorageData, setSessionStorageData } from '~/utils/sessionSto
 
 const STORAGE_KEY = 'gp-user';
 
+type DirectusUser = Omit<User, 'active_account' | 'memberships'> & {
+	memberships: { org: { name: string; account: string[] } }[];
+};
+
+const toUser = (user: DirectusUser, activeAccount: string): User => ({
+	...user,
+	active_account: activeAccount,
+	memberships: user.memberships.map(membership => ({ ...membership, org: { ...membership.org, account: membership.org.account[0]! } })),
+});
+
 export const useAuth = defineStore('auth', {
 	state: () => ({
 		user: null as User | null,
@@ -22,8 +32,13 @@ export const useAuth = defineStore('auth', {
 
 			try {
 				const { dashboardHost } = useRuntimeConfig().public;
-				const res = await $fetch<{ data: User }>(`${dashboardHost}/users/me`, { credentials: 'include', retry: 0 });
-				this.user = res?.data ?? null;
+				const res = await $fetch<{ data: DirectusUser }>(`${dashboardHost}/users/me`, {
+					query: { fields: '*,memberships.org.name,memberships.org.account' },
+					credentials: 'include',
+					retry: 0,
+				});
+				const active = await $fetch<{ accountId: string }>(`${dashboardHost}/accounts/active`, { credentials: 'include', retry: 0 });
+				this.user = res?.data ? toUser(res.data, active.accountId) : null;
 			} catch (error) {
 				if ((error as FetchError).statusCode === 401) {
 					this.user = null;
