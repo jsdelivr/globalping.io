@@ -61,7 +61,7 @@
 		<c-probe-loading-state
 			loading="{{probesLoading}}"
 			error="{{probesError}}"
-			hasData="{{locationProbes.length}}"
+			hasData="{{!locationProbes || locationProbes.length}}"
 			filter="{{filter}}"
 		/>
 		{{#if preparedProbeBlocks.length}}
@@ -416,7 +416,7 @@
 						this.set(payload);
 					}
 
-					let groupedProbes = this.groupProbes(locationProbes || []);
+					let groupedProbes = locationProbes ? this.groupProbes(locationProbes) : null;
 					this.set('groupedProbes', groupedProbes);
 				});
 
@@ -437,7 +437,7 @@
 					}
 
 					let locationProbes = this.get('locationProbes');
-					let groupedProbes = this.groupProbes(locationProbes || []);
+					let groupedProbes = locationProbes ? this.groupProbes(locationProbes) : null;
 
 					this.set('groupedProbes', groupedProbes);
 				}, { init: false });
@@ -836,7 +836,7 @@
 				this.set('probeContinents', []);
 				this.set('selectedContinent', null);
 			} else {
-				this.set('probeContinents', Object.keys(groupedProbes).map(continent => ({
+				this.set('probeContinents', Object.keys(groupedProbes || {}).map(continent => ({
 					name: this.getContinentName(continent),
 					value: continent,
 				})));
