@@ -6,7 +6,7 @@ const ogImage = require('../middleware/open-graph/image');
 const ogMetadata = require('../middleware/open-graph');
 const asnDomains = require('../lib/asn-to-domain');
 const ipToNetwork = require('../lib/ip-to-network');
-const { getUsers, getNetworks, getNetworkToDomainMap } = require('../lib/probe-data');
+const { getUsers, getOrganizations, getNetworks, getNetworkToDomainMap } = require('../lib/probe-data');
 const maxmind = require('maxmind');
 const { processDomainLogo } = require('../lib/logo-processing');
 
@@ -35,7 +35,7 @@ koaElasticUtils.addRoutes(router, [
 });
 
 /**
- * Users pages
+ * Users and organizations pages
  */
 koaElasticUtils.addRoutes(router, [
 	[ 'users', '/users/:username' ],
@@ -54,8 +54,11 @@ koaElasticUtils.addRoutes(router, [
 		return ctx.redirect(`/users/${username}`);
 	}
 
+	let org = (await getOrganizations()).find(o => o.name.toLowerCase() === username.toLowerCase());
+
 	let data = {
 		username,
+		org: org ?? null,
 	};
 
 	ctx.body = await ctx.render('pages/_users.html', data);

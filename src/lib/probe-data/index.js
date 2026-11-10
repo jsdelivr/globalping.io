@@ -12,9 +12,21 @@ const REFRESH_INTERVAL_MS = 60_000;
 const USERNAME_TAG_PATTERN = /^u-[^:]+$/;
 let rawProbeData = null;
 let parsedProbeData = null;
+let organizations = null;
 
 const refreshRawProbeData = async () => {
 	rawProbeData = await got.get(`${serverConfig.apiHost}/v1/probes`).json().catch(() => null);
+};
+
+const refreshOrganizations = async () => {
+	let response = await got.get(`${serverConfig.dashboardHost}/organizations`).json().catch(() => null);
+
+	organizations = response?.map(({ name, website, description, bannerId }) => ({
+		name,
+		website,
+		description,
+		bannerUrl: bannerId ? `${serverConfig.dashboardHost}/assets/${bannerId}?key=banner` : null,
+	})) ?? organizations;
 };
 
 const updateStatsForNetwork = (networkStatistics, location) => {
@@ -160,7 +172,7 @@ const refreshData = async () => {
 	if (!refreshPromise) {
 		refreshPromise = (async () => {
 			try {
-				await refreshRawProbeData();
+				await Promise.all([ refreshRawProbeData(), refreshOrganizations() ]);
 				parseRawProbeData();
 			} finally {
 				refreshPromise = null;
@@ -189,6 +201,7 @@ module.exports = getParsedProbeData;
 module.exports.getNetworkStatistics = async () => getParsedProbeData().then(data => data.networkStatistics);
 module.exports.getNetworks = async () => getParsedProbeData().then(data => data.networks);
 module.exports.getUsers = async () => getParsedProbeData().then(data => data.users);
+module.exports.getOrganizations = async () => getParsedProbeData().then(() => organizations ?? []);
 module.exports.getDynamicSiteUrls = async () => getParsedProbeData().then(data => data.urls);
 
 module.exports.getNetworkToDomainMap = async () => getParsedProbeData().then((data) => {

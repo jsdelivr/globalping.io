@@ -4,6 +4,7 @@
 <link rel="ractive" href="../components/footer.html" name="c-gp-footer">
 <link rel="ractive" href="../components/notification.html" name="c-notification">
 <link rel="ractive" href="../components/filtered-probe-list.html" name="c-filtered-probe-list">
+<link rel="ractive" href="../components/placeholder-skeleton.html" name="c-placeholder-skeleton">
 
 <r-page noYield="{{noYield}}" title="{{title}}" description="{{description}}">
 	{{#partial seo}}
@@ -15,36 +16,65 @@
 
 	<div class="p-users">
 		<div class="p-users_hero">
-			<div class="user-banner">
-				<div class="user-banner_user">
-					<img width="48" height="48" src="https://github.com/{{username}}.png" class="user-banner_user_avatar">
-					<div class="user-banner_user_contact">
-						<span class="user-banner_user_contact_username">{{username}}</span>
-						<span class="user-banner_user_contact_gh">
-							<span>
-								<img width="16" height="16" src="{{@shared.assetsHost}}/img/github-outline.svg">
-								<a target="_blank" rel="noreferrer" href="https://github.com/{{username}}">{{username}}</a>
-							</span>
-						</span>
-					</div>
-				</div>
-				{{#if filteredProbes}}
-					<div class="user-banner_stats">
-						<span>
-							<img width="20" height="20" src="{{@shared.assetsHost}}/img/radio.svg">
-							{{filteredProbes.length}} {{_.pluralize('probe', filteredProbes.length)}}
-						</span>
-
-						{{#each userStats}}
-							{{#if count}}
-								<span>
-									<img width="20" height="20" src="{{@shared.assetsHost}}/img/{{icon}}">
-									{{count}} {{~/_.pluralize(...name, count)}}
-								</span>
-							{{/if}}
-						{{/each}}
+			<div class="user-banner {{#if org}}is-org{{/if}} {{#if org.bannerUrl}}with-banner{{/if}}">
+				{{#if org.bannerUrl}}
+					<div class="user-banner_banner">
+						<img width="1224" height="200" src="{{org.bannerUrl}}" alt="" class="user-banner_banner_img {{#if bannerPending}}is-pending{{/if}}">
 					</div>
 				{{/if}}
+
+				<div class="user-banner_body">
+					<div class="user-banner_user">
+						<img width="48" height="48" src="https://github.com/{{username}}.png" alt="" class="user-banner_user_avatar">
+						<div class="user-banner_user_contact">
+							<span class="user-banner_user_contact_username">{{username}}</span>
+							<span class="user-banner_user_contact_links">
+								<span>
+									<img width="16" height="16" src="{{@shared.assetsHost}}/img/github-outline.svg" alt="">
+									<a target="_blank" rel="noreferrer" href="https://github.com/{{username}}">{{username}}</a>
+								</span>
+								{{#if org.website}}
+									<span class="user-banner_user_contact_links_website">
+										<img width="16" height="16" src="{{@shared.assetsHost}}/img/globe.svg" alt="">
+										<a target="_blank" rel="noreferrer nofollow ugc" href="{{org.website}}">{{websiteLabel}}</a>
+									</span>
+								{{/if}}
+							</span>
+						</div>
+					</div>
+
+					{{#if org.description || statsPending || filteredProbes.length}}
+						<div class="user-banner_details">
+							{{#if filteredProbes}}
+								<div class="user-banner_stats">
+									<span>
+										<img width="20" height="20" src="{{@shared.assetsHost}}/img/radio.svg" alt="">
+										{{filteredProbes.length}} {{_.pluralize('probe', filteredProbes.length)}}
+									</span>
+
+									{{#each userStats}}
+										{{#if count}}
+											<span>
+												<img width="20" height="20" src="{{@shared.assetsHost}}/img/{{icon}}" alt="">
+												{{count}} {{~/_.pluralize(...name, count)}}
+											</span>
+										{{/if}}
+									{{/each}}
+								</div>
+							{{elseif statsPending}}
+								<div class="user-banner_stats user-banner_stats--placeholder" aria-hidden="true">
+									{{#each Array(4)}}
+										<span><c-placeholder-skeleton type="base"></c-placeholder-skeleton></span>
+									{{/each}}
+								</div>
+							{{/if}}
+
+							{{#if org.description}}
+								<p class="user-banner_details_description">{{org.description}}</p>
+							{{/if}}
+						</div>
+					{{/if}}
+				</div>
 			</div>
 
 			<div class="p-users_hero_map-wrapper">
@@ -100,6 +130,8 @@
 			return {
 				_,
 				username: '',
+				org: null,
+				bannerPending: false,
 				probesLoading: true,
 				probesError: null,
 				userProbes: null,
@@ -135,6 +167,12 @@
 			},
 			description () {
 				return `Find ${this.get('username')}'s Globalping probes.`;
+			},
+			statsPending () {
+				return this.get('filteredProbes') === null && !this.get('probesError');
+			},
+			websiteLabel () {
+				return (this.get('org.website') || '').replace(/^https:\/\//, '').replace(/\/$/, '');
 			},
 			filter: {
 				get () {
@@ -200,6 +238,13 @@
 		onrender () {
 			if (!Ractive.isServer) {
 				listeners.screenWidthListener(this);
+
+				let banner = this.find('.user-banner_banner_img');
+
+				if (banner && !(banner.complete && banner.naturalWidth)) {
+					this.set('bannerPending', true);
+					banner.addEventListener('load', () => this.set('bannerPending', false), { once: true });
+				}
 			}
 		},
 		handleProbesResponse (response) {
