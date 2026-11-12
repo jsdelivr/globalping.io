@@ -803,9 +803,9 @@
 				return value;
 			}
 
-			if (value < 10) {
+			if (Number(value.toFixed(2)) < 10) {
 				return value.toFixed(2);
-			} else if (value < 100) {
+			} else if (Number(value.toFixed(1)) < 100) {
 				return value.toFixed(1);
 			}
 
