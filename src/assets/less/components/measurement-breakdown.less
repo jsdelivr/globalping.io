@@ -1,0 +1,471 @@
+@import "../variables.less";
+
+@keyframes c-measurement-breakdown-reveal {
+	from {
+		grid-template-rows: minmax(0, 0fr);
+		opacity: 0;
+	}
+}
+
+@keyframes c-measurement-breakdown-range-grow {
+	from {
+		transform: scaleX(0);
+	}
+}
+
+@keyframes c-measurement-breakdown-range-pop {
+	from {
+		opacity: 0;
+		transform: scale(.4);
+	}
+}
+
+@keyframes c-measurement-breakdown-scrollbar-space {
+	from, to {
+		padding-bottom: 12px;
+	}
+}
+
+.c-measurement-breakdown {
+	--cell-inset: 12px;
+	display: grid;
+	grid-template-rows: minmax(0, 1fr);
+	width: 100%;
+	min-width: 0;
+	border-top: 1px solid #e7e7ee;
+	background: #fff;
+	overflow: clip;
+	color: #17233a;
+	animation: c-measurement-breakdown-reveal .25s ease-out;
+
+	@media (prefers-reduced-motion: reduce) {
+		animation: none;
+	}
+
+	@media (max-width: @screen-md-max) {
+		--cell-inset: 8px;
+	}
+
+	@media (max-width: @screen-xs-max) {
+		--cell-inset: 0;
+	}
+
+	.fa {
+		cursor: default;
+	}
+
+	&_body {
+		min-width: 0;
+		padding: 12px;
+
+		@media (min-width: @screen-sm-min) {
+			padding: 12px 24px;
+		}
+	}
+
+	&_header {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: baseline;
+		gap: 8px 16px;
+		padding-bottom: 8px;
+		border-bottom: 1px solid #e7e7ee;
+
+		h2 {
+			margin: 0;
+			font-size: 16px;
+			font-weight: 600;
+			line-height: 24px;
+		}
+	}
+
+	&_offline-message {
+		min-width: 0;
+		color: #596579;
+		font-size: 12px;
+		line-height: 20px;
+		overflow-wrap: anywhere;
+
+		@media (max-width: @screen-xs-max) {
+			flex-basis: 100%;
+			order: 1;
+		}
+	}
+
+	&_map-switch {
+		display: flex;
+		align-items: center;
+		align-self: center;
+		gap: 8px;
+		height: 32px;
+		// The negative margins keep the header row height: on phones the button is centred on the title,
+		// on desktop it has equal space above and below.
+		margin: -4px 0 -4px auto;
+		padding: 0 12px 0 10px;
+		background: #fff;
+		border: 1.5px solid #e7e7ee;
+		border-radius: 8px;
+		white-space: nowrap;
+		color: #596579;
+		font-size: 14px;
+		line-height: 20px;
+		cursor: pointer;
+		transition: background-color .1s ease-in-out;
+
+		&:hover {
+			background-color: #f9fafb;
+		}
+
+		&--active {
+			color: #000;
+		}
+
+		@media (min-width: @screen-sm-min) {
+			height: 28px;
+			margin-top: -4px;
+			margin-bottom: 0;
+		}
+
+		// The label doesn't fit next to the title on the narrowest phones.
+		@media (max-width: 359px) {
+			justify-content: center;
+			width: 32px;
+			padding: 0;
+
+			&_label {
+				.sr-only();
+			}
+		}
+	}
+
+	&_targets {
+		// Every cell is padded on both sides; the outer cells' padding extends into the block's padding to keep the text aligned.
+		margin: 0 calc(-1 * var(--cell-inset));
+		container-type: inline-size;
+
+		@media (min-width: @screen-sm-min) {
+			// The local white layers scroll with the content and cover the edge shadows when there is nothing more to scroll to.
+			background:
+				linear-gradient(to right, #fff 30%, rgba(255, 255, 255, 0)) left center / 32px 100% no-repeat local,
+				linear-gradient(to left, #fff 30%, rgba(255, 255, 255, 0)) right center / 32px 100% no-repeat local,
+				radial-gradient(farthest-side at 0 50%, rgba(23, 35, 58, .18), rgba(23, 35, 58, 0)) left center / 10px 100% no-repeat scroll,
+				radial-gradient(farthest-side at 100% 50%, rgba(23, 35, 58, .18), rgba(23, 35, 58, 0)) right center / 10px 100% no-repeat scroll;
+			overflow-x: auto;
+			scroll-snap-type: x proximity;
+			// A scroll-driven animation only applies while the table scrolls, which keeps the scrollbar off the last row's bars.
+			animation: c-measurement-breakdown-scrollbar-space linear both;
+			animation-timeline: scroll(self inline);
+		}
+	}
+
+	&_map-switch:focus-visible, &_targets:focus-visible {
+		outline: none;
+		box-shadow: 0 0 0 2px #fff, 0 0 0 4px rgba(23, 212, 167, .48);
+	}
+
+	&_comparison {
+		width: 100%;
+		border-collapse: separate;
+		text-align: left;
+
+		// One grid for all targets: every column is as wide as the widest cell, so each row stays on one line
+		// and every bar in a row has the same length; the table scrolls when the columns don't fit.
+		@media (min-width: @screen-sm-min) {
+			display: grid;
+			grid-template-columns: repeat(var(--columns), 1fr);
+			width: max-content;
+			min-width: 100%;
+
+			tbody, tr {
+				display: contents;
+			}
+		}
+
+		@media (max-width: @screen-xs-max) {
+			display: block;
+		}
+
+		th, td {
+			vertical-align: top;
+		}
+
+		th + th, td + td {
+			border-left: 1px solid #e7e7ee;
+		}
+
+		tr:last-child td {
+			padding-bottom: 4px;
+
+			&:has(.c-measurement-breakdown_range) {
+				padding-bottom: 14px;
+			}
+		}
+	}
+
+	&_target {
+		@media (max-width: @screen-xs-max) {
+			display: flex;
+			flex-direction: column;
+
+			tr {
+				display: contents;
+			}
+		}
+	}
+
+	&_target-header {
+		grid-column: 1 / -1;
+		padding: 10px var(--cell-inset) 6px;
+		font-size: 14px;
+		font-weight: 600;
+		line-height: 20px;
+		overflow-wrap: anywhere;
+	}
+
+	&_target + &_target &_target-header {
+		padding-top: 26px;
+	}
+
+	&_target-name {
+		position: sticky;
+		left: var(--cell-inset);
+		display: inline-block;
+		max-width: calc(100cqw - 2 * var(--cell-inset));
+
+		.fa {
+			margin-right: 6px;
+			color: #078569;
+			font-size: 12px;
+		}
+	}
+
+	&_location {
+		padding: 4px var(--cell-inset);
+		scroll-snap-align: start;
+		scroll-margin-left: -1px;
+		font-size: 13px;
+		font-weight: 600;
+		line-height: 20px;
+		overflow-wrap: anywhere;
+
+		@media (max-width: @screen-xs-max) {
+			order: var(--column);
+
+			& + & {
+				margin-top: 8px;
+				padding-top: 12px;
+				border-top: 1px solid #e7e7ee;
+				border-left: 0;
+			}
+		}
+
+		// The gap trails the name, so a pill that wraps starts at the left edge.
+		&_name {
+			margin-right: 8px;
+		}
+
+		&_probe-count {
+			padding: 1px 8px;
+			border-radius: 10px;
+			background: #f3f5f6;
+			white-space: nowrap;
+			vertical-align: 1px;
+			color: #596579;
+			font-size: 11px;
+			font-weight: 400;
+		}
+	}
+
+	&_metric {
+		position: relative;
+		padding: 3px var(--cell-inset);
+
+		@media (max-width: @screen-xs-max) {
+			order: var(--column);
+
+			& + & {
+				border-left: 0;
+			}
+		}
+
+		&:has(.c-measurement-breakdown_range) {
+			padding-bottom: 12px;
+		}
+
+		&_content {
+			display: flex;
+			align-items: baseline;
+			justify-content: space-between;
+			gap: 12px;
+
+			@media (min-width: @screen-sm-min) {
+				white-space: nowrap;
+			}
+
+			@media (max-width: @screen-md-max) {
+				gap: 8px;
+			}
+
+			// On phones a value that doesn't fit next to its label moves below it.
+			@media (max-width: @screen-xs-max) {
+				flex-wrap: wrap;
+				row-gap: 0;
+			}
+		}
+
+		&_label {
+			flex-shrink: 0;
+			color: #596579;
+			font-size: 12px;
+			line-height: 20px;
+
+			&.is-notable {
+				color: #17233a;
+			}
+		}
+
+		&_order {
+			white-space: nowrap;
+			color: #6b7588;
+			font-size: 11px;
+		}
+
+		&_value, &_items {
+			margin-left: auto;
+			text-align: right;
+			font-size: 12px;
+			font-weight: 500;
+			font-variant-numeric: tabular-nums;
+			line-height: 20px;
+		}
+
+		&_value {
+			flex-shrink: 0;
+			white-space: nowrap;
+
+			&.is-problem {
+				color: #d62222;
+			}
+
+			&.is-muted {
+				color: #596579;
+				font-weight: 400;
+			}
+		}
+
+		&_stat {
+			&.is-bound {
+				color: #596579;
+				font-weight: 400;
+			}
+
+			&.is-avg {
+				font-weight: 600;
+			}
+		}
+
+		&_unit {
+			color: #596579;
+			font-weight: 400;
+		}
+
+		&_separator {
+			color: #6b7588;
+			font-weight: 400;
+		}
+
+		&_items {
+			color: #596579;
+
+			@media (max-width: @screen-xs-max) {
+				flex: 1 0 0;
+			}
+		}
+
+		&_item {
+			display: inline-flex;
+			align-items: baseline;
+			gap: 4px;
+			color: #17233a;
+			text-align: left;
+
+			&.is-problem {
+				color: #d62222;
+			}
+		}
+
+		&_count {
+			flex-shrink: 0;
+			color: #596579;
+			font-size: 11px;
+		}
+	}
+
+	&_range {
+		position: absolute;
+		right: var(--cell-inset);
+		bottom: 5px;
+		left: var(--cell-inset);
+		height: 4px;
+		border-radius: 2px;
+		background: #e3e8eb;
+
+		&_span, &_avg {
+			position: absolute;
+		}
+
+		&_span {
+			inset: 0;
+			border-radius: 2px;
+			background: linear-gradient(to right, #17d4a7, #ffb800 50%, #e64e3d);
+			transform-origin: calc(var(--range-avg) * 1%) 50%;
+			clip-path: inset(0 calc(100% - var(--range-max) * 1%) 0 calc(var(--range-min) * 1%) round 2px);
+			animation: c-measurement-breakdown-range-grow .6s cubic-bezier(.22, 1, .36, 1) calc(var(--column) * 80ms + 100ms) backwards;
+		}
+
+		// Values beyond the scale keep a red end visible, like their red markers on the map.
+		&.is-over-scale &_span {
+			clip-path: inset(0 0 0 min(calc(var(--range-min) * 1%), calc(100% - 16px)) round 2px);
+		}
+
+		&_avg {
+			top: 50%;
+			left: calc(var(--range-avg) * 1%);
+			width: 10px;
+			height: 10px;
+			margin: -5px 0 0 -5px;
+			border: 2px solid #fff;
+			border-radius: 50%;
+			background: #4b5567;
+			box-shadow: 0 0 0 1px rgba(23, 35, 58, .16), 0 1px 3px rgba(23, 35, 58, .2);
+			animation: c-measurement-breakdown-range-pop .3s cubic-bezier(.22, 1, .36, 1) calc(var(--column) * 80ms) backwards;
+		}
+
+		@media (prefers-reduced-motion: reduce) {
+			&_span, &_avg {
+				animation: none;
+			}
+		}
+	}
+
+	&_notable-icon, &_notable-explanation .fa {
+		margin-right: 3px;
+		color: #078569;
+		font-size: 9px;
+	}
+
+	&_notable-icon {
+		vertical-align: 1px;
+	}
+
+	&_notable-explanation {
+		display: flex;
+		align-items: center;
+		justify-content: flex-end;
+		gap: 4px;
+		margin-top: 6px;
+		color: #596579;
+		font-size: 12px;
+		line-height: 18px;
+	}
+}
