@@ -61,6 +61,20 @@ module.exports = {
 		return date.toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric', hour: 'numeric', minute: 'numeric', second: 'numeric', hour12: false });
 	},
 
+	formatTimingValue (value) {
+		if (typeof value !== 'number' || isNaN(value)) {
+			return value;
+		}
+
+		if (Number(value.toFixed(2)) < 10) {
+			return value.toFixed(2);
+		} else if (Number(value.toFixed(1)) < 100) {
+			return value.toFixed(1);
+		}
+
+		return Math.round(value);
+	},
+
 	formatNumber (number) {
 		return Math.floor(number).toString().replace(/\d(?=(?:\d{3})+$)/g, '$& ');
 	},

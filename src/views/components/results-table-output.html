@@ -144,7 +144,7 @@
 																<span class="timings_value timeout">{{PROBE_NO_TIMING_VALUE}}</span>
 															{{elseif target.tableCells[columnIdx].timings[timingIdx].hasValue}}
 																<span class="timings_value">
-																	{{@this.formatTimingValue(target.tableCells[columnIdx].timings[timingIdx].value)}}
+																	{{_.formatTimingValue(target.tableCells[columnIdx].timings[timingIdx].value)}}
 																	{{#if target.tableCells[columnIdx].timings[timingIdx].units}}
 																		<span class="timings_units">{{target.tableCells[columnIdx].timings[timingIdx].units}}</span>
 																	{{/if}}
@@ -797,19 +797,6 @@
 
 
 			return memoizedCreateGraph(packetsRtt);
-		},
-		formatTimingValue (value) {
-			if (typeof value !== 'number' || isNaN(value)) {
-				return value;
-			}
-
-			if (Number(value.toFixed(2)) < 10) {
-				return value.toFixed(2);
-			} else if (Number(value.toFixed(1)) < 100) {
-				return value.toFixed(1);
-			}
-
-			return Math.round(value);
 		},
 		onSortClick (field) {
 			if (field === this.get('sortBy')) {

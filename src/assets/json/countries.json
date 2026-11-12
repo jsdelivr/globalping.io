@@ -1,7 +1,13 @@
 [
 	{
+		"code": "AC",
+		"name": "Ascension Island",
+		"iso3": "ASC"
+	},
+	{
 		"code": "AD",
-		"name": "Andorra"
+		"name": "Andorra",
+		"iso3": "AND"
 	},
 	{
 		"code": "AE",
@@ -9,160 +15,194 @@
 		"aliases": [
 			"UAE",
 			"Emirates"
-		]
+		],
+		"iso3": "ARE"
 	},
 	{
 		"code": "AF",
-		"name": "Afghanistan"
+		"name": "Afghanistan",
+		"iso3": "AFG"
 	},
 	{
 		"code": "AG",
-		"name": "Antigua and Barbuda"
+		"name": "Antigua and Barbuda",
+		"iso3": "ATG"
 	},
 	{
 		"code": "AI",
-		"name": "Anguilla"
+		"name": "Anguilla",
+		"iso3": "AIA"
 	},
 	{
 		"code": "AL",
-		"name": "Albania"
+		"name": "Albania",
+		"iso3": "ALB"
 	},
 	{
 		"code": "AM",
-		"name": "Armenia"
+		"name": "Armenia",
+		"iso3": "ARM"
 	},
 	{
 		"code": "AO",
-		"name": "Angola"
+		"name": "Angola",
+		"iso3": "AGO"
 	},
 	{
 		"code": "AQ",
-		"name": "Antarctica"
+		"name": "Antarctica",
+		"iso3": "ATA"
 	},
 	{
 		"code": "AR",
-		"name": "Argentina"
+		"name": "Argentina",
+		"iso3": "ARG"
 	},
 	{
 		"code": "AS",
-		"name": "American Samoa"
+		"name": "American Samoa",
+		"iso3": "ASM"
 	},
 	{
 		"code": "AT",
-		"name": "Austria"
+		"name": "Austria",
+		"iso3": "AUT"
 	},
 	{
 		"code": "AU",
-		"name": "Australia"
+		"name": "Australia",
+		"iso3": "AUS"
 	},
 	{
 		"code": "AW",
-		"name": "Aruba"
+		"name": "Aruba",
+		"iso3": "ABW"
 	},
 	{
 		"code": "AX",
 		"name": "Aland",
 		"aliases": [
 			"Åland"
-		]
+		],
+		"iso3": "ALA"
 	},
 	{
 		"code": "AZ",
-		"name": "Azerbaijan"
+		"name": "Azerbaijan",
+		"iso3": "AZE"
 	},
 	{
 		"code": "BA",
-		"name": "Bosnia and Herzegovina"
+		"name": "Bosnia and Herzegovina",
+		"iso3": "BIH"
 	},
 	{
 		"code": "BB",
-		"name": "Barbados"
+		"name": "Barbados",
+		"iso3": "BRB"
 	},
 	{
 		"code": "BD",
 		"name": "Bangladesh",
 		"aliases": [
 			"East Pakistan"
-		]
+		],
+		"iso3": "BGD"
 	},
 	{
 		"code": "BE",
-		"name": "Belgium"
+		"name": "Belgium",
+		"iso3": "BEL"
 	},
 	{
 		"code": "BF",
 		"name": "Burkina Faso",
 		"aliases": [
 			"Upper Volta"
-		]
+		],
+		"iso3": "BFA"
 	},
 	{
 		"code": "BG",
-		"name": "Bulgaria"
+		"name": "Bulgaria",
+		"iso3": "BGR"
 	},
 	{
 		"code": "BH",
 		"name": "Bahrain",
 		"aliases": [
 			"Bahrein"
-		]
+		],
+		"iso3": "BHR"
 	},
 	{
 		"code": "BI",
-		"name": "Burundi"
+		"name": "Burundi",
+		"iso3": "BDI"
 	},
 	{
 		"code": "BJ",
 		"name": "Benin",
 		"aliases": [
 			"Dahomey"
-		]
+		],
+		"iso3": "BEN"
 	},
 	{
 		"code": "BL",
 		"name": "Saint Barthelemy",
 		"aliases": [
 			"Saint Barthélemy"
-		]
+		],
+		"iso3": "BLM"
 	},
 	{
 		"code": "BM",
-		"name": "Bermuda"
+		"name": "Bermuda",
+		"iso3": "BMU"
 	},
 	{
 		"code": "BN",
-		"name": "Brunei"
+		"name": "Brunei",
+		"iso3": "BRN"
 	},
 	{
 		"code": "BO",
-		"name": "Bolivia"
+		"name": "Bolivia",
+		"iso3": "BOL"
 	},
 	{
 		"code": "BQ",
-		"name": "Bonaire"
+		"name": "Bonaire",
+		"iso3": "BES"
 	},
 	{
 		"code": "BR",
-		"name": "Brazil"
+		"name": "Brazil",
+		"iso3": "BRA"
 	},
 	{
 		"code": "BS",
-		"name": "Bahamas"
+		"name": "Bahamas",
+		"iso3": "BHS"
 	},
 	{
 		"code": "BT",
-		"name": "Bhutan"
+		"name": "Bhutan",
+		"iso3": "BTN"
 	},
 	{
 		"code": "BV",
-		"name": "Bouvet Island"
+		"name": "Bouvet Island",
+		"iso3": "BVT"
 	},
 	{
 		"code": "BW",
 		"name": "Botswana",
 		"aliases": [
 			"Bechuanaland"
-		]
+		],
+		"iso3": "BWA"
 	},
 	{
 		"code": "BY",
@@ -170,22 +210,26 @@
 		"aliases": [
 			"Byelorussia",
 			"Belorussia"
-		]
+		],
+		"iso3": "BLR"
 	},
 	{
 		"code": "BZ",
 		"name": "Belize",
 		"aliases": [
 			"British Honduras"
-		]
+		],
+		"iso3": "BLZ"
 	},
 	{
 		"code": "CA",
-		"name": "Canada"
+		"name": "Canada",
+		"iso3": "CAN"
 	},
 	{
 		"code": "CC",
-		"name": "Cocos (Keeling) Islands"
+		"name": "Cocos (Keeling) Islands",
+		"iso3": "CCK"
 	},
 	{
 		"code": "CD",
@@ -195,79 +239,95 @@
 			"Congo-Kinshasa",
 			"DR Congo",
 			"DRC"
-		]
+		],
+		"iso3": "COD"
 	},
 	{
 		"code": "CF",
 		"name": "Central African Republic",
 		"aliases": [
 			"Ubangi-Shari"
-		]
+		],
+		"iso3": "CAF"
 	},
 	{
 		"code": "CG",
 		"name": "Republic of the Congo",
 		"aliases": [
 			"Congo-Brazzaville"
-		]
+		],
+		"iso3": "COG"
 	},
 	{
 		"code": "CH",
-		"name": "Switzerland"
+		"name": "Switzerland",
+		"iso3": "CHE"
 	},
 	{
 		"code": "CI",
 		"name": "Ivory Coast",
 		"aliases": [
 			"Cote d'Ivoire"
-		]
+		],
+		"iso3": "CIV"
 	},
 	{
 		"code": "CK",
-		"name": "Cook Islands"
+		"name": "Cook Islands",
+		"iso3": "COK"
 	},
 	{
 		"code": "CL",
-		"name": "Chile"
+		"name": "Chile",
+		"iso3": "CHL"
 	},
 	{
 		"code": "CM",
-		"name": "Cameroon"
+		"name": "Cameroon",
+		"iso3": "CMR"
 	},
 	{
 		"code": "CN",
-		"name": "China"
+		"name": "China",
+		"iso3": "CHN"
 	},
 	{
 		"code": "CO",
-		"name": "Colombia"
+		"name": "Colombia",
+		"iso3": "COL"
 	},
 	{
 		"code": "CR",
-		"name": "Costa Rica"
+		"name": "Costa Rica",
+		"iso3": "CRI"
 	},
 	{
 		"code": "CU",
-		"name": "Cuba"
+		"name": "Cuba",
+		"iso3": "CUB"
 	},
 	{
 		"code": "CV",
 		"name": "Cabo Verde",
 		"aliases": [
 			"Cape Verde"
-		]
+		],
+		"iso3": "CPV"
 	},
 	{
 		"code": "CW",
-		"name": "Curacao"
+		"name": "Curacao",
+		"iso3": "CUW"
 	},
 	{
 		"code": "CX",
-		"name": "Christmas Island"
+		"name": "Christmas Island",
+		"iso3": "CXR"
 	},
 	{
 		"code": "CY",
-		"name": "Cyprus"
+		"name": "Cyprus",
+		"iso3": "CYP"
 	},
 	{
 		"code": "CZ",
@@ -275,93 +335,114 @@
 		"aliases": [
 			"Czech Republic",
 			"Česká republika"
-		]
+		],
+		"iso3": "CZE"
 	},
 	{
 		"code": "DE",
-		"name": "Germany"
+		"name": "Germany",
+		"iso3": "DEU"
 	},
 	{
 		"code": "DJ",
-		"name": "Djibouti"
+		"name": "Djibouti",
+		"iso3": "DJI"
 	},
 	{
 		"code": "DK",
-		"name": "Denmark"
+		"name": "Denmark",
+		"iso3": "DNK"
 	},
 	{
 		"code": "DM",
-		"name": "Dominica"
+		"name": "Dominica",
+		"iso3": "DMA"
 	},
 	{
 		"code": "DO",
-		"name": "Dominican Republic"
+		"name": "Dominican Republic",
+		"iso3": "DOM"
 	},
 	{
 		"code": "DZ",
-		"name": "Algeria"
+		"name": "Algeria",
+		"iso3": "DZA"
 	},
 	{
 		"code": "EC",
-		"name": "Ecuador"
+		"name": "Ecuador",
+		"iso3": "ECU"
 	},
 	{
 		"code": "EE",
-		"name": "Estonia"
+		"name": "Estonia",
+		"iso3": "EST"
 	},
 	{
 		"code": "EG",
-		"name": "Egypt"
+		"name": "Egypt",
+		"iso3": "EGY"
 	},
 	{
 		"code": "EH",
 		"name": "Western Sahara",
 		"aliases": [
 			"Spanish Sahara"
-		]
+		],
+		"iso3": "ESH"
 	},
 	{
 		"code": "ER",
-		"name": "Eritrea"
+		"name": "Eritrea",
+		"iso3": "ERI"
 	},
 	{
 		"code": "ES",
-		"name": "Spain"
+		"name": "Spain",
+		"iso3": "ESP"
 	},
 	{
 		"code": "ET",
 		"name": "Ethiopia",
 		"aliases": [
 			"Abyssinia"
-		]
+		],
+		"iso3": "ETH"
 	},
 	{
 		"code": "FI",
-		"name": "Finland"
+		"name": "Finland",
+		"iso3": "FIN"
 	},
 	{
 		"code": "FJ",
-		"name": "Fiji"
+		"name": "Fiji",
+		"iso3": "FJI"
 	},
 	{
 		"code": "FK",
-		"name": "Falkland Islands"
+		"name": "Falkland Islands",
+		"iso3": "FLK"
 	},
 	{
 		"code": "FM",
-		"name": "Micronesia"
+		"name": "Micronesia",
+		"iso3": "FSM"
 	},
 	{
 		"code": "FO",
-		"name": "Faroe Islands"
+		"name": "Faroe Islands",
+		"iso3": "FRO"
 	},
 	{
 		"code": "FR",
-		"name": "France"
+		"name": "France",
+		"iso3": "FRA"
 	},
 	{
 		"code": "GA",
-		"name": "Gabon"
+		"name": "Gabon",
+		"iso3": "GAB"
 	},
 	{
 		"code": "GB",
@@ -374,171 +455,210 @@
 			"Northern Ireland",
 			"Wales",
 			"Scotland"
-		]
+		],
+		"iso3": "GBR"
 	},
 	{
 		"code": "GD",
-		"name": "Grenada"
+		"name": "Grenada",
+		"iso3": "GRD"
 	},
 	{
 		"code": "GE",
-		"name": "Georgia"
+		"name": "Georgia",
+		"iso3": "GEO"
 	},
 	{
 		"code": "GF",
-		"name": "French Guiana"
+		"name": "French Guiana",
+		"iso3": "GUF"
 	},
 	{
 		"code": "GG",
-		"name": "Guernsey"
+		"name": "Guernsey",
+		"iso3": "GGY"
 	},
 	{
 		"code": "GH",
 		"name": "Ghana",
 		"aliases": [
 			"Gold Coast"
-		]
+		],
+		"iso3": "GHA"
 	},
 	{
 		"code": "GI",
-		"name": "Gibraltar"
+		"name": "Gibraltar",
+		"iso3": "GIB"
 	},
 	{
 		"code": "GL",
-		"name": "Greenland"
+		"name": "Greenland",
+		"iso3": "GRL"
 	},
 	{
 		"code": "GM",
-		"name": "Gambia"
+		"name": "Gambia",
+		"iso3": "GMB"
 	},
 	{
 		"code": "GN",
-		"name": "Guinea"
+		"name": "Guinea",
+		"iso3": "GIN"
 	},
 	{
 		"code": "GP",
-		"name": "Guadeloupe"
+		"name": "Guadeloupe",
+		"iso3": "GLP"
 	},
 	{
 		"code": "GQ",
-		"name": "Equatorial Guinea"
+		"name": "Equatorial Guinea",
+		"iso3": "GNQ"
 	},
 	{
 		"code": "GR",
-		"name": "Greece"
+		"name": "Greece",
+		"iso3": "GRC"
 	},
 	{
 		"code": "GS",
-		"name": "South Georgia and the South Sandwich Islands"
+		"name": "South Georgia and the South Sandwich Islands",
+		"iso3": "SGS"
 	},
 	{
 		"code": "GT",
-		"name": "Guatemala"
+		"name": "Guatemala",
+		"iso3": "GTM"
 	},
 	{
 		"code": "GU",
-		"name": "Guam"
+		"name": "Guam",
+		"iso3": "GUM"
 	},
 	{
 		"code": "GW",
 		"name": "Guinea-Bissau",
 		"aliases": [
 			"Portuguese Guinea"
-		]
+		],
+		"iso3": "GNB"
 	},
 	{
 		"code": "GY",
-		"name": "Guyana"
+		"name": "Guyana",
+		"iso3": "GUY"
 	},
 	{
 		"code": "HK",
-		"name": "Hong Kong"
+		"name": "Hong Kong",
+		"iso3": "HKG"
 	},
 	{
 		"code": "HM",
-		"name": "Heard Island and McDonald Islands"
+		"name": "Heard Island and McDonald Islands",
+		"iso3": "HMD"
 	},
 	{
 		"code": "HN",
-		"name": "Honduras"
+		"name": "Honduras",
+		"iso3": "HND"
 	},
 	{
 		"code": "HR",
-		"name": "Croatia"
+		"name": "Croatia",
+		"iso3": "HRV"
 	},
 	{
 		"code": "HT",
-		"name": "Haiti"
+		"name": "Haiti",
+		"iso3": "HTI"
 	},
 	{
 		"code": "HU",
-		"name": "Hungary"
+		"name": "Hungary",
+		"iso3": "HUN"
 	},
 	{
 		"code": "ID",
 		"name": "Indonesia",
 		"aliases": [
 			"Dutch East Indies"
-		]
+		],
+		"iso3": "IDN"
 	},
 	{
 		"code": "IE",
-		"name": "Ireland"
+		"name": "Ireland",
+		"iso3": "IRL"
 	},
 	{
 		"code": "IL",
-		"name": "Israel"
+		"name": "Israel",
+		"iso3": "ISR"
 	},
 	{
 		"code": "IM",
-		"name": "Isle of Man"
+		"name": "Isle of Man",
+		"iso3": "IMN"
 	},
 	{
 		"code": "IN",
-		"name": "India"
+		"name": "India",
+		"iso3": "IND"
 	},
 	{
 		"code": "IO",
-		"name": "British Indian Ocean Territory"
+		"name": "British Indian Ocean Territory",
+		"iso3": "IOT"
 	},
 	{
 		"code": "IQ",
-		"name": "Iraq"
+		"name": "Iraq",
+		"iso3": "IRQ"
 	},
 	{
 		"code": "IR",
 		"name": "Iran",
 		"aliases": [
 			"Persia"
-		]
+		],
+		"iso3": "IRN"
 	},
 	{
 		"code": "IS",
-		"name": "Iceland"
+		"name": "Iceland",
+		"iso3": "ISL"
 	},
 	{
 		"code": "IT",
-		"name": "Italy"
+		"name": "Italy",
+		"iso3": "ITA"
 	},
 	{
 		"code": "JE",
-		"name": "Jersey"
+		"name": "Jersey",
+		"iso3": "JEY"
 	},
 	{
 		"code": "JM",
-		"name": "Jamaica"
+		"name": "Jamaica",
+		"iso3": "JAM"
 	},
 	{
 		"code": "JO",
-		"name": "Jordan"
+		"name": "Jordan",
+		"iso3": "JOR"
 	},
 	{
 		"code": "JP",
-		"name": "Japan"
+		"name": "Japan",
+		"iso3": "JPN"
 	},
 	{
 		"code": "KE",
-		"name": "Kenya"
+		"name": "Kenya",
+		"iso3": "KEN"
 	},
 	{
 		"code": "KG",
@@ -546,139 +666,167 @@
 		"aliases": [
 			"Kirghizia",
 			"Kyrgyz Republic"
-		]
+		],
+		"iso3": "KGZ"
 	},
 	{
 		"code": "KH",
 		"name": "Cambodia",
 		"aliases": [
 			"Kampuchea"
-		]
+		],
+		"iso3": "KHM"
 	},
 	{
 		"code": "KI",
 		"name": "Kiribati",
 		"aliases": [
 			"Gilbert Islands"
-		]
+		],
+		"iso3": "KIR"
 	},
 	{
 		"code": "KM",
-		"name": "Comoros"
+		"name": "Comoros",
+		"iso3": "COM"
 	},
 	{
 		"code": "KN",
-		"name": "Saint Kitts and Nevis"
+		"name": "Saint Kitts and Nevis",
+		"iso3": "KNA"
 	},
 	{
 		"code": "KP",
 		"name": "North Korea",
 		"aliases": [
 			"DPRK"
-		]
+		],
+		"iso3": "PRK"
 	},
 	{
 		"code": "KR",
 		"name": "South Korea",
 		"aliases": [
 			"Republic of Korea"
-		]
+		],
+		"iso3": "KOR"
 	},
 	{
 		"code": "KW",
-		"name": "Kuwait"
+		"name": "Kuwait",
+		"iso3": "KWT"
 	},
 	{
 		"code": "KY",
-		"name": "Cayman Islands"
+		"name": "Cayman Islands",
+		"iso3": "CYM"
 	},
 	{
 		"code": "KZ",
-		"name": "Kazakhstan"
+		"name": "Kazakhstan",
+		"iso3": "KAZ"
 	},
 	{
 		"code": "LA",
 		"name": "Laos",
 		"aliases": [
 			"Lao PDR"
-		]
+		],
+		"iso3": "LAO"
 	},
 	{
 		"code": "LB",
-		"name": "Lebanon"
+		"name": "Lebanon",
+		"iso3": "LBN"
 	},
 	{
 		"code": "LC",
-		"name": "Saint Lucia"
+		"name": "Saint Lucia",
+		"iso3": "LCA"
 	},
 	{
 		"code": "LI",
-		"name": "Liechtenstein"
+		"name": "Liechtenstein",
+		"iso3": "LIE"
 	},
 	{
 		"code": "LK",
 		"name": "Sri Lanka",
 		"aliases": [
 			"Ceylon"
-		]
+		],
+		"iso3": "LKA"
 	},
 	{
 		"code": "LR",
-		"name": "Liberia"
+		"name": "Liberia",
+		"iso3": "LBR"
 	},
 	{
 		"code": "LS",
 		"name": "Lesotho",
 		"aliases": [
 			"Basutoland"
-		]
+		],
+		"iso3": "LSO"
 	},
 	{
 		"code": "LT",
-		"name": "Lithuania"
+		"name": "Lithuania",
+		"iso3": "LTU"
 	},
 	{
 		"code": "LU",
-		"name": "Luxembourg"
+		"name": "Luxembourg",
+		"iso3": "LUX"
 	},
 	{
 		"code": "LV",
-		"name": "Latvia"
+		"name": "Latvia",
+		"iso3": "LVA"
 	},
 	{
 		"code": "LY",
-		"name": "Libya"
+		"name": "Libya",
+		"iso3": "LBY"
 	},
 	{
 		"code": "MA",
-		"name": "Morocco"
+		"name": "Morocco",
+		"iso3": "MAR"
 	},
 	{
 		"code": "MC",
-		"name": "Monaco"
+		"name": "Monaco",
+		"iso3": "MCO"
 	},
 	{
 		"code": "MD",
 		"name": "Moldova",
 		"aliases": [
 			"Moldavia"
-		]
+		],
+		"iso3": "MDA"
 	},
 	{
 		"code": "ME",
-		"name": "Montenegro"
+		"name": "Montenegro",
+		"iso3": "MNE"
 	},
 	{
 		"code": "MF",
-		"name": "Saint Martin"
+		"name": "Saint Martin",
+		"iso3": "MAF"
 	},
 	{
 		"code": "MG",
-		"name": "Madagascar"
+		"name": "Madagascar",
+		"iso3": "MDG"
 	},
 	{
 		"code": "MH",
-		"name": "Marshall Islands"
+		"name": "Marshall Islands",
+		"iso3": "MHL"
 	},
 	{
 		"code": "MK",
@@ -686,14 +834,16 @@
 		"aliases": [
 			"Macedonia",
 			"FYROM"
-		]
+		],
+		"iso3": "MKD"
 	},
 	{
 		"code": "ML",
 		"name": "Mali",
 		"aliases": [
 			"French Sudan"
-		]
+		],
+		"iso3": "MLI"
 	},
 	{
 		"code": "MM",
@@ -701,190 +851,233 @@
 		"aliases": [
 			"Burma",
 			"Myanmar (Burma)"
-		]
+		],
+		"iso3": "MMR"
 	},
 	{
 		"code": "MN",
-		"name": "Mongolia"
+		"name": "Mongolia",
+		"iso3": "MNG"
 	},
 	{
 		"code": "MO",
 		"name": "Macao",
 		"aliases": [
 			"Macau"
-		]
+		],
+		"iso3": "MAC"
 	},
 	{
 		"code": "MP",
-		"name": "Northern Mariana Islands"
+		"name": "Northern Mariana Islands",
+		"iso3": "MNP"
 	},
 	{
 		"code": "MQ",
-		"name": "Martinique"
+		"name": "Martinique",
+		"iso3": "MTQ"
 	},
 	{
 		"code": "MR",
-		"name": "Mauritania"
+		"name": "Mauritania",
+		"iso3": "MRT"
 	},
 	{
 		"code": "MS",
-		"name": "Montserrat"
+		"name": "Montserrat",
+		"iso3": "MSR"
 	},
 	{
 		"code": "MT",
-		"name": "Malta"
+		"name": "Malta",
+		"iso3": "MLT"
 	},
 	{
 		"code": "MU",
-		"name": "Mauritius"
+		"name": "Mauritius",
+		"iso3": "MUS"
 	},
 	{
 		"code": "MV",
-		"name": "Maldives"
+		"name": "Maldives",
+		"iso3": "MDV"
 	},
 	{
 		"code": "MW",
 		"name": "Malawi",
 		"aliases": [
 			"Nyasaland"
-		]
+		],
+		"iso3": "MWI"
 	},
 	{
 		"code": "MX",
-		"name": "Mexico"
+		"name": "Mexico",
+		"iso3": "MEX"
 	},
 	{
 		"code": "MY",
-		"name": "Malaysia"
+		"name": "Malaysia",
+		"iso3": "MYS"
 	},
 	{
 		"code": "MZ",
-		"name": "Mozambique"
+		"name": "Mozambique",
+		"iso3": "MOZ"
 	},
 	{
 		"code": "NA",
 		"name": "Namibia",
 		"aliases": [
 			"South West Africa"
-		]
+		],
+		"iso3": "NAM"
 	},
 	{
 		"code": "NC",
-		"name": "New Caledonia"
+		"name": "New Caledonia",
+		"iso3": "NCL"
 	},
 	{
 		"code": "NE",
-		"name": "Niger"
+		"name": "Niger",
+		"iso3": "NER"
 	},
 	{
 		"code": "NF",
-		"name": "Norfolk Island"
+		"name": "Norfolk Island",
+		"iso3": "NFK"
 	},
 	{
 		"code": "NG",
-		"name": "Nigeria"
+		"name": "Nigeria",
+		"iso3": "NGA"
 	},
 	{
 		"code": "NI",
-		"name": "Nicaragua"
+		"name": "Nicaragua",
+		"iso3": "NIC"
 	},
 	{
 		"code": "NL",
 		"name": "Netherlands",
 		"aliases": [
 			"Holland"
-		]
+		],
+		"iso3": "NLD"
 	},
 	{
 		"code": "NO",
-		"name": "Norway"
+		"name": "Norway",
+		"iso3": "NOR"
 	},
 	{
 		"code": "NP",
-		"name": "Nepal"
+		"name": "Nepal",
+		"iso3": "NPL"
 	},
 	{
 		"code": "NR",
-		"name": "Nauru"
+		"name": "Nauru",
+		"iso3": "NRU"
 	},
 	{
 		"code": "NU",
-		"name": "Niue"
+		"name": "Niue",
+		"iso3": "NIU"
 	},
 	{
 		"code": "NZ",
-		"name": "New Zealand"
+		"name": "New Zealand",
+		"iso3": "NZL"
 	},
 	{
 		"code": "OM",
-		"name": "Oman"
+		"name": "Oman",
+		"iso3": "OMN"
 	},
 	{
 		"code": "PA",
-		"name": "Panama"
+		"name": "Panama",
+		"iso3": "PAN"
 	},
 	{
 		"code": "PE",
-		"name": "Peru"
+		"name": "Peru",
+		"iso3": "PER"
 	},
 	{
 		"code": "PF",
-		"name": "French Polynesia"
+		"name": "French Polynesia",
+		"iso3": "PYF"
 	},
 	{
 		"code": "PG",
-		"name": "Papua New Guinea"
+		"name": "Papua New Guinea",
+		"iso3": "PNG"
 	},
 	{
 		"code": "PH",
-		"name": "Philippines"
+		"name": "Philippines",
+		"iso3": "PHL"
 	},
 	{
 		"code": "PK",
-		"name": "Pakistan"
+		"name": "Pakistan",
+		"iso3": "PAK"
 	},
 	{
 		"code": "PL",
-		"name": "Poland"
+		"name": "Poland",
+		"iso3": "POL"
 	},
 	{
 		"code": "PM",
-		"name": "Saint Pierre and Miquelon"
+		"name": "Saint Pierre and Miquelon",
+		"iso3": "SPM"
 	},
 	{
 		"code": "PN",
-		"name": "Pitcairn Islands"
+		"name": "Pitcairn Islands",
+		"iso3": "PCN"
 	},
 	{
 		"code": "PR",
-		"name": "Puerto Rico"
+		"name": "Puerto Rico",
+		"iso3": "PRI"
 	},
 	{
 		"code": "PS",
-		"name": "Palestine"
+		"name": "Palestine",
+		"iso3": "PSE"
 	},
 	{
 		"code": "PT",
-		"name": "Portugal"
+		"name": "Portugal",
+		"iso3": "PRT"
 	},
 	{
 		"code": "PW",
-		"name": "Palau"
+		"name": "Palau",
+		"iso3": "PLW"
 	},
 	{
 		"code": "PY",
-		"name": "Paraguay"
+		"name": "Paraguay",
+		"iso3": "PRY"
 	},
 	{
 		"code": "QA",
-		"name": "Qatar"
+		"name": "Qatar",
+		"iso3": "QAT"
 	},
 	{
 		"code": "RE",
 		"name": "Reunion",
 		"aliases": [
 			"Réunion"
-		]
+		],
+		"iso3": "REU"
 	},
 	{
 		"code": "RO",
@@ -892,165 +1085,206 @@
 		"aliases": [
 			"Rumania",
 			"Roumania"
-		]
+		],
+		"iso3": "ROU"
 	},
 	{
 		"code": "RS",
-		"name": "Serbia"
+		"name": "Serbia",
+		"iso3": "SRB"
 	},
 	{
 		"code": "RU",
 		"name": "Russia",
 		"aliases": [
 			"Russian Federation"
-		]
+		],
+		"iso3": "RUS"
 	},
 	{
 		"code": "RW",
-		"name": "Rwanda"
+		"name": "Rwanda",
+		"iso3": "RWA"
 	},
 	{
 		"code": "SA",
-		"name": "Saudi Arabia"
+		"name": "Saudi Arabia",
+		"iso3": "SAU"
 	},
 	{
 		"code": "SB",
-		"name": "Solomon Islands"
+		"name": "Solomon Islands",
+		"iso3": "SLB"
 	},
 	{
 		"code": "SC",
-		"name": "Seychelles"
+		"name": "Seychelles",
+		"iso3": "SYC"
 	},
 	{
 		"code": "SD",
-		"name": "Sudan"
+		"name": "Sudan",
+		"iso3": "SDN"
 	},
 	{
 		"code": "SE",
-		"name": "Sweden"
+		"name": "Sweden",
+		"iso3": "SWE"
 	},
 	{
 		"code": "SG",
-		"name": "Singapore"
+		"name": "Singapore",
+		"iso3": "SGP"
 	},
 	{
 		"code": "SH",
-		"name": "Saint Helena"
+		"name": "Saint Helena",
+		"iso3": "SHN"
 	},
 	{
 		"code": "SI",
-		"name": "Slovenia"
+		"name": "Slovenia",
+		"iso3": "SVN"
 	},
 	{
 		"code": "SJ",
-		"name": "Svalbard and Jan Mayen"
+		"name": "Svalbard and Jan Mayen",
+		"iso3": "SJM"
 	},
 	{
 		"code": "SK",
-		"name": "Slovakia"
+		"name": "Slovakia",
+		"iso3": "SVK"
 	},
 	{
 		"code": "SL",
-		"name": "Sierra Leone"
+		"name": "Sierra Leone",
+		"iso3": "SLE"
 	},
 	{
 		"code": "SM",
-		"name": "San Marino"
+		"name": "San Marino",
+		"iso3": "SMR"
 	},
 	{
 		"code": "SN",
-		"name": "Senegal"
+		"name": "Senegal",
+		"iso3": "SEN"
 	},
 	{
 		"code": "SO",
-		"name": "Somalia"
+		"name": "Somalia",
+		"iso3": "SOM"
 	},
 	{
 		"code": "SR",
-		"name": "Suriname"
+		"name": "Suriname",
+		"iso3": "SUR"
 	},
 	{
 		"code": "SS",
-		"name": "South Sudan"
+		"name": "South Sudan",
+		"iso3": "SSD"
 	},
 	{
 		"code": "ST",
 		"name": "Sao Tome and Principe",
 		"aliases": [
 			"São Tomé and Príncipe"
-		]
+		],
+		"iso3": "STP"
 	},
 	{
 		"code": "SV",
-		"name": "El Salvador"
+		"name": "El Salvador",
+		"iso3": "SLV"
 	},
 	{
 		"code": "SX",
-		"name": "Sint Maarten"
+		"name": "Sint Maarten",
+		"iso3": "SXM"
 	},
 	{
 		"code": "SY",
 		"name": "Syria",
 		"aliases": [
 			"Syrian Arab Republic"
-		]
+		],
+		"iso3": "SYR"
 	},
 	{
 		"code": "SZ",
 		"name": "Eswatini",
 		"aliases": [
 			"Swaziland"
-		]
+		],
+		"iso3": "SWZ"
+	},
+	{
+		"code": "TA",
+		"name": "Tristan da Cunha",
+		"iso3": "TAA"
 	},
 	{
 		"code": "TC",
-		"name": "Turks and Caicos Islands"
+		"name": "Turks and Caicos Islands",
+		"iso3": "TCA"
 	},
 	{
 		"code": "TD",
-		"name": "Chad"
+		"name": "Chad",
+		"iso3": "TCD"
 	},
 	{
 		"code": "TF",
-		"name": "French Southern Territories"
+		"name": "French Southern Territories",
+		"iso3": "ATF"
 	},
 	{
 		"code": "TG",
-		"name": "Togo"
+		"name": "Togo",
+		"iso3": "TGO"
 	},
 	{
 		"code": "TH",
 		"name": "Thailand",
 		"aliases": [
 			"Siam"
-		]
+		],
+		"iso3": "THA"
 	},
 	{
 		"code": "TJ",
-		"name": "Tajikistan"
+		"name": "Tajikistan",
+		"iso3": "TJK"
 	},
 	{
 		"code": "TK",
-		"name": "Tokelau"
+		"name": "Tokelau",
+		"iso3": "TKL"
 	},
 	{
 		"code": "TL",
-		"name": "East Timor"
+		"name": "East Timor",
+		"iso3": "TLS"
 	},
 	{
 		"code": "TM",
 		"name": "Turkmenistan",
 		"aliases": [
 			"Turkmenia"
-		]
+		],
+		"iso3": "TKM"
 	},
 	{
 		"code": "TN",
-		"name": "Tunisia"
+		"name": "Tunisia",
+		"iso3": "TUN"
 	},
 	{
 		"code": "TO",
-		"name": "Tonga"
+		"name": "Tonga",
+		"iso3": "TON"
 	},
 	{
 		"code": "TR",
@@ -1059,44 +1293,52 @@
 		"aliases": [
 			"Turkey",
 			"Turkiye"
-		]
+		],
+		"iso3": "TUR"
 	},
 	{
 		"code": "TT",
-		"name": "Trinidad and Tobago"
+		"name": "Trinidad and Tobago",
+		"iso3": "TTO"
 	},
 	{
 		"code": "TV",
 		"name": "Tuvalu",
 		"aliases": [
 			"Ellice Islands"
-		]
+		],
+		"iso3": "TUV"
 	},
 	{
 		"code": "TW",
 		"name": "Taiwan",
 		"aliases": [
 			"Formosa"
-		]
+		],
+		"iso3": "TWN"
 	},
 	{
 		"code": "TZ",
 		"name": "Tanzania",
 		"aliases": [
 			"Tanganyika"
-		]
+		],
+		"iso3": "TZA"
 	},
 	{
 		"code": "UA",
-		"name": "Ukraine"
+		"name": "Ukraine",
+		"iso3": "UKR"
 	},
 	{
 		"code": "UG",
-		"name": "Uganda"
+		"name": "Uganda",
+		"iso3": "UGA"
 	},
 	{
 		"code": "UM",
-		"name": "U.S. Minor Outlying Islands"
+		"name": "U.S. Minor Outlying Islands",
+		"iso3": "UMI"
 	},
 	{
 		"code": "US",
@@ -1106,15 +1348,18 @@
 			"USA",
 			"America",
 			"United States of America"
-		]
+		],
+		"iso3": "USA"
 	},
 	{
 		"code": "UY",
-		"name": "Uruguay"
+		"name": "Uruguay",
+		"iso3": "URY"
 	},
 	{
 		"code": "UZ",
-		"name": "Uzbekistan"
+		"name": "Uzbekistan",
+		"iso3": "UZB"
 	},
 	{
 		"code": "VA",
@@ -1122,68 +1367,82 @@
 		"aliases": [
 			"Holy See",
 			"Vatican"
-		]
+		],
+		"iso3": "VAT"
 	},
 	{
 		"code": "VC",
-		"name": "Saint Vincent and the Grenadines"
+		"name": "Saint Vincent and the Grenadines",
+		"iso3": "VCT"
 	},
 	{
 		"code": "VE",
-		"name": "Venezuela"
+		"name": "Venezuela",
+		"iso3": "VEN"
 	},
 	{
 		"code": "VG",
-		"name": "British Virgin Islands"
+		"name": "British Virgin Islands",
+		"iso3": "VGB"
 	},
 	{
 		"code": "VI",
-		"name": "U.S. Virgin Islands"
+		"name": "U.S. Virgin Islands",
+		"iso3": "VIR"
 	},
 	{
 		"code": "VN",
 		"name": "Vietnam",
 		"aliases": [
 			"Viet Nam"
-		]
+		],
+		"iso3": "VNM"
 	},
 	{
 		"code": "VU",
 		"name": "Vanuatu",
 		"aliases": [
 			"New Hebrides"
-		]
+		],
+		"iso3": "VUT"
 	},
 	{
 		"code": "WF",
-		"name": "Wallis and Futuna"
+		"name": "Wallis and Futuna",
+		"iso3": "WLF"
 	},
 	{
 		"code": "WS",
-		"name": "Samoa"
+		"name": "Samoa",
+		"iso3": "WSM"
 	},
 	{
 		"code": "XK",
-		"name": "Kosovo"
+		"name": "Kosovo",
+		"iso3": "XKX"
 	},
 	{
 		"code": "YE",
-		"name": "Yemen"
+		"name": "Yemen",
+		"iso3": "YEM"
 	},
 	{
 		"code": "YT",
-		"name": "Mayotte"
+		"name": "Mayotte",
+		"iso3": "MYT"
 	},
 	{
 		"code": "ZA",
-		"name": "South Africa"
+		"name": "South Africa",
+		"iso3": "ZAF"
 	},
 	{
 		"code": "ZM",
 		"name": "Zambia",
 		"aliases": [
 			"Northern Rhodesia"
-		]
+		],
+		"iso3": "ZMB"
 	},
 	{
 		"code": "ZW",
@@ -1191,6 +1450,7 @@
 		"aliases": [
 			"Rhodesia",
 			"Southern Rhodesia"
-		]
+		],
+		"iso3": "ZWE"
 	}
 ]

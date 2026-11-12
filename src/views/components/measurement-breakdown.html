@@ -1,0 +1,131 @@
+<section class="c-measurement-breakdown" aria-label="{{breakdown.title}}">
+	<div class="c-measurement-breakdown_body">
+		<div class="c-measurement-breakdown_header">
+			<h2>{{breakdown.title}}</h2>
+			{{#if breakdown.offlineCount}}
+				<span class="c-measurement-breakdown_offline-message">({{breakdown.offlineCount}} offline {{_.pluralize('probe', breakdown.offlineCount)}} excluded)</span>
+			{{/if}}
+
+			<button class="c-measurement-breakdown_map-switch {{#if showMap}}c-measurement-breakdown_map-switch--active{{/if}}"
+				type="button"
+				data-testid="map-switch"
+				on-click="@this.set('originalShowMap', !showMap),@this.set('showMap', !showMap)">
+				<img width="13" height="13" alt="" src="{{@shared.assetsHost}}/img/map-icon{{#if showMap}}.active{{/if}}.svg"/>
+				<span class="c-measurement-breakdown_map-switch_label">{{#if showMap}}Hide map{{else}}Show map{{/if}}</span>
+			</button>
+		</div>
+
+		<div class="c-measurement-breakdown_targets" {{#if isDesktop}}role="region" aria-label="{{breakdown.title}} by target" tabindex="0"{{/if}}>
+			<table class="c-measurement-breakdown_comparison" as-custom-properties="{ '--columns': breakdown.columns.length }">
+				{{#each breakdown.targets as target}}
+					<tbody class="c-measurement-breakdown_target">
+						<tr>
+							<th class="c-measurement-breakdown_target-header" colspan="{{breakdown.columns.length}}" scope="rowgroup">
+								<span class="c-measurement-breakdown_target-name">
+									<i class="fa fa-crosshairs" aria-hidden="true"></i>
+									<span>{{target.name}}</span>
+								</span>
+							</th>
+						</tr>
+						<tr>
+							{{#each breakdown.columns as column : columnIndex}}
+								<th class="c-measurement-breakdown_location" scope="col" as-custom-properties="{ '--column': columnIndex }">
+									<span class="c-measurement-breakdown_location_name">{{column.location}}</span>
+									<span class="c-measurement-breakdown_location_probe-count">{{column.probeCount}} {{_.pluralize('probe', column.probeCount)}}</span>
+								</th>
+							{{/each}}
+						</tr>
+						{{#each target.metricRows as row}}
+							<tr>
+								{{#each row.cells as cell : columnIndex}}
+									<td class="c-measurement-breakdown_metric" as-custom-properties="{ '--column': columnIndex }">
+										<span class="c-measurement-breakdown_metric_content">
+											<span class="c-measurement-breakdown_metric_label {{#if row.isNotable}}is-notable{{/if}}">
+												{{#if row.isNotable}}
+													<span class="c-measurement-breakdown_notable-icon">
+														<i class="fa fa-asterisk" aria-hidden="true"></i>
+														<span class="sr-only">Notable difference:</span>
+													</span>
+												{{/if}}
+												{{row.label}}
+												{{#if row.showsOrder}}
+													<span class="c-measurement-breakdown_metric_order">(min / avg / max)</span>
+												{{/if}}
+											</span>
+											{{#if cell.statistics}}
+												<span class="c-measurement-breakdown_metric_value {{#if cell.isMuted}}is-muted{{/if}}">
+													{{#each cell.statistics as statistic : index}}{{#if index}}<span class="c-measurement-breakdown_metric_separator">&nbsp;/&nbsp;</span>{{/if}}<span class="c-measurement-breakdown_metric_stat {{#if cell.statistics.length > 1}}{{index === 1 ? 'is-avg' : 'is-bound'}}{{elseif !cell.isMuted}}is-avg{{/if}}">{{statistic}}</span>{{/each}}
+													<span class="c-measurement-breakdown_metric_unit">{{row.units}}</span>
+												</span>
+											{{elseif cell.items}}
+												<span class="c-measurement-breakdown_metric_items">
+													{{#each cell.items as item : index}}
+														{{#if index}}, {{/if}}
+														<span class="c-measurement-breakdown_metric_item {{#if item.isProblem}}is-problem{{/if}}">
+															<span>{{item.label}}</span>
+															<span class="c-measurement-breakdown_metric_count">
+																<span aria-hidden="true">({{item.count}}x)</span>
+																<span class="sr-only">{{item.count}} {{_.pluralize('probe', item.count)}}</span>
+															</span>
+														</span>
+													{{/each}}
+												</span>
+											{{else}}
+												<span class="c-measurement-breakdown_metric_value {{#if cell.isProblem}}is-problem{{/if}} {{#if cell.isMuted}}is-muted{{/if}}">{{cell.value}}</span>
+											{{/if}}
+										</span>
+										{{#if cell.range}}
+											<span
+												class="c-measurement-breakdown_range {{#if cell.range.isOverScale}}is-over-scale{{/if}}"
+												aria-hidden="true"
+												as-custom-properties="{ '--range-min': cell.range.min, '--range-avg': cell.range.avg, '--range-max': cell.range.max }">
+												<span class="c-measurement-breakdown_range_span"></span>
+												<span class="c-measurement-breakdown_range_avg"></span>
+											</span>
+										{{/if}}
+									</td>
+								{{/each}}
+							</tr>
+						{{/each}}
+					</tbody>
+				{{/each}}
+			</table>
+		</div>
+
+		{{#if breakdown.hasNotable}}
+			<div class="c-measurement-breakdown_notable-explanation">
+				<i class="fa fa-asterisk" aria-hidden="true"></i>
+				<span>Notable difference</span>
+			</div>
+		{{/if}}
+	</div>
+</section>
+
+<script>
+	const _ = require('../../assets/js/_');
+	const customProperties = require('../../assets/js/decorators/custom-properties');
+	const { addManagedListener } = require('../../assets/js/utils/listeners');
+
+	component.exports = {
+		decorators: {
+			'custom-properties': customProperties,
+		},
+		data () {
+			return {
+				_,
+				isDesktop: true,
+			};
+		},
+		onrender () {
+			if (Ractive.isServer) {
+				return;
+			}
+
+			let desktopQuery = window.matchMedia('(min-width: 768px)');
+			let updateDesktop = () => this.set('isDesktop', desktopQuery.matches);
+
+			updateDesktop();
+			addManagedListener(this, desktopQuery, 'change', updateDesktop);
+		},
+	};
+</script>

@@ -7,6 +7,7 @@
 <link rel="ractive" href="../components/controlled-textarea.html" name="c-controlled-textarea">
 <link rel="ractive" href="../components/tags-input.html" name="c-tags-input">
 <link rel="ractive" href="../components/results-controls.html" name="c-gp-results-controls">
+<link rel="ractive" href="../components/measurement-breakdown.html" name="c-measurement-breakdown">
 <link rel="ractive" href="../components/results-raw-output.html" name="c-gp-results-raw-output">
 <link rel="ractive" href="../components/results-table-output.html" name="c-gp-results-table-output">
 <link rel="ractive" href="../components/results-share.html" name="c-gp-results-share">
@@ -690,11 +691,20 @@
 						<p>{{{measurementErrMsg}}}</p>
 					</div>
 				</div>
-			{{elseif testResults && (rawOutputMode || tableOutputReady)}}
+			{{elseif testResults && (rawOutputMode || allTargetsResultsPrepared)}}
+				{{#if measurementBreakdown}}
+					<c-measurement-breakdown
+						breakdown="{{measurementBreakdown}}"
+						showMap="{{showMap}}"
+						originalShowMap="{{originalShowMap}}">
+					</c-measurement-breakdown>
+				{{/if}}
+
 				<div class="gp_map-block_test-output">
 					<c-gp-results-controls
 						showMap="{{showMap}}"
 						originalShowMap="{{originalShowMap}}"
+						showMapSwitch="{{!measurementBreakdown}}"
 						targets="{{targetsArr}}"
 						activeTargetIdx="{{activeTargetIdx}}"
 						rawOutputMode="{{rawOutputMode}}"
@@ -1539,6 +1549,7 @@
 	const http = require('../../assets/js/utils/http');
 	const dataCache = require('../../assets/js/utils/data-cache');
 	const getMeasurementTitle = require('../../assets/js/utils/measurement-title');
+	const { buildMeasurementBreakdown } = require('../../assets/js/utils/measurement-breakdown');
 
 	const CLIENT_DEFAULT_PING_OPTS = {
 		protocol: 'ICMP',
@@ -1898,7 +1909,7 @@
 
 				return true;
 			},
-			tableOutputReady () {
+			allTargetsResultsPrepared () {
 				let preparedTestResults = this.get('preparedTestResults') || [];
 				let expectedTargetsCnt = this.get('isInfiniteModeRes') || this.get('qsMeasurementIdsArr.length') <= 1
 					? this.get('targetsArr.length')
@@ -1906,6 +1917,20 @@
 				let actualTargetsCnt = preparedTestResults[0]?.statsPerTarget?.length || 0;
 
 				return preparedTestResults.length && (!expectedTargetsCnt || actualTargetsCnt >= expectedTargetsCnt);
+			},
+			measurementBreakdown () {
+				let responses = this.get('realTimeTestResResponse') || [];
+
+				if (this.get('isInfiniteModeRes') || !this.get('allTargetsResultsPrepared') || responses.some(response => response.status !== 'finished')) {
+					return null;
+				}
+
+				return buildMeasurementBreakdown({
+					locations: this.get('testReqParams.locations'),
+					preparedTestResults: this.get('preparedTestResults'),
+					probesMaxTiming: this.get('probesMaxTiming'),
+					testType: this.get('testReqParams.type'),
+				});
 			},
 			anyResponseBodyCollapsible () {
 				if (Ractive.isServer) {
@@ -2735,6 +2760,7 @@
 
 			// clear all data from the previous test, close additional options menu, show spinner, set up Map's data etc.
 			this.set('testResults', null);
+			this.set('preparedTestResults', []);
 			this.set('markersData', null);
 			this.set('probesResponse', null);
 			this.set('showMeasurementOpts', false);
@@ -2753,7 +2779,6 @@
 			this.set('isTestStopped', false);
 			this.set('showCreditsData', true);
 			this.set('prevProbesMeasId', null);
-			this.set('preparedTestResults', []);
 			this.set('rateCreditsData', null);
 			this.set('probesMaxTiming', type.toLowerCase() === 'http' ? 1000 : 200);
 			this.set('_measurementOgDescription', null);
@@ -4515,6 +4540,31 @@
 				sortValues,
 			};
 		},
+		getResponseStats (res, dnsTraceEnabled) {
+			let result = res.result;
+
+			if (res.type === 'dns' && dnsTraceEnabled) {
+				let lastHop = this.getLastHop(result);
+
+				return {
+					dnsStatus: null,
+					dnsAnswerCount: lastHop?.resolver ? lastHop.answers.length : null,
+				};
+			}
+
+			if (res.type === 'dns') {
+				return {
+					dnsStatus: result.statusCodeName ?? null,
+					dnsAnswerCount: result.statusCodeName ? result.answers.length : null,
+				};
+			}
+
+			if (res.type === 'http') {
+				return { httpStatus: result.statusCode ?? null };
+			}
+
+			return {};
+		},
 		prepareRegularResults (testResults) {
 			if (!testResults || testResults.length === 0) {
 				return [];
@@ -4553,6 +4603,7 @@
 				let isOffline = res.result.status === PROBE_STATUS_OFFLINE;
 				let minTiming = typeof stats.min === 'number' ? stats.min : PROBE_NO_TIMING_VALUE;
 				let maxTiming = typeof stats.max === 'number' ? stats.max : PROBE_NO_TIMING_VALUE;
+				let packetLoss = stats.loss ?? null;
 
 				let rawOutput = res.result.rawOutput || '';
 				let rawBody = null;
@@ -4577,6 +4628,7 @@
 					lastTiming = this.getLastHopLastTiming(res.result);
 					minTiming = typeof lastHopStats.min === 'number' ? lastHopStats.min : PROBE_NO_TIMING_VALUE;
 					maxTiming = typeof lastHopStats.max === 'number' ? lastHopStats.max : PROBE_NO_TIMING_VALUE;
+					packetLoss = lastHopStats.loss ?? null;
 				}
 
 				let targetStats = {
@@ -4592,6 +4644,8 @@
 					isOffline,
 					packetsRtt,
 					extraValues,
+					...this.getResponseStats(res, dnsTraceEnabled),
+					packetLoss,
 					failureSource: res.result.failureSource,
 					failureRawOutput: this.getFailureProbeRawOutput(res),
 					rawOutput: rawHeaders,
