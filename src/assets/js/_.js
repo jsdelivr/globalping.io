@@ -294,7 +294,7 @@ module.exports = {
 			if (typeof testResData.result?.stats?.loss === 'number') {
 				extraValues.loss = {
 					text: 'Loss',
-					value: testResData.result?.stats?.loss,
+					value: Math.round(testResData.result.stats.loss * 10) / 10,
 					units: '%',
 				};
 			}
