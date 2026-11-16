@@ -68,7 +68,7 @@
 		"@martin-kolarik/eslint-config": "^8.0.4",
 		"@martin-kolarik/stylelint-config": "^4.0.1",
 		"@nuxt/eslint-config": "^1.10.0",
-		"@playwright/test": "^1.57.0",
+		"@playwright/test": "^1.65.1",
 		"@primevue/nuxt-module": "^4.5.4",
 		"@rollup/stream": "^2.0.0",
 		"@types/config": "^3.3.5",
