@@ -167,7 +167,7 @@ app.use(async (ctx, next) => {
  */
 app.use(render({
 	views: __dirname + '/views/',
-	cache: app.env !== 'development',
+	revalidate: app.env === 'development',
 	serverHost,
 	assetsHost,
 	apiDocsHost: serverConfig.apiDocsHost,
