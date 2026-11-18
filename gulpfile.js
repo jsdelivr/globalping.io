@@ -1,3 +1,5 @@
+const fs = require('fs');
+const { Transform } = require('stream');
 const gulp = require('gulp');
 const less = require('gulp-less');
 const rename = require('gulp-rename');
@@ -80,6 +82,20 @@ const getRollupStreamRactiveComp = file => rollupStream({
 	output: {
 		format: 'esm',
 		sourcemap: true,
+	},
+});
+
+// Nuxt's dev server re-runs rewritten modules, and each run registers new Ractive classes that are never freed.
+const skipUnchanged = dir => new Transform({
+	objectMode: true,
+	transform (file, encoding, callback) {
+		fs.readFile(`${dir}/${file.relative}`, (error, contents) => {
+			if (!error && contents.equals(file.contents)) {
+				callback();
+			} else {
+				callback(null, file);
+			}
+		});
 	},
 });
 
@@ -168,18 +184,22 @@ gulp.task('nuxt:ractive:components', gulp.parallel(
 	() => getRollupStreamRactiveComp('/components/header.html')
 		.pipe(source('header.js'))
 		.pipe(buffer())
+		.pipe(skipUnchanged(`${dstAppDir}/ractive`))
 		.pipe(gulp.dest(`${dstAppDir}/ractive`)),
 	() => getRollupStreamRactiveComp('/components/footer.html')
 		.pipe(source('footer.js'))
 		.pipe(buffer())
+		.pipe(skipUnchanged(`${dstAppDir}/ractive`))
 		.pipe(gulp.dest(`${dstAppDir}/ractive`)),
 	() => getRollupStreamRactiveComp('/pages/_404.html')
 		.pipe(source('404.js'))
 		.pipe(buffer())
+		.pipe(skipUnchanged(`${dstAppDir}/ractive`))
 		.pipe(gulp.dest(`${dstAppDir}/ractive`)),
 	() => getRollupStreamRactiveComp('/pages/_500.html')
 		.pipe(source('500.js'))
 		.pipe(buffer())
+		.pipe(skipUnchanged(`${dstAppDir}/ractive`))
 		.pipe(gulp.dest(`${dstAppDir}/ractive`)),
 ));
 

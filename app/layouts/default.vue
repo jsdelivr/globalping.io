@@ -68,11 +68,17 @@
 	if (import.meta.server) {
 		footerInstance.value = new Footer();
 		headerInstance.value = new Header();
-		setHeaderProps();
-		setRactiveData(true);
 
-		footerHtml.value = footerInstance.value.toHTML();
-		headerHtml.value = headerInstance.value.toHTML();
+		try {
+			setHeaderProps();
+			setRactiveData(true);
+
+			footerHtml.value = footerInstance.value.toHTML();
+			headerHtml.value = headerInstance.value.toHTML();
+		} finally {
+			footerInstance.value.teardown();
+			headerInstance.value.teardown();
+		}
 	}
 
 	onMounted(async () => {
