@@ -207,7 +207,11 @@
 					}
 
 					.user-banner_user {
-						align-items: flex-end;
+						align-items: flex-start;
+					}
+
+					.user-banner_user_contact {
+						margin-top: 16px;
 					}
 
 					.user-banner_user_avatar {
@@ -223,14 +227,18 @@
 				@media (min-width: @screen-sm-min) {
 					.user-banner_body {
 						position: relative;
+						align-content: start;
 						align-items: start;
-						min-height: 80px;
-						padding: 20px 24px 24px 152px;
+						padding: 20px 24px 20px 152px;
 
 						@media (min-width: @screen-md-min) {
-							min-height: 118px;
+							min-height: 88px;
 							padding-left: 208px;
 						}
+					}
+
+					.user-banner_details:not(:has(.user-banner_details_description)) {
+						align-self: center;
 					}
 
 					.user-banner_user_avatar {
@@ -243,7 +251,7 @@
 						background: #fff;
 
 						@media (min-width: @screen-md-min) {
-							top: -58px;
+							top: -84px;
 							width: 152px;
 							height: 152px;
 						}
