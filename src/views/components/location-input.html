@@ -543,7 +543,7 @@
 				};
 
 				let filterProbesByCurrentParts = (query) => {
-					if (!this.get('exposeProbes')) { return; }
+					if (!this.get('exposeProbes') || !this.get('rawProbes')) { return; }
 
 					let uniq = new Set();
 					query.split(',').forEach((part) => {
@@ -663,6 +663,10 @@
 				};
 
 				this.observe('rawProbes', (probes) => {
+					if (!probes) {
+						return;
+					}
+
 					createNormalizedProbeList(probes);
 					filterProbesByCurrentParts(this.get('value') || '');
 
