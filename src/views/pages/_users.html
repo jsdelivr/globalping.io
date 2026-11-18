@@ -91,6 +91,7 @@
 					probesByCoords="{{probesByCoords}}"
 					hasCluster="{{true}}"
 					focusOnChange="{{true}}"
+					focusPadding="{{mapPadding}}"
 				/>
 			</div>
 		</div>
@@ -139,6 +140,7 @@
 				username: '',
 				org: null,
 				bannerPending: false,
+				mapPadding: null,
 				probesLoading: true,
 				probesError: null,
 				userProbes: null,
@@ -245,6 +247,12 @@
 		onrender () {
 			if (!Ractive.isServer) {
 				listeners.screenWidthListener(this);
+
+				this.observe('screenWidth org.bannerUrl', () => {
+					let cardBottom = this.find('.user-banner').getBoundingClientRect().bottom - this.find('.p-users_hero_map-wrapper').getBoundingClientRect().top;
+					let desktop = window.matchMedia('(min-width: 768px)').matches;
+					this.set('mapPadding', desktop ? { top: cardBottom + 16, right: 48, bottom: 112, left: 48 } : null);
+				}, { defer: true });
 
 				let banner = this.find('.user-banner_banner_img');
 
