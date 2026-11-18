@@ -19,7 +19,14 @@
 			<div class="user-banner {{#if org}}is-org{{/if}} {{#if org.bannerUrl}}with-banner{{/if}}">
 				{{#if org.bannerUrl}}
 					<div class="user-banner_banner">
-						<img width="1224" height="200" src="{{org.bannerUrl}}" alt="" class="user-banner_banner_img {{#if bannerPending}}is-pending{{/if}}">
+						<img
+							width="1224"
+							height="200"
+							src="{{org.bannerUrl}}"
+							alt=""
+							class="user-banner_banner_img {{#if bannerPending}}is-pending{{/if}}"
+							on-load="@this.set('bannerPending', false)"
+							on-error="@this.set('org.bannerUrl', null)">
 					</div>
 				{{/if}}
 
@@ -241,9 +248,10 @@
 
 				let banner = this.find('.user-banner_banner_img');
 
-				if (banner && !(banner.complete && banner.naturalWidth)) {
+				if (banner && !banner.complete) {
 					this.set('bannerPending', true);
-					banner.addEventListener('load', () => this.set('bannerPending', false), { once: true });
+				} else if (banner && !banner.naturalWidth) {
+					this.set('org.bannerUrl', null);
 				}
 			}
 		},
