@@ -76,9 +76,9 @@
 										</span>
 										{{#if cell.range}}
 											<span
-												class="c-measurement-breakdown_range {{#if cell.range.isOverScale}}is-over-scale{{/if}}"
+												class="c-measurement-breakdown_range"
 												aria-hidden="true"
-												as-custom-properties="{ '--range-min': cell.range.min, '--range-avg': cell.range.avg, '--range-max': cell.range.max }">
+												as-custom-properties="{ '--range-min': cell.range.min, '--range-avg': cell.range.avg, '--range-max': cell.range.max, '--range-red': cell.range.red }">
 												<span class="c-measurement-breakdown_range_span"></span>
 												<span class="c-measurement-breakdown_range_avg"></span>
 											</span>

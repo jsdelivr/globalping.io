@@ -417,15 +417,10 @@
 		&_span {
 			inset: 0;
 			border-radius: 2px;
-			background: linear-gradient(to right, #17d4a7, #ffb800 50%, #e64e3d);
+			background: linear-gradient(to right, #17d4a7, #ffb800 calc(var(--range-red) * .5%), #e64e3d calc(var(--range-red) * 1%));
 			transform-origin: calc(var(--range-avg) * 1%) 50%;
 			clip-path: inset(0 calc(100% - var(--range-max) * 1%) 0 calc(var(--range-min) * 1%) round 2px);
 			animation: c-measurement-breakdown-range-grow .6s cubic-bezier(.22, 1, .36, 1) calc(var(--column) * 80ms + 100ms) backwards;
-		}
-
-		// Values beyond the scale keep a red end visible, like their red markers on the map.
-		&.is-over-scale &_span {
-			clip-path: inset(0 0 0 min(calc(var(--range-min) * 1%), calc(100% - 16px)) round 2px);
 		}
 
 		&_avg {

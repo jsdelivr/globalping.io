@@ -179,13 +179,15 @@ const summarizeGroup = (metric, group, targetIndex) => SUMMARIZERS_BY_KIND[metri
 
 const hasOccurrences = summary => Boolean(summary.items) || (typeof summary.value === 'number' && summary.value > 0);
 
-// Timings use the map's colour scale, so slow values end in red, like their markers.
+// Bars span the row's largest value, and their colours follow the map's scale, so each value has its marker's colour.
 const getRangeScale = (metric, summaries, probesMaxTiming) => {
 	if (metric.kind !== 'numeric' || !summaries.some(summary => summary.values[2] > 0)) {
 		return null;
 	}
 
-	return metric.units === 'ms' ? probesMaxTiming : 100;
+	let colorScale = metric.units === 'ms' ? probesMaxTiming : 100;
+
+	return { max: Math.max(colorScale, ...summaries.map(summary => summary.values[2])), colorScale };
 };
 
 const getRange = (cell, scale) => {
@@ -193,9 +195,9 @@ const getRange = (cell, scale) => {
 		return null;
 	}
 
-	let [ min, avg, max ] = cell.values.map(value => Math.min(value / scale, 1) * 100);
+	let [ min, avg, max ] = cell.values.map(value => value / scale.max * 100);
 
-	return { min, avg, max, isOverScale: cell.values[2] > scale };
+	return { min, avg, max, red: scale.colorScale / scale.max * 100 };
 };
 
 const toMetricRow = (metric, summaries, { isNotable, rangeScale }) => {
