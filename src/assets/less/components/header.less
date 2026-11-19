@@ -9,9 +9,8 @@
 	position: relative;
 	z-index: 3;
 
-	.dropdown > a:focus-visible {
-		border-radius: 4px;
-		box-shadow: 0 2px 2px rgba(0, 0, 0, .04), 0 0 0 1px #fff;
+	.navbar a:focus:not(:focus-visible) {
+		outline: none;
 	}
 
 	&.page-404-header {
@@ -81,14 +80,9 @@
 		position: absolute;
 		width: 100%;
 
-		.nav.navbar-nav > li {
-			& > a:focus {
-				@media (min-width: @screen-md-min) {
-					color: #fff;
-					border-radius: 4px;
-					box-shadow: 0 2px 2px rgba(0, 0, 0, .04), 0 0 0 1px #fff;
-					outline: none;
-				}
+		@media (min-width: @screen-md-min) {
+			.navbar-nav > li > a:not(.btn):focus {
+				color: #fff;
 			}
 		}
 
@@ -138,6 +132,10 @@
 						background-color: #f3f5f7;
 						border-color: #f3f5f7;
 					}
+				}
+
+				> a.btn-dash:focus-visible, .account-menu > button.btn:focus-visible {
+					outline-color: #17233a;
 				}
 
 				.account-menu > button.btn, .account-menu > button.btn:hover {
@@ -392,6 +390,20 @@
 			border-top-left-radius: 6px;
 		}
 
+		> li > a:focus-visible {
+			outline: 2px solid #17233a;
+			outline-offset: -3px;
+
+			&:not(.btn) {
+				border-radius: 4px;
+			}
+
+			@media (min-width: @screen-md-min) {
+				outline-color: #fff;
+				outline-offset: 2px;
+			}
+		}
+
 		@media (max-width: @screen-sm-max) {
 			margin: 0;
 
@@ -445,6 +457,12 @@
 
 				&:focus {
 					background: transparent;
+				}
+
+				&:focus-visible {
+					border-radius: 4px;
+					outline: 2px solid currentColor;
+					outline-offset: -3px;
 				}
 			}
 		}
@@ -581,6 +599,15 @@
 		.account-menu {
 			.dropdown-toggle {
 				gap: 6px;
+
+				&:focus:not(:focus-visible) {
+					outline: none;
+				}
+
+				&:focus-visible {
+					outline: 2px solid currentColor;
+					outline-offset: -3px;
+				}
 			}
 
 			.current-user {
@@ -605,6 +632,10 @@
 
 				&.btn-dash {
 					border-radius: 8px 0 0 8px;
+
+					&:focus-visible {
+						outline-offset: -3px;
+					}
 				}
 
 				&.btn-sign-in {
