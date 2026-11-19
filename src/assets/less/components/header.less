@@ -32,10 +32,11 @@
 
 	&.header-with-globalping-bg {
 		--link-highlight-color: @gp-green;
+		--navbar-bg: #17233a;
 
 		.navbar {
 			position: relative;
-			background: #17233a;
+			background: var(--navbar-bg);
 			border-bottom: 1.5px solid #202f4a;
 			backface-visibility: hidden;
 
@@ -46,7 +47,7 @@
 				height: 1px;
 				bottom: -.5px;
 				left: 0;
-				background: #17233a;
+				background: var(--navbar-bg);
 			}
 		}
 
@@ -68,8 +69,10 @@
 	}
 
 	&.header-with-dark-bg {
+		--navbar-bg: #323334;
+
 		.navbar {
-			background-color: #323334;
+			background-color: var(--navbar-bg);
 			border: 1px solid #232425;
 		}
 	}
@@ -118,11 +121,27 @@
 				button.btn {
 					border-color: #fff;
 					border-left-color: transparent;
+				}
+			}
+		}
+	}
+
+	&.gp-about-us-header {
+		@media (min-width: @screen-md-min) {
+			.nav.navbar-nav > .dashboard-section {
+				> a.btn-dash, .account-menu > button.btn {
+					color: @gp-green;
+					background-color: #fff;
+					border-color: #fff;
 
 					&:hover {
-						color: @gp-green;
-						background-color: #fff;
+						background-color: #f3f5f7;
+						border-color: #f3f5f7;
 					}
+				}
+
+				.account-menu > button.btn, .account-menu > button.btn:hover {
+					border-left-color: @gp-green;
 				}
 			}
 		}
@@ -527,6 +546,51 @@
 			}
 		}
 
+		@media (max-width: @screen-sm-max) {
+			.btn-dash {
+				flex: 1;
+				min-width: 0;
+			}
+
+			.dashboard-account {
+				display: flex;
+				align-items: center;
+				gap: 6px;
+				min-width: 0;
+				margin-left: auto;
+				padding-left: 12px;
+				color: #667085;
+				font-size: 13px;
+
+				.account-avatar {
+					flex-shrink: 0;
+				}
+			}
+
+			.dashboard-account-name {
+				overflow: hidden;
+				text-overflow: ellipsis;
+				white-space: nowrap;
+			}
+		}
+
+		.account-avatar {
+			border-radius: 50%;
+		}
+
+		.account-menu {
+			.dropdown-toggle {
+				gap: 6px;
+			}
+
+			.current-user {
+				padding: 4px 18px;
+				color: #79849a;
+				white-space: normal;
+				overflow-wrap: anywhere;
+			}
+		}
+
 		@media (min-width: @screen-md-min) {
 			min-width: 166px;
 			text-align: right;
@@ -545,26 +609,26 @@
 
 				&.btn-sign-in {
 					padding: 12px 24px;
-				}
 
-				&:hover {
-					background-color: @gp-green;
+					&:hover {
+						background-color: @gp-green;
+					}
 				}
 			}
 
 			button.btn {
 				color: #fff;
 				border-radius: 0 8px 8px 0;
-				padding: 6px 8px 6px 6px;
+				padding: 6px 8px;
 				background-color: transparent;
 				display: inline-flex;
 				border: 1px solid @gp-green;
 				border-left: 1px solid transparent;
 				transition: background-color 200ms, border-color 200ms;
+			}
 
-				&:hover {
-					background-color: @gp-green;
-				}
+			> a.btn-dash:hover, .account-menu > button.btn:hover {
+				background-color: #17d4a724;
 			}
 
 			.dropdown {
@@ -572,14 +636,10 @@
 
 				.dropdown-menu {
 					margin-top: -1px;
+					max-width: 280px;
 					border-top-width: 2px;
 					border-color: transparent;
 					text-align: right;
-
-					.current-user {
-						padding: 4px 18px;
-						color: #79849a;
-					}
 
 					a {
 						justify-content: flex-end;

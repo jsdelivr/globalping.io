@@ -5,7 +5,7 @@ import { getSessionStorageData, setSessionStorageData } from '~/utils/sessionSto
 const STORAGE_KEY = 'gp-user';
 
 type DirectusUser = Omit<User, 'active_account' | 'memberships'> & {
-	memberships: { org: { name: string; account: string[] } }[];
+	memberships: { org: Omit<Membership['org'], 'account'> & { account: string[] } }[];
 };
 
 const toUser = (user: DirectusUser, activeAccount: string): User => ({
@@ -33,7 +33,7 @@ export const useAuth = defineStore('auth', {
 			try {
 				const { dashboardHost } = useRuntimeConfig().public;
 				const res = await $fetch<{ data: DirectusUser }>(`${dashboardHost}/users/me`, {
-					query: { fields: '*,memberships.org.name,memberships.org.account' },
+					query: { fields: '*,memberships.org.name,memberships.org.account,memberships.org.github_id' },
 					credentials: 'include',
 					retry: 0,
 				});

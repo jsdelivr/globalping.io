@@ -17,7 +17,7 @@ declare global {
 	};
 
 	type Membership = {
-		org: { name: string; account: string };
+		org: { name: string; account: string; github_id: string };
 	};
 
 	type ServerConfig = {
