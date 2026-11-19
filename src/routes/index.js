@@ -40,8 +40,11 @@ koaElasticUtils.addRoutes(router, [
 koaElasticUtils.addRoutes(router, [
 	[ 'users', '/users/:username' ],
 ], async (ctx) => {
-	let users = await getUsers();
-	let username = users.find(user => user.toLowerCase() === ctx.params.username.toLowerCase());
+	let [ users, organizations ] = await Promise.all([ getUsers(), getOrganizations() ]);
+	let requestedName = ctx.params.username.toLowerCase();
+	let org = organizations.find(org => org.name.toLowerCase() === requestedName);
+	let probeUsername = users?.find(user => user.toLowerCase() === requestedName);
+	let username = probeUsername ?? org?.name;
 
 	if (!username) {
 		ctx.status = 404;
@@ -49,12 +52,11 @@ koaElasticUtils.addRoutes(router, [
 		return;
 	}
 
-	if (username !== ctx.params.username) {
+	// Keep cached probe redirects valid when the last probe goes offline.
+	if (probeUsername && probeUsername !== ctx.params.username) {
 		ctx.status = 301;
 		return ctx.redirect(`/users/${username}`);
 	}
-
-	let org = (await getOrganizations()).find(o => o.name.toLowerCase() === username.toLowerCase());
 
 	let data = {
 		username,
@@ -62,7 +64,7 @@ koaElasticUtils.addRoutes(router, [
 	};
 
 	ctx.body = await ctx.render('pages/_users.html', data);
-	ctx.maxAge = 5 * 60;
+	ctx.maxAge = 60;
 });
 
 /**
