@@ -28,12 +28,12 @@
 
 			<div class="collapse navbar-collapse shadow-md" id="main-navbar">
 				<ul class="nav navbar-nav navbar-right {{!@shared.actualPath ? 'navbar-hidden' : 'about-navbar-right'}}">
-					<li><a href="/cli">CLI</a></li>
 					<li class="dropdown">
 						<a class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false" tabindex="0">
 							Integrations <i class="fa fa-angle-down" aria-hidden="true"></i>
 						</a>
 						<ul class="dropdown-menu">
+							<li><a href="/cli"><c-dropdown-icon class="fa fa-terminal" size="12px"></c-dropdown-icon>CLI</a></li>
 							<li><a href="/slack"><c-dropdown-icon src="{{@shared.assetsHost}}/img/slack-icon-dark.svg" size="12px"></c-dropdown-icon>Slack App</a></li>
 							<li><a href="/discord"><c-dropdown-icon src="{{@shared.assetsHost}}/img/discord-icon-dark.svg" size="12px" top="1px"></c-dropdown-icon>Discord App</a></li>
 							<li><a href="/docs/api.globalping.io" class="router-ignore"><c-dropdown-icon src="{{@shared.assetsHost}}/img/code-icon-dark.svg" size="12px"></c-dropdown-icon>REST API</a></li>
