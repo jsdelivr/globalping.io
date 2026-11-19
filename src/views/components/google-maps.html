@@ -498,7 +498,7 @@
 				// temp limit for zooming
 				map.setZoom(TEMP_MAX_ZOOM);
 				map.setOptions({ maxZoom: TEMP_MAX_ZOOM });
-				map.fitBounds(bounds);
+				map.fitBounds(bounds, this.get('focusPadding'));
 
 				google.maps.event.addListenerOnce(map, 'idle', () => {
 					// restore zooming to initial
