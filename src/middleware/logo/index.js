@@ -1,5 +1,5 @@
 const asnDomains = require('../../lib/asn-to-domain');
-const { getDomainLogo } = require('../../lib/logo-processing');
+const { getDomainLogo, getGitHubLogo } = require('../../lib/logo-processing');
 
 const sendLogo = async (ctx, getLogo, maxAge) => {
 	let { padding, size } = ctx.query;
@@ -43,4 +43,15 @@ module.exports.asnLogo = async (ctx) => {
 	}
 
 	await sendLogo(ctx, (padding, size) => getDomainLogo(domain, padding, size), 365 * 24 * 60 * 60);
+};
+
+module.exports.githubLogo = async (ctx) => {
+	let { username } = ctx.params;
+
+	if (!/^[a-z\d](?:[a-z\d]|-(?=[a-z\d])){0,38}$/i.test(username)) {
+		ctx.status = 400;
+		return;
+	}
+
+	await sendLogo(ctx, (padding, size) => getGitHubLogo(username, padding, size), 24 * 60 * 60);
 };

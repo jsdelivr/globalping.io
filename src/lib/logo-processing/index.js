@@ -84,7 +84,7 @@ const applyPadding = (sharpInstance, metadata, padding, bgColor) => {
 		});
 };
 
-const processLogo = async (imageBuffer, { padding, size, defaultPadding, extraPaddingRatio = 0 }) => {
+const processLogo = async (imageBuffer, { padding, size, defaultPadding, trimBackground = false, extraPaddingRatio = 0 }) => {
 	let hasCustomPadding = padding !== null;
 	let sharpInstance = sharp(imageBuffer);
 
@@ -97,7 +97,7 @@ const processLogo = async (imageBuffer, { padding, size, defaultPadding, extraPa
 	let luminance = calculateLuminance(bgColor.r, bgColor.g, bgColor.b);
 
 	// if the background is light enough, trim the logo
-	if (luminance >= LUMINANCE_THRESHOLD || bgColor.alpha <= ALPHA_THRESHOLD) {
+	if (trimBackground && (luminance >= LUMINANCE_THRESHOLD || bgColor.alpha <= ALPHA_THRESHOLD)) {
 		// trim without maintaining the aspect ratio or center pixel
 		let { info: trimInfo } = await sharp(imageBuffer)
 			.trim({
@@ -186,7 +186,7 @@ const processLogoResponse = async (response, options) => {
 	return { image: await processLogo(imageBuffer, options) };
 };
 
-const processingError = { error: { status: 500, message: 'Failed to process network logo' } };
+const processingError = { error: { status: 500, message: 'Failed to process logo' } };
 
 module.exports.getDomainLogo = async (domain, padding, size) => {
 	let defaultUrl = `https://img.jsdelivr.com/img.logo.dev/${domain}?format=png`;
@@ -204,7 +204,22 @@ module.exports.getDomainLogo = async (domain, padding, size) => {
 			padding,
 			size,
 			defaultPadding: DEFAULT_DOMAIN_PADDING,
+			trimBackground: true,
 			extraPaddingRatio: isFallback ? FALLBACK_PADDING_RATIO : 0,
+		});
+	} catch {
+		return processingError;
+	}
+};
+
+module.exports.getGitHubLogo = async (username, padding, size) => {
+	try {
+		let response = await fetchLogo(`https://img.jsdelivr.com/github.com/${username}.png`);
+
+		return await processLogoResponse(response, {
+			padding,
+			size,
+			defaultPadding: 0,
 		});
 	} catch {
 		return processingError;
