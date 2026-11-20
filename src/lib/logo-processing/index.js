@@ -47,6 +47,12 @@ const getAverageColor = (colors) => {
  * Content that already fills the circle almost entirely is treated as a round avatar and touches the circle.
  */
 const fitInCircle = async (pixels, size, padding) => {
+	let circleRadius = (size / 2) - padding;
+
+	if (circleRadius <= 0) {
+		throw new Error('Padding is too large for the image dimensions.');
+	}
+
 	let { data, info } = await sharp(pixels.data, { raw: { width: pixels.info.width, height: pixels.info.height, channels: pixels.info.channels } })
 		.trim({ background: { r: 0, g: 0, b: 0, alpha: 0 }, threshold: TRIM_TOLERANCE })
 		.raw()
@@ -64,12 +70,6 @@ const fitInCircle = async (pixels, size, padding) => {
 				contentRadius = Math.max(contentRadius, Math.hypot(x + .5 - (info.width / 2), y + .5 - (info.height / 2)));
 			}
 		}
-	}
-
-	let circleRadius = (size / 2) - padding;
-
-	if (circleRadius <= 0) {
-		throw new Error('Padding is too large for the image dimensions.');
 	}
 
 	let fitScale = circleRadius / (contentRadius + Math.SQRT1_2);
