@@ -239,25 +239,33 @@
 			},
 		},
 		observe: {
-			'@shared.user' (user) {
+			'@shared.user' (user, previousUser) {
 				let accountId = user?.account?.[0];
+				let request = accountId ? http.getSponsorshipDetails(accountId) : null;
+				this.sponsorshipRequest = request;
 
-				if (!accountId) {
-					this.set('donatedLastYear', 0);
-					this.set('donatedByMonth', Array(12).fill(0));
+				if (!request || accountId !== previousUser?.account?.[0]) {
+					this.set({ donatedLastYear: 0, donatedByMonth: Array(12).fill(0) });
+				}
+
+				if (!request) {
 					return;
 				}
 
-				http.getSponsorshipDetails(accountId).then((response) => {
-					if (response?.donatedInLastYear) {
-						this.set('donatedLastYear', response.donatedInLastYear);
+				request.catch((error) => {
+					console.error(error);
+					return null;
+				}).then((response) => {
+					if (this.sponsorshipRequest !== request) {
+						return;
 					}
 
-					if (response?.donatedByMonth?.length === 12) {
-						this.set('donatedByMonth', response.donatedByMonth);
-					}
-				}).catch((e) => {
-					console.error(e);
+					this.sponsorshipRequest = null;
+
+					this.set({
+						donatedLastYear: response?.donatedInLastYear ?? 0,
+						donatedByMonth: response?.donatedByMonth?.length === 12 ? response.donatedByMonth : Array(12).fill(0),
+					});
 				});
 			},
 			'oneTimeChecked' () {
