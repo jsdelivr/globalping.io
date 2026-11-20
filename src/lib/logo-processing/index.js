@@ -46,9 +46,9 @@ const getAverageColor = (colors) => {
  * without going past the circle or below a fraction of the size that touches it.
  * Content that already fills the circle almost entirely is treated as a round avatar and touches the circle.
  */
-const fitInCircle = async (pixels, size, padding, bgColor) => {
+const fitInCircle = async (pixels, size, padding) => {
 	let { data, info } = await sharp(pixels.data, { raw: { width: pixels.info.width, height: pixels.info.height, channels: pixels.info.channels } })
-		.trim({ background: bgColor, threshold: TRIM_TOLERANCE })
+		.trim({ background: { r: 0, g: 0, b: 0, alpha: 0 }, threshold: TRIM_TOLERANCE })
 		.raw()
 		.toBuffer({ resolveWithObject: true });
 
@@ -157,7 +157,7 @@ const processLogo = async (imageBuffer, { padding, size, defaultPadding, trimBac
 	let hasFilledBackground = cornerColors.filter(color => color.a > ALPHA_THRESHOLD * 255).length >= MIN_FILLED_CORNERS;
 
 	if (fitTransparentInCircle && !hasFilledBackground) {
-		return fitInCircle(pixels, size ?? metadata.width, padding, bgColor);
+		return fitInCircle(pixels, size ?? metadata.width, padding);
 	}
 
 	// if the background is light enough, trim the logo
