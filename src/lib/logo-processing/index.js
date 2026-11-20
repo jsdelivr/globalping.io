@@ -3,7 +3,7 @@ const sharp = require('sharp');
 const LUMINANCE_THRESHOLD = 230;
 const ALPHA_THRESHOLD = 0.1;
 const TRIM_TOLERANCE = 10;
-const DEFAULT_PADDING = 10;
+const DEFAULT_DOMAIN_PADDING = 10;
 const FALLBACK_PADDING_RATIO = .175;
 
 /**
@@ -84,116 +84,129 @@ const applyPadding = (sharpInstance, metadata, padding, bgColor) => {
 		});
 };
 
-module.exports.processDomainLogo = async (domain, padding, size = null) => {
-	let defaultUrl = `https://img.jsdelivr.com/img.logo.dev/${domain}?format=png`;
-	let strictUrl = `${defaultUrl}&fallback=404`; // forces a 404 response if the logo is unavailable
+const processLogo = async (imageBuffer, { padding, size, defaultPadding, extraPaddingRatio = 0 }) => {
 	let hasCustomPadding = padding !== null;
-	let addProportionalPadding = false;
+	let sharpInstance = sharp(imageBuffer);
 
-	try {
-		let response = await fetch(strictUrl, { headers: { Accept: 'image/png' } });
+	let metadata = await sharpInstance.metadata();
+	let originalWidth = metadata.width;
+	let aspectRatio = metadata.width / metadata.height;
+	padding = padding ?? defaultPadding;
 
-		if (response.status === 404) {
-			response = await fetch(defaultUrl, { headers: { Accept: 'image/png' } });
-			addProportionalPadding = true;
-		}
+	let bgColor = await getCornerAverageColor(imageBuffer, metadata.width, metadata.height);
+	let luminance = calculateLuminance(bgColor.r, bgColor.g, bgColor.b);
 
-		if (!response.ok) {
-			return {
-				error: {
-					status: response.status,
-					message: response.statusText || 'Failed to fetch upstream image',
-				},
-			};
-		}
+	// if the background is light enough, trim the logo
+	if (luminance >= LUMINANCE_THRESHOLD || bgColor.alpha <= ALPHA_THRESHOLD) {
+		// trim without maintaining the aspect ratio or center pixel
+		let { info: trimInfo } = await sharp(imageBuffer)
+			.trim({
+				background: bgColor,
+				threshold: TRIM_TOLERANCE,
+			})
+			.toBuffer({ resolveWithObject: true });
 
-		let arrayBuffer = await response.arrayBuffer();
-		let imageBuffer = Buffer.from(arrayBuffer);
+		// find margins of the trim
+		let leftMargin = Math.abs(trimInfo.trimOffsetLeft || 0);
+		let topMargin = Math.abs(trimInfo.trimOffsetTop || 0);
+		let rightMargin = metadata.width - trimInfo.width - leftMargin;
+		let bottomMargin = metadata.height - trimInfo.height - topMargin;
 
-		let sharpInstance = sharp(imageBuffer);
+		// find the maximum safe trim boundaries on each axis
+		let maxSafeTrimX = Math.min(leftMargin, rightMargin);
+		let maxSafeTrimY = Math.min(topMargin, bottomMargin);
 
-		let metadata = await sharpInstance.metadata();
-		let originalWidth = metadata.width;
-		let aspectRatio = metadata.width / metadata.height;
-		padding = padding ?? DEFAULT_PADDING;
+		// ensure the trim maintains the aspect ratio and is centered on the image
+		let finalTrimY = Math.min(maxSafeTrimY, maxSafeTrimX / aspectRatio);
+		let finalTrimX = finalTrimY * aspectRatio;
 
-		let bgColor = await getCornerAverageColor(imageBuffer, metadata.width, metadata.height);
-		let luminance = calculateLuminance(bgColor.r, bgColor.g, bgColor.b);
+		finalTrimX = Math.floor(finalTrimX);
+		finalTrimY = Math.floor(finalTrimY);
 
-		// if the background is light enough, trim the logo
-		if (luminance >= LUMINANCE_THRESHOLD || bgColor.alpha <= ALPHA_THRESHOLD) {
-			// trim without maintaining the aspect ratio or center pixel
-			let { info: trimInfo } = await sharp(imageBuffer)
-				.trim({
-					background: bgColor,
-					threshold: TRIM_TOLERANCE,
-				})
-				.toBuffer({ resolveWithObject: true });
-
-			// find margins of the trim
-			let leftMargin = Math.abs(trimInfo.trimOffsetLeft || 0);
-			let topMargin = Math.abs(trimInfo.trimOffsetTop || 0);
-			let rightMargin = metadata.width - trimInfo.width - leftMargin;
-			let bottomMargin = metadata.height - trimInfo.height - topMargin;
-
-			// find the maximum safe trim boundaries on each axis
-			let maxSafeTrimX = Math.min(leftMargin, rightMargin);
-			let maxSafeTrimY = Math.min(topMargin, bottomMargin);
-
-			// ensure the trim maintains the aspect ratio and is centered on the image
-			let finalTrimY = Math.min(maxSafeTrimY, maxSafeTrimX / aspectRatio);
-			let finalTrimX = finalTrimY * aspectRatio;
-
-			finalTrimX = Math.floor(finalTrimX);
-			finalTrimY = Math.floor(finalTrimY);
-
-			// apply the trim
-			if (finalTrimX > 0 || finalTrimY > 0) {
-				sharpInstance = sharpInstance.extract({
-					left: finalTrimX,
-					top: finalTrimY,
-					width: metadata.width - (finalTrimX * 2),
-					height: metadata.height - (finalTrimY * 2),
-				});
-
-				metadata = {
-					...metadata,
-					width: metadata.width - (finalTrimX * 2),
-					height: metadata.height - (finalTrimY * 2),
-				};
-			}
-		}
-
-		if (addProportionalPadding) {
-			padding = (padding ?? DEFAULT_PADDING) + Math.round(metadata.width * FALLBACK_PADDING_RATIO);
-		}
-
-		if (size) {
-			let aspectRatio = metadata.width / metadata.height;
-
-			if (!hasCustomPadding) {
-				padding = Math.round(padding * size / originalWidth);
-			}
-
-			sharpInstance = sharpInstance.resize({
-				width: size,
-				fit: 'inside',
-				withoutEnlargement: false,
+		// apply the trim
+		if (finalTrimX > 0 || finalTrimY > 0) {
+			sharpInstance = sharpInstance.extract({
+				left: finalTrimX,
+				top: finalTrimY,
+				width: metadata.width - (finalTrimX * 2),
+				height: metadata.height - (finalTrimY * 2),
 			});
 
 			metadata = {
 				...metadata,
-				width: size,
-				height: Math.round(size / aspectRatio),
+				width: metadata.width - (finalTrimX * 2),
+				height: metadata.height - (finalTrimY * 2),
 			};
 		}
+	}
 
-		if (padding) {
-			sharpInstance = applyPadding(sharpInstance, metadata, padding, bgColor);
+	padding += Math.round(metadata.width * extraPaddingRatio);
+
+	if (size) {
+		let aspectRatio = metadata.width / metadata.height;
+
+		if (!hasCustomPadding) {
+			padding = Math.round(padding * size / originalWidth);
 		}
 
-		return { image: await sharpInstance.png().toBuffer() };
+		sharpInstance = sharpInstance.resize({
+			width: size,
+			fit: 'inside',
+			withoutEnlargement: false,
+		});
+
+		metadata = {
+			...metadata,
+			width: size,
+			height: Math.round(size / aspectRatio),
+		};
+	}
+
+	if (padding) {
+		sharpInstance = applyPadding(sharpInstance, metadata, padding, bgColor);
+	}
+
+	return sharpInstance.png().toBuffer();
+};
+
+const fetchLogo = url => fetch(url, { headers: { Accept: 'image/png' } });
+
+const processLogoResponse = async (response, options) => {
+	if (!response.ok) {
+		return {
+			error: {
+				status: response.status,
+				message: response.statusText || 'Failed to fetch upstream image',
+			},
+		};
+	}
+
+	let imageBuffer = Buffer.from(await response.arrayBuffer());
+
+	return { image: await processLogo(imageBuffer, options) };
+};
+
+const processingError = { error: { status: 500, message: 'Failed to process network logo' } };
+
+module.exports.getDomainLogo = async (domain, padding, size) => {
+	let defaultUrl = `https://img.jsdelivr.com/img.logo.dev/${domain}?format=png`;
+	let strictUrl = `${defaultUrl}&fallback=404`; // forces a 404 response if the logo is unavailable
+
+	try {
+		let response = await fetchLogo(strictUrl);
+		let isFallback = response.status === 404;
+
+		if (isFallback) {
+			response = await fetchLogo(defaultUrl);
+		}
+
+		return await processLogoResponse(response, {
+			padding,
+			size,
+			defaultPadding: DEFAULT_DOMAIN_PADDING,
+			extraPaddingRatio: isFallback ? FALLBACK_PADDING_RATIO : 0,
+		});
 	} catch {
-		return { error: { status: 500, message: 'Failed to process network logo' } };
+		return processingError;
 	}
 };

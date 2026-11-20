@@ -1,5 +1,5 @@
 const asnDomains = require('../../lib/asn-to-domain');
-const { processDomainLogo } = require('../../lib/logo-processing');
+const { getDomainLogo } = require('../../lib/logo-processing');
 
 const sendLogo = async (ctx, getLogo, maxAge) => {
 	let { padding, size } = ctx.query;
@@ -42,5 +42,5 @@ module.exports.asnLogo = async (ctx) => {
 		return;
 	}
 
-	await sendLogo(ctx, (padding, size) => processDomainLogo(domain, padding, size), 365 * 24 * 60 * 60);
+	await sendLogo(ctx, (padding, size) => getDomainLogo(domain, padding, size), 365 * 24 * 60 * 60);
 };
