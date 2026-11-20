@@ -240,13 +240,15 @@
 		},
 		observe: {
 			'@shared.user' (user) {
-				if (!user?.id) {
+				let accountId = user?.account?.[0];
+
+				if (!accountId) {
 					this.set('donatedLastYear', 0);
 					this.set('donatedByMonth', Array(12).fill(0));
 					return;
 				}
 
-				http.getSponsorshipDetails(user.id).then((response) => {
+				http.getSponsorshipDetails(accountId).then((response) => {
 					if (response?.donatedInLastYear) {
 						this.set('donatedLastYear', response.donatedInLastYear);
 					}

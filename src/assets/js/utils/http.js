@@ -60,8 +60,8 @@ module.exports.getGlobalpingUser = (onRevalidate) => {
 	);
 };
 
-module.exports.getSponsorshipDetails = (userId) => {
-	return _.makeHTTPRequest({ url: `${DASH_HOST}/sponsorship-details`, withCredentials: true, body: { userId } });
+module.exports.getSponsorshipDetails = (accountId) => {
+	return _.makeHTTPRequest({ url: `${DASH_HOST}/sponsorship-details`, withCredentials: true, body: { accountId } });
 };
 
 module.exports.gpLogOut = () => {
