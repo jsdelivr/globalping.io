@@ -74,7 +74,7 @@ const fitInCircle = async (pixels, size, padding, bgColor) => {
 		? fitScale
 		: Math.min(fitScale, Math.max(coverageScale, fitScale * MIN_CIRCLE_FIT_SCALE));
 	// round down to the canvas parity, so the content is centered exactly and never grows past the circle
-	let fitSide = side => Math.max(1, size - (2 * Math.ceil((size - (side * scale)) / 2)));
+	let fitSide = side => Math.max(1, size - (2 * Math.max(0, Math.ceil((size - (side * scale)) / 2))));
 	let width = fitSide(info.width);
 	let height = fitSide(info.height);
 	let left = Math.round((size - width) / 2);
