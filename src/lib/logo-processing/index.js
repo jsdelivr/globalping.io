@@ -67,14 +67,17 @@ const fitInCircle = async (pixels, size, padding, bgColor) => {
 	}
 
 	let circleRadius = (size / 2) - padding;
+
 	let fitScale = circleRadius / (contentRadius + Math.SQRT1_2);
 	let circleArea = Math.PI * (circleRadius ** 2);
 	let coverageScale = Math.sqrt(CIRCLE_COVERAGE_TARGET * circleArea / contentArea);
 	let scale = contentArea * (fitScale ** 2) / circleArea >= ROUND_AVATAR_COVERAGE
 		? fitScale
 		: Math.min(fitScale, Math.max(coverageScale, fitScale * MIN_CIRCLE_FIT_SCALE));
+	// faint pixels are trimmed into the content without counting towards its radius, so keep all of it on the canvas
+	scale = Math.min(scale, size / Math.max(info.width, info.height));
 	// round down to the canvas parity, so the content is centered exactly and never grows past the circle
-	let fitSide = side => Math.max(1, size - (2 * Math.max(0, Math.ceil((size - (side * scale)) / 2))));
+	let fitSide = side => Math.max(1, size - (2 * Math.ceil((size - (side * scale)) / 2)));
 	let width = fitSide(info.width);
 	let height = fitSide(info.height);
 	let left = Math.round((size - width) / 2);
