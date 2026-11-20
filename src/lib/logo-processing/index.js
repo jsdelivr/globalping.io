@@ -68,6 +68,10 @@ const fitInCircle = async (pixels, size, padding, bgColor) => {
 
 	let circleRadius = (size / 2) - padding;
 
+	if (circleRadius <= 0) {
+		throw new Error('Padding is too large for the image dimensions.');
+	}
+
 	let fitScale = circleRadius / (contentRadius + Math.SQRT1_2);
 	let circleArea = Math.PI * (circleRadius ** 2);
 	let coverageScale = Math.sqrt(CIRCLE_COVERAGE_TARGET * circleArea / contentArea);
