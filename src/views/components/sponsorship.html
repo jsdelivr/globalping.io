@@ -44,7 +44,7 @@
 				<p class="donation-information_footer">
 					{{#if isLoggedIn}}
 						{{#if donatedLastYear && estimatedBonus > 0}}
-							(Total bonus based on your personal donation history)
+							(Total bonus based on the selected account's donation history)
 						{{/if}}
 					{{else}}
 						(Assuming this is your first donation)
@@ -54,7 +54,7 @@
 
 			{{#if !isLoggedIn}}
 			<p>
-				<a class="sign-in-link" href="{{@global.app.getSignInLink()}}">Sign in</a> to calculate your personal bonus based on past donations.
+				<a class="sign-in-link" href="{{@global.app.getSignInLink()}}">Sign in</a> to calculate your bonus based on past donations.
 			</p>
 			{{/if}}
 
@@ -77,7 +77,7 @@
 
 				{{#if isLoggedIn}}
 					{{#if donatedLastYear && estimatedBonus > 0}}
-						<p class="monthly-donation_information_footer">(Bonus based on your personal donation history)</p>
+						<p class="monthly-donation_information_footer">(Bonus based on the selected account's donation history)</p>
 					{{/if}}
 				{{else}}
 					<p class="monthly-donation_information_footer">(Assuming this is your first donation)</p>
@@ -125,7 +125,7 @@
 
 			{{#if !isLoggedIn}}
 			<p>
-				<a class="sign-in-link" href="{{@global.app.getSignInLink()}}">Sign in</a> to calculate your personal bonus based on past donations.
+				<a class="sign-in-link" href="{{@global.app.getSignInLink()}}">Sign in</a> to calculate your bonus based on past donations.
 			</p>
 			{{/if}}
 
@@ -239,14 +239,11 @@
 			},
 		},
 		observe: {
-			'@shared.user' (user, previousUser) {
-				let accountId = user?.account?.[0];
+			'@shared.user.active_account' (accountId) {
 				let request = accountId ? http.getSponsorshipDetails(accountId) : null;
 				this.sponsorshipRequest = request;
 
-				if (!request || accountId !== previousUser?.account?.[0]) {
-					this.set({ donatedLastYear: 0, donatedByMonth: Array(12).fill(0) });
-				}
+				this.set({ donatedLastYear: 0, donatedByMonth: Array(12).fill(0) });
 
 				if (!request) {
 					return;
