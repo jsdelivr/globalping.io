@@ -2,7 +2,7 @@
 
 {{#partial accountAvatar}}
 	{{#if accountDisplay.avatarSrc && accountDisplay.avatarSrc !== failedAvatarSrc}}
-		<img class="account-avatar" width="20" height="20" src="{{accountDisplay.avatarSrc}}" alt="" referrerpolicy="no-referrer" on-error="@this.set('failedAvatarSrc', @node.getAttribute('src'))">
+		<img class="account-avatar" width="20" height="20" src="{{accountDisplay.avatarSrc}}" alt="" on-error="@this.set('failedAvatarSrc', @node.getAttribute('src'))">
 	{{elseif accountDisplay.isOrg}}
 		<svg class="account-avatar" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
 			<path d="M6 20h12M7 20V4h10v16M10 8h1m2 0h1m-4 3h1m2 0h1m-4 3h1m2 0h1m-2 3v3" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>

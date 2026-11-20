@@ -17,7 +17,7 @@ module.exports.getAccountDisplay = (user, hostname) => {
 
 	if (githubId && /^\d+$/.test(githubId)) {
 		let avatarId = hostname === 'localhost' ? developmentAvatarIds[githubId] ?? githubId : githubId;
-		avatarSrc = `https://avatars.githubusercontent.com/u/${avatarId}?s=80`;
+		avatarSrc = `/github-logo/${avatarId}?size=80`;
 	}
 
 	return {
