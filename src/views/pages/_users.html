@@ -16,7 +16,7 @@
 
 	<div class="p-users">
 		<div class="p-users_hero">
-			<div class="user-banner {{#if org}}is-org{{/if}} {{#if org.bannerUrl}}with-banner{{/if}}">
+			<div class="user-banner {{#if org.bannerUrl}}with-banner{{/if}}">
 				{{#if org.bannerUrl}}
 					<div class="user-banner_banner">
 						<img
@@ -32,21 +32,18 @@
 
 				<div class="user-banner_body">
 					<div class="user-banner_user">
-						<img width="48" height="48" src="https://github.com/{{username}}.png" alt="" class="user-banner_user_avatar">
+						<img width="56" height="56" src="https://github.com/{{username}}.png" alt="" class="user-banner_user_avatar">
 						<div class="user-banner_user_contact">
-							<span class="user-banner_user_contact_username">{{username}}</span>
-							<span class="user-banner_user_contact_links">
-								<span>
-									<img width="16" height="16" src="{{@shared.assetsHost}}/img/github-outline.svg" alt="">
-									<a target="_blank" rel="noreferrer" href="https://github.com/{{username}}">{{username}}</a>
+							<a class="user-banner_user_contact_username" target="_blank" rel="noreferrer" href="https://github.com/{{username}}">
+								<img width="18" height="18" src="{{@shared.assetsHost}}/img/github-outline.svg" alt="">
+								<span>{{username}}</span>
+							</a>
+							{{#if org.website}}
+								<span class="user-banner_user_contact_website">
+									<img width="14" height="14" src="{{@shared.assetsHost}}/img/globe.svg" alt="">
+									<a target="_blank" rel="noreferrer nofollow ugc" href="{{org.website}}">{{websiteLabel}}</a>
 								</span>
-								{{#if org.website}}
-									<span class="user-banner_user_contact_links_website">
-										<img width="16" height="16" src="{{@shared.assetsHost}}/img/globe.svg" alt="">
-										<a target="_blank" rel="noreferrer nofollow ugc" href="{{org.website}}">{{websiteLabel}}</a>
-									</span>
-								{{/if}}
-							</span>
+							{{/if}}
 						</div>
 					</div>
 
