@@ -5,32 +5,44 @@ const { getAccountDisplay } = require('../../src/assets/js/utils/account-name');
 const USER_ROUTE = url => url.pathname === '/users/me';
 const ACTIVE_ACCOUNT_ROUTE = url => url.pathname === '/accounts/active';
 const ACCOUNT_MENU = 'header .account-menu';
-const PERSONAL_AVATAR = '/github-logo/octocat?size=80';
-const ORG_AVATAR = '/github-logo/globalping?size=80';
+const PERSONAL_AVATAR = '/github-logo/583231?size=80';
+const ORG_AVATAR = '/github-logo/6128107?size=80';
 const AVATAR_ROUTE = src => url => `${url.pathname}${url.search}` === src;
 const USER = {
 	id: 'user-1',
 	github_username: 'john',
-	memberships: [{ org: { name: 'member-org', account: [ 'org-account-1' ] } }],
+	external_identifier: '583231',
+	memberships: [{ org: { name: 'member-org', github_id: '6128107', account: [ 'org-account-1' ] } }],
 };
 
 const CORS_HEADERS = route => ({ 'Access-Control-Allow-Origin': route.request().headers().origin, 'Access-Control-Allow-Credentials': 'true' });
 
 const signInAs = async (page, activeAccountId, user = USER, path = '/') => {
-	await page.route(USER_ROUTE, route => route.fulfill({ json: { data: user }, headers: CORS_HEADERS(route) }));
+	await page.route(USER_ROUTE, (route) => {
+		let fields = new URL(route.request().url()).searchParams.get('fields')?.split(',');
+		let data = {
+			...user,
+			memberships: user.memberships.map(membership => ({
+				...membership,
+				org: { ...membership.org, github_id: fields?.includes('memberships.org.github_id') ? membership.org.github_id : undefined },
+			})),
+		};
+
+		return route.fulfill({ json: { data }, headers: CORS_HEADERS(route) });
+	});
 
 	await page.route(ACTIVE_ACCOUNT_ROUTE, route => route.fulfill({ json: { accountId: activeAccountId }, headers: CORS_HEADERS(route) }));
 	await page.goto(path);
 };
 
-unitTest('substitutes seed avatar logins only on localhost', () => {
-	let user = { ...USER, memberships: [{ org: { name: 'member-org', account: 'org-account-1' } }] };
+unitTest('substitutes seed avatar IDs only on localhost', () => {
+	let user = { ...USER, external_identifier: '1234567890', memberships: [{ org: { name: 'member-org', github_id: '9000000002', account: 'org-account-1' } }] };
 	let orgUser = { ...user, active_account: 'org-account-1' };
 
 	expect(getAccountDisplay(user, 'localhost').avatarSrc).toBe(PERSONAL_AVATAR);
-	expect(getAccountDisplay(orgUser, 'localhost').avatarSrc).toBe(ORG_AVATAR);
-	expect(getAccountDisplay(user, 'globalping.io').avatarSrc).toBe('/github-logo/john?size=80');
-	expect(getAccountDisplay(orgUser, 'globalping.io').avatarSrc).toBe('/github-logo/member-org?size=80');
+	expect(getAccountDisplay(orgUser, 'localhost').avatarSrc).toBe('/github-logo/102991324?size=80');
+	expect(getAccountDisplay(user, 'globalping.io').avatarSrc).toBe('/github-logo/1234567890?size=80');
+	expect(getAccountDisplay(orgUser, 'globalping.io').avatarSrc).toBe('/github-logo/9000000002?size=80');
 });
 
 test.describe('Header account name', () => {

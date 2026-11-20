@@ -213,10 +213,10 @@ koaElasticUtils.addRoutes(router, [
 ], logo.asnLogo);
 
 /**
- * GitHub user or organization avatar
+ * GitHub user or organization avatar by numeric ID
  */
 koaElasticUtils.addRoutes(router, [
-	[ '/github-logo/:username' ],
+	[ '/github-logo/:id' ],
 ], logo.githubLogo);
 
 /**

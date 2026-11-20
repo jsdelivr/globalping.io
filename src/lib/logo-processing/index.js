@@ -276,9 +276,9 @@ module.exports.getDomainLogo = async (domain, padding, size) => {
 	}
 };
 
-module.exports.getGitHubLogo = async (username, padding, size) => {
+module.exports.getGitHubLogo = async (id, padding, size) => {
 	try {
-		let response = await fetchLogo(`https://img.jsdelivr.com/github.com/${username}.png`);
+		let response = await fetchLogo(`https://img.jsdelivr.com/avatars.githubusercontent.com/u/${id}`);
 
 		return await processLogoResponse(response, {
 			padding,

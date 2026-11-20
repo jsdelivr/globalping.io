@@ -33,7 +33,7 @@ export const useAuth = defineStore('auth', {
 			try {
 				const { dashboardHost } = useRuntimeConfig().public;
 				const res = await $fetch<{ data: DirectusUser }>(`${dashboardHost}/users/me`, {
-					query: { fields: '*,memberships.org.name,memberships.org.account' },
+					query: { fields: '*,memberships.org.name,memberships.org.account,memberships.org.github_id' },
 					credentials: 'include',
 					retry: 0,
 				});

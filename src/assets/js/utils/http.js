@@ -49,7 +49,7 @@ module.exports.getGlobalpingUser = (onRevalidate) => {
 		() => Promise.all([
 			_.makeHTTPRequest({
 				url: `${DASH_HOST}/users/me`,
-				body: { fields: '*,memberships.org.name,memberships.org.account' },
+				body: { fields: '*,memberships.org.name,memberships.org.account,memberships.org.github_id' },
 				withCredentials: true,
 			}),
 			// The account the session acts as, set on the dashboard.

@@ -46,12 +46,12 @@ module.exports.asnLogo = async (ctx) => {
 };
 
 module.exports.githubLogo = async (ctx) => {
-	let { username } = ctx.params;
+	let { id } = ctx.params;
 
-	if (!/^[a-z\d](?:[a-z\d]|-(?=[a-z\d])){0,38}$/i.test(username)) {
+	if (!/^[1-9]\d{0,19}$/.test(id)) {
 		ctx.status = 400;
 		return;
 	}
 
-	await sendLogo(ctx, (padding, size) => getGitHubLogo(username, padding, size), 24 * 60 * 60);
+	await sendLogo(ctx, (padding, size) => getGitHubLogo(id, padding, size), 24 * 60 * 60);
 };
