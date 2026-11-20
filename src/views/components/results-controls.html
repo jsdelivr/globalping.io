@@ -31,14 +31,16 @@
 				</label>
 			</div>
 
-			<button class="content-wrapper_ctrls_map-switch {{#if showMap}}content-wrapper_ctrls_map-switch--active{{/if}}"
-				type="button"
-				data-testid="map-switch"
-				as-tooltip="showMap ? 'Hide map' : 'Show map'"
-				aria-label="{{#if showMap}}Hide map{{else}}Show map{{/if}}"
-				on-click="@this.set('originalShowMap', !showMap),@this.set('showMap', !showMap)">
-				<img width="13" height="13" alt="" src="{{@shared.assetsHost}}/img/map-icon{{#if showMap}}.active{{/if}}.svg"/>
-			</button>
+			{{#if showMapSwitch}}
+				<button class="content-wrapper_ctrls_map-switch {{#if showMap}}content-wrapper_ctrls_map-switch--active{{/if}}"
+					type="button"
+					data-testid="map-switch"
+					as-tooltip="showMap ? 'Hide map' : 'Show map'"
+					aria-label="{{#if showMap}}Hide map{{else}}Show map{{/if}}"
+					on-click="@this.set('originalShowMap', !showMap),@this.set('showMap', !showMap)">
+					<img width="13" height="13" alt="" src="{{@shared.assetsHost}}/img/map-icon{{#if showMap}}.active{{/if}}.svg"/>
+				</button>
+			{{/if}}
 
 			{{#if sortByOpts.length}}
 				<div class="content-wrapper_ctrls_sort-options desktop-hidden dropdown">
@@ -103,6 +105,7 @@
 				collapseOutput: () => null,
 				expandOutput: () => null,
 				allCollapsed: false,
+				showMapSwitch: true,
 			};
 		},
 		computed: {

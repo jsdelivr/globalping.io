@@ -61,6 +61,20 @@ module.exports = {
 		return date.toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric', hour: 'numeric', minute: 'numeric', second: 'numeric', hour12: false });
 	},
 
+	formatTimingValue (value) {
+		if (typeof value !== 'number' || isNaN(value)) {
+			return value;
+		}
+
+		if (Number(value.toFixed(2)) < 10) {
+			return value.toFixed(2);
+		} else if (Number(value.toFixed(1)) < 100) {
+			return value.toFixed(1);
+		}
+
+		return Math.round(value);
+	},
+
 	formatNumber (number) {
 		return Math.floor(number).toString().replace(/\d(?=(?:\d{3})+$)/g, '$& ');
 	},
@@ -294,7 +308,7 @@ module.exports = {
 			if (typeof testResData.result?.stats?.loss === 'number') {
 				extraValues.loss = {
 					text: 'Loss',
-					value: testResData.result?.stats?.loss,
+					value: Math.round(testResData.result.stats.loss * 10) / 10,
 					units: '%',
 				};
 			}
