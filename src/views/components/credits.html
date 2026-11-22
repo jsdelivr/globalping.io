@@ -32,12 +32,12 @@
 
 						<span class="credits_data_rate_details">
 							<span class="credits_data_rate_details_remaining-credits">
-								{{remainingCredits}}
+								{{remainingCredits.toLocaleString('en-US')}}
 							</span>
 
 							{{#if consumedCredits}}
 								<span class="credits_data_rate_details_consumed-credits">
-									(-{{consumedCredits}})
+									(-{{consumedCredits.toLocaleString('en-US')}})
 								</span>
 							{{/if}}
 						</span>
@@ -128,9 +128,11 @@
 						// handle Credits headers
 
 						if (rateCreditsRemaining) {
-							this.set('creditsDataPresented', true);
-							this.set('consumedCredits', rateCreditsConsumed);
-							this.set('remainingCredits', rateCreditsRemaining);
+							this.set({
+								consumedCredits: rateCreditsConsumed,
+								remainingCredits: rateCreditsRemaining,
+								creditsDataPresented: true,
+							});
 						} else {
 							this.set('creditsDataPresented', false);
 						}

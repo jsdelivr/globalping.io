@@ -17,7 +17,7 @@
 				Network providers
 			</h1>
 			<p>
-				Globalping is powered by <strong><span class="p-providers_count" style="min-width: {{providerCountLength+1}}ch">{{Math.floor(providerCount)}}+</span> network providers</strong> across {{continentCount}} continents.
+				Globalping is powered by <strong><span class="p-providers_count" style="min-width: {{providerCountLength+1}}ch">{{Math.floor(providerCount).toLocaleString('en-US')}}+</span> network providers</strong> across {{continentCount}} continents.
 				<br>
 				Browse and search providers to explore network coverage and probe distribution.
 			</p>
@@ -104,7 +104,7 @@
 												{{@this.getFieldName(this.name)}}
 											</span>
 										{{/if}}
-										<span class="p-providers_provider_item_count">{{this.count}}</span>
+										<span class="p-providers_provider_item_count">{{this.count.toLocaleString('en-US')}}</span>
 									</div>
 									{{/each}}
 								</div>
@@ -152,7 +152,7 @@
 									{{/if}}
 								</span>
 								<span class="p-providers_all_network_name">{{this.name}}</span>
-								<span class="p-providers_all_network_count">{{this.count}}</span>
+								<span class="p-providers_all_network_count">{{this.count.toLocaleString('en-US')}}</span>
 							</a>
 						{{/each}}
 					</div>
@@ -280,7 +280,7 @@
 
 			let providerCount = Math.floor(counts.providers.size / 100) * 100;
 
-			this.set('providerCountLength', Math.floor(Math.log10(providerCount)) + 1);
+			this.set('providerCountLength', providerCount.toLocaleString('en-US').length);
 			this.animate('providerCount', providerCount, { duration: 1500 });
 			this.set('continentCount', counts.continents.size);
 		},
@@ -496,7 +496,7 @@
 									|| item.name
 								}
 							</span>
-							${breakdownKey !== 'cities' || item.name === 'Other' ? `<span class="p-providers_popover_item_count">${item.count}</span>` : ''}
+							${breakdownKey !== 'cities' || item.name === 'Other' ? `<span class="p-providers_popover_item_count">${item.count.toLocaleString('en-US')}</span>` : ''}
 						</div>
 					`).join('');
 

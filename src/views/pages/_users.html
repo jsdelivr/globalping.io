@@ -53,14 +53,14 @@
 								<div class="user-banner_stats">
 									<span>
 										<img width="20" height="20" src="{{@shared.assetsHost}}/img/radio.svg" alt="">
-										{{filteredProbes.length}} {{_.pluralize('probe', filteredProbes.length)}}
+										{{filteredProbes.length.toLocaleString('en-US')}} {{_.pluralize('probe', filteredProbes.length)}}
 									</span>
 
 									{{#each userStats}}
 										{{#if count}}
 											<span>
 												<img width="20" height="20" src="{{@shared.assetsHost}}/img/{{icon}}" alt="">
-												{{count}} {{~/_.pluralize(...name, count)}}
+												{{count.toLocaleString('en-US')}} {{~/_.pluralize(...name, count)}}
 											</span>
 										{{/if}}
 									{{/each}}
