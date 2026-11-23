@@ -23,6 +23,8 @@
 							width="1224"
 							height="200"
 							src="{{org.bannerUrl}}"
+							srcset="{{org.bannerSrcset}}"
+							sizes="min(100vw, 1224px)"
 							alt=""
 							class="user-banner_banner_img {{#if bannerPending}}is-pending{{/if}}"
 							on-load="@this.set('bannerPending', false)"
