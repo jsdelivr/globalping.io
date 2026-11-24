@@ -15,11 +15,11 @@
 			<div class="gp-network_stats">
 				<div class="gp-network_stats_item">
 					<img src="{{@shared.assetsHost}}/img/radio.svg">
-					<b>{{filteredProbesStats.count}}</b> {{_.pluralize('probe', filteredProbesStats.count)}}
+					<b>{{filteredProbesStats ? filteredProbesStats.count.toLocaleString('en-US') : ''}}</b> {{_.pluralize('probe', filteredProbesStats.count)}}
 				</div>
 				<div class="gp-network_stats_item">
 					<img src="{{@shared.assetsHost}}/img/file-text.svg">
-					<b>{{filteredProbesStats.asns}}</b> {{_.pluralize('ASN', filteredProbesStats.asns)}}
+					<b>{{filteredProbesStats ? filteredProbesStats.asns.toLocaleString('en-US') : ''}}</b> {{_.pluralize('ASN', filteredProbesStats.asns)}}
 				</div>
 			</div>
 

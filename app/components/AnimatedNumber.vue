@@ -1,9 +1,9 @@
 <template>
 	<span ref="wrapperRef" class="relative z-0 inline-flex h-[1em] leading-none">
 		<span class="pointer-events-none invisible" aria-hidden="true">
-			{{ prefix }}{{ number }}{{ suffix }}
+			{{ prefix }}{{ number.toLocaleString('en-US') }}{{ suffix }}
 		</span>
-		<span class="absolute inset-0">{{ prefix }}{{ displayedNumber }}{{ suffix }}</span>
+		<span class="absolute inset-0">{{ prefix }}{{ displayedNumber.toLocaleString('en-US') }}{{ suffix }}</span>
 		<span
 			v-if="underline"
 			class="bg-primary absolute bottom-0.5 -left-1 -z-10 h-2 transition-all duration-500"
