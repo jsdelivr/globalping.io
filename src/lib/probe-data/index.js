@@ -21,12 +21,17 @@ const refreshRawProbeData = async () => {
 const refreshOrganizations = async () => {
 	let response = await got.get(`${serverConfig.dashboardHost}/organizations`).json().catch(() => null);
 
-	organizations = response?.map(({ name, website, description, bannerId }) => ({
-		name,
-		website,
-		description,
-		bannerUrl: bannerId ? `${serverConfig.dashboardHost}/assets/${bannerId}?key=banner` : null,
-	})) ?? organizations;
+	organizations = response?.map(({ name, website, description, bannerId }) => {
+		let assetUrl = bannerId ? `${serverConfig.dashboardHost}/assets/${bannerId}` : null;
+
+		return {
+			name,
+			website,
+			description,
+			bannerUrl: assetUrl && `${assetUrl}?key=banner`,
+			bannerSrcset: assetUrl && `${assetUrl}?key=banner 1224w, ${assetUrl}?key=banner-2x 2448w`,
+		};
+	}) ?? organizations;
 };
 
 const updateStatsForNetwork = (networkStatistics, location) => {

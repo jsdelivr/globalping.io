@@ -20,7 +20,7 @@
 	{{#if preparedProbeBlocks && preparedProbeBlocks.length > 0}}
 		<p class="gp-filtered-list_result-count">
 			<span>
-				Showing <b>{{totalResults}} unique {{_.pluralize('result', totalResults)}}</b>{{#if groupBy === 'network'}}.{{/if}}
+				Showing <b>{{totalResults.toLocaleString('en-US')}} unique {{_.pluralize('result', totalResults)}}</b>{{#if groupBy === 'network'}}.{{/if}}
 
 				{{#if groupBy === 'country'}}
 					from <b>{{probeLocationCounts.continent}} {{_.pluralize('continent', probeLocationCounts.continent)}}</b>.
@@ -28,7 +28,7 @@
 					from <b>{{probeLocationCounts.country}} {{_.pluralize('country', 'countries', probeLocationCounts.country)}}</b>
 					and <b>{{probeLocationCounts.continent}} {{_.pluralize('continent', probeLocationCounts.continent)}}</b>.
 				{{elseif groupBy === 'city-network' || groupBy === 'disabled'}}
-					from <b>{{probeLocationCounts.city}} {{_.pluralize('city', 'cities', probeLocationCounts.city)}}</b>,
+					from <b>{{probeLocationCounts.city.toLocaleString('en-US')}} {{_.pluralize('city', 'cities', probeLocationCounts.city)}}</b>,
 					<b>{{probeLocationCounts.country}} {{_.pluralize('country', 'countries', probeLocationCounts.country)}}</b>,
 					and <b>{{probeLocationCounts.continent}} {{_.pluralize('continent', probeLocationCounts.continent)}}</b>.
 				{{/if}}
@@ -155,7 +155,7 @@
 										<span class="gp-filtered-list_list_block_group_item_location">
 											{{item.name}}
 										</span>
-										<span class="gp-filtered-list_list_block_group_item_count">{{item.probes.length}}</span>
+										<span class="gp-filtered-list_list_block_group_item_count">{{item.probes.length.toLocaleString('en-US')}}</span>
 									</div>
 								{{/if}}
 							{{/each}}
