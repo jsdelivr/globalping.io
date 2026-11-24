@@ -38,9 +38,9 @@
 						{{#each target.metricRows as row}}
 							<tr>
 								{{#each row.cells as cell : columnIndex}}
-									<td class="c-measurement-breakdown_metric" as-custom-properties="{ '--column': columnIndex }">
+									<td class="c-measurement-breakdown_metric {{#if row.isNotable}}is-notable{{/if}}" as-custom-properties="{ '--column': columnIndex }">
 										<span class="c-measurement-breakdown_metric_content">
-											<span class="c-measurement-breakdown_metric_label {{#if row.isNotable}}is-notable{{/if}}">
+											<span class="c-measurement-breakdown_metric_label">
 												{{#if row.isNotable}}
 													<span class="c-measurement-breakdown_notable-icon">
 														<i class="fa fa-asterisk" aria-hidden="true"></i>
