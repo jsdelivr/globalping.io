@@ -446,12 +446,12 @@
 		}
 
 		&_min {
-			left: min(calc(var(--range-min) * 1%), calc(var(--range-avg) * 1% - 10px));
+			left: calc(var(--range-min) * 1%);
 			background: url("../../img/measurement-breakdown/range-min.svg") no-repeat;
 		}
 
 		&_max {
-			left: max(calc(var(--range-max) * 1%), calc(var(--range-avg) * 1% + 10px));
+			left: calc(var(--range-max) * 1%);
 			background: url("../../img/measurement-breakdown/range-max.svg") no-repeat;
 		}
 
