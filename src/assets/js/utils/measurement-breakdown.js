@@ -1,6 +1,6 @@
 const _ = require('../_');
 const { getLocationLabel, isWorldLocation, matchProbesToLocations } = require('./measurement-locations');
-const { compareDisplayValues, compareGroups, inferMeasurementBreakdown } = require('./measurement-breakdown-inference');
+const { compareDisplayValues, compareGroups, inferMeasurementBreakdown, medianOfSortedValues } = require('./measurement-breakdown-inference');
 
 const EMPTY_VALUE = '\u2014';
 const MIN_ONLINE_PROBES = 10;
@@ -9,7 +9,7 @@ const isDnsError = status => status !== 'NOERROR';
 const isHttpError = status => status >= 400;
 
 const isNegligibleTimeDifference = (previous, current) => current - previous < 10 || current - previous < previous * 0.5;
-const isNegligibleLossDifference = (previous, current) => current - previous < 10;
+const isNegligiblePercentageDifference = (previous, current) => current - previous < 10;
 
 const createTimingMetric = (label, format) => ({
 	key: 'timing',
@@ -37,7 +37,7 @@ const PACKET_LOSS = {
 	label: 'Packet loss',
 	kind: 'numeric',
 	units: '%',
-	isNegligibleDifference: isNegligibleLossDifference,
+	isNegligibleDifference: isNegligiblePercentageDifference,
 	format: value => Math.round(value * 10) / 10,
 	getValue: stats => stats.packetLoss,
 };
@@ -175,7 +175,41 @@ const SUMMARIZERS_BY_KIND = {
 	failures: summarizeFailures,
 };
 
-const summarizeGroup = (metric, group, targetIndex) => SUMMARIZERS_BY_KIND[metric.kind](metric, group.results.map(result => result.statsPerTarget[targetIndex]));
+const getComparisonValue = (metric, stats) => {
+	if (metric.kind === 'count') {
+		return metric.matches(stats);
+	}
+
+	return metric.kind === 'failures' ? FAILURE_SPLIT.getValue(stats) : metric.getValue(stats);
+};
+
+const getGroupStats = (group, targetIndex) => group.results.map(result => result.statsPerTarget[targetIndex]);
+
+const summarizeGroup = (metric, group, targetIndex) => SUMMARIZERS_BY_KIND[metric.kind](metric, getGroupStats(group, targetIndex));
+
+const getShare = (values, value) => values.filter(other => other === value).length / values.length * 100;
+
+const hasNotableDifference = (metric, groups, targetIndex) => {
+	let valuesByGroup = groups
+		.map(group => getGroupStats(group, targetIndex).map(stats => getComparisonValue(metric, stats)).filter(value => value !== null))
+		.filter(values => values.length);
+
+	if (valuesByGroup.length < 2) {
+		return false;
+	}
+
+	if (metric.kind === 'numeric') {
+		let medians = valuesByGroup.map(values => medianOfSortedValues(values.sort((a, b) => a - b)));
+
+		return !metric.isNegligibleDifference(Math.min(...medians), Math.max(...medians));
+	}
+
+	return [ ...new Set(valuesByGroup.flat()) ].some((value) => {
+		let shares = valuesByGroup.map(values => getShare(values, value));
+
+		return !isNegligiblePercentageDifference(Math.min(...shares), Math.max(...shares));
+	});
+};
 
 const hasOccurrences = summary => Boolean(summary.items) || (typeof summary.value === 'number' && summary.value > 0);
 
@@ -219,6 +253,7 @@ const summarizeMetric = (metric, { groups, probesMaxTiming, targetIndexes }) => 
 	return {
 		metric,
 		summariesByTarget,
+		notableByTarget: targetIndexes.map(targetIndex => hasNotableDifference(metric, groups, targetIndex)),
 		isShown: !metric.optional || summaries.some(hasOccurrences),
 		rangeScale: getRangeScale(metric, summaries, probesMaxTiming),
 	};
@@ -235,7 +270,7 @@ const getExplicitBreakdown = ({ locations, results }) => {
 	return groups.length < 2 ? null : { title: 'Location breakdown', groups };
 };
 
-const buildTargets = ({ groups, notable }, { probesMaxTiming, targetNames, testType }) => {
+const buildTargets = ({ groups, split }, { probesMaxTiming, targetNames, testType }) => {
 	let metrics = METRICS_BY_TYPE[testType];
 	let targetIndexes = targetNames.map((_name, index) => index);
 	let shownMetrics = metrics
@@ -246,8 +281,8 @@ const buildTargets = ({ groups, notable }, { probesMaxTiming, targetNames, testT
 		name,
 		metricRows: shownMetrics
 			.filter(({ summariesByTarget }) => summariesByTarget[targetIndex].some(Boolean))
-			.map(({ metric, summariesByTarget, rangeScale }) => toMetricRow(metric, summariesByTarget[targetIndex], {
-				isNotable: notable?.targetIndex === targetIndex && notable.metricKey === metric.key,
+			.map(({ metric, summariesByTarget, notableByTarget, rangeScale }) => toMetricRow(metric, summariesByTarget[targetIndex], {
+				isNotable: notableByTarget[targetIndex] || (split?.targetIndex === targetIndex && split.metricKey === metric.key),
 				rangeScale,
 			})),
 	}));
@@ -273,12 +308,14 @@ const buildMeasurementBreakdown = ({ locations = [], preparedTestResults, probes
 		return null;
 	}
 
+	let targets = buildTargets(breakdown, { probesMaxTiming, targetNames: targetStats.map(stats => stats.target), testType });
+
 	return {
 		title: breakdown.title,
 		offlineCount: preparedTestResults.length - results.length,
-		hasNotable: Boolean(breakdown.notable),
+		hasNotable: targets.some(target => target.metricRows.some(row => row.isNotable)),
 		columns: breakdown.groups.map(group => ({ location: group.label, probeCount: group.results.length })),
-		targets: buildTargets(breakdown, { probesMaxTiming, targetNames: targetStats.map(stats => stats.target), testType }),
+		targets,
 	};
 };
 
