@@ -195,14 +195,6 @@
 		th + th, td + td {
 			border-left: 1px solid #e7e7ee;
 		}
-
-		tr:last-child td:not(.is-notable) {
-			padding-bottom: 4px;
-
-			&:has(.c-measurement-breakdown_range) {
-				padding-bottom: 14px;
-			}
-		}
 	}
 
 	&_target {
@@ -280,7 +272,7 @@
 
 	&_metric {
 		position: relative;
-		padding: 3px var(--cell-inset);
+		padding: 6px var(--cell-inset);
 
 		@media (max-width: @screen-xs-max) {
 			order: var(--column);
@@ -291,33 +283,23 @@
 		}
 
 		&:has(.c-measurement-breakdown_range) {
-			padding-bottom: 12px;
+			padding-bottom: 16px;
 		}
 
 		&.is-notable {
 			z-index: 0;
-			padding-top: 12px;
-			padding-bottom: 10px;
 
 			&:before {
 				position: absolute;
 				z-index: -1;
-				inset: 4px 0 2px;
+				inset: 0;
 				background: rgba(23, 35, 58, .03);
 				content: "";
-			}
-
-			&:has(.c-measurement-breakdown_range) {
-				padding-bottom: 24px;
 			}
 
 			.c-measurement-breakdown_metric_label {
 				color: #17233a;
 				font-weight: 500;
-			}
-
-			.c-measurement-breakdown_range {
-				bottom: 13px;
 			}
 
 			@media (min-width: @screen-sm-min) {
@@ -443,7 +425,7 @@
 	&_range {
 		position: absolute;
 		right: var(--cell-inset);
-		bottom: 5px;
+		bottom: 6px;
 		left: var(--cell-inset);
 		height: 4px;
 		border-radius: 2px;
