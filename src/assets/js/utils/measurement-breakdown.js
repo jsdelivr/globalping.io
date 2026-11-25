@@ -4,6 +4,7 @@ const { compareDisplayValues, compareGroups, inferMeasurementBreakdown, medianOf
 
 const EMPTY_VALUE = '\u2014';
 const MIN_ONLINE_PROBES = 10;
+const SCALE_STEPS = [ 1, 2, 2.5, 5, 10 ];
 
 const isDnsError = status => status !== 'NOERROR';
 const isHttpError = status => status >= 400;
@@ -220,8 +221,11 @@ const getRangeScale = (metric, summaries, probesMaxTiming) => {
 	}
 
 	let colorScale = metric.units === 'ms' ? probesMaxTiming : 100;
+	let largest = Math.max(colorScale, ...summaries.map(summary => summary.values[2]));
+	let magnitude = 10 ** Math.floor(Math.log10(largest));
+	let max = SCALE_STEPS.map(step => step * magnitude).find(value => value >= largest);
 
-	return { max: Math.max(colorScale, ...summaries.map(summary => summary.values[2])), colorScale };
+	return { max, colorScale, label: `${max} ${metric.units}` };
 };
 
 const getRange = (cell, scale) => {
@@ -241,6 +245,7 @@ const toMetricRow = (metric, summaries, { isNotable, rangeScale }) => {
 		label: metric.label,
 		units: metric.units,
 		isNotable,
+		scaleLabel: rangeScale?.label,
 		showsOrder: cells.some(cell => cell.statistics?.length > 1),
 		cells: cells.map(cell => ({ ...cell, range: getRange(cell, rangeScale) })),
 	};

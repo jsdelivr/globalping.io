@@ -283,7 +283,7 @@
 		}
 
 		&:has(.c-measurement-breakdown_range) {
-			padding-bottom: 16px;
+			padding-bottom: 32px;
 		}
 
 		&.is-notable {
@@ -425,14 +425,34 @@
 	&_range {
 		position: absolute;
 		right: var(--cell-inset);
-		bottom: 6px;
+		bottom: 19px;
 		left: var(--cell-inset);
 		height: 4px;
 		border-radius: 2px;
 		background: #e3e8eb;
 
-		&_span, &_avg {
+		&_span, &_min, &_max, &_avg {
 			position: absolute;
+		}
+
+		&_min, &_max {
+			z-index: 1;
+			top: 50%;
+			width: 14px;
+			height: 18px;
+			margin: -9px 0 0 -7px;
+			filter: drop-shadow(0 1px 1.5px rgba(23, 35, 58, .2));
+			animation: c-measurement-breakdown-range-pop .3s cubic-bezier(.22, 1, .36, 1) calc(var(--column) * 80ms) backwards;
+		}
+
+		&_min {
+			left: min(calc(var(--range-min) * 1%), calc(var(--range-avg) * 1% - 10px));
+			background: url("../../img/measurement-breakdown/range-min.svg") no-repeat;
+		}
+
+		&_max {
+			left: max(calc(var(--range-max) * 1%), calc(var(--range-avg) * 1% + 10px));
+			background: url("../../img/measurement-breakdown/range-max.svg") no-repeat;
 		}
 
 		&_span {
@@ -445,6 +465,7 @@
 		}
 
 		&_avg {
+			z-index: 2;
 			top: 50%;
 			left: calc(var(--range-avg) * 1%);
 			width: 10px;
@@ -458,9 +479,52 @@
 		}
 
 		@media (prefers-reduced-motion: reduce) {
-			&_span, &_avg {
+			&_span, &_min, &_max, &_avg {
 				animation: none;
 			}
+		}
+	}
+
+	&_range-zero, &_range-scale {
+		position: absolute;
+		bottom: 3px;
+		color: #8a93a3;
+		font-size: 10px;
+		font-variant-numeric: tabular-nums;
+		line-height: 12px;
+		white-space: nowrap;
+	}
+
+	&_range-zero {
+		left: var(--cell-inset);
+	}
+
+	&_range-scale {
+		right: var(--cell-inset);
+	}
+
+	&_glyph {
+		display: inline-block;
+		width: 8px;
+		height: 8px;
+		margin-right: 3px;
+		background: no-repeat 50% 50% / 8px 8px;
+		vertical-align: 0;
+
+		&.is-min {
+			background-image: url("../../img/measurement-breakdown/glyph-min.svg");
+		}
+
+		&.is-max, &.is-avg {
+			vertical-align: -1px;
+		}
+
+		&.is-max {
+			background-image: url("../../img/measurement-breakdown/glyph-max.svg");
+		}
+
+		&.is-avg {
+			background-image: url("../../img/measurement-breakdown/glyph-avg.svg");
 		}
 	}
 

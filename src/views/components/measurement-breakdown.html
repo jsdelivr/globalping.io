@@ -49,7 +49,7 @@
 												{{/if}}
 												{{row.label}}
 												{{#if row.showsOrder}}
-													<span class="c-measurement-breakdown_metric_order">(min / avg / max)</span>
+													<span class="c-measurement-breakdown_metric_order">(<span class="c-measurement-breakdown_glyph is-min"></span>min / <span class="c-measurement-breakdown_glyph is-avg"></span>avg / <span class="c-measurement-breakdown_glyph is-max"></span>max)</span>
 												{{/if}}
 											</span>
 											{{#if cell.statistics}}
@@ -80,8 +80,14 @@
 												aria-hidden="true"
 												as-custom-properties="{ '--range-min': cell.range.min, '--range-avg': cell.range.avg, '--range-max': cell.range.max, '--range-red': cell.range.red }">
 												<span class="c-measurement-breakdown_range_span"></span>
+												{{#if cell.statistics.length > 1}}
+													<span class="c-measurement-breakdown_range_min"></span>
+													<span class="c-measurement-breakdown_range_max"></span>
+												{{/if}}
 												<span class="c-measurement-breakdown_range_avg"></span>
 											</span>
+											<span class="c-measurement-breakdown_range-zero" aria-hidden="true">0</span>
+											<span class="c-measurement-breakdown_range-scale" aria-hidden="true">{{row.scaleLabel}}</span>
 										{{/if}}
 									</td>
 								{{/each}}
