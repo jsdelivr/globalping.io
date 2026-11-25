@@ -81,10 +81,10 @@
 												as-custom-properties="{ '--range-min': cell.range.min, '--range-avg': cell.range.avg, '--range-max': cell.range.max, '--range-red': cell.range.red }">
 												<span class="c-measurement-breakdown_range_span"></span>
 												{{#if cell.statistics.length > 1}}
-													<span class="c-measurement-breakdown_range_min"></span>
-													<span class="c-measurement-breakdown_range_max"></span>
+													<span class="c-measurement-breakdown_range_min" title="{{cell.statistics[0]}} {{row.units}}"></span>
+													<span class="c-measurement-breakdown_range_max" title="{{cell.statistics[2]}} {{row.units}}"></span>
 												{{/if}}
-												<span class="c-measurement-breakdown_range_avg"></span>
+												<span class="c-measurement-breakdown_range_avg" title="{{cell.statistics[cell.statistics.length > 1 ? 1 : 0]}} {{row.units}}"></span>
 											</span>
 											<span class="c-measurement-breakdown_range-zero" aria-hidden="true">0</span>
 											<span class="c-measurement-breakdown_range-scale" aria-hidden="true">{{row.scaleLabel}}</span>
