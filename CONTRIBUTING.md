@@ -23,6 +23,16 @@ npm install
 npm start
 ```
 
+By default, the website uses the production services, so nothing else has to run locally.
+
+Sign-in does not work on localhost with the production services, because the session cookie is set with `SameSite=Strict`. To test the website as a signed-in user, set the production cookie `dash_session_token` (`.globalping.io`) to `SameSite=None` in the browser devtools.
+
+To use a local [Globalping API](https://github.com/jsdelivr/globalping) and [Globalping Dashboard Directus](https://github.com/jsdelivr/globalping-dash-directus) instead, set their hosts:
+
+```bash
+SERVER_API_HOST=http://localhost:3000 SERVER_API_DOCS_HOST=http://localhost:3000 SERVER_DASHBOARD_HOST=http://localhost:18055 npm start
+```
+
 Configuration for IntelliJ based IDEs is also available in this repository. If you use one, it is a good idea to add https://github.com/MartinKolarik/idea-config as a [read-only settings repository](https://www.jetbrains.com/help/idea/sharing-your-ide-settings.html#share-more-settings-through-read-only-repo). It contains code style and inspection profiles used by this project.
 
 ## Testing
@@ -39,7 +49,7 @@ Most IDEs have plugins integrating the used linters (eslint, stylelint), includi
 ```js
 module.exports = {
 	server: {
-		port: "SERVER_PORT", // defaults to 4400
+		port: "SERVER_PORT", // defaults to 13000
 	},
 };
 ```

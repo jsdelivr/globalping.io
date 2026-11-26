@@ -1,18 +1,19 @@
 const _ = require('../_');
 const { getCache } = require('./data-cache');
-const API_HOST = 'https://api.globalping.io';
-const DASH_HOST = 'https://dash-directus.globalping.io';
+const apiHost = () => Ractive.sharedGet('apiHost');
+const dashboardHost = () => Ractive.sharedGet('dashboardHost');
 
 module.exports.fetchGlobalpingProbes = () => {
-	return _.makeHTTPRequest({ url: `${API_HOST}/v1/probes` });
+	return _.makeHTTPRequest({ url: `${apiHost()}/v1/probes` });
 };
 
 module.exports.postGlobalpingMeasurement = (opts, responseHeadersToGet) => {
 	let params = {
 		method: 'POST',
-		url: `${API_HOST}/v1/measurements`,
+		url: `${apiHost()}/v1/measurements`,
 		body: opts,
-		withCredentials: /(?:^|\.)globalping\.io$/.test(location.hostname),
+		// The API accepts credentials only from these origins.
+		withCredentials: /(?:^|\.)globalping\.io$/.test(location.hostname) || location.host === 'localhost:13000',
 	};
 
 	if (responseHeadersToGet) {
@@ -26,7 +27,7 @@ module.exports.postGlobalpingMeasurement = (opts, responseHeadersToGet) => {
 };
 
 module.exports.getGlobalpingMeasurement = (id) => {
-	return _.makeHTTPRequest({ url: `${API_HOST}/v1/measurements/${id}` });
+	return _.makeHTTPRequest({ url: `${apiHost()}/v1/measurements/${id}` });
 };
 
 module.exports.getGPBlogRss = () => {
@@ -40,20 +41,17 @@ const toUser = (user, activeAccount) => user && {
 };
 
 module.exports.getGlobalpingUser = (onRevalidate) => {
-	// Note: The authentication won't work out of the box on localhost because the cookie is set with SameSite=Strict
-	// If you need to test the page as an authenticated user (and don't want to set up a local dash and API),
-	// just set the production cookie "dash_session_token" (.globalping.io) to SameSite=None via devtools.
 	return getCache(
 		'gp-user',
 		1000 * 60 * 60 * 24,
 		() => Promise.all([
 			_.makeHTTPRequest({
-				url: `${DASH_HOST}/users/me`,
+				url: `${dashboardHost()}/users/me`,
 				body: { fields: '*,memberships.org.name,memberships.org.account,memberships.org.github_id' },
 				withCredentials: true,
 			}),
 			// The account the session acts as, set on the dashboard.
-			_.makeHTTPRequest({ url: `${DASH_HOST}/accounts/active`, withCredentials: true }),
+			_.makeHTTPRequest({ url: `${dashboardHost()}/accounts/active`, withCredentials: true }),
 		]).then(([ user, active ]) => toUser(user.data, active.accountId)).catch(() => null),
 		true,
 		onRevalidate,
@@ -61,13 +59,13 @@ module.exports.getGlobalpingUser = (onRevalidate) => {
 };
 
 module.exports.getSponsorshipDetails = (accountId) => {
-	return _.makeHTTPRequest({ url: `${DASH_HOST}/sponsorship-details`, withCredentials: true, body: { accountId } });
+	return _.makeHTTPRequest({ url: `${dashboardHost()}/sponsorship-details`, withCredentials: true, body: { accountId } });
 };
 
 module.exports.gpLogOut = () => {
 	return _.makeHTTPRequest({
 		method: 'POST',
-		url: `${DASH_HOST}/auth/logout`,
+		url: `${dashboardHost()}/auth/logout`,
 		body: { mode: 'session' },
 		withCredentials: true,
 		rawResponse: true,
