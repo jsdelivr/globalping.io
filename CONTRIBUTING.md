@@ -23,6 +23,19 @@ npm install
 npm start
 ```
 
+In development, the website uses local services (see `config/development.js`):
+
+-   [Globalping API](https://github.com/jsdelivr/globalping) at `http://localhost:3000`
+-   [Globalping Dashboard Directus](https://github.com/jsdelivr/globalping-dash-directus) at `http://localhost:18055`
+
+To start the website without them, use the production services:
+
+```bash
+SERVER_API_HOST=https://api.globalping.io SERVER_API_DOCS_HOST=https://api.globalping.io SERVER_DASHBOARD_HOST=https://dash-directus.globalping.io npm start
+```
+
+Sign-in does not work on localhost with the production services, because the session cookie is set with `SameSite=Strict`. To test the website as a signed-in user, set the production cookie `dash_session_token` (`.globalping.io`) to `SameSite=None` in the browser devtools.
+
 Configuration for IntelliJ based IDEs is also available in this repository. If you use one, it is a good idea to add https://github.com/MartinKolarik/idea-config as a [read-only settings repository](https://www.jetbrains.com/help/idea/sharing-your-ide-settings.html#share-more-settings-through-read-only-repo). It contains code style and inspection profiles used by this project.
 
 ## Testing
@@ -39,7 +52,7 @@ Most IDEs have plugins integrating the used linters (eslint, stylelint), includi
 ```js
 module.exports = {
 	server: {
-		port: "SERVER_PORT", // defaults to 4400
+		port: "SERVER_PORT", // defaults to 13000
 	},
 };
 ```

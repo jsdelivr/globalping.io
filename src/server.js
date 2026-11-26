@@ -171,6 +171,8 @@ app.use(render({
 	serverHost,
 	assetsHost,
 	apiDocsHost: serverConfig.apiDocsHost,
+	apiHost: serverConfig.apiHost,
+	dashboardHost: serverConfig.dashboardHost,
 	assetsVersion,
 }, app));
 

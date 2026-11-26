@@ -60,7 +60,7 @@ const initApp = () => {
 	};
 
 	app.getSignInLink = () => {
-		let url = new URL('https://dash-directus.globalping.io/auth/login/github');
+		let url = new URL(`${Ractive.sharedGet('dashboardHost')}/auth/login/github`);
 		url.searchParams.set('redirect', `https://globalping.io/auth/callback?redirect=${encodeURIComponent(location.href)}`);
 		return url.toString();
 	};
@@ -91,8 +91,6 @@ const initApp = () => {
 			ractive.set('@shared.user', user);
 		};
 
-		getGlobalpingUser(setUser).then(setUser);
-
 		try {
 			let shared = JSON.parse(document.querySelector('#ractive-shared').innerHTML.trim());
 
@@ -102,6 +100,8 @@ const initApp = () => {
 				});
 			}
 		} catch {}
+
+		getGlobalpingUser(setUser).then(setUser);
 
 		try {
 			state = JSON.parse(document.querySelector('#ractive-data').innerHTML.trim());
