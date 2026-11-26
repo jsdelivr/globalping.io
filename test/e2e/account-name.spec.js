@@ -5,8 +5,8 @@ const { getAccountDisplay } = require('../../src/assets/js/utils/account-name');
 const USER_ROUTE = url => url.pathname === '/users/me';
 const ACTIVE_ACCOUNT_ROUTE = url => url.pathname === '/accounts/active';
 const ACCOUNT_MENU = 'header .account-menu';
-const PERSONAL_AVATAR = '/github-logo/583231?size=80';
-const ORG_AVATAR = '/github-logo/6128107?size=80';
+const PERSONAL_AVATAR = '/avatar/github/583231?size=80';
+const ORG_AVATAR = '/avatar/github/6128107?size=80';
 const AVATAR_ROUTE = src => url => `${url.pathname}${url.search}` === src;
 const USER = {
 	id: 'user-1',
@@ -40,14 +40,14 @@ unitTest('substitutes seed avatar IDs only on localhost', () => {
 	let orgUser = { ...user, active_account: 'org-account-1' };
 
 	expect(getAccountDisplay(user, 'localhost').avatarSrc).toBe(PERSONAL_AVATAR);
-	expect(getAccountDisplay(orgUser, 'localhost').avatarSrc).toBe('/github-logo/102991324?size=80');
-	expect(getAccountDisplay(user, 'globalping.io').avatarSrc).toBe('/github-logo/1234567890?size=80');
-	expect(getAccountDisplay(orgUser, 'globalping.io').avatarSrc).toBe('/github-logo/9000000002?size=80');
+	expect(getAccountDisplay(orgUser, 'localhost').avatarSrc).toBe('/avatar/github/102991324?size=80');
+	expect(getAccountDisplay(user, 'globalping.io').avatarSrc).toBe('/avatar/github/1234567890?size=80');
+	expect(getAccountDisplay(orgUser, 'globalping.io').avatarSrc).toBe('/avatar/github/9000000002?size=80');
 });
 
 test.describe('Header account name', () => {
 	test.beforeEach(async ({ page }) => {
-		await page.route(url => url.pathname.startsWith('/github-logo/'), route => route.fulfill({
+		await page.route(url => url.pathname.startsWith('/avatar/github/'), route => route.fulfill({
 			contentType: 'image/svg+xml',
 			body: '<svg xmlns="http://www.w3.org/2000/svg" width="80" height="80"><circle cx="40" cy="40" r="40" fill="green"/></svg>',
 		}));

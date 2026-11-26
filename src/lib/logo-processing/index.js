@@ -276,7 +276,7 @@ module.exports.getDomainLogo = async (domain, padding, size) => {
 	}
 };
 
-module.exports.getGitHubLogo = async (id, padding, size) => {
+module.exports.getGitHubAvatar = async (id, padding, size) => {
 	try {
 		let response = await fetchLogo(`https://img.jsdelivr.com/avatars.githubusercontent.com/u/${id}`);
 

@@ -1,5 +1,5 @@
 const asnDomains = require('../../lib/asn-to-domain');
-const { getDomainLogo, getGitHubLogo } = require('../../lib/logo-processing');
+const { getDomainLogo, getGitHubAvatar } = require('../../lib/logo-processing');
 
 const sendLogo = async (ctx, getLogo, maxAge) => {
 	let { padding, size } = ctx.query;
@@ -45,7 +45,7 @@ module.exports.asnLogo = async (ctx) => {
 	await sendLogo(ctx, (padding, size) => getDomainLogo(domain, padding, size), 365 * 24 * 60 * 60);
 };
 
-module.exports.githubLogo = async (ctx) => {
+module.exports.githubAvatar = async (ctx) => {
 	let { id } = ctx.params;
 
 	if (!/^[1-9]\d{0,19}$/.test(id)) {
@@ -53,5 +53,5 @@ module.exports.githubLogo = async (ctx) => {
 		return;
 	}
 
-	await sendLogo(ctx, (padding, size) => getGitHubLogo(id, padding, size), 24 * 60 * 60);
+	await sendLogo(ctx, (padding, size) => getGitHubAvatar(id, padding, size), 24 * 60 * 60);
 };

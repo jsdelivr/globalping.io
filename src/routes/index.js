@@ -216,8 +216,8 @@ koaElasticUtils.addRoutes(router, [
  * GitHub user or organization avatar by numeric ID
  */
 koaElasticUtils.addRoutes(router, [
-	[ '/github-logo/:id' ],
-], logo.githubLogo);
+	[ '/avatar/github/:id' ],
+], logo.githubAvatar);
 
 /**
  * Translate IP to network name and domain via MMDB ASN lookup
