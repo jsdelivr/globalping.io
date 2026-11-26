@@ -12,7 +12,8 @@ module.exports.postGlobalpingMeasurement = (opts, responseHeadersToGet) => {
 		method: 'POST',
 		url: `${apiHost()}/v1/measurements`,
 		body: opts,
-		withCredentials: /(?:^|\.)globalping\.io$/.test(location.hostname),
+		// The API accepts credentials only from these origins.
+		withCredentials: /(?:^|\.)globalping\.io$/.test(location.hostname) || location.host === 'localhost:13000',
 	};
 
 	if (responseHeadersToGet) {
