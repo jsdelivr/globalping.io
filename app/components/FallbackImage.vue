@@ -1,5 +1,6 @@
 <template>
 	<img
+		ref="image"
 		:src="currentSrc"
 		:alt="alt"
 		@error="onError"
@@ -15,6 +16,7 @@
 		alt: '',
 	});
 
+	const image = ref<HTMLImageElement>();
 	const currentSrc = ref(props.src);
 	const hasErrored = ref(false);
 
@@ -29,4 +31,11 @@
 			hasErrored.value = true;
 		}
 	};
+
+	// the error event may fire before hydration attaches the listener
+	onMounted(() => {
+		if (image.value?.complete && !image.value.naturalWidth) {
+			onError();
+		}
+	});
 </script>

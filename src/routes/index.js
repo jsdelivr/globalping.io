@@ -4,11 +4,11 @@ const koaElasticUtils = require('elastic-apm-utils').koa;
 const globalpingSitemap = require('../middleware/sitemap');
 const ogImage = require('../middleware/open-graph/image');
 const ogMetadata = require('../middleware/open-graph');
+const logo = require('../middleware/logo');
 const asnDomains = require('../lib/asn-to-domain');
 const ipToNetwork = require('../lib/ip-to-network');
 const { getUsers, getOrganizations, getNetworks, getNetworkToDomainMap } = require('../lib/probe-data');
 const maxmind = require('maxmind');
-const { processDomainLogo } = require('../lib/logo-processing');
 
 const router = new KoaRouter();
 
@@ -210,45 +210,14 @@ koaElasticUtils.addRoutes(router, [
  */
 koaElasticUtils.addRoutes(router, [
 	[ '/asn-logo/:asn' ],
-], async (ctx) => {
-	let { asn = '' } = ctx.params;
+], logo.asnLogo);
 
-	if (!asn) {
-		ctx.status = 400;
-		return;
-	}
-
-	if (!asnDomains) {
-		ctx.status = 503;
-		return;
-	}
-
-	let domain = asnDomains[asn];
-
-	if (!domain) {
-		ctx.status = 404;
-		return;
-	}
-
-	let { padding, size } = ctx.query;
-
-	padding = Number.parseInt(padding);
-	padding = Number.isNaN(padding) ? null : Math.min(Math.abs(padding), 48);
-	size = Number.parseInt(size);
-	size = Number.isNaN(size) ? null : Math.min(Math.max(Math.abs(size), 1), 512);
-
-	let { image, error } = await processDomainLogo(domain, padding, size);
-
-	if (error) {
-		ctx.status = error.status;
-		ctx.body = { error: error.message };
-		return;
-	}
-
-	ctx.type = 'image/png';
-	ctx.maxAge = 31536000;
-	ctx.body = image;
-});
+/**
+ * GitHub user or organization avatar by numeric ID
+ */
+koaElasticUtils.addRoutes(router, [
+	[ '/avatar/github/:id' ],
+], logo.githubAvatar);
 
 /**
  * Translate IP to network name and domain via MMDB ASN lookup

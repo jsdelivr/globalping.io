@@ -5,8 +5,9 @@ const { getAccountDisplay } = require('../../src/assets/js/utils/account-name');
 const USER_ROUTE = url => url.pathname === '/users/me';
 const ACTIVE_ACCOUNT_ROUTE = url => url.pathname === '/accounts/active';
 const ACCOUNT_MENU = 'header .account-menu';
-const PERSONAL_AVATAR = 'https://avatars.githubusercontent.com/u/583231?s=80';
-const ORG_AVATAR = 'https://avatars.githubusercontent.com/u/6128107?s=80';
+const PERSONAL_AVATAR = '/avatar/github/583231?size=80';
+const ORG_AVATAR = '/avatar/github/6128107?size=80';
+const AVATAR_ROUTE = src => url => `${url.pathname}${url.search}` === src;
 const USER = {
 	id: 'user-1',
 	github_username: 'john',
@@ -39,14 +40,14 @@ unitTest('substitutes seed avatar IDs only on localhost', () => {
 	let orgUser = { ...user, active_account: 'org-account-1' };
 
 	expect(getAccountDisplay(user, 'localhost').avatarSrc).toBe(PERSONAL_AVATAR);
-	expect(getAccountDisplay(orgUser, 'localhost').avatarSrc).toBe('https://avatars.githubusercontent.com/u/102991324?s=80');
-	expect(getAccountDisplay(user, 'globalping.io').avatarSrc).toBe('https://avatars.githubusercontent.com/u/1234567890?s=80');
-	expect(getAccountDisplay(orgUser, 'globalping.io').avatarSrc).toBe('https://avatars.githubusercontent.com/u/9000000002?s=80');
+	expect(getAccountDisplay(orgUser, 'localhost').avatarSrc).toBe('/avatar/github/102991324?size=80');
+	expect(getAccountDisplay(user, 'globalping.io').avatarSrc).toBe('/avatar/github/1234567890?size=80');
+	expect(getAccountDisplay(orgUser, 'globalping.io').avatarSrc).toBe('/avatar/github/9000000002?size=80');
 });
 
 test.describe('Header account name', () => {
 	test.beforeEach(async ({ page }) => {
-		await page.route('https://avatars.githubusercontent.com/u/*?s=80', route => route.fulfill({
+		await page.route(url => url.pathname.startsWith('/avatar/github/'), route => route.fulfill({
 			contentType: 'image/svg+xml',
 			body: '<svg xmlns="http://www.w3.org/2000/svg" width="80" height="80"><circle cx="40" cy="40" r="40" fill="green"/></svg>',
 		}));
@@ -70,7 +71,7 @@ test.describe('Header account name', () => {
 	});
 
 	test('shows the org icon if the avatar fails', async ({ page }) => {
-		await page.route(ORG_AVATAR, route => route.abort());
+		await page.route(AVATAR_ROUTE(ORG_AVATAR), route => route.abort());
 		await signInAs(page, 'org-account-1');
 		await expect(page.getByRole('button', { name: 'Account menu', exact: true }).locator('svg')).toBeVisible();
 	});
