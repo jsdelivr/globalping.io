@@ -286,6 +286,11 @@
 					width: 100%;
 					height: 100%;
 					background: #ededee;// temp
+
+					&:not(.is-interacting) * {
+						// Override inline Maps hints that cause extra compositing while the globe plays.
+						will-change: auto !important;
+					}
 				}
 
 				&_timings-scale {

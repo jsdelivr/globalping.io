@@ -2922,8 +2922,9 @@
 		},
 		initMap () {
 			let mq = window.matchMedia('(min-width: 768px)');
+			let mapElement = this.find('#gp-map');
 
-			map = new google.maps.Map(this.find('#gp-map'), {
+			map = new google.maps.Map(mapElement, {
 				zoom: MAP_ZOOM_REG,
 				center: MAP_CENTER_REG,
 				mapTypeId: 'roadmap',
@@ -2940,6 +2941,37 @@
 				map.setCenter(MAP_CENTER_ALT);
 				map.setZoom(MAP_ZOOM_ALT);
 			}
+
+			let mapInteractionTimeout;
+			let scheduleMapInteractionEnd = () => {
+				clearTimeout(mapInteractionTimeout);
+				mapInteractionTimeout = setTimeout(() => mapElement.classList.remove('is-interacting'), 2000);
+			};
+			let handleMapInput = () => {
+				mapElement.classList.add('is-interacting');
+				scheduleMapInteractionEnd();
+			};
+			let handleMapMotion = () => {
+				if (mapElement.classList.contains('is-interacting')) {
+					scheduleMapInteractionEnd();
+				}
+			};
+			let mapInputEvents = [ 'pointerdown', 'wheel', 'keydown' ];
+			let mapInputOptions = { capture: true, passive: true };
+
+			mapInputEvents.forEach(event => mapElement.addEventListener(event, handleMapInput, mapInputOptions));
+
+			let mapInteractionListeners = [
+				map.addListener('drag', handleMapInput),
+				map.addListener('bounds_changed', handleMapMotion),
+				map.addListener('idle', handleMapMotion),
+			];
+
+			this.on('unrender', () => {
+				clearTimeout(mapInteractionTimeout);
+				mapInputEvents.forEach(event => mapElement.removeEventListener(event, handleMapInput, mapInputOptions));
+				mapInteractionListeners.forEach(listener => google.maps.event.removeListener(listener));
+			});
 
 			this.set('clusterRadius', this.getClusterRadius());
 
