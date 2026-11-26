@@ -56,10 +56,10 @@
 
 	&_body {
 		min-width: 0;
-		padding: 12px;
+		padding: 12px 12px 20px;
 
 		@media (min-width: @screen-sm-min) {
-			padding: 12px 24px;
+			padding: 12px 24px 20px;
 		}
 	}
 
@@ -210,7 +210,7 @@
 
 	&_target-header {
 		grid-column: 1 / -1;
-		padding: 10px var(--cell-inset) 6px;
+		padding: 12px var(--cell-inset) 6px;
 		font-size: 14px;
 		font-weight: 600;
 		line-height: 20px;
@@ -218,7 +218,9 @@
 	}
 
 	&_target + &_target &_target-header {
-		padding-top: 26px;
+		padding: 10px 0 6px;
+		border-top: 1px solid #e7e7ee;
+		margin: 10px 12px 0;
 	}
 
 	&_target-name {
@@ -228,9 +230,9 @@
 		max-width: calc(100cqw - 2 * var(--cell-inset));
 
 		.fa {
-			margin-right: 6px;
+			margin-right: 2px;
 			color: #078569;
-			font-size: 12px;
+			font-size: 14px;
 		}
 	}
 
@@ -289,17 +291,9 @@
 		&.is-notable {
 			z-index: 0;
 
-			&:before {
-				position: absolute;
-				z-index: -1;
-				inset: 0;
-				background: rgba(23, 35, 58, .03);
-				content: "";
-			}
-
 			.c-measurement-breakdown_metric_label {
 				color: #17233a;
-				font-weight: 500;
+				//font-weight: 500;
 			}
 
 			@media (min-width: @screen-sm-min) {
