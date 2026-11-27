@@ -696,14 +696,14 @@
 					<c-measurement-breakdown
 						breakdown="{{measurementBreakdown}}"
 						showMap="{{showMap}}"
-						originalShowMap="{{originalShowMap}}">
+						toggleMap="{{@this.toggleMap}}">
 					</c-measurement-breakdown>
 				{{/if}}
 
 				<div class="gp_map-block_test-output">
 					<c-gp-results-controls
 						showMap="{{showMap}}"
-						originalShowMap="{{originalShowMap}}"
+						toggleMap="{{@this.toggleMap}}"
 						showMapSwitch="{{!measurementBreakdown}}"
 						targets="{{targetsArr}}"
 						activeTargetIdx="{{activeTargetIdx}}"
@@ -1752,6 +1752,7 @@
 	let probesMarkers = [];
 	let probesInfoWindows = [];
 	let mapProbesClusters = [];
+	let stopKeepingMapSwitchInPlace = () => {};
 
 	component.exports = {
 		decorators: {
@@ -3775,6 +3776,60 @@
 				.catch((error) => {
 					console.error('Failed to fetch probes', error);
 				});
+		},
+		toggleMap (switchEl) {
+			let showMap = !this.get('showMap');
+			let switchTop = switchEl.getBoundingClientRect().top;
+
+			stopKeepingMapSwitchInPlace();
+			this.set('originalShowMap', showMap);
+			this.set('showMap', showMap);
+
+			if (!showMap) {
+				this.keepMapSwitchInPlace(switchEl, switchTop);
+			}
+		},
+		keepMapSwitchInPlace (switchEl, switchTop) {
+			let mapWrapper = this.find('.gp_map-block_map-wrapper');
+			let controller = new AbortController();
+			let frame, timeout, mapBottom;
+
+			// The results-controls switch unmounts when a finishing measurement shows the breakdown;
+			// from then on, the map's bottom edge keeps the content below the map in place.
+			let correct = () => {
+				if (!switchEl.isConnected) {
+					window.scrollBy(0, mapWrapper.getBoundingClientRect().bottom - mapBottom);
+					return;
+				}
+
+				window.scrollBy(0, switchEl.getBoundingClientRect().top - switchTop);
+				mapBottom = mapWrapper.getBoundingClientRect().bottom;
+			};
+
+			let stop = () => {
+				cancelAnimationFrame(frame);
+				clearTimeout(timeout);
+				controller.abort();
+			};
+
+			let step = () => {
+				correct();
+				frame = requestAnimationFrame(step);
+			};
+
+			timeout = setTimeout(stop, 400);
+
+			mapWrapper.addEventListener('transitionend', (event) => {
+				if (event.target === mapWrapper && event.propertyName === 'height') {
+					correct();
+					stop();
+				}
+			}, { signal: controller.signal });
+
+			[ 'wheel', 'touchstart', 'keydown' ].forEach(type => window.addEventListener(type, stop, { passive: true, signal: controller.signal }));
+
+			stopKeepingMapSwitchInPlace = stop;
+			step();
 		},
 		scrollMapIntoView () {
 			let mapBlockEl = this.find('.gp_map-block');

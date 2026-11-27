@@ -9,7 +9,7 @@
 			<button class="c-measurement-breakdown_map-switch {{#if showMap}}c-measurement-breakdown_map-switch--active{{/if}}"
 				type="button"
 				data-testid="map-switch"
-				on-click="@this.set('originalShowMap', !showMap),@this.set('showMap', !showMap)">
+				on-click="toggleMap(@node)">
 				<img width="13" height="13" alt="" src="{{@shared.assetsHost}}/img/map-icon{{#if showMap}}.active{{/if}}.svg"/>
 				<span class="c-measurement-breakdown_map-switch_label">{{#if showMap}}Hide map{{else}}Show map{{/if}}</span>
 			</button>
@@ -107,6 +107,7 @@
 			return {
 				_,
 				isDesktop: true,
+				toggleMap: () => null,
 			};
 		},
 		onrender () {

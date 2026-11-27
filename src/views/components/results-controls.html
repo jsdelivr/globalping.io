@@ -37,7 +37,7 @@
 					data-testid="map-switch"
 					as-tooltip="showMap ? 'Hide map' : 'Show map'"
 					aria-label="{{#if showMap}}Hide map{{else}}Show map{{/if}}"
-					on-click="@this.set('originalShowMap', !showMap),@this.set('showMap', !showMap)">
+					on-click="toggleMap(@node)">
 					<img width="13" height="13" alt="" src="{{@shared.assetsHost}}/img/map-icon{{#if showMap}}.active{{/if}}.svg"/>
 				</button>
 			{{/if}}
@@ -106,6 +106,7 @@
 				expandOutput: () => null,
 				allCollapsed: false,
 				showMapSwitch: true,
+				toggleMap: () => null,
 			};
 		},
 		computed: {
