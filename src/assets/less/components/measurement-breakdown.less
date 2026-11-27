@@ -288,30 +288,6 @@
 			padding-bottom: 32px;
 		}
 
-		&.is-notable {
-			z-index: 0;
-
-			.c-measurement-breakdown_metric_label {
-				color: #17233a;
-				//font-weight: 500;
-			}
-
-			@media (min-width: @screen-sm-min) {
-				&:first-child:before {
-					left: calc(var(--cell-inset) - 24px);
-				}
-
-				&:last-child:before {
-					right: calc(var(--cell-inset) - 24px);
-				}
-			}
-
-			@media (max-width: @screen-xs-max) {
-				--cell-inset: 12px;
-				margin: 0 -12px;
-			}
-		}
-
 		&_content {
 			display: flex;
 			align-items: baseline;
@@ -334,7 +310,6 @@
 
 		&_label {
 			flex-shrink: 0;
-			color: #596579;
 			font-size: 12px;
 			line-height: 20px;
 		}
@@ -520,26 +495,5 @@
 		&.is-avg {
 			background-image: url("../../img/measurement-breakdown/glyph-avg.svg");
 		}
-	}
-
-	&_notable-icon, &_notable-explanation .fa {
-		margin-right: 3px;
-		color: #078569;
-		font-size: 9px;
-	}
-
-	&_notable-icon {
-		vertical-align: 1px;
-	}
-
-	&_notable-explanation {
-		display: flex;
-		align-items: center;
-		justify-content: flex-end;
-		gap: 4px;
-		margin-top: 6px;
-		color: #596579;
-		font-size: 12px;
-		line-height: 18px;
 	}
 }

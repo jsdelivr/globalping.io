@@ -41,15 +41,9 @@
 						{{#each target.metricRows as row}}
 							<tr>
 								{{#each row.cells as cell : columnIndex}}
-									<td class="c-measurement-breakdown_metric {{#if 1}}is-notable{{/if}}" as-custom-properties="{ '--column': columnIndex }">
+									<td class="c-measurement-breakdown_metric" as-custom-properties="{ '--column': columnIndex }">
 										<span class="c-measurement-breakdown_metric_content">
 											<span class="c-measurement-breakdown_metric_label">
-<!--												{{#if row.isNotable}}-->
-<!--													<span class="c-measurement-breakdown_notable-icon">-->
-<!--														<i class="fa fa-asterisk" aria-hidden="true"></i>-->
-<!--														<span class="sr-only">Notable difference:</span>-->
-<!--													</span>-->
-<!--												{{/if}}-->
 												{{row.label}}
 												{{#if row.showsOrder}}
 													<span class="c-measurement-breakdown_metric_order">(<span class="c-measurement-breakdown_glyph is-min"></span>min / <span class="c-measurement-breakdown_glyph is-avg"></span>avg / <span class="c-measurement-breakdown_glyph is-max"></span>max)</span>
@@ -100,13 +94,6 @@
 				{{/each}}
 			</table>
 		</div>
-
-		{{#if 0}}
-			<div class="c-measurement-breakdown_notable-explanation">
-				<i class="fa fa-asterisk" aria-hidden="true"></i>
-				<span>Notable difference</span>
-			</div>
-		{{/if}}
 	</div>
 </section>
 

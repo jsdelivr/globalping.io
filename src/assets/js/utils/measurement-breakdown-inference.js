@@ -446,7 +446,7 @@ const inferMeasurementBreakdown = ({ results, metrics, targetCount }) => {
 				});
 
 				if (match) {
-					return { ...match, split: { targetIndex, metricKey: metric.key } };
+					return match;
 				}
 			}
 		}
@@ -455,4 +455,4 @@ const inferMeasurementBreakdown = ({ results, metrics, targetCount }) => {
 	return null;
 };
 
-module.exports = { compareDisplayValues, compareGroups, inferMeasurementBreakdown, medianOfSortedValues };
+module.exports = { compareDisplayValues, compareGroups, inferMeasurementBreakdown };
