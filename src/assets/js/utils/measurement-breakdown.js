@@ -124,13 +124,14 @@ const summarizeNumbers = (metric, statsList) => {
 		Math.max(...measured.map(metric.getMax || metric.getValue)),
 	];
 
-	let statistics = values.map(metric.format);
+	let texts = values.map(metric.format);
+	let isMuted = values.every(value => value === 0);
 
-	return {
-		values,
-		statistics: statistics.every(statistic => statistic === statistics[0]) ? [ statistics[0] ] : statistics,
-		isMuted: values.every(value => value === 0),
-	};
+	let statistics = texts.every(text => text === texts[0])
+		? [{ text: texts[0], className: isMuted ? '' : 'is-avg' }]
+		: texts.map((text, index) => ({ text, className: index === 1 ? 'is-avg' : 'is-bound' }));
+
+	return { values, statistics, isMuted };
 };
 
 const summarizeCategories = (metric, statsList) => {
@@ -186,14 +187,22 @@ const getRangeScale = (metric, summaries, probesMaxTiming) => {
 	return { max, colorScale, label: `${max} ${metric.units}` };
 };
 
-const getRange = (cell, scale) => {
+const getRangeMarkers = (statistics, units) => {
+	let toMarker = (name, statistic) => ({ name, title: `${statistic.text} ${units}` });
+
+	return statistics.length > 1
+		? [ toMarker('min', statistics[0]), toMarker('max', statistics[2]), toMarker('avg', statistics[1]) ]
+		: [ toMarker('avg', statistics[0]) ];
+};
+
+const getRange = (cell, scale, units) => {
 	if (scale === null || !cell.values) {
 		return null;
 	}
 
 	let [ min, avg, max ] = cell.values.map(value => value / scale.max * 100);
 
-	return { min, avg, max, red: scale.colorScale / scale.max * 100 };
+	return { min, avg, max, red: scale.colorScale / scale.max * 100, markers: getRangeMarkers(cell.statistics, units) };
 };
 
 const toMetricRow = (metric, summaries, rangeScale) => {
@@ -204,7 +213,7 @@ const toMetricRow = (metric, summaries, rangeScale) => {
 		units: metric.units,
 		scaleLabel: rangeScale?.label,
 		showsOrder: cells.some(cell => cell.statistics?.length > 1),
-		cells: cells.map(cell => ({ ...cell, range: getRange(cell, rangeScale) })),
+		cells: cells.map(cell => ({ ...cell, range: getRange(cell, rangeScale, metric.units) })),
 	};
 };
 
