@@ -1,4 +1,5 @@
 const _ = require('../_');
+const { getHttpSizeLabel } = require('./http-size');
 const { getLocationLabel, isWorldLocation, matchProbesToLocations } = require('./measurement-locations');
 const { compareDisplayValues, compareGroups, inferMeasurementBreakdown } = require('./measurement-breakdown-inference');
 
@@ -55,6 +56,16 @@ const HTTP_STATUS = {
 	getValue: stats => stats.httpStatus,
 };
 
+// The label follows the measurement's size mode, see getMetrics().
+const HTTP_SIZE = {
+	kind: 'categorical',
+	maxItems: 3,
+	itemName: 'size',
+	isProblem: () => false,
+	getValue: stats => stats.httpSizeText,
+	getSortValue: stats => stats.httpSize,
+};
+
 const TLS_ERRORS = {
 	label: 'TLS errors',
 	kind: 'count',
@@ -92,7 +103,7 @@ const METRICS_BY_TYPE = {
 	traceroute: [ LATENCY, FAILURES ],
 	mtr: [ LATENCY, PACKET_LOSS, FAILURES ],
 	dns: [ DNS_STATUS, ZERO_ANSWERS, QUERY_TIME, FAILURES ],
-	http: [ HTTP_STATUS, TLS_ERRORS, RESPONSE_TIME, FAILURES ],
+	http: [ HTTP_STATUS, HTTP_SIZE, TLS_ERRORS, RESPONSE_TIME, FAILURES ],
 };
 
 // The inference splits on single per-probe values.
@@ -103,13 +114,18 @@ const ZERO_ANSWERS_SPLIT = {
 	getValue: stats => stats.dnsAnswerCount === null ? null : ZERO_ANSWERS.matches(stats),
 };
 
+const HTTP_SIZE_SPLIT = { kind: 'categorical', getValue: stats => stats.httpSize };
+
 const SPLIT_METRICS_BY_TYPE = {
 	ping: [ FAILURE_SPLIT, PACKET_LOSS, LATENCY ],
 	traceroute: [ FAILURE_SPLIT, LATENCY ],
 	mtr: [ FAILURE_SPLIT, PACKET_LOSS, LATENCY ],
 	dns: [ FAILURE_SPLIT, DNS_STATUS, ZERO_ANSWERS_SPLIT, QUERY_TIME ],
-	http: [ FAILURE_SPLIT, HTTP_STATUS, RESPONSE_TIME ],
+	http: [ FAILURE_SPLIT, HTTP_STATUS, HTTP_SIZE_SPLIT, RESPONSE_TIME ],
 };
+
+const getMetrics = (testType, httpSizeMode) => METRICS_BY_TYPE[testType]
+	.map(metric => metric === HTTP_SIZE ? { ...metric, label: getHttpSizeLabel(httpSizeMode) } : metric);
 
 const summarizeNumbers = (metric, statsList) => {
 	let measured = statsList.filter(stats => metric.getValue(stats) !== null);
@@ -134,24 +150,47 @@ const summarizeNumbers = (metric, statsList) => {
 	return { values, statistics, isMuted };
 };
 
-const summarizeCategories = (metric, statsList) => {
-	let counts = new Map();
-
-	for (let value of statsList.map(metric.getValue)) {
-		if (value !== null) {
-			counts.set(value, (counts.get(value) || 0) + 1);
-		}
+const limitItems = (items, metric) => {
+	if (!metric.maxItems || items.length <= metric.maxItems) {
+		return items;
 	}
 
-	if (!counts.size) {
+	let others = items.slice(metric.maxItems);
+
+	return [ ...items.slice(0, metric.maxItems), {
+		label: `+${others.length} other ${_.pluralize(metric.itemName, others.length)}`,
+		count: others.reduce((sum, item) => sum + item.count, 0),
+		isProblem: false,
+	}];
+};
+
+const summarizeCategories = (metric, statsList) => {
+	let items = new Map();
+
+	for (let stats of statsList) {
+		let value = metric.getValue(stats);
+
+		if (value === null) {
+			continue;
+		}
+
+		if (!items.has(value)) {
+			items.set(value, {
+				label: String(value),
+				sortValue: metric.getSortValue ? metric.getSortValue(stats) : value,
+				count: 0,
+				isProblem: metric.isProblem(value),
+			});
+		}
+
+		items.get(value).count++;
+	}
+
+	if (!items.size) {
 		return null;
 	}
 
-	let items = [ ...counts.entries() ]
-		.map(([ value, count ]) => ({ label: String(value), sortValue: value, count, isProblem: metric.isProblem(value) }))
-		.sort((a, b) => b.count - a.count || compareDisplayValues(a, b));
-
-	return { items };
+	return { items: limitItems([ ...items.values() ].sort((a, b) => b.count - a.count || compareDisplayValues(a, b)), metric) };
 };
 
 const summarizeCount = (metric, statsList) => {
@@ -240,9 +279,9 @@ const getExplicitBreakdown = ({ locations, results }) => {
 	return groups.length < 2 ? null : { title: 'Location breakdown', groups };
 };
 
-const buildTargets = (groups, { probesMaxTiming, targetNames, testType }) => {
+const buildTargets = (groups, { httpSizeMode, probesMaxTiming, targetNames, testType }) => {
 	let targetIndexes = targetNames.map((_name, index) => index);
-	let shownMetrics = METRICS_BY_TYPE[testType]
+	let shownMetrics = getMetrics(testType, httpSizeMode)
 		.map(metric => summarizeMetric(metric, { groups, probesMaxTiming, targetIndexes }))
 		.filter(({ isShown }) => isShown);
 
@@ -254,7 +293,7 @@ const buildTargets = (groups, { probesMaxTiming, targetNames, testType }) => {
 	}));
 };
 
-const buildMeasurementBreakdown = ({ locations = [], preparedTestResults, probesMaxTiming, testType }) => {
+const buildMeasurementBreakdown = ({ httpSizeMode, locations = [], preparedTestResults, probesMaxTiming, testType }) => {
 	let targetStats = preparedTestResults[0].statsPerTarget;
 
 	// Table sorting reorders preparedTestResults; restore API order so sorting can't change the breakdown.
@@ -279,6 +318,7 @@ const buildMeasurementBreakdown = ({ locations = [], preparedTestResults, probes
 		offlineCount: preparedTestResults.length - results.length,
 		columns: breakdown.groups.map(group => ({ location: group.label, probeCount: group.results.length })),
 		targets: buildTargets(breakdown.groups, {
+			httpSizeMode,
 			probesMaxTiming,
 			targetNames: targetStats.map(stats => stats.target),
 			testType,

@@ -1550,6 +1550,7 @@
 	const dataCache = require('../../assets/js/utils/data-cache');
 	const getMeasurementTitle = require('../../assets/js/utils/measurement-title');
 	const { buildMeasurementBreakdown } = require('../../assets/js/utils/measurement-breakdown');
+	const { getHttpSize, getHttpSizeLabel, getHttpSizeMode } = require('../../assets/js/utils/http-size');
 
 	const CLIENT_DEFAULT_PING_OPTS = {
 		protocol: 'ICMP',
@@ -1832,6 +1833,7 @@
 				isInfiniteModeRes: false,
 				prevProbesMeasId: null,
 				preparedTestResults: [],
+				httpSizeMode: 'none',
 				ddHandlerSet: false,
 				showCreditsData: false,
 				rateCreditsData: null,
@@ -1927,6 +1929,7 @@
 				}
 
 				return buildMeasurementBreakdown({
+					httpSizeMode: this.get('httpSizeMode'),
 					locations: this.get('testReqParams.locations'),
 					preparedTestResults: this.get('preparedTestResults'),
 					probesMaxTiming: this.get('probesMaxTiming'),
@@ -2080,14 +2083,14 @@
 					}
 				});
 
-				this.observe('testReqParams.type testReqParams.measurementOptions.trace', () => {
+				this.observe('testReqParams.type testReqParams.measurementOptions.trace httpSizeMode', () => {
 					let testType = this.get('testReqParams.type');
 
 					if (!testType) {
 						return;
 					}
 
-					let tableColumns = this.getTableColumns(testType);
+					let tableColumns = this.getTableColumns(testType, this.isDnsTraceEnabled(), this.get('httpSizeMode'));
 					let sortByOpts = this.getSortOptionsFromTableColumns(tableColumns);
 					let sortBy = this.get('sortBy');
 
@@ -2522,17 +2525,18 @@
 					let sortOrder = this.get('sortOrder');
 					let rawOutputMode = this.get('rawOutputMode');
 					let activeTargetIdx = rawOutputMode ? this.get('activeTargetIdx') : 0;
+					let httpSizeMode = testType === 'http' ? getHttpSizeMode(testResults.flat().map(res => res.result)) : 'none';
 					let preparedTestResults;
 
 					if (testType === 'ping' && isInfiniteModeRes) {
 						preparedTestResults = this.prepareInfiniteResults(testResults);
 					} else {
-						preparedTestResults = this.prepareRegularResults(testResults);
+						preparedTestResults = this.prepareRegularResults(testResults, httpSizeMode);
 					}
 
 					preparedTestResults = _.sortGpMeasurementResults(preparedTestResults, sortBy, sortOrder, activeTargetIdx);
 
-					this.set('preparedTestResults', preparedTestResults);
+					this.set({ httpSizeMode, preparedTestResults });
 				});
 
 				// set initial screenWidth value
@@ -4240,14 +4244,15 @@
 				? testReqParams.measurementOptions?.trace === true
 				: this.get('dnsOpts.trace') === true;
 		},
-		getTableColumns (testType = this.get('testReqParams.type'), dnsTraceEnabled) {
+		getTableColumns (testType = this.get('testReqParams.type'), dnsTraceEnabled, httpSizeMode = 'none') {
 			let lowCaseTestName = (testType || '').toLowerCase();
 
 			if (typeof dnsTraceEnabled !== 'boolean') {
 				dnsTraceEnabled = this.isDnsTraceEnabled();
 			}
 
-			let cacheKey = `${lowCaseTestName}:${dnsTraceEnabled}`;
+			let httpSizeLabel = getHttpSizeLabel(httpSizeMode);
+			let cacheKey = `${lowCaseTestName}:${dnsTraceEnabled}:${httpSizeLabel}`;
 			let cachedColumns = TABLE_COLUMNS_CACHE.get(cacheKey);
 
 			if (cachedColumns) {
@@ -4290,7 +4295,7 @@
 			} else if (lowCaseTestName === 'http') {
 				tableColumns = [
 					{ key: 'http-status', label: 'Status', className: 'status http-status' },
-					{ key: 'content-length', label: 'Content length', className: 'content-length' },
+					{ key: 'content-length', label: httpSizeLabel, className: 'content-length' },
 					{ key: 'total', label: 'Total', className: 'total' },
 					{ key: 'ip', type: 'ip', label: 'Resolved IP', mobileLabel: 'IP', className: 'ip', sortable: false },
 				];
@@ -4443,24 +4448,6 @@
 
 			return this.hasTableValue(statusCode) ? statusCode : statusCodeName;
 		},
-		getHeaderValue (headers = {}, headerName) {
-			let headerKey = Object.keys(headers || {}).find(key => key.toLowerCase() === headerName.toLowerCase());
-
-			return headerKey ? headers[headerKey] : null;
-		},
-		getHttpContentLength (result = {}) {
-			let contentLength = this.getHeaderValue(result.headers, 'content-length');
-
-			if (typeof contentLength === 'number' && Number.isFinite(contentLength)) {
-				return contentLength;
-			}
-
-			if (typeof contentLength === 'string' && /^\d+$/.test(contentLength.trim())) {
-				return Number(contentLength.trim());
-			}
-
-			return null;
-		},
 		createTableDataForTarget (testType, res, targetStats, dnsTraceEnabled) {
 			let lowCaseTestName = (testType || '').toLowerCase();
 			let tableColumns = this.getTableColumns(testType, dnsTraceEnabled);
@@ -4565,11 +4552,10 @@
 			} else if (lowCaseTestName === 'http') {
 				let statusText = this.getHttpStatusText(res.result);
 				let total = res.result?.timings?.total;
-				let contentLength = this.getHttpContentLength(res.result);
 
 				sortValues['http-status'] = res.result?.statusCode;
 				sortValues.total = total;
-				sortValues['content-length'] = contentLength;
+				sortValues['content-length'] = targetStats.httpSize;
 
 				tableCells = tableColumns.map((column) => {
 					if (column.key === 'http-status') {
@@ -4584,7 +4570,7 @@
 						return this.createMetricTableCell(targetStats.ipAddr);
 					}
 
-					return this.createMetricTableCell(typeof contentLength === 'number' ? `${contentLength} B` : null);
+					return this.createMetricTableCell(targetStats.httpSizeText);
 				});
 			} else {
 				tableCells = this.createEmptyTableCells(testType, dnsTraceEnabled);
@@ -4595,7 +4581,7 @@
 				sortValues,
 			};
 		},
-		getResponseStats (res, dnsTraceEnabled) {
+		getResponseStats (res, dnsTraceEnabled, httpSizeMode) {
 			let result = res.result;
 
 			if (res.type === 'dns' && dnsTraceEnabled) {
@@ -4615,12 +4601,14 @@
 			}
 
 			if (res.type === 'http') {
-				return { httpStatus: result.statusCode ?? null };
+				let httpSize = getHttpSize(result, httpSizeMode);
+
+				return { httpStatus: result.statusCode ?? null, httpSize: httpSize.value, httpSizeText: httpSize.text };
 			}
 
 			return {};
 		},
-		prepareRegularResults (testResults) {
+		prepareRegularResults (testResults, httpSizeMode) {
 			if (!testResults || testResults.length === 0) {
 				return [];
 			}
@@ -4699,7 +4687,7 @@
 					isOffline,
 					packetsRtt,
 					extraValues,
-					...this.getResponseStats(res, dnsTraceEnabled),
+					...this.getResponseStats(res, dnsTraceEnabled, httpSizeMode),
 					packetLoss,
 					failureSource: res.result.failureSource,
 					failureRawOutput: this.getFailureProbeRawOutput(res),
