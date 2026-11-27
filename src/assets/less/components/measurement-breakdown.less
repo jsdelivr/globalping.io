@@ -61,6 +61,10 @@
 		@media (min-width: @screen-sm-min) {
 			padding: 12px 24px 20px;
 		}
+
+		&:has(.c-measurement-breakdown_target:last-child > tr:last-child .c-measurement-breakdown_range) {
+			padding-bottom: 17px;
+		}
 	}
 
 	&_header {
@@ -218,9 +222,26 @@
 	}
 
 	&_target + &_target &_target-header {
-		padding: 10px 0 6px;
-		border-top: 1px solid #e7e7ee;
-		margin: 10px 12px 0;
+		position: relative;
+		padding-top: 20px;
+
+		&:before {
+			position: absolute;
+			top: 9px;
+			right: var(--cell-inset);
+			left: var(--cell-inset);
+			height: 1px;
+			background: #e7e7ee;
+			content: "";
+		}
+	}
+
+	&_target:has(> tr:last-child .c-measurement-breakdown_range) + &_target &_target-header {
+		padding-top: 17px;
+
+		&:before {
+			top: 7px;
+		}
 	}
 
 	&_target-name {
@@ -237,7 +258,7 @@
 	}
 
 	&_location {
-		padding: 4px var(--cell-inset);
+		padding: 4px var(--cell-inset) 0;
 		scroll-snap-align: start;
 		scroll-margin-left: -1px;
 		font-size: 13px;
@@ -249,10 +270,28 @@
 			order: var(--column);
 
 			& + & {
-				margin-top: 8px;
+				margin-top: 12px;
 				padding-top: 12px;
 				border-top: 1px solid #e7e7ee;
 				border-left: 0;
+			}
+
+			.c-measurement-breakdown_target:has(> tr:last-child .c-measurement-breakdown_range) & + & {
+				margin-top: 9px;
+			}
+		}
+
+		:where(tr:first-child) > & {
+			padding-top: 10px;
+
+			@media (min-width: @screen-sm-min) {
+				padding-top: 16px;
+			}
+		}
+
+		@media (min-width: @screen-sm-min) {
+			:where(tr:first-child) > & + & {
+				border-image: linear-gradient(transparent 16px, #e7e7ee 16px) 0 0 0 1;
 			}
 		}
 
@@ -274,7 +313,7 @@
 
 	&_metric {
 		position: relative;
-		padding: 6px var(--cell-inset);
+		padding: 6px var(--cell-inset) 0;
 
 		@media (max-width: @screen-xs-max) {
 			order: var(--column);

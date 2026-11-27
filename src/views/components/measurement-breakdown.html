@@ -20,19 +20,18 @@
 				{{#each breakdown.targets as target}}
 					<tbody class="c-measurement-breakdown_target">
 						{{#if breakdown.targets.length > 1}}
-						<tr>
-							<th class="c-measurement-breakdown_target-header" colspan="{{breakdown.columns.length}}" scope="rowgroup">
-								<span class="c-measurement-breakdown_target-name">
-									<i class="fa fa-crosshairs" aria-hidden="true"></i>
-									<span>{{target.name}}</span>
-								</span>
-							</th>
-						</tr>
+							<tr>
+								<th class="c-measurement-breakdown_target-header" colspan="{{breakdown.columns.length}}" scope="rowgroup">
+									<span class="c-measurement-breakdown_target-name">
+										<i class="fa fa-crosshairs" aria-hidden="true"></i>
+										<span>{{target.name}}</span>
+									</span>
+								</th>
+							</tr>
 						{{/if}}
-						<!-- if === 1 padding-top 10px -->
 						<tr>
 							{{#each breakdown.columns as column : columnIndex}}
-								<th class="c-measurement-breakdown_location" scope="col" as-custom-properties="{ '--column': columnIndex }" style="padding-top: 10px; padding-bottom: 0px;">
+								<th class="c-measurement-breakdown_location" scope="col" as-custom-properties="{ '--column': columnIndex }">
 									<span class="c-measurement-breakdown_location_name">{{column.location}}</span>
 									<span class="c-measurement-breakdown_location_probe-count">{{column.probeCount}} {{_.pluralize('probe', column.probeCount)}}</span>
 								</th>
