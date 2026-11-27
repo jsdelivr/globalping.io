@@ -7,6 +7,7 @@
 <link rel="ractive" href="../components/controlled-textarea.html" name="c-controlled-textarea">
 <link rel="ractive" href="../components/tags-input.html" name="c-tags-input">
 <link rel="ractive" href="../components/results-controls.html" name="c-gp-results-controls">
+<link rel="ractive" href="../components/measurement-breakdown.html" name="c-measurement-breakdown">
 <link rel="ractive" href="../components/results-raw-output.html" name="c-gp-results-raw-output">
 <link rel="ractive" href="../components/results-table-output.html" name="c-gp-results-table-output">
 <link rel="ractive" href="../components/results-share.html" name="c-gp-results-share">
@@ -690,11 +691,20 @@
 						<p>{{{measurementErrMsg}}}</p>
 					</div>
 				</div>
-			{{elseif testResults && (rawOutputMode || tableOutputReady)}}
+			{{elseif testResults && (rawOutputMode || allTargetsResultsPrepared)}}
+				{{#if measurementBreakdown}}
+					<c-measurement-breakdown
+						breakdown="{{measurementBreakdown}}"
+						showMap="{{showMap}}"
+						toggleMap="{{@this.toggleMap}}">
+					</c-measurement-breakdown>
+				{{/if}}
+
 				<div class="gp_map-block_test-output">
 					<c-gp-results-controls
 						showMap="{{showMap}}"
-						originalShowMap="{{originalShowMap}}"
+						toggleMap="{{@this.toggleMap}}"
+						showMapSwitch="{{!measurementBreakdown}}"
 						targets="{{targetsArr}}"
 						activeTargetIdx="{{activeTargetIdx}}"
 						rawOutputMode="{{rawOutputMode}}"
@@ -1539,6 +1549,8 @@
 	const http = require('../../assets/js/utils/http');
 	const dataCache = require('../../assets/js/utils/data-cache');
 	const getMeasurementTitle = require('../../assets/js/utils/measurement-title');
+	const { buildMeasurementBreakdown } = require('../../assets/js/utils/measurement-breakdown');
+	const { getHttpSize, getHttpSizeLabel, getHttpSizeMode } = require('../../assets/js/utils/http-size');
 
 	const CLIENT_DEFAULT_PING_OPTS = {
 		protocol: 'ICMP',
@@ -1741,6 +1753,7 @@
 	let probesMarkers = [];
 	let probesInfoWindows = [];
 	let mapProbesClusters = [];
+	let stopKeepingMapSwitchInPlace = () => {};
 
 	component.exports = {
 		decorators: {
@@ -1820,6 +1833,7 @@
 				isInfiniteModeRes: false,
 				prevProbesMeasId: null,
 				preparedTestResults: [],
+				httpSizeMode: 'none',
 				ddHandlerSet: false,
 				showCreditsData: false,
 				rateCreditsData: null,
@@ -1898,7 +1912,7 @@
 
 				return true;
 			},
-			tableOutputReady () {
+			allTargetsResultsPrepared () {
 				let preparedTestResults = this.get('preparedTestResults') || [];
 				let expectedTargetsCnt = this.get('isInfiniteModeRes') || this.get('qsMeasurementIdsArr.length') <= 1
 					? this.get('targetsArr.length')
@@ -1906,6 +1920,21 @@
 				let actualTargetsCnt = preparedTestResults[0]?.statsPerTarget?.length || 0;
 
 				return preparedTestResults.length && (!expectedTargetsCnt || actualTargetsCnt >= expectedTargetsCnt);
+			},
+			measurementBreakdown () {
+				let responses = this.get('realTimeTestResResponse') || [];
+
+				if (this.get('isInfiniteModeRes') || !this.get('allTargetsResultsPrepared') || responses.some(response => response.status !== 'finished')) {
+					return null;
+				}
+
+				return buildMeasurementBreakdown({
+					httpSizeMode: this.get('httpSizeMode'),
+					locations: this.get('testReqParams.locations'),
+					preparedTestResults: this.get('preparedTestResults'),
+					probesMaxTiming: this.get('probesMaxTiming'),
+					testType: this.get('testReqParams.type'),
+				});
 			},
 			anyResponseBodyCollapsible () {
 				if (Ractive.isServer) {
@@ -2054,14 +2083,14 @@
 					}
 				});
 
-				this.observe('testReqParams.type testReqParams.measurementOptions.trace', () => {
+				this.observe('testReqParams.type testReqParams.measurementOptions.trace httpSizeMode', () => {
 					let testType = this.get('testReqParams.type');
 
 					if (!testType) {
 						return;
 					}
 
-					let tableColumns = this.getTableColumns(testType);
+					let tableColumns = this.getTableColumns(testType, this.isDnsTraceEnabled(), this.get('httpSizeMode'));
 					let sortByOpts = this.getSortOptionsFromTableColumns(tableColumns);
 					let sortBy = this.get('sortBy');
 
@@ -2496,17 +2525,18 @@
 					let sortOrder = this.get('sortOrder');
 					let rawOutputMode = this.get('rawOutputMode');
 					let activeTargetIdx = rawOutputMode ? this.get('activeTargetIdx') : 0;
+					let httpSizeMode = testType === 'http' ? getHttpSizeMode(testResults.flat().map(res => res.result)) : 'none';
 					let preparedTestResults;
 
 					if (testType === 'ping' && isInfiniteModeRes) {
 						preparedTestResults = this.prepareInfiniteResults(testResults);
 					} else {
-						preparedTestResults = this.prepareRegularResults(testResults);
+						preparedTestResults = this.prepareRegularResults(testResults, httpSizeMode);
 					}
 
 					preparedTestResults = _.sortGpMeasurementResults(preparedTestResults, sortBy, sortOrder, activeTargetIdx);
 
-					this.set('preparedTestResults', preparedTestResults);
+					this.set({ httpSizeMode, preparedTestResults });
 				});
 
 				// set initial screenWidth value
@@ -2735,6 +2765,7 @@
 
 			// clear all data from the previous test, close additional options menu, show spinner, set up Map's data etc.
 			this.set('testResults', null);
+			this.set('preparedTestResults', []);
 			this.set('markersData', null);
 			this.set('probesResponse', null);
 			this.set('showMeasurementOpts', false);
@@ -2753,7 +2784,6 @@
 			this.set('isTestStopped', false);
 			this.set('showCreditsData', true);
 			this.set('prevProbesMeasId', null);
-			this.set('preparedTestResults', []);
 			this.set('rateCreditsData', null);
 			this.set('probesMaxTiming', type.toLowerCase() === 'http' ? 1000 : 200);
 			this.set('_measurementOgDescription', null);
@@ -3783,6 +3813,60 @@
 					console.error('Failed to fetch probes', error);
 				});
 		},
+		toggleMap (switchEl) {
+			let showMap = !this.get('showMap');
+			let switchTop = switchEl.getBoundingClientRect().top;
+
+			stopKeepingMapSwitchInPlace();
+			this.set('originalShowMap', showMap);
+			this.set('showMap', showMap);
+
+			if (!showMap) {
+				this.keepMapSwitchInPlace(switchEl, switchTop);
+			}
+		},
+		keepMapSwitchInPlace (switchEl, switchTop) {
+			let mapWrapper = this.find('.gp_map-block_map-wrapper');
+			let controller = new AbortController();
+			let frame, timeout, mapBottom;
+
+			// The results-controls switch unmounts when a finishing measurement shows the breakdown;
+			// from then on, the map's bottom edge keeps the content below the map in place.
+			let correct = () => {
+				if (!switchEl.isConnected) {
+					window.scrollBy(0, mapWrapper.getBoundingClientRect().bottom - mapBottom);
+					return;
+				}
+
+				window.scrollBy(0, switchEl.getBoundingClientRect().top - switchTop);
+				mapBottom = mapWrapper.getBoundingClientRect().bottom;
+			};
+
+			let stop = () => {
+				cancelAnimationFrame(frame);
+				clearTimeout(timeout);
+				controller.abort();
+			};
+
+			let step = () => {
+				correct();
+				frame = requestAnimationFrame(step);
+			};
+
+			timeout = setTimeout(stop, 400);
+
+			mapWrapper.addEventListener('transitionend', (event) => {
+				if (event.target === mapWrapper && event.propertyName === 'height') {
+					correct();
+					stop();
+				}
+			}, { signal: controller.signal });
+
+			[ 'wheel', 'touchstart', 'keydown' ].forEach(type => window.addEventListener(type, stop, { passive: true, signal: controller.signal }));
+
+			stopKeepingMapSwitchInPlace = stop;
+			step();
+		},
 		scrollMapIntoView () {
 			let mapBlockEl = this.find('.gp_map-block');
 			let mobileTestDetails = this.find('.gp_map-block_test-details');
@@ -4192,14 +4276,15 @@
 				? testReqParams.measurementOptions?.trace === true
 				: this.get('dnsOpts.trace') === true;
 		},
-		getTableColumns (testType = this.get('testReqParams.type'), dnsTraceEnabled) {
+		getTableColumns (testType = this.get('testReqParams.type'), dnsTraceEnabled, httpSizeMode = 'none') {
 			let lowCaseTestName = (testType || '').toLowerCase();
 
 			if (typeof dnsTraceEnabled !== 'boolean') {
 				dnsTraceEnabled = this.isDnsTraceEnabled();
 			}
 
-			let cacheKey = `${lowCaseTestName}:${dnsTraceEnabled}`;
+			let httpSizeLabel = getHttpSizeLabel(httpSizeMode);
+			let cacheKey = `${lowCaseTestName}:${dnsTraceEnabled}:${httpSizeLabel}`;
 			let cachedColumns = TABLE_COLUMNS_CACHE.get(cacheKey);
 
 			if (cachedColumns) {
@@ -4242,7 +4327,7 @@
 			} else if (lowCaseTestName === 'http') {
 				tableColumns = [
 					{ key: 'http-status', label: 'Status', className: 'status http-status' },
-					{ key: 'content-length', label: 'Content length', className: 'content-length' },
+					{ key: 'content-length', label: httpSizeLabel, className: 'content-length' },
 					{ key: 'total', label: 'Total', className: 'total' },
 					{ key: 'ip', type: 'ip', label: 'Resolved IP', mobileLabel: 'IP', className: 'ip', sortable: false },
 				];
@@ -4395,24 +4480,6 @@
 
 			return this.hasTableValue(statusCode) ? statusCode : statusCodeName;
 		},
-		getHeaderValue (headers = {}, headerName) {
-			let headerKey = Object.keys(headers || {}).find(key => key.toLowerCase() === headerName.toLowerCase());
-
-			return headerKey ? headers[headerKey] : null;
-		},
-		getHttpContentLength (result = {}) {
-			let contentLength = this.getHeaderValue(result.headers, 'content-length');
-
-			if (typeof contentLength === 'number' && Number.isFinite(contentLength)) {
-				return contentLength;
-			}
-
-			if (typeof contentLength === 'string' && /^\d+$/.test(contentLength.trim())) {
-				return Number(contentLength.trim());
-			}
-
-			return null;
-		},
 		createTableDataForTarget (testType, res, targetStats, dnsTraceEnabled) {
 			let lowCaseTestName = (testType || '').toLowerCase();
 			let tableColumns = this.getTableColumns(testType, dnsTraceEnabled);
@@ -4517,11 +4584,10 @@
 			} else if (lowCaseTestName === 'http') {
 				let statusText = this.getHttpStatusText(res.result);
 				let total = res.result?.timings?.total;
-				let contentLength = this.getHttpContentLength(res.result);
 
 				sortValues['http-status'] = res.result?.statusCode;
 				sortValues.total = total;
-				sortValues['content-length'] = contentLength;
+				sortValues['content-length'] = targetStats.httpSize;
 
 				tableCells = tableColumns.map((column) => {
 					if (column.key === 'http-status') {
@@ -4536,7 +4602,7 @@
 						return this.createMetricTableCell(targetStats.ipAddr);
 					}
 
-					return this.createMetricTableCell(typeof contentLength === 'number' ? `${contentLength} B` : null);
+					return this.createMetricTableCell(targetStats.httpSizeText);
 				});
 			} else {
 				tableCells = this.createEmptyTableCells(testType, dnsTraceEnabled);
@@ -4547,7 +4613,34 @@
 				sortValues,
 			};
 		},
-		prepareRegularResults (testResults) {
+		getResponseStats (res, dnsTraceEnabled, httpSizeMode) {
+			let result = res.result;
+
+			if (res.type === 'dns' && dnsTraceEnabled) {
+				let lastHop = this.getLastHop(result);
+
+				return {
+					dnsStatus: null,
+					dnsAnswerCount: lastHop?.resolver ? lastHop.answers.length : null,
+				};
+			}
+
+			if (res.type === 'dns') {
+				return {
+					dnsStatus: result.statusCodeName ?? null,
+					dnsAnswerCount: result.statusCodeName ? result.answers.length : null,
+				};
+			}
+
+			if (res.type === 'http') {
+				let httpSize = getHttpSize(result, httpSizeMode);
+
+				return { httpStatus: result.statusCode ?? null, httpSize: httpSize.value, httpSizeText: httpSize.text };
+			}
+
+			return {};
+		},
+		prepareRegularResults (testResults, httpSizeMode) {
 			if (!testResults || testResults.length === 0) {
 				return [];
 			}
@@ -4585,6 +4678,7 @@
 				let isOffline = res.result.status === PROBE_STATUS_OFFLINE;
 				let minTiming = typeof stats.min === 'number' ? stats.min : PROBE_NO_TIMING_VALUE;
 				let maxTiming = typeof stats.max === 'number' ? stats.max : PROBE_NO_TIMING_VALUE;
+				let packetLoss = stats.loss ?? null;
 
 				let rawOutput = res.result.rawOutput || '';
 				let rawBody = null;
@@ -4609,6 +4703,7 @@
 					lastTiming = this.getLastHopLastTiming(res.result);
 					minTiming = typeof lastHopStats.min === 'number' ? lastHopStats.min : PROBE_NO_TIMING_VALUE;
 					maxTiming = typeof lastHopStats.max === 'number' ? lastHopStats.max : PROBE_NO_TIMING_VALUE;
+					packetLoss = lastHopStats.loss ?? null;
 				}
 
 				let targetStats = {
@@ -4624,6 +4719,8 @@
 					isOffline,
 					packetsRtt,
 					extraValues,
+					...this.getResponseStats(res, dnsTraceEnabled, httpSizeMode),
+					packetLoss,
 					failureSource: res.result.failureSource,
 					failureRawOutput: this.getFailureProbeRawOutput(res),
 					rawOutput: rawHeaders,
